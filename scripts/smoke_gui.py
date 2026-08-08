@@ -169,6 +169,15 @@ def main():
     if "Aetherit" in tab._pinned_ores or "Demonic Spear" in tab._pinned_weapons:
         failures.append("pin: unpin did not remove from pinned sets")
 
+    # --- tooltips: one per result row plus ore/weapon combos ---
+    if len(tab._tooltips) < len(tab.result_vars):
+        failures.append(f"tooltips: expected >= {len(tab.result_vars)}, got {len(tab._tooltips)}")
+    if not tab.result_labels.get("total_dps"):
+        failures.append("tooltips: total_dps result label not stored")
+    ore_tip = tab._ore_tooltip_text(0)
+    if not ore_tip or "Multiplier" not in ore_tip:
+        failures.append(f"tooltips: ore tooltip text empty ({ore_tip!r})")
+
     # --- browse tabs render with expected row counts ---
     for title, expected in BROWSE_EXPECTED.items():
         for i in range(nb.index("end")):

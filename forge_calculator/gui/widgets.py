@@ -5,8 +5,8 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 
-__all__ = ["ScrollableFrame", "SearchableCombo", "to_float", "fmt2", "fmt4",
-           "fmt_pct", "pct_fmt", "refill", "sorted_display", "STAT_LABELS"]
+__all__ = ["ScrollableFrame", "SearchableCombo", "Tooltip", "to_float", "fmt2",
+           "fmt4", "fmt_pct", "pct_fmt", "refill", "sorted_display", "STAT_LABELS"]
 
 
 def to_float(text) -> float:
@@ -281,3 +281,75 @@ class SearchableCombo(ttk.Frame):
         self.entry.delete(0, "end")
         self.entry.insert(0, value)
         self.entry.icursor("end")
+
+
+class Tooltip:
+    """Hover help: shows ``text_fn()`` in a small popup next to the cursor.
+
+    ``text_fn`` is called each time the tip is shown so it can reflect live
+    values.  Nothing is scheduled until the pointer actually enters the widget,
+    and the popup is cleaned up on leave or when the widget is destroyed.
+    """
+
+    _DELAY_MS = 350
+
+    def __init__(self, widget, text_fn):
+        self.widget = widget
+        self.text_fn = text_fn
+        self._job = None
+        self._popup = None
+        self._label = None
+        widget.bind("<Enter>", self._on_enter, add="+")
+        widget.bind("<Leave>", self._on_leave, add="+")
+        widget.bind("<Destroy>", self._on_destroy, add="+")
+
+    def _on_enter(self, event):
+        self._cancel()
+        self._job = self.widget.after(self._DELAY_MS, lambda: self._show(event))
+
+    def _on_leave(self, _event):
+        self._hide()
+
+    def _on_destroy(self, _event):
+        self._cancel()
+        self._hide()
+
+    def _cancel(self):
+        if self._job is not None:
+            try:
+                self.widget.after_cancel(self._job)
+            except tk.TclError:
+                pass
+            self._job = None
+
+    def _show(self, event):
+        self._job = None
+        text = self.text_fn()
+        if not text:
+            return
+        if self._popup is None or not self._popup.winfo_exists():
+            self._popup = tk.Toplevel(self.widget)
+            self._popup.withdraw()
+            self._popup.overrideredirect(True)
+            self._label = ttk.Label(self._popup, text="", background="#ffffe0",
+                                    foreground="#1a1a1a", relief="solid", borderwidth=1,
+                                    padding=(6, 3), wraplength=360, justify="left")
+            self._label.pack()
+        self._label.configure(text=text)
+        self._popup.update_idletasks()
+        x = event.x_root + 12
+        y = event.y_root + 12
+        width = self._popup.winfo_reqwidth()
+        height = self._popup.winfo_reqheight()
+        if x + width > self.widget.winfo_screenwidth():
+            x = event.x_root - width - 8
+        if y + height > self.widget.winfo_screenheight():
+            y = event.y_root - height - 8
+        self._popup.geometry(f"+{x}+{y}")
+        self._popup.deiconify()
+        self._popup.lift()
+
+    def _hide(self):
+        self._cancel()
+        if self._popup is not None and self._popup.winfo_exists():
+            self._popup.withdraw()

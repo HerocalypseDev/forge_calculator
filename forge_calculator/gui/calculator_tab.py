@@ -13,12 +13,42 @@ from tkinter import ttk
 
 from ..data import GameData
 from ..engine import Abilities, Build, OreSlot, calculate
-from .widgets import ScrollableFrame, SearchableCombo, fmt2, fmt4, fmt_pct, sorted_display, to_float
+from .widgets import (
+    ScrollableFrame, SearchableCombo, Tooltip, STAT_LABELS,
+    fmt2, fmt4, fmt_pct, sorted_display, to_float,
+)
 
 __all__ = ["CalculatorTab"]
 
 _WEAPON_ALL = "(All Types)"
 _DECIMAL_HINT = "Percent inputs are decimals: 0.30 = 30%"
+
+# Short formula summaries shown when hovering a result row.
+_RESULT_HELP = {
+    "avg_power": "E10 = weighted average of ore multipliers",
+    "unforged_damage": "A18 = weapon damage × ore power (no forge)",
+    "forged_damage": "C18 = weapon damage × ore power × forge mult × (1 + quality/100)",
+    "interval": "C19 = weapon swing interval (seconds)",
+    "attack_rate": "E21 = (1 + atk speed) ÷ interval",
+    "lethality": "E44 = ores + runes + race/class + armor + base, capped at 150%",
+    "crit_chance": "E45 = ores + runes + armor + base, capped at 100%",
+    "crit_dmg": "E46 = ores + runes + armor + base, capped at 100%",
+    "atk_speed": "E47 = ores + runes + race/class, capped at 150%",
+    "crit_blend": "min(CC, 1) × CD + (1 − min(CC, 1))",
+    "weapon_dps": "C84 = C18 × (1 + lethality) × crit blend × attack rate",
+    "explosion_dps": "C85 = A18 × explosion dmg × explosion chance × attack rate",
+    "fire_dps": "C86 = A18 × fire dmg × min(1, chance × rate × min(duration, 5))",
+    "poison_dps": "C87 = A18 × poison dmg × min(1, chance × rate × min(duration, 5))",
+    "smite_dps": "C88 = A18 × smite dmg × min(chance, 1) × attack rate",
+    "blackhole_dps": "C89 = A18 × black hole dmg × black hole chance × attack rate",
+    "total_dps": "C91 = sum of weapon DPS and all procs",
+    "ttk_25k": "E91 = 25,000 ÷ total DPS (∞ if 0)",
+    "ttk_75k": "E92 = 75,000 ÷ total DPS (∞ if 0)",
+    "berserk": "C92 = procs + C18 × (1 + min(berserk, 1.5)) × blend × rate (N/A if none)",
+    "moonstone": "C93 = total × (1 + moonstone) (N/A if none)",
+    "min_dps": "C95 = C18 × (1 + lethality) × attack rate",
+    "max_dps": "C96 = max-burst burst; procs use forged C18 (workbook quirk)",
+}
 
 
 class CalculatorTab(ttk.Frame):
@@ -29,6 +59,8 @@ class CalculatorTab(ttk.Frame):
         self._pending = False
         self.on_change = None  # set by MainWindow; called on input edits
         self.result_vars: dict[str, tk.StringVar] = {}
+        self.result_labels: dict[str, ttk.Label] = {}
+        self._tooltips: list[Tooltip] = []
         self._pinned_ores: list[str] = []
         self._pinned_weapons: list[str] = []
         self._build_widgets()
@@ -105,6 +137,7 @@ class CalculatorTab(ttk.Frame):
             self.amount_vars.append(amount_var)
             combo = SearchableCombo(parent, values=self._ore_values(), textvariable=ore_var, width=24)
             self.ore_combos.append(combo)
+            self._attach_tooltip(combo.entry, lambda row=row: self._ore_tooltip_text(row))
             spin = ttk.Spinbox(parent, from_=0, to=999, increment=1, textvariable=amount_var, width=6)
             pin = ttk.Button(parent, text="☆", width=3,
                              command=lambda r=row: self._toggle_ore_pin(r))
@@ -127,6 +160,7 @@ class CalculatorTab(ttk.Frame):
         type_combo["values"] = [_WEAPON_ALL] + sorted(self.game.weapon_types, key=str.lower)
         self.weapon_combo = SearchableCombo(parent, values=self._weapon_values(),
                                             textvariable=self.weapon_var, width=24)
+        self._attach_tooltip(self.weapon_combo.entry, self._weapon_tooltip_text)
         self.weapon_pin = ttk.Button(parent, text="☆", width=3, command=self._toggle_weapon_pin)
         self.weapon_var.set(self.game.weapons[0].name)
         quality_spin = ttk.Spinbox(parent, from_=0, to=500, increment=5, textvariable=self.quality_var, width=8)
@@ -262,7 +296,10 @@ class CalculatorTab(ttk.Frame):
             var = tk.StringVar(master=self.root, value="")
             self.result_vars[key] = var
             ttk.Label(parent, text=label).grid(row=row, column=0, sticky="e", padx=8, pady=1)
-            ttk.Label(parent, textvariable=var).grid(row=row, column=1, sticky="w", padx=8, pady=1)
+            value_label = ttk.Label(parent, textvariable=var)
+            value_label.grid(row=row, column=1, sticky="w", padx=8, pady=1)
+            self.result_labels[key] = value_label
+            self._attach_tooltip(value_label, lambda k=key: _RESULT_HELP[k])
 
         rows = [
             ("Avg Ore Power (E10)", "avg_power", fmt2),
@@ -410,6 +447,35 @@ class CalculatorTab(ttk.Frame):
         self._refresh_weapon_pin()
         if self.on_change is not None:
             self.on_change()
+
+    # --- tooltips ---
+
+    def _attach_tooltip(self, widget, text_fn):
+        self._tooltips.append(Tooltip(widget, text_fn))
+
+    def _ore_tooltip_text(self, row):
+        ore = self.game.ore(self.ore_vars[row].get())
+        if ore is None:
+            return ""
+        lines = [ore.name, f"Equipment: {ore.equipment or '—'}",
+                 f"Multiplier: {ore.multiplier:g}"]
+        if ore.trait10:
+            lines.append(f"@10%: {ore.trait10}")
+        if ore.trait30:
+            lines.append(f"@30%: {ore.trait30}")
+        for key, r in ore.stats.items():
+            unit = "%" if r.divisor == 100 else "s"
+            lines.append(f"{STAT_LABELS.get(key, key)}: {r.base:g} → {r.max:g} {unit}")
+        if ore.comments:
+            lines.append(ore.comments)
+        return "\n".join(lines)
+
+    def _weapon_tooltip_text(self):
+        weapon = self.game.weapon(self.weapon_var.get())
+        if weapon is None:
+            return ""
+        return f"{weapon.name}\nType: {weapon.type}\n" \
+               f"Interval: {weapon.interval:g}s\nDamage: {weapon.damage:g}"
 
     # --- persistence ---
 
