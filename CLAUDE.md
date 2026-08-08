@@ -16,6 +16,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `reference/all_formulas.txt` and `reference/all_formulas_reference (1).txt` — the same formulas in two formats; use the reference file (row order, per-sheet) when porting
 - Never hand-type a number that the workbook computes. Stat matrices are derived from formula strings; constants are guarded by `tests/test_golden.py::test_engine_constants_match_source`.
 
+### Dynamic Plan Tracking & Memory
+- **Plan Storage:** Whenever a new development plan or roadmap is created while in **Plan Mode**, you must automatically add a summary of that plan directly into the `CLAUDE.md` file under a dedicated tracking section.
+- **Progress Updates:** Whenever a specific part, task, or phase of the active plan is completed, committed, and pushed to GitHub, you must immediately update `CLAUDE.md` to mark, check off, or cross out that completed phase so the project memory stays completely up to date.
+
 ## Project overview
 
 `forge_calculator` is a Python/Tkinter desktop app that reproduces "LittleTimmy's DPS Calculator", an Excel workbook computing DPS for a game's forge/weapon system. The engine, data, and GUI are complete:
@@ -62,3 +66,18 @@ python -m scripts.build_data "<xlsx>" # regenerate data/*.json
 ```
 
 No linter or formatter is configured.
+
+## Development Plan Tracking
+
+### UX Polish Plan (Phases 1–5) — COMPLETED ✅
+**Goal:** Transform barebones input UX (readonly Comboboxes) into a polished desktop app with search, persistence, favorites, tooltips, and responsiveness.
+
+| Phase | Feature | Status | Commit |
+|-------|---------|--------|--------|
+| 1 | **SearchableCombo** — search-as-you-type dropdown with keyboard nav (Up/Down/Enter/Esc); applied to 12 calculator combos; browse-tab filters with Esc-to-clear | ✅ Done | c38e6be |
+| 2 | **State Persistence** — `settings.py` (stdlib JSON), `MainWindow.capture_state/restore_state`, app startup restore + `WM_DELETE_WINDOW` save; 75 tests incl. `test_settings.py` | ✅ Done | c38e6be |
+| 3 | **Favorites / Quick-Pins** — ★/☆ toggle on 4 ore slots + weapon; pinned items sort to top of combo via `set_values()`; persisted in state | ✅ Done | c38e6be |
+| 4 | **Tooltips** — `Tooltip` class (350ms hover); result rows show formula summaries; ore/weapon combos show live stat detail | ✅ Done | 11464c1 |
+| 5 | **Responsiveness & Polish** — status bar (Total DPS + active tab), invalid-input red highlighting, Reset/Copy buttons, results grouped under Core/Stats/DPS/Time headers | ✅ Done | ade84eb |
+
+**Verification:** `pytest tests/` (75 passed), `scripts/smoke_gui.py` (SMOKE OK), manual run at 900×620 and maximized.
