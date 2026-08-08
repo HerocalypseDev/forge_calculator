@@ -6,7 +6,8 @@ import tkinter as tk
 from tkinter import ttk
 
 __all__ = ["ScrollableFrame", "SearchableCombo", "Tooltip", "to_float", "fmt2",
-           "fmt4", "fmt_pct", "pct_fmt", "refill", "sorted_display", "STAT_LABELS"]
+           "fmt4", "fmt_pct", "pct_fmt", "refill", "add_tree_scrollbars",
+           "sorted_display", "STAT_LABELS"]
 
 
 def to_float(text) -> float:
@@ -58,6 +59,16 @@ def refill(tree, rows):
     tree.delete(*tree.get_children())
     for i, row in enumerate(rows):
         tree.insert("", "end", iid=str(i), values=row)
+
+
+def add_tree_scrollbars(frame, tree):
+    """Pack ``tree`` into ``frame`` with vertical and horizontal scrollbars."""
+    vbar = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+    hbar = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+    tree.configure(yscrollcommand=vbar.set, xscrollcommand=hbar.set)
+    tree.pack(side="left", fill="both", expand=True, padx=(4, 0), pady=(4, 0))
+    vbar.pack(side="right", fill="y", pady=(4, 0))
+    hbar.pack(side="bottom", fill="x", padx=(4, 0), pady=(0, 4))
 
 
 # Canonical ore-stat keys -> display labels (mirrors STAT_CELLS in the

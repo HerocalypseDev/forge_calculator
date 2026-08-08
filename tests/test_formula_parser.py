@@ -93,19 +93,19 @@ def _matrix_as_tuples(matrix):
 
 
 def test_expected_matrix_from_all_formulas_txt():
-    formulas = load_formulas_from_txt(ROOT / "all_formulas.txt")
+    formulas = load_formulas_from_txt(ROOT / "reference" / "all_formulas.txt")
     matrix = parse_stat_matrix(formulas)
     assert _matrix_as_tuples(matrix) == EXPECTED
 
 
 def test_matrix_has_exactly_the_known_ore_set():
-    formulas = load_formulas_from_txt(ROOT / "all_formulas.txt")
+    formulas = load_formulas_from_txt(ROOT / "reference" / "all_formulas.txt")
     matrix = parse_stat_matrix(formulas)
     assert set(matrix) == set(EXPECTED)
 
 
 def test_all_stat_cells_are_present_in_the_dump():
-    formulas = load_formulas_from_txt(ROOT / "all_formulas.txt")
+    formulas = load_formulas_from_txt(ROOT / "reference" / "all_formulas.txt")
     missing = [cell for cell in STAT_CELLS if cell not in formulas]
     assert missing == []
 

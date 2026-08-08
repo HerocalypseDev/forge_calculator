@@ -20,7 +20,7 @@ from forge_calculator.engine import (
 )
 
 ROOT = DEFAULT_DATA_DIR.parent
-WORKBOOK = ROOT / "Copy of Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx"
+WORKBOOK = ROOT / "reference" / "Copy of Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx"
 
 
 @pytest.fixture(scope="module")
@@ -201,7 +201,7 @@ def test_minotaur_berserk(game):
 
 
 def _load_formulas():
-    return load_formulas_from_txt(ROOT / "all_formulas.txt")
+    return load_formulas_from_txt(ROOT / "reference" / "all_formulas.txt")
 
 
 def _guard(formulas, cell, fragment, label):

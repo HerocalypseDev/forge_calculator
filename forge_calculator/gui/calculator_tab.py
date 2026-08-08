@@ -12,7 +12,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..data import GameData
-from ..engine import Abilities, Build, OreSlot, calculate
+from ..engine import Abilities, Build, CAPS, OreSlot, calculate
 from .widgets import (
     ScrollableFrame, SearchableCombo, Tooltip, STAT_LABELS,
     fmt2, fmt4, fmt_pct, sorted_display, to_float,

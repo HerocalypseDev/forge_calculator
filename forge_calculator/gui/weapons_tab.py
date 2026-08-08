@@ -10,7 +10,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..data import GameData
-from .widgets import refill, sorted_display
+from .widgets import add_tree_scrollbars, refill, sorted_display
 
 __all__ = ["WeaponsTab"]
 
@@ -48,10 +48,7 @@ class WeaponsTab(ttk.Frame):
             ("interval", "Interval", 80, "e"), ("damage", "Damage", 80, "e")]:
             self.tree.heading(col, text=head)
             self.tree.column(col, width=width, anchor=anchor)
-        scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scroll.set)
-        self.tree.pack(side="left", fill="both", expand=True, padx=(4, 0), pady=4)
-        scroll.pack(side="right", fill="y", pady=4)
+        add_tree_scrollbars(frame, self.tree)
 
         self._refill()
 

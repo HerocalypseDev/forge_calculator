@@ -12,8 +12,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Zero invented mechanics (hard requirement)
 - Every formula, stat, and rule is ported **verbatim** from the three sources:
-  - `Copy of Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx` — authoritative workbook (openpyxl, build-time only)
-  - `all_formulas.txt` and `all_formulas_reference (1).txt` — the same formulas in two formats; use the reference file (row order, per-sheet) when porting
+  - `reference/Copy of Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx` — authoritative workbook (openpyxl, build-time only)
+  - `reference/all_formulas.txt` and `reference/all_formulas_reference (1).txt` — the same formulas in two formats; use the reference file (row order, per-sheet) when porting
 - Never hand-type a number that the workbook computes. Stat matrices are derived from formula strings; constants are guarded by `tests/test_golden.py::test_engine_constants_match_source`.
 
 ## Project overview

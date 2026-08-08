@@ -12,7 +12,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..data import GameData, Ore
-from .widgets import STAT_LABELS, refill, sorted_display
+from .widgets import STAT_LABELS, add_tree_scrollbars, refill, sorted_display
 
 __all__ = ["OresTab"]
 
@@ -57,10 +57,7 @@ class OresTab(ttk.Frame):
         self.tree.column("name", width=160)
         self.tree.column("multiplier", width=80, anchor="e")
         self.tree.column("trait30", width=240)
-        scroll = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scroll.set)
-        self.tree.pack(side="left", fill="both", expand=True, padx=(4, 0), pady=4)
-        scroll.pack(side="right", fill="y", pady=4)
+        add_tree_scrollbars(frame, self.tree)
         self.tree.bind("<<TreeviewSelect>>", self._on_select)
 
     def _build_detail(self, parent):

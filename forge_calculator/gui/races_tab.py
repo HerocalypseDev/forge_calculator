@@ -10,7 +10,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..data import GameData, Race
-from .widgets import refill, sorted_display
+from .widgets import add_tree_scrollbars, refill, sorted_display
 
 __all__ = ["RacesTab"]
 
@@ -43,10 +43,7 @@ class RacesTab(ttk.Frame):
         for col, head, width in [("name", "Race", 160), ("default", "Default Trait", 260)]:
             self.tree.heading(col, text=head)
             self.tree.column(col, width=width, anchor="w")
-        scroll = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scroll.set)
-        self.tree.pack(side="left", fill="both", expand=True, padx=(4, 0), pady=4)
-        scroll.pack(side="right", fill="y", pady=4)
+        add_tree_scrollbars(tree_frame, self.tree)
         self.tree.bind("<<TreeviewSelect>>", self._on_select)
 
         avail = ttk.LabelFrame(panes, text="Available traits")
