@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Permanent rules
+
+### Automated GitHub sync
+- **Core directive:** Always execute this workflow automatically. Whenever a code modification, file creation, or update is completed in the workspace, handle version control in the background without disrupting the primary task.
+- **Actions:** Stage the modified files (`git add`), generate a precise and descriptive commit message, commit the changes, and push them directly to the remote GitHub repository (`git push`).
+- **Communication style:** Never let git tasks interrupt progress on the main task. Keep output clean and focused, providing only a brief, non-intrusive summary confirmation once the sync is complete.
+
 ## Project overview
 
 `forge_calculator` is a Python reimplementation of "LittleTimmy's DPS Calculator", an Excel spreadsheet that computes DPS (damage per second) for a game's forge/weapon system. The Python package is currently an empty scaffold; the real content lives in the spreadsheet and the two extracted-formula text files.
