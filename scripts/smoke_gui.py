@@ -147,6 +147,28 @@ def main():
     if persisted.get("tab") != 0:
         failures.append(f"state persist: tab not saved ({persisted.get('tab')!r})")
 
+    # --- favorites: pin/unpin moves items to the top of the list ---
+    tab._pinned_ores.clear()
+    tab._pinned_weapons.clear()
+    tab.ore_vars[0].set("Aetherit")
+    tab._toggle_ore_pin(0)
+    root.update_idletasks()
+    ore_values = list(tab.ore_combos[0]._choices)
+    if not ore_values or ore_values[0] != "Select Ore" or "Aetherit" not in ore_values[:3]:
+        failures.append(f"pin: Aetherit not near top of ore values {ore_values[:5]!r}")
+    tab._toggle_weapon_pin()
+    root.update_idletasks()
+    weapon_values = list(tab.weapon_combo._choices)
+    if not weapon_values or weapon_values[0] != "Demonic Spear":
+        failures.append(f"pin: Demonic Spear not at top of weapon values {weapon_values[:3]!r}")
+    if "Aetherit" not in tab._pinned_ores or "Demonic Spear" not in tab._pinned_weapons:
+        failures.append("pin: pinned sets not updated")
+    tab._toggle_ore_pin(0)
+    tab._toggle_weapon_pin()
+    root.update_idletasks()
+    if "Aetherit" in tab._pinned_ores or "Demonic Spear" in tab._pinned_weapons:
+        failures.append("pin: unpin did not remove from pinned sets")
+
     # --- browse tabs render with expected row counts ---
     for title, expected in BROWSE_EXPECTED.items():
         for i in range(nb.index("end")):

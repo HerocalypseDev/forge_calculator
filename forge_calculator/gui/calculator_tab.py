@@ -29,6 +29,8 @@ class CalculatorTab(ttk.Frame):
         self._pending = False
         self.on_change = None  # set by MainWindow; called on input edits
         self.result_vars: dict[str, tk.StringVar] = {}
+        self._pinned_ores: list[str] = []
+        self._pinned_weapons: list[str] = []
         self._build_widgets()
         self._recompute()
 
@@ -42,6 +44,8 @@ class CalculatorTab(ttk.Frame):
             return
         self._pending = True
         self.root.after_idle(self._recompute)
+        self._refresh_ore_pins()
+        self._refresh_weapon_pin()
         if self.on_change is not None:
             self.on_change()
 
@@ -93,18 +97,22 @@ class CalculatorTab(ttk.Frame):
         self.ore_vars = []
         self.amount_vars = []
         self.ore_combos = []
-        ore_values = [self.game.select_ore] + [o.name for o in sorted_display(self.game.ores)]
+        self.ore_pins = []
         for row in range(4):
             ore_var = tk.StringVar(master=self.root, value=self.game.select_ore)
             amount_var = tk.StringVar(master=self.root, value="0")
             self.ore_vars.append(ore_var)
             self.amount_vars.append(amount_var)
-            combo = SearchableCombo(parent, values=ore_values, textvariable=ore_var, width=24)
+            combo = SearchableCombo(parent, values=self._ore_values(), textvariable=ore_var, width=24)
             self.ore_combos.append(combo)
             spin = ttk.Spinbox(parent, from_=0, to=999, increment=1, textvariable=amount_var, width=6)
+            pin = ttk.Button(parent, text="☆", width=3,
+                             command=lambda r=row: self._toggle_ore_pin(r))
+            self.ore_pins.append(pin)
             ttk.Label(parent, text=f"Slot {row + 1}").grid(row=row, column=0, sticky="w", padx=8, pady=2)
             combo.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
             spin.grid(row=row, column=2, sticky="w", padx=4, pady=2)
+            pin.grid(row=row, column=3, sticky="w", padx=4, pady=2)
             self._watch(ore_var)
             self._watch(amount_var)
 
@@ -117,9 +125,9 @@ class CalculatorTab(ttk.Frame):
 
         type_combo = ttk.Combobox(parent, textvariable=self.type_var, state="readonly", width=24)
         type_combo["values"] = [_WEAPON_ALL] + sorted(self.game.weapon_types, key=str.lower)
-        self.weapon_combo = SearchableCombo(
-            parent, values=[w.name for w in sorted_display(self.game.weapons)],
-            textvariable=self.weapon_var, width=24)
+        self.weapon_combo = SearchableCombo(parent, values=self._weapon_values(),
+                                            textvariable=self.weapon_var, width=24)
+        self.weapon_pin = ttk.Button(parent, text="☆", width=3, command=self._toggle_weapon_pin)
         self.weapon_var.set(self.game.weapons[0].name)
         quality_spin = ttk.Spinbox(parent, from_=0, to=500, increment=5, textvariable=self.quality_var, width=8)
         forge_combo = ttk.Combobox(parent, textvariable=self.forge_var, state="readonly", width=8)
@@ -129,6 +137,7 @@ class CalculatorTab(ttk.Frame):
         type_combo.grid(row=0, column=1, sticky="ew", padx=4, pady=2)
         ttk.Label(parent, text="Weapon").grid(row=1, column=0, sticky="e", padx=8, pady=2)
         self.weapon_combo.grid(row=1, column=1, sticky="ew", padx=4, pady=2)
+        self.weapon_pin.grid(row=1, column=2, sticky="w", padx=4, pady=2)
         ttk.Label(parent, text="Quality (E12)").grid(row=2, column=0, sticky="e", padx=8, pady=2)
         quality_spin.grid(row=2, column=1, sticky="w", padx=4, pady=2)
         ttk.Label(parent, text="Forge level (C13)").grid(row=3, column=0, sticky="e", padx=8, pady=2)
@@ -339,10 +348,68 @@ class CalculatorTab(ttk.Frame):
     def _on_weapon_type_change(self, *_args):
         wtype = self.type_var.get()
         if wtype in (None, "", _WEAPON_ALL):
-            names = [w.name for w in sorted_display(self.game.weapons)]
+            names = [w.name for w in self.game.weapons]
         else:
-            names = [w.name for w in sorted_display(self.game.weapons_by_type(wtype))]
-        self.weapon_combo.set_values(names)
+            names = [w.name for w in self.game.weapons_by_type(wtype)]
+        self.weapon_combo.set_values(self._order_names(names, self._pinned_weapons))
+
+    # --- favorites / quick-pins ---
+
+    @staticmethod
+    def _order_names(names, pinned):
+        pinned_ok = [n for n in sorted(pinned, key=str.lower) if n in names]
+        rest = sorted((n for n in names if n not in pinned_ok), key=str.lower)
+        return pinned_ok + rest
+
+    def _ore_values(self):
+        names = [o.name for o in self.game.ores]
+        return [self.game.select_ore] + self._order_names(names, self._pinned_ores)
+
+    def _weapon_values(self):
+        return self._order_names([w.name for w in self.game.weapons], self._pinned_weapons)
+
+    def _refresh_ore_values(self):
+        values = self._ore_values()
+        for combo in self.ore_combos:
+            combo.set_values(values)
+
+    def _refresh_weapon_values(self):
+        self._on_weapon_type_change()
+
+    def _refresh_ore_pins(self):
+        for i, pin in enumerate(self.ore_pins):
+            name = self.ore_vars[i].get()
+            pin.configure(text="★" if name in self._pinned_ores else "☆")
+
+    def _refresh_weapon_pin(self):
+        name = self.weapon_var.get()
+        self.weapon_pin.configure(text="★" if name in self._pinned_weapons else "☆")
+
+    def _toggle_ore_pin(self, row):
+        name = self.ore_vars[row].get()
+        if name in (None, "", self.game.select_ore):
+            return
+        if name in self._pinned_ores:
+            self._pinned_ores.remove(name)
+        else:
+            self._pinned_ores.append(name)
+        self._refresh_ore_values()
+        self._refresh_ore_pins()
+        if self.on_change is not None:
+            self.on_change()
+
+    def _toggle_weapon_pin(self):
+        name = self.weapon_var.get()
+        if name in (None, ""):
+            return
+        if name in self._pinned_weapons:
+            self._pinned_weapons.remove(name)
+        else:
+            self._pinned_weapons.append(name)
+        self._refresh_weapon_values()
+        self._refresh_weapon_pin()
+        if self.on_change is not None:
+            self.on_change()
 
     # --- persistence ---
 
@@ -365,10 +432,22 @@ class CalculatorTab(ttk.Frame):
             "runes": [v.get() for v in self.rune_vars],
             "abilities": {k: v.get() for k, v in self.ability_vars.items()},
             "achievement": self.achievement_var.get(),
+            "favorites": {"ores": list(self._pinned_ores), "weapons": list(self._pinned_weapons)},
         }
 
     def set_state(self, state: dict) -> None:
         state = state or {}
+
+        favorites = state.get("favorites")
+        if isinstance(favorites, dict):
+            pinned_ores = favorites.get("ores")
+            if isinstance(pinned_ores, list):
+                self._pinned_ores = [n for n in pinned_ores
+                                     if isinstance(n, str) and self.game.ore(n) is not None]
+            pinned_weapons = favorites.get("weapons")
+            if isinstance(pinned_weapons, list):
+                self._pinned_weapons = [n for n in pinned_weapons
+                                        if isinstance(n, str) and self.game.weapon(n) is not None]
 
         valid_ores = {o.name for o in self.game.ores} | {self.game.select_ore}
         ores = state.get("ores")
@@ -435,3 +514,8 @@ class CalculatorTab(ttk.Frame):
         achievement = state.get("achievement")
         if isinstance(achievement, str) and achievement in {a.name for a in self.game.achievements}:
             self.achievement_var.set(achievement)
+
+        self._refresh_ore_values()
+        self._refresh_weapon_values()
+        self._refresh_ore_pins()
+        self._refresh_weapon_pin()
