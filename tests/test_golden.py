@@ -28,9 +28,7 @@ def game():
     return load_game_data(DEFAULT_DATA_DIR)
 
 
-# --------------------------------------------------------------------------
-# workbook-cached golden (dev-only cross-check)
-# --------------------------------------------------------------------------
+# --- workbook-cached golden (dev-only cross-check) ---
 
 
 def _workbook_cache():
@@ -111,9 +109,7 @@ def test_workbook_cached_golden(game):
     assert (r.moonstone is None) == (c("C93") == "N/A")
 
 
-# --------------------------------------------------------------------------
-# hand-computed single-ore cases
-# --------------------------------------------------------------------------
+# --- hand-computed single-ore cases ---
 
 
 def test_wolfarite_single_slot(game):
@@ -201,9 +197,7 @@ def test_minotaur_berserk(game):
     assert calculate(plain, game).berserk is None
 
 
-# --------------------------------------------------------------------------
-# engine-vs-source guard: every hardcoded constant must appear in the formulas
-# --------------------------------------------------------------------------
+# --- engine-vs-source guard: every hardcoded constant must appear in the formulas ---
 
 
 def _load_formulas():

@@ -21,7 +21,6 @@ def test_achievement_vocabulary_damage_boost_feeds_lethality():
 
 def test_parse_trait_rejects_none_and_empty():
     assert parse_trait("None") is None
-    assert parse_trait("None") is None
     assert parse_trait("") is None
     assert parse_trait("  ") is None
     assert parse_trait(None) is None

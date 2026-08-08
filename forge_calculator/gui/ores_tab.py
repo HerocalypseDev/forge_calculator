@@ -45,8 +45,6 @@ class OresTab(ttk.Frame):
 
         self._refill()
 
-    # ------------------------------------------------------------------
-
     def _build_tree(self, parent):
         frame = ttk.LabelFrame(parent, text=f"Ores ({len(self.game.ores)})")
         frame.grid(row=0, column=0, sticky="nsew", padx=(0, 4), pady=4)
@@ -90,8 +88,6 @@ class OresTab(ttk.Frame):
         self.stat_tree.configure(yscrollcommand=sscroll.set)
         self.stat_tree.pack(side="left", fill="both", expand=True)
         sscroll.pack(side="right", fill="y")
-
-    # ------------------------------------------------------------------
 
     def _refill(self):
         needle = self.filter_var.get().strip().lower()

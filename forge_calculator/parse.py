@@ -1,18 +1,10 @@
-"""Text parsers for trait / rune / achievement / ore-power strings.
+"""Substring parsers for trait / rune / achievement / ore-power strings.
 
-These mirror the exact substring-matching behavior of the workbook formulas
-(A27-A31, E44-E47, E6-E9):
-
-* ``SEARCH("Lethality", cell)`` -> match the literal substring (case-insensitive).
-* ``VALUE(MID(cell, FIND("+")+1, LEN(cell)-FIND("+")-1))/100`` -> take
-  everything after the first ``+``, drop exactly ONE trailing character (the
-  ``%``), parse as a number, divide by 100.
-
-The two vocabularies are preserved:
-* rune slots parse ``Lethality`` / ``Crit Chance`` / ``Crit DMG`` / ``Atk Speed``
-  (formulas A27-A31);
-* the achievement selector parses ``Damage Boost`` / ``Crit Chance`` /
-  ``Attack Speed`` (formulas E44/E45/E47).  ``Damage Boost`` feeds Lethality.
+Mirrors the workbook formulas (A27-A31, E44-E47, E6-E9): case-insensitive
+substring match, then everything after the first ``+`` with one trailing
+character dropped and divided by 100.  Rune slots match Lethality / Crit
+Chance / Crit DMG / Atk Speed; the achievement selector matches Damage Boost /
+Crit Chance / Attack Speed, where Damage Boost feeds lethality.
 """
 
 from __future__ import annotations
@@ -35,10 +27,10 @@ STAT_KEYS = [k for k, _ in _STAT_PATTERNS]
 
 
 def _extract_value(text: str):
-    """Extract the number after the first ``+``, dropping one trailing char.
+    """Number after the first ``+``, minus one trailing char (the ``%``).
 
-    Mirrors ``VALUE(MID(cell, FIND("+")+1, LEN(cell)-FIND("+")-1))``.
-    Returns the raw number (pre-``/100``) or ``None``.
+    Mirrors ``VALUE(MID(cell, FIND("+")+1, LEN(cell)-FIND("+")-1))`` and
+    returns the raw number (pre-``/100``), or ``None``.
     """
     idx = text.find("+")
     if idx < 0:
@@ -54,11 +46,7 @@ def _extract_value(text: str):
 
 
 def parse_trait(text: str):
-    """Parse a trait string like ``"Crit Chance +14%"``.
-
-    Returns ``(stat, decimal_value)`` e.g. ``("crit_chance", 0.14)``, or
-    ``None`` when the text contains no recognized stat (e.g. ``"None"``).
-    """
+    """``"Crit Chance +14%"`` -> ``("crit_chance", 0.14)``, else ``None``."""
     if not text:
         return None
     stripped = text.strip()
@@ -75,11 +63,7 @@ def parse_trait(text: str):
 
 
 def parse_ore_power(text):
-    """Parse an ore multiplier string like ``"2.33x"`` -> ``2.33``.
-
-    Mirrors ``IFERROR(VALUE(SUBSTITUTE(VLOOKUP(...), "x", "")), 1)``:
-    strips the ``x`` and converts to float; falls back to 1.0 on error.
-    """
+    """``"2.33x"`` -> ``2.33`` (``IFERROR(VALUE(SUBSTITUTE(...,"x","")), 1)``)."""
     if text is None:
         return 1.0
     cleaned = str(text).strip().lower().replace("x", "")

@@ -1,4 +1,4 @@
-"""Shared ttk helpers (no engine/data imports)."""
+"""Shared ttk helpers."""
 
 from __future__ import annotations
 

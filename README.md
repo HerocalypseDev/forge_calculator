@@ -1,65 +1,58 @@
-# Forge Calculator
+# forge_calculator
 
-A faithful desktop port of **LittleTimmy's DPS Calculator** — a Minecraft-style
-forge/weapon build optimizer. Every formula, stat, and rule is ported verbatim
-from the source workbook; **no mechanics are invented**.
+A desktop port of **LittleTimmy's DPS Calculator**, the Excel workbook that
+computes DPS for a Minecraft-style forge/weapon build system. The engine is a
+cell-for-cell port of the workbook's formulas — every number the app shows
+comes from the spreadsheet, not re-created from scratch.
 
-## Features
+It's a Tkinter app with one interactive tab and a few browse-only ones:
 
-- **Interactive DPS Calculator** tab: 4 ore slots, weapon (all 79, grouped by
-  type), quality & forge level, race/class bonus, 6 rune slots, base/armor
-  crit stats, ability inputs, berserk, and the achievement bonus selector.
-  Every result recomputes live as you type (the same numbers the workbook
-  produces, to full precision).
-- **Browse-only data tabs**: Ores (140, with per-ore share-scaling stat
-  matrix), Races (16), Weapons (79 / 10 types), Achievements (16), Runes (47).
-- **Zero runtime dependencies**: the app reads committed `data/*.json`; the
-  workbook and `openpyxl` are never needed at runtime.
+- **Calculator** — set your ore slots, weapon, quality/forge level, race,
+  runes, and the rest; every result cell updates live as you type.
+- **Ores / Races / Weapons / Achievements / Runes** — the full data sets
+  (140 ores, 16 races, 79 weapons, 16 achievements, 47 runes), read-only.
 
-## Run
+Game data lives in `data/*.json`, committed alongside the code, so the app
+runs on the Python standard library alone — no pip install, no workbook.
+
+## Running
 
 ```bash
 python -m forge_calculator
 ```
 
-(stdlib-only: tkinter ships with Python. A display is required.)
+Needs Python 3.10+ and a display (it's a GUI).
 
-## Test
+## Testing
 
 ```bash
 python -m pytest            # 69 tests: engine, parsers, data, golden
-python scripts/smoke_gui.py # launches the real GUI, drives Golden-1, checks all tabs
+python scripts/smoke_gui.py # boots the real GUI, drives the calculator, checks all tabs
 ```
 
-The golden tests cross-check every engine cell against the workbook's own
-cached values (they skip gracefully if the workbook/cache is absent). With the
-Golden-1 config (Ancienite 10 + Aetherit 10, Demonic Spear, quality 100) the
-app reproduces **180.91 avg DPS** and **138.19 s TTK / 25k** — exactly the
-spreadsheet's numbers.
+The golden tests compare the engine's output against the cached values stored
+in the workbook itself: when the workbook is present they run for real, and
+when it's not they skip. The engine reproduces the workbook's saved config
+exactly — Ancienite 10 + Aetherit 10 with a Demonic Spear at quality 100 gives
+180.91 avg DPS and a 138.19 s TTK on the 25k target.
 
-## Rebuild the data (dev)
+## Rebuilding the data
+
+The workbook is only needed when regenerating `data/`:
 
 ```bash
-pip install -e .[build]                    # openpyxl
-python -m scripts.build_data "<path>.xlsx" # regenerates data/*.json
-python -m pytest tests/                    # fidelity guard: counts must not drift
+pip install -e .[build]              # adds openpyxl
+python -m scripts.build_data "path/to/workbook.xlsx"
 ```
 
-## Architecture
+## Layout
 
-```
-forge_calculator/
-├── data.py      GameData + frozen dataclasses + JSON loader/validator
-├── parse.py     trait/rune/achievement/ore-power text parsers
-├── engine.py    ALL calculation logic (pure, headless-testable)
-├── app.py       tk.Tk root + entry point
-└── gui/         main_window (notebook) + calculator + browse tabs + widgets
-build_data/      build-time only: formula parser + workbook extractor
-data/            committed, generated JSON (runtime source of truth)
-tests/           pytest suite (engine/golden/parser/data)
-scripts/         build_data, peek helpers, GUI smoke test
-```
+- `forge_calculator/` — the app. `engine.py` holds all the math (pure and
+  headless); `data.py` and `parse.py` load and interpret the JSON; `gui/` is
+  the Tkinter layer.
+- `build_data/` — build-time only; extracts the workbook into `data/`.
+- `data/` — committed, generated JSON; the runtime source of truth.
+- `tests/`, `scripts/` — test suite and dev helpers.
 
-Core rule: `engine.py`, `data.py`, `parse.py` never import tkinter or openpyxl,
-so the engine is fully testable headlessly. See `CLAUDE.md` for the preserved
-workbook quirks.
+`engine.py`, `data.py`, and `parse.py` deliberately never import tkinter or
+openpyxl, so the engine stays testable without a GUI or the workbook.

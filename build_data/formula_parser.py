@@ -1,19 +1,15 @@
-"""Mini-parser that derives per-ore stat contributions from Excel formulas.
+"""Extracts each ore's ``(base, max, divisor)`` from the workbook formulas.
 
-The per-ore stat matrix lives only inside ~17 formula cells (C44..C75) on the
-``DPS Calculator`` sheet. Every one is built from the same scaling expression:
+Those stats live only in the ~17 formula cells C44..C75, every one built from
+the same share-scaling expression per slot -- ``IF(share<0.1, 0,
+(base+(max-base)*MIN((share-0.1)/0.2, 1))/divisor)`` -- chained with ``IFS``
+and combined by SUM/MAX.  This walks the formula strings and pulls the triple
+out per ore; nothing is hand-typed, so the matrix is exactly what the formulas
+encode.
 
-    IF(share < 0.1, 0, (base + (max-base)*MIN((share-0.1)/0.2, 1)) / divisor)
-
-per ore slot, chained with ``IFS(...)`` and combined by ``SUM`` or ``MAX``.
-This module walks those formula strings and extracts, for every ore, the
-``(base, max, divisor)`` triple. Nothing is hand-typed: the extracted matrix is
-exactly what the formulas encode, which is the whole point (zero invented
-mechanics).
-
-The module is source-agnostic: it takes a ``{cell: formula}`` dict, so it can be
-fed from the workbook (authoritative) or from the ``all_formulas*.txt`` dumps
-(cross-check), and tested against both.
+Source-agnostic: it takes a ``{cell: formula}`` dict, so it can be fed from the
+workbook (authoritative) or either ``all_formulas*.txt`` dump (cross-check)
+and tested against both.
 """
 
 from __future__ import annotations

@@ -1,13 +1,10 @@
-"""Extract the source workbook into the committed ``data/*.json`` files.
+"""Transcribes the source workbook into the committed ``data/*.json`` files.
 
-The workbook is loaded twice:
-* ``data_only=False`` -- for formula strings (the stat-bearing cells C44..C75)
-  and for the data-validation lists (weapon types, race-bonus types, the C80
-  achievement selector);
-* ``data_only=True``  -- for resolved static values (``_OptionsCrafter`` D/E/F
-  trait texts are ``="..."`` formula cells, so the cached strings are needed).
-
-Nothing here invents data; it only transcribes the workbook.
+The workbook is loaded twice: ``data_only=False`` for formula strings and
+data-validation lists (weapon types, the C80 achievement selector), and
+``data_only=True`` for resolved static values (the ``_OptionsCrafter`` trait
+texts are ``="..."`` cells, so the cached strings are needed).  Nothing here
+is invented; it only transcribes the source.
 """
 
 from __future__ import annotations
@@ -30,8 +27,7 @@ CRAFTER_SHEET = "_OptionsCrafter"
 OPTIONS_SHEET = "_Options"
 
 
-# --------------------------------------------------------------------------
-# small helpers
+# --- small helpers ---
 
 
 def _in_range(sqref, coord):
@@ -94,8 +90,7 @@ def _cell_text(ws_v, ws_f, coord):
     return raw
 
 
-# --------------------------------------------------------------------------
-# extraction sections
+# --- extraction sections ---
 
 
 def extract_weapons(ws_v):
@@ -222,8 +217,7 @@ def _signature(formulas):
     return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()
 
 
-# --------------------------------------------------------------------------
-# main entry
+# --- main entry ---
 
 
 def extract(workbook_path, out_dir, source_name=None):

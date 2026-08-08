@@ -31,9 +31,7 @@ class CalculatorTab(ttk.Frame):
         self._build_widgets()
         self._recompute()
 
-    # ------------------------------------------------------------------
-    # change tracking (coalesces bursts into one recompute)
-    # ------------------------------------------------------------------
+    # --- change tracking (coalesce rapid edits into one recompute) ---
 
     def _watch(self, var):
         var.trace_add("write", self._on_change)
@@ -44,9 +42,7 @@ class CalculatorTab(ttk.Frame):
         self._pending = True
         self.root.after_idle(self._recompute)
 
-    # ------------------------------------------------------------------
-    # layout
-    # ------------------------------------------------------------------
+    # --- layout ---
 
     def _build_widgets(self):
         scroller = ScrollableFrame(self)
@@ -63,7 +59,7 @@ class CalculatorTab(ttk.Frame):
         self._build_inputs(inputs)
         self._build_results(results)
 
-    # ------------------------------ inputs -----------------------------
+    # --- inputs ---
 
     def _build_inputs(self, parent):
         self._inputs = {}
@@ -239,7 +235,7 @@ class CalculatorTab(ttk.Frame):
     def _entry(parent, var, width=10):
         return ttk.Entry(parent, width=width, textvariable=var)
 
-    # ------------------------------ results -----------------------------
+    # --- results ---
 
     def _build_results(self, parent):
         parent.columnconfigure(0, weight=1)
@@ -286,9 +282,7 @@ class CalculatorTab(ttk.Frame):
 
         self._result_formats = {key: fmt for _label, key, fmt in rows}
 
-    # ------------------------------------------------------------------
-    # recompute
-    # ------------------------------------------------------------------
+    # --- recompute ---
 
     def _recompute(self):
         self._pending = False
@@ -332,7 +326,7 @@ class CalculatorTab(ttk.Frame):
             achievement=self.achievement_var.get(),
         )
 
-    # ------------------------------ callbacks -----------------------------
+    # --- callbacks ---
 
     def _on_weapon_type_change(self, *_args):
         wtype = self.type_var.get()

@@ -1,17 +1,13 @@
-"""The exact DPS engine, ported formula-for-formula from the workbook.
+"""DPS engine, ported cell-for-cell from the workbook's "DPS Calculator" sheet.
 
-Every constant and formula below is cited to its source cell in the "DPS
-Calculator" sheet (see ``all_formulas.txt``).  Nothing here is invented; the
-engine reproduces the workbook's math exactly, including its quirks:
+Every constant below cites its source cell (see ``all_formulas.txt``). The
+workbook's quirks are preserved rather than fixed: procs scale on the unforged
+A18 while C84/C96 use the forged C18, fire/poison durations subtract 1 and 2,
+an ability time input only counts when the matching ore is present, C76 treats
+"Select Ore" as a non-blank slot, and the ability inputs are cross-wired
+(fire=C34..C36, poison=D34..D36, blast=E34/E35).
 
-* procs scale on the unforged A18 while C84/C96 scale on the forged C18;
-* fire/poison duration apply a ``-1`` / ``-2`` (C63 / C68);
-* a fire/poison time input only matters when a fire/poison ore (or Dragonborn,
-  for fire) is already present (the outer ``IF(MAX(...)=0,...)`` in C63/C68);
-* C76's ``COUNTA`` counts "Select Ore" as a non-blank slot;
-* the ability inputs are cross-wired in the workbook (E34/E35 blast, etc.).
-
-Pure stdlib.  Never imports tkinter or openpyxl.
+Pure stdlib -- no tkinter, no openpyxl.
 """
 
 from __future__ import annotations
@@ -45,9 +41,7 @@ __all__ = [
     "CAPS",
 ]
 
-# --------------------------------------------------------------------------
-# constants (each cited to its formula cell)
-# --------------------------------------------------------------------------
+# --- constants (each cited to its formula cell) ---
 
 # The share-scaling gate and ramp: IF(share<0.1, 0, (base+(max-base)*MIN((share-0.1)/0.2,1))/div)
 SHARE_GATE = 0.10
@@ -107,9 +101,7 @@ TRAIT_POWER_FLOOR = 0.1
 _CORE_STATS = ("lethality", "crit_chance", "crit_dmg", "atk_speed")
 
 
-# --------------------------------------------------------------------------
-# build input dataclasses
-# --------------------------------------------------------------------------
+# --- build input dataclasses ---
 
 
 @dataclass(frozen=True)
@@ -137,7 +129,7 @@ class Abilities:
 
 @dataclass(frozen=True)
 class Build:
-    """A complete calculator configuration.  Cell references in docstrings."""
+    """A build configuration; the field comments name the workbook cells."""
     slots: tuple = (OreSlot(), OreSlot(), OreSlot(), OreSlot())  # C6:C9 + D6:D9
     weapon_name: str = ""           # D12
     quality: float = 0.0            # E12 (percent: 100 -> 2x)
@@ -156,17 +148,14 @@ class Build:
     achievement: str = "None"       # C80
 
 
-# --------------------------------------------------------------------------
-# core math
-# --------------------------------------------------------------------------
+# --- core math ---
 
 
 def share_scaling(base: float, max_: float, share: float, divisor: int = 100) -> float:
-    """The single share-scaling term used by every stat path.
+    """``IF(share<0.1, 0, (base+(max-base)*MIN((share-0.1)/0.2, 1))/divisor)``.
 
-    Mirrors ``IF(share<0.1, 0, (base+(max-base)*MIN((share-0.1)/0.2, 1))/divisor)``:
-    zero below the 10% gate, ``base`` at 10%, linear ramp to ``max`` at 30%,
-    then clamped.  ``divisor`` is 100 (percent stats) or 1 (durations).
+    Zero below the 10% gate, ``base`` at 10%, linear ramp to ``max`` at 30%,
+    then clamped.  ``divisor`` is 100 for percent stats, 1 for durations.
     """
     if share < SHARE_GATE:
         return 0.0
@@ -241,16 +230,14 @@ def rune_totals(rune_cells) -> Mapping[str, float]:
     return totals
 
 
-# --------------------------------------------------------------------------
-# stat aggregation (E44-E47)
-# --------------------------------------------------------------------------
+# --- stat aggregation (E44-E47) ---
 
 
 def _ore_stat_sum(slots, shares, game: GameData, stat: str) -> float:
-    """Sum the share-scaled contributions of a stat across the four slots.
+    """Sum one stat's share-scaled contributions across the four slots.
 
-    This is the per-slot ``IFS(C6=ore, IF(SUM=0,0, IF(share<0.1,0,...)))`` chain
-    that feeds C44/C45/C46/C47/C52/C57/... -- shared by all stat paths.
+    Shared by every stat path that feeds C44..C75.  Skips "Select Ore",
+    sub-10% shares, and ores that don't grant the stat.
     """
     total = 0.0
     for slot, share in zip(slots, shares):
@@ -267,11 +254,10 @@ def _ore_stat_sum(slots, shares, game: GameData, stat: str) -> float:
 
 
 def stat_totals(build: Build, game: GameData, ore_contribs: Mapping[str, float]) -> Mapping[str, float]:
-    """E44-E47 -- the four capped stat totals.
+    """E44-E47 capped totals.
 
-    ``ore_contribs`` must be the C44/C45/C46/C47 sums (already including the
-    C41/C42/C43 armor addends).  Caps: lethality 150%, CC 100%, CD 100%,
-    AS 150%.
+    ``ore_contribs`` is the C44-C47 sum, already including the C41/C42/C43
+    armor addends.  Caps: 1.5 lethality, 1.0 crit chance/dmg, 1.5 atk speed.
     """
     runes = rune_totals(build.rune_cells)
     ach = parse_trait(build.achievement)
@@ -312,9 +298,7 @@ def stat_totals(build: Build, game: GameData, ore_contribs: Mapping[str, float])
     }
 
 
-# --------------------------------------------------------------------------
-# proc components (C52-C76)
-# --------------------------------------------------------------------------
+# --- proc components (C52-C76) ---
 
 
 @dataclass(frozen=True)
@@ -413,9 +397,7 @@ def crit_blend(cc_total: float, cd_total: float) -> float:
     return cc * cd_total + (1 - cc)
 
 
-# --------------------------------------------------------------------------
-# DPS pipeline (C84-C96, E91-E92)
-# --------------------------------------------------------------------------
+# --- DPS pipeline (C84-C96, E91-E92) ---
 
 
 def active_traits(build: Build, shares, game: GameData) -> str:
