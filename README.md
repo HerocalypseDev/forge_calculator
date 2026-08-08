@@ -56,3 +56,11 @@ python -m scripts.build_data "path/to/workbook.xlsx"
 
 `engine.py`, `data.py`, and `parse.py` deliberately never import tkinter or
 openpyxl, so the engine stays testable without a GUI or the workbook.
+
+## Credits
+
+The engine and data architecture are a faithful port of **Little Timmy's** DPS
+Calculator spreadsheet — the formulas, stat values, and quirks all come from
+that workbook. Original reference:
+
+[Little Timmy's Reference Spreadsheet](https://docs.google.com/spreadsheets/d/1sScoEz6bGmu1ZmwzDhgpM1V2kC5YcKgDNWdBPhLryq0/edit?usp=drivesdk)

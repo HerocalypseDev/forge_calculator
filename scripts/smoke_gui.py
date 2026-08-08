@@ -49,6 +49,12 @@ def main():
     failures = []
     root = build_app()
     root.update_idletasks()
+
+    # Help menu with the About dialog (credits the original workbook) is attached
+    menubar = root.nametowidget(root.cget("menu"))
+    if not menubar or menubar.entrycget(0, "label") != "Help":
+        failures.append("Help menu (About dialog) not attached to root")
+
     nb = _notebook(root)
     tab = nb.nametowidget(nb.tabs()[0])  # Calculator is tab index 0
     assert isinstance(tab, CalculatorTab)
