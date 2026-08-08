@@ -369,8 +369,8 @@ class CalculatorTab(ttk.Frame):
         traits_frame.grid(row=row, column=0, columnspan=2, sticky="ew", padx=8, pady=4)
         traits_frame.columnconfigure(1, weight=1)
         ttk.Label(traits_frame, text="").grid(row=0, column=0, sticky="ne", padx=8, pady=4)
-        ttk.Label(traits_frame, textvariable=self._traits_var, wraplength=320, justify="left").grid(
-            row=0, column=1, sticky="nw", padx=8, pady=4)
+        self._traits_label = ttk.Label(traits_frame, textvariable=self._traits_var, wraplength=320, justify="left", foreground="#e0e0e0")
+        self._traits_label.grid(row=0, column=1, sticky="nw", padx=8, pady=4)
 
         # Flatten for format lookup
         all_items = core_items + stats_items + dps_items + total_items + time_items
@@ -389,7 +389,7 @@ class CalculatorTab(ttk.Frame):
                 val = getattr(r, key)
                 cap = CAPS.get(key)
                 at_cap = cap is not None and val is not None and val >= cap
-                label.configure(foreground="#cc0000" if at_cap else "black")
+                label.configure(foreground="#cc0000" if at_cap else "#e0e0e0")
         self._traits_var.set(r.active_traits)
 
     def _build(self) -> Build:

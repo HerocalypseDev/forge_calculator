@@ -102,7 +102,7 @@ class ScrollableFrame(ttk.Frame):
 
     def __init__(self, master, **kw):
         super().__init__(master, **kw)
-        self.canvas = tk.Canvas(self, highlightthickness=0, borderwidth=0)
+        self.canvas = tk.Canvas(self, highlightthickness=0, borderwidth=0, background="#1e1e1e")
         vbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
         self.content = ttk.Frame(self.canvas)
         self.content.bind("<Configure>", self._on_content_configure)
