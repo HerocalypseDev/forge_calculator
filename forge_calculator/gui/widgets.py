@@ -5,7 +5,8 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 
-__all__ = ["ScrollableFrame", "to_float", "fmt2", "fmt4", "fmt_pct"]
+__all__ = ["ScrollableFrame", "to_float", "fmt2", "fmt4", "fmt_pct",
+           "pct_fmt", "refill", "STAT_LABELS"]
 
 
 def to_float(text) -> float:
@@ -32,6 +33,40 @@ def fmt_pct(value) -> str:
     """Format a fraction as a percent (E44-E47 / proc cells), matching the
     workbook's ``0%`` number format."""
     return "N/A" if value is None else f"{value * 100:.1f}%"
+
+
+def pct_fmt(value) -> str:
+    """Blank for None, else a compact percent (browse-tab Stat/Value columns)."""
+    return "" if value is None else f"{value * 100:g}%"
+
+
+def refill(tree, rows):
+    """Replace a Treeview's contents with ``rows`` (list of value tuples)."""
+    tree.delete(*tree.get_children())
+    for i, row in enumerate(rows):
+        tree.insert("", "end", iid=str(i), values=row)
+
+
+# Canonical ore-stat keys -> display labels (mirrors STAT_CELLS in the
+# formula parser; shown in the Ores tab's per-ore stat matrix).
+STAT_LABELS = {
+    "lethality": "Lethality",
+    "crit_chance": "Crit Chance",
+    "crit_dmg": "Crit DMG",
+    "atk_speed": "Atk Speed",
+    "moon": "Moonstone",
+    "explosion_dmg": "Explosion DMG",
+    "explosion_chance": "Explosion Chance",
+    "fire_dmg": "Fire DMG",
+    "fire_chance": "Fire Chance",
+    "fire_duration": "Fire Duration",
+    "poison_dmg": "Poison DMG",
+    "poison_chance": "Poison Chance",
+    "poison_duration": "Poison Duration",
+    "smite_dmg": "Smite DMG",
+    "smite_chance": "Smite Chance",
+    "blackhole_dmg": "Black Hole DMG",
+}
 
 
 class ScrollableFrame(ttk.Frame):

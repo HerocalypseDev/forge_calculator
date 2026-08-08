@@ -2,20 +2,22 @@
 
 from __future__ import annotations
 
-import tkinter as tk
 from tkinter import ttk
 
 from ..data import GameData
+from .achievements_tab import AchievementsTab
 from .calculator_tab import CalculatorTab
+from .ores_tab import OresTab
+from .races_tab import RacesTab
+from .runes_tab import RunesTab
+from .weapons_tab import WeaponsTab
 
 __all__ = ["MainWindow"]
 
-_TABS = ("Calculator", "Ores", "Races", "Weapons", "Achievements", "Runes")
-
 
 class MainWindow(ttk.Frame):
-    """Hosts every tab.  Only the Calculator tab exists so far; the browse
-    tabs (Ores/Races/Weapons/Achievements/Runes) land in M6."""
+    """Hosts every tab.  Calculator is the only interactive one; the browse
+    tabs (Ores/Races/Weapons/Achievements/Runes) are read-only."""
 
     def __init__(self, master, game: GameData):
         super().__init__(master)
@@ -26,6 +28,11 @@ class MainWindow(ttk.Frame):
 
         self._tabs: dict[str, ttk.Frame] = {}
         self._add_tab("Calculator", CalculatorTab(self.notebook, game))
+        self._add_tab("Ores", OresTab(self.notebook, game))
+        self._add_tab("Races", RacesTab(self.notebook, game))
+        self._add_tab("Weapons", WeaponsTab(self.notebook, game))
+        self._add_tab("Achievements", AchievementsTab(self.notebook, game))
+        self._add_tab("Runes", RunesTab(self.notebook, game))
 
     def _add_tab(self, title: str, widget: ttk.Frame) -> None:
         widget.pack(fill="both", expand=True)

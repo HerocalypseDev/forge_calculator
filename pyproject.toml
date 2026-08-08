@@ -5,9 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "forge-calculator"
 version = "0.1.0"
-description = "A Python calculator tool."
+description = "Faithful desktop port of LittleTimmy's DPS Calculator (forge/weapon build optimizer)."
 readme = "README.md"
 requires-python = ">=3.10"
+# Runtime is pure stdlib (tkinter + json). openpyxl is only needed to rebuild
+# data/ from the workbook -- see [project.optional-dependencies] build.
+dependencies = []
+
+[project.optional-dependencies]
+build = ["openpyxl>=3.1"]
 
 [tool.setuptools.packages.find]
 include = ["forge_calculator*"]
