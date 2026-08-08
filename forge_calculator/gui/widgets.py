@@ -216,6 +216,10 @@ class SearchableCombo(ttk.Frame):
     # --- popup lifecycle ---
 
     def _open(self, reset=False):
+        # Toggle: if already open, close it
+        if self._popup is not None and self._popup.winfo_exists() and self._popup.winfo_viewable():
+            self._close(revert=True)
+            return
         if not self._choices:
             return
         self._open_token += 1

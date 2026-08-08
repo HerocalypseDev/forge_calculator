@@ -26,7 +26,7 @@ GOLDEN_1 = {
     "ores": [("Ancienite", "10"), ("Aetherit", "10"), None, None],
     "weapon": "Demonic Spear",
     "quality": "100",
-    "forge": "0",
+    "enhancement": "0",
     "base_cd": "1.45",
 }
 
@@ -73,7 +73,7 @@ def main():
         tab.amount_vars[i].set(amount)
     tab.weapon_var.set(GOLDEN_1["weapon"])
     tab.quality_var.set(GOLDEN_1["quality"])
-    tab.forge_var.set(GOLDEN_1["forge"])
+    tab.enhancement_var.set(GOLDEN_1["enhancement"])
     tab.base_cd_var.set(GOLDEN_1["base_cd"])
     root.update_idletasks()  # flush the after_idle recompute
 
@@ -130,13 +130,13 @@ def main():
     saved = window.capture_state()
     if saved["calculator"].get("weapon") != "Demonic Spear":
         failures.append("capture_state: weapon not Demonic Spear")
-    window.restore_state({"calculator": {"weapon": "Demonic Spear", "quality": "999", "forge": "9"},
+    window.restore_state({"calculator": {"weapon": "Demonic Spear", "quality": "999", "enhancement": "9"},
                           "tab": 0})
     root.update_idletasks()
     if tab.quality_var.get() != "999":
         failures.append("state restore: quality '999' not applied")
-    if tab.forge_var.get() != "9":
-        failures.append("state restore: forge '9' not applied")
+    if tab.enhancement_var.get() != "9":
+        failures.append("state restore: enhancement '9' not applied")
     window.restore_state(saved)
     root.update_idletasks()
     window.save_now()
@@ -146,28 +146,6 @@ def main():
                         f"({persisted.get('calculator', {}).get('quality')!r})")
     if persisted.get("tab") != 0:
         failures.append(f"state persist: tab not saved ({persisted.get('tab')!r})")
-
-    # --- favorites: pin/unpin moves items to the top of the list ---
-    tab._pinned_ores.clear()
-    tab._pinned_weapons.clear()
-    tab.ore_vars[0].set("Aetherit")
-    tab._toggle_ore_pin(0)
-    root.update_idletasks()
-    ore_values = list(tab.ore_combos[0]._choices)
-    if not ore_values or ore_values[0] != "Select Ore" or "Aetherit" not in ore_values[:3]:
-        failures.append(f"pin: Aetherit not near top of ore values {ore_values[:5]!r}")
-    tab._toggle_weapon_pin()
-    root.update_idletasks()
-    weapon_values = list(tab.weapon_combo._choices)
-    if not weapon_values or weapon_values[0] != "Demonic Spear":
-        failures.append(f"pin: Demonic Spear not at top of weapon values {weapon_values[:3]!r}")
-    if "Aetherit" not in tab._pinned_ores or "Demonic Spear" not in tab._pinned_weapons:
-        failures.append("pin: pinned sets not updated")
-    tab._toggle_ore_pin(0)
-    tab._toggle_weapon_pin()
-    root.update_idletasks()
-    if "Aetherit" in tab._pinned_ores or "Demonic Spear" in tab._pinned_weapons:
-        failures.append("pin: unpin did not remove from pinned sets")
 
     # --- tooltips: one per result row plus ore/weapon combos ---
     if len(tab._tooltips) < len(tab.result_vars):
