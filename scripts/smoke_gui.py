@@ -106,6 +106,10 @@ def main():
         got = len(tree.get_children()) if hasattr(tree, "get_children") else tree.size()
         if got != expected:
             failures.append(f"{title}: expected {expected} rows, got {got}")
+        if title == "Ores":
+            names = [tree.item(i, "values")[0] for i in tree.get_children()]
+            if names != sorted(names, key=str.lower):
+                failures.append("Ores list is not alphabetically sorted")
 
     root.destroy()
     if failures:

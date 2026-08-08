@@ -10,7 +10,7 @@ from __future__ import annotations
 from tkinter import ttk
 
 from ..data import GameData
-from .widgets import pct_fmt, refill
+from .widgets import pct_fmt, refill, sorted_display
 
 __all__ = ["RunesTab"]
 
@@ -33,5 +33,5 @@ class RunesTab(ttk.Frame):
         self.tree.pack(side="left", fill="both", expand=True, padx=(4, 0), pady=4)
         scroll.pack(side="right", fill="y", pady=4)
 
-        rows = [(r.name, r.stat or "", pct_fmt(r.value)) for r in self.game.runes]
+        rows = [(r.name, r.stat or "", pct_fmt(r.value)) for r in sorted_display(self.game.runes)]
         refill(self.tree, rows)

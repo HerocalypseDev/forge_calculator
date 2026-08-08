@@ -10,7 +10,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..data import GameData, Race
-from .widgets import refill
+from .widgets import refill, sorted_display
 
 __all__ = ["RacesTab"]
 
@@ -50,7 +50,7 @@ class RacesTab(ttk.Frame):
         self._refill()
 
     def _refill(self):
-        rows = [(r.name, r.default_trait or "") for r in self.game.races]
+        rows = [(r.name, r.default_trait or "") for r in sorted_display(self.game.races)]
         refill(self.tree, rows)
 
     def _on_select(self, _event=None):

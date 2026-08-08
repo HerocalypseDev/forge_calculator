@@ -10,7 +10,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..data import GameData
-from .widgets import refill
+from .widgets import refill, sorted_display
 
 __all__ = ["WeaponsTab"]
 
@@ -29,7 +29,7 @@ class WeaponsTab(ttk.Frame):
         top.pack(fill="x", padx=8, pady=(8, 4))
         ttk.Label(top, text="Type:").pack(side="left")
         combo = ttk.Combobox(top, textvariable=self.type_var, state="readonly", width=24)
-        combo["values"] = [_WEAPON_ALL] + list(self.game.weapon_types)
+        combo["values"] = [_WEAPON_ALL] + sorted(self.game.weapon_types, key=str.lower)
         combo.pack(side="left", padx=4)
 
         frame = ttk.LabelFrame(self, text=f"Weapons ({len(self.game.weapons)})")
@@ -53,7 +53,8 @@ class WeaponsTab(ttk.Frame):
         weapons = self.game.weapons
         if wtype not in (None, "", _WEAPON_ALL):
             weapons = self.game.weapons_by_type(wtype)
-        rows = [(w.type, w.name, f"{w.interval:g}", f"{w.damage:g}") for w in weapons]
+        rows = [(w.type, w.name, f"{w.interval:g}", f"{w.damage:g}")
+                for w in sorted_display(weapons)]
         refill(self.tree, rows)
 
     def _on_type(self, *_args):

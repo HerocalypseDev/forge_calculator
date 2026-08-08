@@ -13,7 +13,7 @@ from tkinter import ttk
 
 from ..data import GameData
 from ..engine import Abilities, Build, OreSlot, calculate
-from .widgets import ScrollableFrame, fmt2, fmt4, fmt_pct, to_float
+from .widgets import ScrollableFrame, fmt2, fmt4, fmt_pct, sorted_display, to_float
 
 __all__ = ["CalculatorTab"]
 
@@ -99,7 +99,7 @@ class CalculatorTab(ttk.Frame):
             self.ore_vars.append(ore_var)
             self.amount_vars.append(amount_var)
             combo = ttk.Combobox(parent, textvariable=ore_var, state="readonly", width=24)
-            combo["values"] = [self.game.select_ore] + [o.name for o in self.game.ores]
+            combo["values"] = [self.game.select_ore] + [o.name for o in sorted_display(self.game.ores)]
             spin = ttk.Spinbox(parent, from_=0, to=999, increment=1, textvariable=amount_var, width=6)
             ttk.Label(parent, text=f"Slot {row + 1}").grid(row=row, column=0, sticky="w", padx=8, pady=2)
             combo.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
@@ -115,9 +115,9 @@ class CalculatorTab(ttk.Frame):
         self.forge_var = tk.StringVar(master=self.root, value="0")
 
         type_combo = ttk.Combobox(parent, textvariable=self.type_var, state="readonly", width=24)
-        type_combo["values"] = [_WEAPON_ALL] + list(self.game.weapon_types)
+        type_combo["values"] = [_WEAPON_ALL] + sorted(self.game.weapon_types, key=str.lower)
         self.weapon_combo = ttk.Combobox(parent, textvariable=self.weapon_var, state="readonly", width=24)
-        self.weapon_combo["values"] = [w.name for w in self.game.weapons]
+        self.weapon_combo["values"] = [w.name for w in sorted_display(self.game.weapons)]
         self.weapon_var.set(self.game.weapons[0].name)
         quality_spin = ttk.Spinbox(parent, from_=0, to=500, increment=5, textvariable=self.quality_var, width=8)
         forge_combo = ttk.Combobox(parent, textvariable=self.forge_var, state="readonly", width=8)
@@ -149,9 +149,9 @@ class CalculatorTab(ttk.Frame):
         self.berserk_var = tk.StringVar(master=self.root, value="0")
 
         race_combo = ttk.Combobox(parent, textvariable=self.race_var, state="readonly", width=20)
-        race_combo["values"] = [r.name for r in self.game.races]
+        race_combo["values"] = [r.name for r in sorted_display(self.game.races)]
         bonus_combo = ttk.Combobox(parent, textvariable=self.bonus_var, state="readonly", width=20)
-        bonus_combo["values"] = list(self.game.race_bonus_types)
+        bonus_combo["values"] = sorted(self.game.race_bonus_types, key=str.lower)
 
         rows = [
             ("Race (C22)", race_combo),
@@ -177,7 +177,7 @@ class CalculatorTab(ttk.Frame):
         parent.columnconfigure(1, weight=1)
         parent.columnconfigure(3, weight=1)
         self.rune_vars = []
-        rune_values = [self.game.none_label] + [r.name for r in self.game.runes]
+        rune_values = [self.game.none_label] + [r.name for r in sorted_display(self.game.runes)]
         for row in range(3):
             for col in range(2):
                 var = tk.StringVar(master=self.root, value=self.game.none_label)
@@ -229,7 +229,8 @@ class CalculatorTab(ttk.Frame):
         parent.columnconfigure(1, weight=1)
         self.achievement_var = tk.StringVar(master=self.root, value=self.game.none_label)
         combo = ttk.Combobox(parent, textvariable=self.achievement_var, state="readonly", width=24)
-        combo["values"] = [a.name for a in self.game.achievements]
+        combo["values"] = [a.name for a in sorted_display(self.game.achievements,
+                                                          first=(self.game.none_label,))]
         ttk.Label(parent, text="Achievement (C80)").grid(row=0, column=0, sticky="e", padx=8, pady=2)
         combo.grid(row=0, column=1, sticky="ew", padx=4, pady=2)
         self._watch(self.achievement_var)
@@ -336,9 +337,9 @@ class CalculatorTab(ttk.Frame):
     def _on_weapon_type_change(self, *_args):
         wtype = self.type_var.get()
         if wtype in (None, "", _WEAPON_ALL):
-            names = [w.name for w in self.game.weapons]
+            names = [w.name for w in sorted_display(self.game.weapons)]
         else:
-            names = [w.name for w in self.game.weapons_by_type(wtype)]
+            names = [w.name for w in sorted_display(self.game.weapons_by_type(wtype))]
         self.weapon_combo["values"] = names
         if self.weapon_var.get() not in names:
             self.weapon_var.set(names[0] if names else "")

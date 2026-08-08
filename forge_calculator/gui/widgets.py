@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 
 __all__ = ["ScrollableFrame", "to_float", "fmt2", "fmt4", "fmt_pct",
-           "pct_fmt", "refill", "STAT_LABELS"]
+           "pct_fmt", "refill", "sorted_display", "STAT_LABELS"]
 
 
 def to_float(text) -> float:
@@ -38,6 +38,19 @@ def fmt_pct(value) -> str:
 def pct_fmt(value) -> str:
     """Blank for None, else a compact percent (browse-tab Stat/Value columns)."""
     return "" if value is None else f"{value * 100:g}%"
+
+
+def sorted_display(items, *, key="name", first=()):
+    """Sort ``items`` by a case-insensitive attribute (default ``name``).
+
+    Members whose attribute equals a value in ``first`` stay at the head in
+    the order given -- used to pin sentinels like "None"/"Select Ore" on top
+    of an otherwise alphabetical list.
+    """
+    first_set = set(first)
+    head = [it for it in items if getattr(it, key) in first_set]
+    tail = [it for it in items if getattr(it, key) not in first_set]
+    return head + sorted(tail, key=lambda o: getattr(o, key).lower())
 
 
 def refill(tree, rows):

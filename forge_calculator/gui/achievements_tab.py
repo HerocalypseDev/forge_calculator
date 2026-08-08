@@ -10,7 +10,7 @@ from __future__ import annotations
 from tkinter import ttk
 
 from ..data import GameData
-from .widgets import pct_fmt, refill
+from .widgets import pct_fmt, refill, sorted_display
 
 __all__ = ["AchievementsTab"]
 
@@ -33,5 +33,6 @@ class AchievementsTab(ttk.Frame):
         self.tree.pack(side="left", fill="both", expand=True, padx=(4, 0), pady=4)
         scroll.pack(side="right", fill="y", pady=4)
 
-        rows = [(a.name, a.stat or "", pct_fmt(a.value)) for a in self.game.achievements]
+        rows = [(a.name, a.stat or "", pct_fmt(a.value))
+                for a in sorted_display(self.game.achievements, first=(self.game.none_label,))]
         refill(self.tree, rows)

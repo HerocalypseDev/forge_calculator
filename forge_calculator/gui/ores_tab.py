@@ -12,7 +12,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from ..data import GameData, Ore
-from .widgets import STAT_LABELS, refill
+from .widgets import STAT_LABELS, refill, sorted_display
 
 __all__ = ["OresTab"]
 
@@ -97,7 +97,7 @@ class OresTab(ttk.Frame):
         needle = self.filter_var.get().strip().lower()
         ores = self.game.ores if not needle else [o for o in self.game.ores if needle in o.name.lower()]
         rows = [(o.name, o.equipment or "", o.multiplier, o.trait10 or "", o.trait30 or "")
-                for o in ores]
+                for o in sorted_display(ores)]
         refill(self.tree, rows)
 
     def _on_filter(self, *_args):
