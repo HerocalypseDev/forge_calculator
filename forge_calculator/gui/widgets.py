@@ -231,7 +231,11 @@ class SearchableCombo(ttk.Frame):
             self._popup.overrideredirect(True)
             self._popup.transient(self.winfo_toplevel())
             self._list = tk.Listbox(self._popup, height=self._height, activestyle="dotbox",
-                                    selectmode="browse", exportselection=False, borderwidth=1)
+                                    selectmode="browse", exportselection=False, borderwidth=1,
+                                    background="#252526", foreground="#e0e0e0",
+                                    selectbackground="#004a99", selectforeground="#ffffff",
+                                    highlightbackground="#444444", highlightcolor="#0078d4",
+                                    font=("Segoe UI", 9))
             sbar = ttk.Scrollbar(self._popup, orient="vertical", command=self._list.yview)
             self._list.configure(yscrollcommand=sbar.set)
             self._list.pack(side="left", fill="both", expand=True)
