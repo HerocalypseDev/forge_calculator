@@ -1,0 +1,225 @@
+=== DPS Calculator (99 formulas) ===
+E6: =IF(C6="Select Ore",1,IFERROR(VALUE(SUBSTITUTE(VLOOKUP(C6,'_OptionsCrafter'!$A$55:$C$195,3,0),"x","")),1))
+F6: =VLOOKUP(C6, '_OptionsCrafter'!$A$55:$G$195, 7, FALSE)
+I6: =IF(C6="Select Ore",0,IF(ISNUMBER(SEARCH("eapon",IFERROR(VLOOKUP(C6,'_OptionsCrafter'!$A$55:$F$195,2,0),""))),1,0))
+J6: =IF(SUM($D$6:$D$9)=0,0,IF(ISNUMBER(D6),D6/SUM($D$6:$D$9),0))
+K6: =IF(OR(I6=0,J6<0.1),0,MIN(MAX((J6-0.1)*4.5+0.1,0.1),1))
+L6: =IF(K6=0,"",IF(J6>=0.3,IFERROR(VLOOKUP(C6,'_OptionsCrafter'!$A$55:$F$195,5,0),""),"["&TEXT(K6*100,"0.0")&"% power] "&IFERROR(VLOOKUP(C6,'_OptionsCrafter'!$A$55:$F$195,4,0),"")))
+E7: =IF(C7="Select Ore",1,IFERROR(VALUE(SUBSTITUTE(VLOOKUP(C7,'_OptionsCrafter'!$A$55:$C$195,3,0),"x","")),1))
+F7: =VLOOKUP(C7, '_OptionsCrafter'!$A$55:$G$195, 7, FALSE)
+I7: =IF(C7="Select Ore",0,IF(ISNUMBER(SEARCH("eapon",IFERROR(VLOOKUP(C7,'_OptionsCrafter'!$A$55:$F$195,2,0),""))),1,0))
+J7: =IF(SUM($D$6:$D$9)=0,0,IF(ISNUMBER(D7),D7/SUM($D$6:$D$9),0))
+K7: =IF(OR(I7=0,J7<0.1),0,MIN(MAX((J7-0.1)*4.5+0.1,0.1),1))
+L7: =IF(K7=0,"",IF(J7>=0.3,IFERROR(VLOOKUP(C7,'_OptionsCrafter'!$A$55:$F$195,5,0),""),"["&TEXT(K7*100,"0.0")&"% power] "&IFERROR(VLOOKUP(C7,'_OptionsCrafter'!$A$55:$F$195,4,0),"")))
+E8: =IF(C8="Select Ore",1,IFERROR(VALUE(SUBSTITUTE(VLOOKUP(C8,'_OptionsCrafter'!$A$55:$C$195,3,0),"x","")),1))
+F8: =VLOOKUP(C8, '_OptionsCrafter'!$A$55:$G$195, 7, FALSE)
+I8: =IF(C8="Select Ore",0,IF(ISNUMBER(SEARCH("eapon",IFERROR(VLOOKUP(C8,'_OptionsCrafter'!$A$55:$F$195,2,0),""))),1,0))
+J8: =IF(SUM($D$6:$D$9)=0,0,IF(ISNUMBER(D8),D8/SUM($D$6:$D$9),0))
+K8: =IF(OR(I8=0,J8<0.1),0,MIN(MAX((J8-0.1)*4.5+0.1,0.1),1))
+L8: =IF(K8=0,"",IF(J8>=0.3,IFERROR(VLOOKUP(C8,'_OptionsCrafter'!$A$55:$F$195,5,0),""),"["&TEXT(K8*100,"0.0")&"% power] "&IFERROR(VLOOKUP(C8,'_OptionsCrafter'!$A$55:$F$195,4,0),"")))
+E9: =IF(C9="Select Ore",1,IFERROR(VALUE(SUBSTITUTE(VLOOKUP(C9,'_OptionsCrafter'!$A$55:$C$195,3,0),"x","")),1))
+F9: =VLOOKUP(C9, '_OptionsCrafter'!$A$55:$G$195, 7, FALSE)
+I9: =IF(C9="Select Ore",0,IF(ISNUMBER(SEARCH("eapon",IFERROR(VLOOKUP(C9,'_OptionsCrafter'!$A$55:$F$195,2,0),""))),1,0))
+J9: =IF(SUM($D$6:$D$9)=0,0,IF(ISNUMBER(D9),D9/SUM($D$6:$D$9),0))
+K9: =IF(OR(I9=0,J9<0.1),0,MIN(MAX((J9-0.1)*4.5+0.1,0.1),1))
+L9: =IF(K9=0,"",IF(J9>=0.3,IFERROR(VLOOKUP(C9,'_OptionsCrafter'!$A$55:$F$195,5,0),""),"["&TEXT(K9*100,"0.0")&"% power] "&IFERROR(VLOOKUP(C9,'_OptionsCrafter'!$A$55:$F$195,4,0),"")))
+D10: =SUM(D6+D7+D8+D9)
+E10: =IFERROR(SUMPRODUCT(D6:D9,E6:E9)/SUM(D6:D9),AVERAGE(E6:E9))
+E13: =A18
+C14: =IFERROR(TEXTJOIN(" | ",TRUE, IF(L6="","",L6),
+IF(L7="","",L7),
+IF(L8="","",L8),
+IF(L9="","",L9)),"No active weapon traits")
+A18: =IFERROR(VLOOKUP(D12,'_Weapon'!$C$2:$E$80,3,0)*E10*(1+E12/100),1)
+C18: =IFERROR(VLOOKUP(D12,'_Weapon'!$C$2:$E$80,3,0)*E10*SWITCH(C13,0,1,1,1.05,2,1.1,3,1.15,4,1.2,5,1.25,6,1.3,7,1.35,8,1.4,9,1.5,1)*(1+E12/100),1)
+E18: =1/C19
+C19: =IFERROR(VLOOKUP(D12,'_Weapon'!$C$2:$E$80,2,0),1)
+E19: =C18*(1+E44)*(MIN(C20+E45,1)*(C21+E46)+(1-MIN(C20+E45,1)))
+E20: =C19/(1+E47)
+E21: =1/E20
+E23: =IFS(
+  AND(C22="Goblin", C23="Dagger"), TRUE,
+  AND(C22="Golem",    C23="Colossal Sword"), TRUE,
+  AND(C22="Golem", C23="Great Axe"), TRUE,
+  AND(C22="Felynx", C23="Gauntlets"), TRUE,
+  AND(C22="Vampire",C23="Straight Sword"), TRUE,
+TRUE, FALSE
+)
+A27: =IF(ISNUMBER(SEARCH("Lethality",C27)),VALUE(MID(C27,FIND("+",C27)+1,LEN(C27)-FIND("+",C27)-1))/100,0)+IF(ISNUMBER(SEARCH("Lethality",D27)),VALUE(MID(D27,FIND("+",D27)+1,LEN(D27)-FIND("+",D27)-1))/100,0)+IF(ISNUMBER(SEARCH("Lethality",C28)),VALUE(MID(C28,FIND("+",C28)+1,LEN(C28)-FIND("+",C28)-1))/100,0)+IF(ISNUMBER(SEARCH("Lethality",D28)),VALUE(MID(D28,FIND("+",D28)+1,LEN(D28)-FIND("+",D28)-1))/100,0)+IF(ISNUMBER(SEARCH("Lethality",C29)),VALUE(MID(C29,FIND("+",C29)+1,LEN(C29)-FIND("+",C29)-1))/100,0)+IF(ISNUMBER(SEARCH("Lethality",D29)),VALUE(MID(D29,FIND("+",D29)+1,LEN(D29)-FIND("+",D29)-1))/100,0)
+A28: =IF(ISNUMBER(SEARCH("Crit Chance",C27)),VALUE(MID(C27,FIND("+",C27)+1,LEN(C27)-FIND("+",C27)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit Chance",D27)),VALUE(MID(D27,FIND("+",D27)+1,LEN(D27)-FIND("+",D27)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit Chance",C28)),VALUE(MID(C28,FIND("+",C28)+1,LEN(C28)-FIND("+",C28)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit Chance",D28)),VALUE(MID(D28,FIND("+",D28)+1,LEN(D28)-FIND("+",D28)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit Chance",C29)),VALUE(MID(C29,FIND("+",C29)+1,LEN(C29)-FIND("+",C29)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit Chance",D29)),VALUE(MID(D29,FIND("+",D29)+1,LEN(D29)-FIND("+",D29)-1))/100,0)
+A29: =IF(ISNUMBER(SEARCH("Crit DMG",C27)),VALUE(MID(C27,FIND("+",C27)+1,LEN(C27)-FIND("+",C27)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit DMG",D27)),VALUE(MID(D27,FIND("+",D27)+1,LEN(D27)-FIND("+",D27)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit DMG",C28)),VALUE(MID(C28,FIND("+",C28)+1,LEN(C28)-FIND("+",C28)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit DMG",D28)),VALUE(MID(D28,FIND("+",D28)+1,LEN(D28)-FIND("+",D28)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit DMG",C29)),VALUE(MID(C29,FIND("+",C29)+1,LEN(C29)-FIND("+",C29)-1))/100,0)+IF(ISNUMBER(SEARCH("Crit DMG",D29)),VALUE(MID(D29,FIND("+",D29)+1,LEN(D29)-FIND("+",D29)-1))/100,0)
+A30: =IF(ISNUMBER(SEARCH("Atk Speed",C27)),VALUE(MID(C27,FIND("+",C27)+1,LEN(C27)-FIND("+",C27)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",D27)),VALUE(MID(D27,FIND("+",D27)+1,LEN(D27)-FIND("+",D27)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",C28)),VALUE(MID(C28,FIND("+",C28)+1,LEN(C28)-FIND("+",C28)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",D28)),VALUE(MID(D28,FIND("+",D28)+1,LEN(D28)-FIND("+",D28)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",C29)),VALUE(MID(C29,FIND("+",C29)+1,LEN(C29)-FIND("+",C29)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",D29)),VALUE(MID(D29,FIND("+",D29)+1,LEN(D29)-FIND("+",D29)-1))/100,0)
+C30: =TEXT(A27*100,"0.0")&"% Leth  +"&TEXT(A28*100,"0.0")&"% CC  +"&TEXT(A29*100,"0.0")&"% CD  +"&TEXT(A30*100,"0.0")&"% AS"
+A31: =IF(ISNUMBER(SEARCH("Atk Speed",C27)),VALUE(MID(C27,FIND("+",C27)+1,LEN(C27)-FIND("+",C27)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",D27)),VALUE(MID(D27,FIND("+",D27)+1,LEN(D27)-FIND("+",D27)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",C28)),VALUE(MID(C28,FIND("+",C28)+1,LEN(C28)-FIND("+",C28)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",D28)),VALUE(MID(D28,FIND("+",D28)+1,LEN(D28)-FIND("+",D28)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",C29)),VALUE(MID(C29,FIND("+",C29)+1,LEN(C29)-FIND("+",C29)-1))/100,0)+IF(ISNUMBER(SEARCH("Atk Speed",D29)),VALUE(MID(D29,FIND("+",D29)+1,LEN(D29)-FIND("+",D29)-1))/100,0)
+E41: =MIN(C41, 100%)
+E42: =MIN(C42, 100%)
+E43: =MIN(C43, 150%)
+C44: =IFS(C6="Wolfarite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Eye Ore",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Frost Fossil",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1.75+(17.5-1.75)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Crimsonite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Tigers Eye",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Sealed Curse",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Kokorite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Wolfarite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Eye Ore",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Frost Fossil",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1.75+(17.5-1.75)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Crimsonite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Tigers Eye",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Sealed Curse",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Kokorite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Wolfarite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Eye Ore",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Frost Fossil",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1.75+(17.5-1.75)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Crimsonite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Tigers Eye",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Sealed Curse",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Kokorite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Wolfarite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Eye Ore",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Frost Fossil",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1.75+(17.5-1.75)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Crimsonite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Tigers Eye",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Sealed Curse",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Kokorite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+C43
+
+E44: =MIN(A27+A44+C44+SWITCH(C22,"Archangel",20%,"Demon",20%,"Orc",10%,"Shadow",5%,"Dragonborn",12%,0)+IFS(AND(C22="Felynx",C23="Gauntlet"),20%,AND(C22="Vampire",C23="Straight Sword"),10%,TRUE,0)+IF(ISNUMBER(SEARCH("Damage Boost",C80)),VALUE(MID(C80,FIND("+",C80)+1,LEN(C80)-FIND("+",C80)-1))/100,0),150%)
+C45: =IFS(C6="Prismatic Heart",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Voidstar",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(3.3+(33-3.3)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Yang",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Golem Heart",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Onyx",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Rivalite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Yin-Yang",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Prismatic Heart",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Voidstar",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(3.3+(33-3.3)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Yang",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Golem Heart",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Onyx",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Rivalite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Yin-Yang",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Prismatic Heart",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Voidstar",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(3.3+(33-3.3)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Yang",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Golem Heart",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Onyx",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Rivalite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Yin-Yang",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Prismatic Heart",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Voidstar",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(3.3+(33-3.3)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(3+(30-3)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Yang",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Golem Heart",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Onyx",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Rivalite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Yin-Yang",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+C41
+
+E45: =MIN(A28+C45+IF(ISNUMBER(SEARCH("Crit Chance",C80)),VALUE(MID(C80,FIND("+",C80)+1,LEN(C80)-FIND("+",C80)-1))/100,0),100%)
+C46: =IFS(C6="Prismatic Heart",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Voidstar",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Golem Heart",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Onyx",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1.75+(17.5-1.75)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Yang",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1.8+(18-1.8)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1.8+(18-1.8)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Yin-Yang",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Prismatic Heart",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Voidstar",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Golem Heart",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Onyx",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1.75+(17.5-1.75)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Yang",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1.8+(18-1.8)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1.8+(18-1.8)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Yin-Yang",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Prismatic Heart",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Voidstar",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Golem Heart",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Onyx",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1.75+(17.5-1.75)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Yang",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1.8+(18-1.8)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1.8+(18-1.8)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Yin-Yang",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Prismatic Heart",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Voidstar",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Golem Heart",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1.5+(15-1.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Onyx",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1.75+(17.5-1.75)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Yang",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1.8+(18-1.8)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1.8+(18-1.8)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Yin-Yang",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+C42
+E46: =MIN(A29+C46,100%)
+C47: =IFS(C6="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Tiger's Eye",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.75+(7.5-0.75)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Wolfarite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.8+(8-0.8)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Tiger's Eye",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.75+(7.5-0.75)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Wolfarite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.8+(8-0.8)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Tiger's Eye",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.75+(7.5-0.75)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Wolfarite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.8+(8-0.8)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Yeti Heart",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Tiger's Eye",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.75+(7.5-0.75)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Wolfarite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.8+(8-0.8)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)
+
+E47: =MIN(A31+C47+SWITCH(C22,"Shadow",10%,"Demon",20%,"Archangel",20%,0)+IFS(AND(C22="Goblin",C23="Dagger"),10%,AND(C22="Golem",C23="Colossal Sword"),15%,AND(C22="Golem",C23="Great Axe"),15%,AND(C22="Felynx",C23="Gauntlets"),20%,TRUE,0)+IF(ISNUMBER(SEARCH("Attack Speed",C80)),VALUE(MID(C80,FIND("+",C80)+1,LEN(C80)-FIND("+",C80)-1))/100,0),150%)
+C52: =IFS(C6="Moon Stone",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2.5+(25-2.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Moon Stone",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2.5+(25-2.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Moon Stone",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2.5+(25-2.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Moon Stone",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2.5+(25-2.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)
+E52: =1+C52
+E53: =C53+IF(C22="Minotaur",30%,0)
+C57: =IFS(C6="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(5+(50-5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Magmaite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Meteorite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(6+(60-6)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(6.5+(65-6.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(5+(50-5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Magmaite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Meteorite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(6+(60-6)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(6.5+(65-6.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(5+(50-5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Magmaite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Meteorite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(6+(60-6)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(6.5+(65-6.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(5+(50-5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Magmaite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Meteorite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(6+(60-6)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(6.5+(65-6.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+E34
+
+E57: =A18*C57
+C58: =MAX(
+  IFS(C6="Gargantuan", IF(SUM($D$6:$D$9)=0, 0, IF(D6/SUM($D$6:$D$9)<0.1, 0, (3.5+(35-3.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C6="Magmaite", IF(SUM($D$6:$D$9)=0, 0, IF(D6/SUM($D$6:$D$9)<0.1, 0, (2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C6="Meteorite", IF(SUM($D$6:$D$9)=0, 0, IF(D6/SUM($D$6:$D$9)<0.1, 0, (2.5+(25-2.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C6="Supermassive Black Hole", IF(SUM($D$6:$D$9)=0, 0, IF(D6/SUM($D$6:$D$9)<0.1, 0, (4.5+(45-4.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), TRUE, 0),
+  IFS(C7="Gargantuan", IF(SUM($D$6:$D$9)=0, 0, IF(D7/SUM($D$6:$D$9)<0.1, 0, (3.5+(35-3.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C7="Magmaite", IF(SUM($D$6:$D$9)=0, 0, IF(D7/SUM($D$6:$D$9)<0.1, 0, (2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C7="Meteorite", IF(SUM($D$6:$D$9)=0, 0, IF(D7/SUM($D$6:$D$9)<0.1, 0, (2.5+(25-2.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C7="Supermassive Black Hole", IF(SUM($D$6:$D$9)=0, 0, IF(D7/SUM($D$6:$D$9)<0.1, 0, (4.5+(45-4.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), TRUE, 0),
+  IFS(C8="Gargantuan", IF(SUM($D$6:$D$9)=0, 0, IF(D8/SUM($D$6:$D$9)<0.1, 0, (3.5+(35-3.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C8="Magmaite", IF(SUM($D$6:$D$9)=0, 0, IF(D8/SUM($D$6:$D$9)<0.1, 0, (2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C8="Meteorite", IF(SUM($D$6:$D$9)=0, 0, IF(D8/SUM($D$6:$D$9)<0.1, 0, (2.5+(25-2.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C8="Supermassive Black Hole", IF(SUM($D$6:$D$9)=0, 0, IF(D8/SUM($D$6:$D$9)<0.1, 0, (4.5+(45-4.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), TRUE, 0),
+  IFS(C9="Gargantuan", IF(SUM($D$6:$D$9)=0, 0, IF(D9/SUM($D$6:$D$9)<0.1, 0, (3.5+(35-3.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C9="Magmaite", IF(SUM($D$6:$D$9)=0, 0, IF(D9/SUM($D$6:$D$9)<0.1, 0, (2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C9="Meteorite", IF(SUM($D$6:$D$9)=0, 0, IF(D9/SUM($D$6:$D$9)<0.1, 0, (2.5+(25-2.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), C9="Supermassive Black Hole", IF(SUM($D$6:$D$9)=0, 0, IF(D9/SUM($D$6:$D$9)<0.1, 0, (4.5+(45-4.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2, 1))/100)), TRUE, 0),
+  E35
+)
+
+E58: =A18*C57*C58*E21
+C61: =IFS(C6="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Sun Stone",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Fireite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(5+(50-5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Sun Stone",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Fireite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(5+(50-5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Sun Stone",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Fireite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(5+(50-5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Sun Stone",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Fireite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(5+(50-5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IF(C22="Dragonborn",30%,0)+C34
+
+E61: =A18*C61
+C62: =MAX(
+IFS(C6="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Sun Stone",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Fireite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C6="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),
+IFS(C7="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Sun Stone",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Fireite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C7="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),
+IFS(C8="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Sun Stone",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Fireite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C8="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),
+IFS(C9="Gargantuan",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Sun Stone",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(3.5+(35-3.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Fireite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2+(20-2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Kyubite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),C9="Supermassive Black Hole",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(4.5+(45-4.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),
+C35
+)+IF(C22="Dragonborn",0.4,0)
+
+E62: =IF(E21=0,0,A18*C61*MIN(1,C62*E21*MIN(C63,5)))
+C63: =SUM(IF(MAX(IFS(OR(C6="Gargantuan",C6="Fireite"),IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.2+(2-0.2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1)))),OR(C6="Sun Stone",C6="Kyubite",C6="Supermassive Black Hole"),IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(OR(C7="Gargantuan",C7="Fireite"),IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.2+(2-0.2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1)))),OR(C7="Sun Stone",C7="Kyubite",C7="Supermassive Black Hole"),IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(OR(C8="Gargantuan",C8="Fireite"),IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.2+(2-0.2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1)))),OR(C8="Sun Stone",C8="Kyubite",C8="Supermassive Black Hole"),IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(OR(C9="Gargantuan",C9="Fireite"),IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.2+(2-0.2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1)))),OR(C9="Sun Stone",C9="Kyubite",C9="Supermassive Black Hole"),IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IF(C22="Dragonborn",3,0))=0,0,MAX(MAX(IFS(OR(C6="Gargantuan",C6="Fireite"),IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.2+(2-0.2)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1)))),OR(C6="Sun Stone",C6="Kyubite",C6="Supermassive Black Hole"),IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(OR(C7="Gargantuan",C7="Fireite"),IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.2+(2-0.2)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1)))),OR(C7="Sun Stone",C7="Kyubite",C7="Supermassive Black Hole"),IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(OR(C8="Gargantuan",C8="Fireite"),IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.2+(2-0.2)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1)))),OR(C8="Sun Stone",C8="Kyubite",C8="Supermassive Black Hole"),IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(OR(C9="Gargantuan",C9="Fireite"),IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.2+(2-0.2)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1)))),OR(C9="Sun Stone",C9="Kyubite",C9="Supermassive Black Hole"),IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.5+(5-0.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IF(C22="Dragonborn",3,0),C36)-1,0)))
+
+
+E63: =MAX(A18*C61*(C63+1),0)
+C66: =IFS(C6="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(1+(10-1)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+D34
+E66: =A18*C66
+C67: =MAX(MAX(IFS(C6="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(3.3+(33-3.3)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),IFS(C7="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(3.3+(33-3.3)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),IFS(C8="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(3.3+(33-3.3)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),IFS(C9="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(3.3+(33-3.3)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)),D35)
+E67: =IF(E21=0,0,A18*C66*MIN(1,C67*E21*MIN(C68,5)))
+C68: =IF(MAX(IFS(C6="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.3+(3-0.3)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(C7="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.3+(3-0.3)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(C8="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.3+(3-0.3)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(C9="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.3+(3-0.3)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0))=0,0,MAX(MAX(IFS(C6="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(0.3+(3-0.3)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(C7="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(0.3+(3-0.3)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(C8="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(0.3+(3-0.3)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),IFS(C9="Malachite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(0.3+(3-0.3)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1)))),TRUE,0),D36)-2,0))
+E68: =MAX(A18*C66*(C68+1),0)
+C71: =IFS(C6="Heavenite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(2.5+(25-2.5)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Heavenite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(2.5+(25-2.5)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Heavenite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(2.5+(25-2.5)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Heavenite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(2.5+(25-2.5)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IF(C22="Angel",30%,0)+IF(C22="Archangel",150%,0)
+E71: =A18*C71
+C72: =MAX(IFS(C6="Heavenite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),IFS(C7="Heavenite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),IFS(C8="Heavenite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),IFS(C9="Heavenite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(4+(40-4)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0),IF(C22="Angel",50%,0)+IF(C22="Archangel",33%,0))
+E72: =A18*E21*C71*MIN(C72,1)
+C75: =IFS(C6="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,(6+(60-6)*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C7="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D7/SUM($D$6:$D$9)<0.1,0,(6+(60-6)*MIN((D7/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C8="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D8/SUM($D$6:$D$9)<0.1,0,(6+(60-6)*MIN((D8/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)+IFS(C9="Galaxite",IF(SUM($D$6:$D$9)=0,0,IF(D9/SUM($D$6:$D$9)<0.1,0,(6+(60-6)*MIN((D9/SUM($D$6:$D$9)-0.1)/0.2,1))/100)),TRUE,0)
+ 
+E75: =A18*C75
+C76: =IF(COUNTIF(C6:C9, "Galaxite")/COUNTA(C6:C9)>=0.1, 0.3, 0)
+
+
+
+
+E76: =A18*C75*C76*E21
+E80: =IFS(ISNUMBER(SEARCH("Attack Speed",C80)),"Total AS: "&TEXT(E47,"0%"),ISNUMBER(SEARCH("Crit Chance",C80)),"Total CC: "&TEXT(E45,"0%"),ISNUMBER(SEARCH("Damage Boost",C80)),"Total Lethality: "&TEXT(E44,"0%"),TRUE,"No bonus selected")
+C84: =C18*(1+E44)*(MIN(C20+E45,1)*(C21+E46)+(1-MIN(C20+E45,1)))*E21
+E84: =E19*E21
+C85: =E58
+E85: =C18&" × "&TEXT(C57,"0%")&" × "&TEXT(C58,"0%")&" × "&TEXT(E21,"0.000")
+C86: =E62
+E86: =C18&" × "&TEXT(C61,"0%")
+C87: =E67
+E87: =C18&" × "&TEXT(C66,"0%")
+C88: =E72
+E88: =C18&" × "&TEXT(C71,"0%")&" × "&TEXT(C72,"0%")&" × "&TEXT(E21,"0.000")
+C89: =E76
+C91: =C84+C85+C86+C87+C88+C89
+E91: =IF(C91>0,25000/C91,"∞")
+C92: =IF(E53=0,"N/A",(C85+C86+C87+C88+C89+C18*(1+MIN(E44+E53,150%))*(MIN(C20+E45,1)*(C21+E46)+(1-MIN(C20+E45,1)))*E21))
+E92: =IF(C91>0,75000/C91,"∞")
+C93: =IF(C52=0,"N/A",(C18*(1+E44)*(MIN(C20+E45,1)*(C21+E46)+(1-MIN(C20+E45,1)))*E21)*E52)
+C95: =C18*(1+E44)*E21
+C96: =C18*(1+E44)*(C21+E46)*E21+C18*C57*E21+C18*C61+C18*C66+C71*C18+C75*C18
+
+=== _Weapon (0 formulas) ===
+
+=== _OptionsCrafter (78 formulas) ===
+H55: ="+1"
+H56: ="+2"
+H57: ="+3"
+D58: ="+1.75% Lethality | -0.5% Swiftness"
+E58: ="+17.5% Lethality | -5% Swiftness"
+H58: ="+4"
+D59: ="+2% Lethality"
+E59: ="+20% Lethality"
+H59: ="+5"
+D60: ="Deals +1% of weapon damage as poison per second for 0.3 seconds. 3.3% chance on hit"
+E60: ="Deals +10% of weapon damage as poison per second for 3 seconds. 33% chance on hit"
+H60: ="+6"
+H61: ="+7"
+H62: ="+8"
+H63: ="+9"
+D64: ="+2% Critical Chance | +0.5% Critical Damage | Freeze enemies for 0.2 seconds. 1.5% chance on hit. Has cooldown of 15"
+E64: ="+20% Critical Chance | +5% Critical Damage | Freeze enemies for 2 seconds. 15% chance on hit. Has cooldown of 15"
+H64: ="+10"
+D67: ="Slows enemies by 1.5% for 0.3s with 3% chance on hit"
+E67: ="Slows enemies by 15% for 3s with 30% chance on hit"
+D68: ="+2.5% Moonboost (Physical Damage at night time)"
+E68: ="+25% Moonboost (Physical Damage at night time)"
+D69: ="+3.3% Crit Chance | +1.5% Crit Damage | -1.5% Vitality"
+E69: ="+33% Crit Chance | +15% Crit Damage | -15% Vitality"
+D71: ="+3% Critical Chance | +1% Critical Damage | +1% Attack Speed"
+E71: ="+30% Critical Chance | +10% Critical Damage | +10% Attack Speed"
+D72: ="Freeze enemies for 0.2 seconds. 2.5% chance on hit. Has cooldown of 12sec"
+E72: ="Freeze enemies for 2 seconds. 25% chance on hit. Has cooldown of 12sec"
+D78: ="+4% Critical Chance | +1.5% Critical Damage | Slows enemies by 2.5% for 0.3s with 2.5% chance on hit"
+E78: ="+40% Critical Chance | +15% Critical Damage | Slows enemies by 25% for 3s with 25% chance on hit"
+D79: ="+0.7% Life Steal"
+E79: ="+7% Life Steal"
+D80: ="+2.5% of weapon damage done as smite, 4% chance on hit"
+E80: ="+25% of weapon damage done as smite, 40% chance on hit"
+D81: ="3.5% Chance for 5% weapon damage AOE Explosion | Deals 2% of weapon damage as fire per second for 0.2s (2% chance)"
+E81: ="35% Chance for 50% weapon damage AOE Explosion | Deals 20% of weapon damage as fire per second for 2s (20% chance)"
+D92: ="+0.75% Attack Speed | +0.5% Lethality | +0.5% Swiftness | -1% Vitality"
+E92: ="7.5% Attack Speed | +5% Lethality | +5% Swiftness | -10% Vitality"
+D98: ="+3% Lethality | -2% Vitality | -1% Stamina | -1.5% Movement Speed | (Armor only) +2% Physical Damage and +2% Movement Speed for 0.6 seconds when HP drops below 35%"
+E98: ="+30% Lethality | -20% Vitality | -10% Stamina | -15% Movement Speed | +20% Physical Damage and +20% Movement Speed for 6 seconds when HP drops below 35%"
+D101: ="+3.5% Critical Chance | +1.75% Critical Damage"
+E101: ="+35% Critical Chance | +17.5% Critical Damage"
+D104: ="Deals 3.5% of weapon damage as fire per second for 0.5s (3.5% chance)"
+E104: ="Deals 35% of weapon damage as fire per second for 5s (35% chance)"
+D107: ="2.5% Chance for 6% weapon damage AOE Explosion"
+E107: ="25% Chance for 60% weapon damage AOE Explosion"
+D109: ="+4% Critical Chance | +1.8% Critical Damage | Deals 4.5% of weapon damage as fire per second for 0.5s (4% chance)"
+E109: ="+40% Critical Chance | +18% Critical Damage | Deals 45% of weapon damage as fire per second for 5s (40% chance)"
+D137: ="+2% Critical Chance"
+E137: ="+20% Crit chance"
+D140: ="+1.5% Lethality"
+E140: ="+15% Lethality"
+D141: ="3% chance to burn for 2% weapon damage per second for 0.2 seconds on attack"
+E141: ="30% chance to burn for 20% weapon damage per second for 2 seconds on attack"
+D142: ="+3.5% AOE Explosion on Weapons with 2% chance"
+E142: ="+35% AOE Explosion on Weapons with 20% chance"
+D174: ="+0.8% Vitality | +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%"
+E174: ="+8% Vitality | +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%"
+D175: ="+4% Critical Chance | +1.8% Critical Damage"
+E175: ="+40% Critical Chance | +18% Critical Damage"
+D180: ="Both: +3% Lethality | -0.5% Vitality | -0.5% Endurance | -0.5% Swiftness
+Armor only: +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%"
+E180: ="Both: +30% Lethality | -5% Vitality | -5% Endurance | -5% Swiftness
+Armor only: +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%"
+D181: ="-1% Swiftness | +1.5% Vitality | +0.5 Health Regeneration | +7% chance to reduce incoming damage by 2.5%"
+E181: ="-10% Swiftness | +15% Vitality | +5 Health Regeneration | +70% chance to reduce incoming damage by 25%"
+D183: ="+0.4% Luck | +0.6% Yield Chance"
+E183: ="+4% Luck | +6% Yield Chance"
+D184: ="+0.6% Jump Boost | +1.2% Dash Distance | +1% longer Dash Invincibility duration| +1.5% Dash cooldown reduction"
+E184: ="+6% Jump Boost | +12% Dash Distance | +10% longer Dash Invincibility duration| +15% Dash cooldown reduction"
+D190: ="+0.5% Vitality | +1 Health Regeneration | +5% chance to reduce incoming damage by 5% | +0.3% Thorn damage"
+E190: ="+5% Vitality | +10 Health Regeneration | +50% chance to reduce incoming damage by 50% | +3% Thorn damage"
+D192: ="+0.8% Attack Speed | +1.5% Lethality | +0.6% Swiftness | -0.8% Vitality"
+E192: ="+8% Attack Speed | +15% Lethality | +6% Swiftness | -8% Vitality"
+D193: ="4.5% Chance for 6.5% weapon damage AOE Explosion | Deals 5% of weapon damage as fire per second for 0.5s (4.5% chance)"
+E193: ="45% Chance for 65% weapon damage AOE Explosion | Deals 50% of weapon damage as fire per second for 5s (45% chance)"
+D194: ="+4.5% Critical Chance | +2% Critical Damage | +0.8% Vitality | +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%"
+E194: ="+45% Critical Chance | +20% Critical Damage | +8% Vitality | +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%"
+D195: ="Weapons only: +6% Black Hole Damage | +3% Black Hole Chance | +6.5% Black Hole Radius | +4.5% Critical Chance | +2% Critical Damage"
+
+E195: ="Weapons only: +60% Black Hole Damage | +30% Black Hole Chance | +65% Black Hole Radius | +45% Critical Chance | +20% Critical Damage"
+
+=== _Options (0 formulas) ===
+
+=== IGNORE REF CALC (0 formulas) ===
