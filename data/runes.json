@@ -1,0 +1,241 @@
+{
+  "source": "_Options!A1:A48",
+  "none": "None",
+  "runes": [
+    {
+      "name": "Crit Chance +5%",
+      "stat": "crit_chance",
+      "value": 0.05
+    },
+    {
+      "name": "Crit Chance +6%",
+      "stat": "crit_chance",
+      "value": 0.06
+    },
+    {
+      "name": "Crit Chance +7%",
+      "stat": "crit_chance",
+      "value": 0.07
+    },
+    {
+      "name": "Crit Chance +8%",
+      "stat": "crit_chance",
+      "value": 0.08
+    },
+    {
+      "name": "Crit Chance +9%",
+      "stat": "crit_chance",
+      "value": 0.09
+    },
+    {
+      "name": "Crit Chance +10%",
+      "stat": "crit_chance",
+      "value": 0.1
+    },
+    {
+      "name": "Crit Chance +11%",
+      "stat": "crit_chance",
+      "value": 0.11
+    },
+    {
+      "name": "Crit Chance +12%",
+      "stat": "crit_chance",
+      "value": 0.12
+    },
+    {
+      "name": "Crit Chance +13%",
+      "stat": "crit_chance",
+      "value": 0.13
+    },
+    {
+      "name": "Crit Chance +14%",
+      "stat": "crit_chance",
+      "value": 0.14
+    },
+    {
+      "name": "Crit Chance +15%",
+      "stat": "crit_chance",
+      "value": 0.15
+    },
+    {
+      "name": "Crit DMG +5%",
+      "stat": "crit_dmg",
+      "value": 0.05
+    },
+    {
+      "name": "Crit DMG +6%",
+      "stat": "crit_dmg",
+      "value": 0.06
+    },
+    {
+      "name": "Crit DMG +7%",
+      "stat": "crit_dmg",
+      "value": 0.07
+    },
+    {
+      "name": "Crit DMG +8%",
+      "stat": "crit_dmg",
+      "value": 0.08
+    },
+    {
+      "name": "Crit DMG +9%",
+      "stat": "crit_dmg",
+      "value": 0.09
+    },
+    {
+      "name": "Crit DMG +10%",
+      "stat": "crit_dmg",
+      "value": 0.1
+    },
+    {
+      "name": "Crit DMG +11%",
+      "stat": "crit_dmg",
+      "value": 0.11
+    },
+    {
+      "name": "Crit DMG +12%",
+      "stat": "crit_dmg",
+      "value": 0.12
+    },
+    {
+      "name": "Crit DMG +13%",
+      "stat": "crit_dmg",
+      "value": 0.13
+    },
+    {
+      "name": "Crit DMG +14%",
+      "stat": "crit_dmg",
+      "value": 0.14
+    },
+    {
+      "name": "Crit DMG +15%",
+      "stat": "crit_dmg",
+      "value": 0.15
+    },
+    {
+      "name": "Atk Speed +5%",
+      "stat": "atk_speed",
+      "value": 0.05
+    },
+    {
+      "name": "Atk Speed +6%",
+      "stat": "atk_speed",
+      "value": 0.06
+    },
+    {
+      "name": "Atk Speed +7%",
+      "stat": "atk_speed",
+      "value": 0.07
+    },
+    {
+      "name": "Atk Speed +8%",
+      "stat": "atk_speed",
+      "value": 0.08
+    },
+    {
+      "name": "Atk Speed +9%",
+      "stat": "atk_speed",
+      "value": 0.09
+    },
+    {
+      "name": "Atk Speed +10%",
+      "stat": "atk_speed",
+      "value": 0.1
+    },
+    {
+      "name": "Atk Speed +11%",
+      "stat": "atk_speed",
+      "value": 0.11
+    },
+    {
+      "name": "Atk Speed +12%",
+      "stat": "atk_speed",
+      "value": 0.12
+    },
+    {
+      "name": "Atk Speed +13%",
+      "stat": "atk_speed",
+      "value": 0.13
+    },
+    {
+      "name": "Atk Speed +14%",
+      "stat": "atk_speed",
+      "value": 0.14
+    },
+    {
+      "name": "Atk Speed +15%",
+      "stat": "atk_speed",
+      "value": 0.15
+    },
+    {
+      "name": "Atk Speed +16%",
+      "stat": "atk_speed",
+      "value": 0.16
+    },
+    {
+      "name": "Atk Speed +17%",
+      "stat": "atk_speed",
+      "value": 0.17
+    },
+    {
+      "name": "Atk Speed +18%",
+      "stat": "atk_speed",
+      "value": 0.18
+    },
+    {
+      "name": "Lethality +5%",
+      "stat": "lethality",
+      "value": 0.05
+    },
+    {
+      "name": "Lethality +6%",
+      "stat": "lethality",
+      "value": 0.06
+    },
+    {
+      "name": "Lethality +7%",
+      "stat": "lethality",
+      "value": 0.07
+    },
+    {
+      "name": "Lethality +8%",
+      "stat": "lethality",
+      "value": 0.08
+    },
+    {
+      "name": "Lethality +9%",
+      "stat": "lethality",
+      "value": 0.09
+    },
+    {
+      "name": "Lethality +10%",
+      "stat": "lethality",
+      "value": 0.1
+    },
+    {
+      "name": "Lethality +11%",
+      "stat": "lethality",
+      "value": 0.11
+    },
+    {
+      "name": "Lethality +12%",
+      "stat": "lethality",
+      "value": 0.12
+    },
+    {
+      "name": "Lethality +13%",
+      "stat": "lethality",
+      "value": 0.13
+    },
+    {
+      "name": "Lethality +14%",
+      "stat": "lethality",
+      "value": 0.14
+    },
+    {
+      "name": "Lethality +15%",
+      "stat": "lethality",
+      "value": 0.15
+    }
+  ]
+}

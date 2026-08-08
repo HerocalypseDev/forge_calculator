@@ -1,0 +1,130 @@
+{
+  "source": "_Options!B1:C16 + availability matrix E2:U17",
+  "trait_headers": [
+    "Physical Damage +5%",
+    "Physical Damage +10%",
+    "Physical Damage +12%",
+    "Physical Damage +20%",
+    "Physical Damage +20% (Gauntlets Only)",
+    "Physical Damage +30% (below 50% HP)",
+    "Attack Speed +15% (Heavy Weapons Only)",
+    "Attack Speed +10%",
+    "Attack speed +10% (Daggers only)",
+    "Attack Speed +20%  (Gauntlets Only)",
+    "Attack Speed +20%",
+    "Fire Damage +20%",
+    "50% chance to deal 30% Physical Damage on-hit",
+    "40% chance to burn enemies for 30% weapon damage/s for 3 seconds",
+    "10% Damage Boost (Straight Swords Only)"
+  ],
+  "races": [
+    {
+      "name": "Human",
+      "default_trait": "Physical Damage +5%",
+      "available_traits": []
+    },
+    {
+      "name": "Elf",
+      "default_trait": "Physical Damage +10%",
+      "available_traits": []
+    },
+    {
+      "name": "Zombie",
+      "default_trait": "Physical Damage +12%",
+      "available_traits": []
+    },
+    {
+      "name": "Goblin",
+      "default_trait": "Physical Damage +20%",
+      "available_traits": [
+        "Attack speed +10% (Daggers only)"
+      ]
+    },
+    {
+      "name": "Undead",
+      "default_trait": "Physical Damage +20% with Gauntlets",
+      "available_traits": []
+    },
+    {
+      "name": "Orc",
+      "default_trait": "Physical Damage +30% (below 50% HP)",
+      "available_traits": [
+        "Physical Damage +10%"
+      ]
+    },
+    {
+      "name": "Dwarf",
+      "default_trait": "Attack Speed +10%",
+      "available_traits": []
+    },
+    {
+      "name": "Shadow",
+      "default_trait": "Attack Speed +15% for heavy weapons",
+      "available_traits": [
+        "Physical Damage +5%",
+        "Attack Speed +10%"
+      ]
+    },
+    {
+      "name": "Vampire",
+      "default_trait": "Attack Speed +10% with Daggers",
+      "available_traits": [
+        "10% Damage Boost (Straight Swords Only)"
+      ]
+    },
+    {
+      "name": "Minotaur",
+      "default_trait": "Attack Speed +20%  with Gauntlets",
+      "available_traits": [
+        "Physical Damage +30% (below 50% HP)"
+      ]
+    },
+    {
+      "name": "Dragonborn",
+      "default_trait": "Attack Speed +20%",
+      "available_traits": [
+        "Physical Damage +12%",
+        "40% chance to burn enemies for 30% weapon damage/s for 3 seconds"
+      ]
+    },
+    {
+      "name": "Golem",
+      "default_trait": "Fire Damage +20%",
+      "available_traits": [
+        "Attack Speed +15% (Heavy Weapons Only)"
+      ]
+    },
+    {
+      "name": "Felynx",
+      "default_trait": "50% chance to deal 30% Physical Damage on-hit",
+      "available_traits": [
+        "Physical Damage +20% (Gauntlets Only)",
+        "Attack Speed +20%  (Gauntlets Only)"
+      ]
+    },
+    {
+      "name": "Angel",
+      "default_trait": "40% chance to burn enemies for 30% weapon damage/s for 3 seconds\"",
+      "available_traits": [
+        "50% chance to deal 30% Physical Damage on-hit"
+      ]
+    },
+    {
+      "name": "Demon",
+      "default_trait": "Physical Damage +10% (Straight Sword Only)",
+      "available_traits": [
+        "Physical Damage +20%",
+        "Attack Speed +20%",
+        "Fire Damage +20%"
+      ]
+    },
+    {
+      "name": "Archangel",
+      "default_trait": "Deals 10% weapon damage/s during combat",
+      "available_traits": [
+        "Physical Damage +20%",
+        "Attack Speed +20%"
+      ]
+    }
+  ]
+}
