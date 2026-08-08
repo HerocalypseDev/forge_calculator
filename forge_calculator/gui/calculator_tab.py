@@ -106,18 +106,16 @@ class CalculatorTab(ttk.Frame):
         group_ores = ttk.LabelFrame(parent, text="Ore slots")
         group_weapon = ttk.LabelFrame(parent, text="Weapon")
         group_stats = ttk.LabelFrame(parent, text="Character / stats")
-        group_runes = ttk.LabelFrame(parent, text="Rune slots (6)")
         group_abilities = ttk.LabelFrame(parent, text="Ability inputs")
         group_achievement = ttk.LabelFrame(parent, text="Achievement")
 
-        groups = [group_ores, group_weapon, group_stats, group_runes, group_abilities, group_achievement]
+        groups = [group_ores, group_weapon, group_stats, group_abilities, group_achievement]
         for i, g in enumerate(groups):
             g.grid(row=i + 1, column=0, columnspan=2, sticky="ew", padx=8, pady=4)
 
         self._build_ore_group(group_ores)
         self._build_weapon_group(group_weapon)
         self._build_stats_group(group_stats)
-        self._build_rune_group(group_runes)
         self._build_ability_group(group_abilities)
         self._build_achievement_group(group_achievement)
 
@@ -125,7 +123,6 @@ class CalculatorTab(ttk.Frame):
         btn_frame = ttk.Frame(parent)
         btn_frame.grid(row=len(groups) + 1, column=0, columnspan=2, sticky="ew", padx=8, pady=8)
         ttk.Button(btn_frame, text="Reset", command=self._reset).pack(side="left", padx=4)
-        ttk.Button(btn_frame, text="Copy Total DPS", command=self._copy_total).pack(side="left", padx=4)
 
     def _build_ore_group(self, parent):
         parent.columnconfigure(1, weight=1)
@@ -183,12 +180,9 @@ class CalculatorTab(ttk.Frame):
         parent.columnconfigure(1, weight=1)
         self.race_var = tk.StringVar(master=self.root, value=self.game.none_label)
         self.bonus_var = tk.StringVar(master=self.root, value=self.game.none_label)
-        self.base_cc_var = tk.StringVar(master=self.root, value="0")
-        self.base_cd_var = tk.StringVar(master=self.root, value="0")
         self.armor_cc_var = tk.StringVar(master=self.root, value="0")
         self.armor_cd_var = tk.StringVar(master=self.root, value="0")
         self.armor_leth_var = tk.StringVar(master=self.root, value="0")
-        self.base_leth_var = tk.StringVar(master=self.root, value="0")
         self.berserk_var = tk.StringVar(master=self.root, value="0")
 
         race_values = [self.game.none_label] + [r.name for r in sorted_display(self.game.races)]
@@ -203,38 +197,18 @@ class CalculatorTab(ttk.Frame):
         rows = [
             ("Race", race_combo),
             ("Bonus Type", bonus_combo),
-            ("Base Crit Chance", self._entry(parent, self.base_cc_var)),
-            ("Base Crit DMG", self._entry(parent, self.base_cd_var)),
             ("Armor Crit Chance", self._entry(parent, self.armor_cc_var)),
             ("Armor Crit DMG", self._entry(parent, self.armor_cd_var)),
             ("Armor Lethality", self._entry(parent, self.armor_leth_var)),
-            ("Base Lethality", self._entry(parent, self.base_leth_var)),
             ("Berserk", self._entry(parent, self.berserk_var)),
         ]
         for row, (label, widget) in enumerate(rows):
             ttk.Label(parent, text=label).grid(row=row, column=0, sticky="e", padx=8, pady=2)
             widget.grid(row=row, column=1, sticky="w", padx=4, pady=2)
 
-        for var in (self.race_var, self.bonus_var, self.base_cc_var, self.base_cd_var,
-                    self.armor_cc_var, self.armor_cd_var, self.armor_leth_var,
-                    self.base_leth_var, self.berserk_var):
+        for var in (self.race_var, self.bonus_var, self.armor_cc_var, self.armor_cd_var,
+                    self.armor_leth_var, self.berserk_var):
             self._watch(var)
-
-    def _build_rune_group(self, parent):
-        parent.columnconfigure(1, weight=1)
-        parent.columnconfigure(3, weight=1)
-        self.rune_vars = []
-        rune_values = [self.game.none_label] + [r.name for r in sorted_display(self.game.runes)]
-        for row in range(3):
-            for col in range(2):
-                var = tk.StringVar(master=self.root, value=self.game.none_label)
-                self.rune_vars.append(var)
-                combo = SearchableCombo(parent, values=rune_values, textvariable=var, width=22)
-                label_col = 0 + col * 2
-                combo_col = 1 + col * 2
-                ttk.Label(parent, text=f"Rune {row + 1}.{col + 1}").grid(row=row, column=label_col, sticky="e", padx=8, pady=2)
-                combo.grid(row=row, column=combo_col, sticky="ew", padx=4, pady=2)
-                self._watch(var)
 
     def _build_ability_group(self, parent):
         parent.columnconfigure(1, weight=1)
@@ -431,13 +405,13 @@ class CalculatorTab(ttk.Frame):
             forge_level=int(to_float(self.enhancement_var.get())),
             race=self.race_var.get(),
             bonus_weapon_type=self.bonus_var.get(),
-            rune_cells=tuple(v.get() for v in self.rune_vars),
-            base_crit_chance=to_float(self.base_cc_var.get()),
-            base_crit_dmg=to_float(self.base_cd_var.get()),
+            rune_cells=(),
+            base_crit_chance=0.0,
+            base_crit_dmg=0.0,
             armor_crit_chance=to_float(self.armor_cc_var.get()),
             armor_crit_dmg=to_float(self.armor_cd_var.get()),
             armor_lethality=to_float(self.armor_leth_var.get()),
-            base_lethality=to_float(self.base_leth_var.get()),
+            base_lethality=0.0,
             abilities=Abilities(
                 fire_dmg=to_float(self.ability_vars["fire_dmg"].get()),
                 fire_chance=to_float(self.ability_vars["fire_chance"].get()),
@@ -474,15 +448,10 @@ class CalculatorTab(ttk.Frame):
         self.enhancement_var.set("0")
         self.race_var.set(self.game.none_label)
         self.bonus_var.set(self.game.none_label)
-        self.base_cc_var.set("0")
-        self.base_cd_var.set("0")
         self.armor_cc_var.set("0")
         self.armor_cd_var.set("0")
         self.armor_leth_var.set("0")
-        self.base_leth_var.set("0")
         self.berserk_var.set("0")
-        for var in self.rune_vars:
-            var.set(self.game.none_label)
         for var in self.ability_vars.values():
             var.set("0")
         self.achievement_var.set(self.game.none_label)
@@ -541,14 +510,10 @@ class CalculatorTab(ttk.Frame):
             "enhancement": self.enhancement_var.get(),
             "race": self.race_var.get(),
             "bonus": self.bonus_var.get(),
-            "base_cc": self.base_cc_var.get(),
-            "base_cd": self.base_cd_var.get(),
             "armor_cc": self.armor_cc_var.get(),
             "armor_cd": self.armor_cd_var.get(),
             "armor_leth": self.armor_leth_var.get(),
-            "base_leth": self.base_leth_var.get(),
             "berserk": self.berserk_var.get(),
-            "runes": [v.get() for v in self.rune_vars],
             "abilities": {k: v.get() for k, v in self.ability_vars.items()},
             "achievement": self.achievement_var.get(),
         }
@@ -580,12 +545,9 @@ class CalculatorTab(ttk.Frame):
 
         for key, var in [
             ("quality", self.quality_var),
-            ("base_cc", self.base_cc_var),
-            ("base_cd", self.base_cd_var),
             ("armor_cc", self.armor_cc_var),
             ("armor_cd", self.armor_cd_var),
             ("armor_leth", self.armor_leth_var),
-            ("base_leth", self.base_leth_var),
             ("berserk", self.berserk_var),
         ]:
             val = state.get(key)
@@ -604,13 +566,6 @@ class CalculatorTab(ttk.Frame):
         bonus = state.get("bonus")
         if isinstance(bonus, str) and bonus in self.game.race_bonus_types:
             self.bonus_var.set(bonus)
-
-        runes = state.get("runes")
-        if isinstance(runes, list):
-            valid_runes = {r.name for r in self.game.runes} | {self.game.none_label}
-            for i, val in enumerate(runes[:6]):
-                if isinstance(val, str) and val in valid_runes:
-                    self.rune_vars[i].set(val)
 
         abilities = state.get("abilities")
         if isinstance(abilities, dict):

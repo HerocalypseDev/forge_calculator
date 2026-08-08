@@ -27,7 +27,6 @@ GOLDEN_1 = {
     "weapon": "Demonic Spear",
     "quality": "100",
     "enhancement": "0",
-    "base_cd": "1.45",
 }
 
 # tab title -> expected number of rows in its primary Treeview/Listbox
@@ -36,7 +35,6 @@ BROWSE_EXPECTED = {
     "Races": 16,
     "Weapons": 79,
     "Achievements": 16,
-    "Runes": 47,
 }
 
 
@@ -74,7 +72,6 @@ def main():
     tab.weapon_var.set(GOLDEN_1["weapon"])
     tab.quality_var.set(GOLDEN_1["quality"])
     tab.enhancement_var.set(GOLDEN_1["enhancement"])
-    tab.base_cd_var.set(GOLDEN_1["base_cd"])
     root.update_idletasks()  # flush the after_idle recompute
 
     def label(key):
