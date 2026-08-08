@@ -63,6 +63,7 @@ class CalculatorTab(ttk.Frame):
         self._tooltips: list[Tooltip] = []
         self._pinned_ores: list[str] = []
         self._pinned_weapons: list[str] = []
+        self._numeric_entries: list[tuple[ttk.Entry, tk.StringVar]] = []
         self._build_widgets()
         self._recompute()
 
@@ -123,6 +124,12 @@ class CalculatorTab(ttk.Frame):
         self._build_rune_group(group_runes)
         self._build_ability_group(group_abilities)
         self._build_achievement_group(group_achievement)
+
+        # Action buttons row
+        btn_frame = ttk.Frame(parent)
+        btn_frame.grid(row=len(groups) + 1, column=0, columnspan=2, sticky="ew", padx=8, pady=8)
+        ttk.Button(btn_frame, text="Reset", command=self._reset).pack(side="left", padx=4)
+        ttk.Button(btn_frame, text="Copy Total DPS", command=self._copy_total).pack(side="left", padx=4)
 
     def _build_ore_group(self, parent):
         parent.columnconfigure(1, weight=1)
@@ -268,6 +275,8 @@ class CalculatorTab(ttk.Frame):
                 self.ability_vars[key] = var
                 entry = ttk.Entry(parent, textvariable=var, width=12)
                 entry.grid(row=row, column=col, sticky="w", padx=4, pady=2)
+                var.trace_add("write", lambda *_a, e=entry, v=var: self._validate_numeric_entry(e, v))
+                self._numeric_entries.append((entry, var))
                 self._watch(var)
 
     def _build_achievement_group(self, parent):
@@ -282,9 +291,23 @@ class CalculatorTab(ttk.Frame):
         combo.grid(row=0, column=1, sticky="ew", padx=4, pady=2)
         self._watch(self.achievement_var)
 
-    @staticmethod
-    def _entry(parent, var, width=10):
-        return ttk.Entry(parent, width=width, textvariable=var)
+    def _entry(self, parent, var, width=10):
+        entry = ttk.Entry(parent, width=width, textvariable=var)
+        var.trace_add("write", lambda *_: self._validate_numeric_entry(entry, var))
+        self._numeric_entries.append((entry, var))
+        return entry
+
+    def _validate_numeric_entry(self, entry, var):
+        """Highlight invalid numeric entries with a red background."""
+        text = var.get().strip()
+        if not text:
+            entry.configure(background="white")
+            return
+        try:
+            float(text)
+            entry.configure(background="white")
+        except ValueError:
+            entry.configure(background="#ffcccc")
 
     # --- results ---
 
@@ -301,40 +324,61 @@ class CalculatorTab(ttk.Frame):
             self.result_labels[key] = value_label
             self._attach_tooltip(value_label, lambda k=key: _RESULT_HELP[k])
 
-        rows = [
-            ("Avg Ore Power (E10)", "avg_power", fmt2),
-            ("Unforged Dmg (A18)", "unforged_damage", fmt2),
-            ("Forged Dmg (C18)", "forged_damage", fmt2),
-            ("Interval (C19)", "interval", fmt2),
-            ("Attack Rate (E21)", "attack_rate", fmt4),
-            ("Lethality (E44)", "lethality", fmt_pct),
-            ("Crit Chance (E45)", "crit_chance", fmt_pct),
-            ("Crit DMG (E46)", "crit_dmg", fmt_pct),
-            ("Atk Speed (E47)", "atk_speed", fmt_pct),
-            ("Crit Blend", "crit_blend", fmt4),
-            ("Weapon DPS (C84)", "weapon_dps", fmt2),
-            ("Explosion DPS (C85)", "explosion_dps", fmt2),
-            ("Fire DPS (C86)", "fire_dps", fmt2),
-            ("Poison DPS (C87)", "poison_dps", fmt2),
-            ("Smite DPS (C88)", "smite_dps", fmt2),
-            ("Black Hole DPS (C89)", "blackhole_dps", fmt2),
-            ("Total DPS (C91)", "total_dps", fmt2),
-            ("TTK 25k (E91)", "ttk_25k", fmt2),
-            ("TTK 75k (E92)", "ttk_75k", fmt2),
-            ("Berserk (C92)", "berserk", fmt2),
-            ("Moonstone (C93)", "moonstone", fmt2),
-            ("Min DPS (C95)", "min_dps", fmt2),
-            ("Max Burst (C96)", "max_dps", fmt2),
+        def section_header(row, text):
+            ttk.Label(parent, text=text, font=("", 9, "bold")).grid(
+                row=row, column=0, columnspan=2, sticky="w", padx=8, pady=(8, 2))
+
+        # Grouped result sections
+        sections = [
+            ("Core", [
+                ("Avg Ore Power (E10)", "avg_power", fmt2),
+                ("Unforged Dmg (A18)", "unforged_damage", fmt2),
+                ("Forged Dmg (C18)", "forged_damage", fmt2),
+                ("Interval (C19)", "interval", fmt2),
+                ("Attack Rate (E21)", "attack_rate", fmt4),
+            ]),
+            ("Stats", [
+                ("Lethality (E44)", "lethality", fmt_pct),
+                ("Crit Chance (E45)", "crit_chance", fmt_pct),
+                ("Crit DMG (E46)", "crit_dmg", fmt_pct),
+                ("Atk Speed (E47)", "atk_speed", fmt_pct),
+                ("Crit Blend", "crit_blend", fmt4),
+            ]),
+            ("DPS", [
+                ("Weapon DPS (C84)", "weapon_dps", fmt2),
+                ("Explosion DPS (C85)", "explosion_dps", fmt2),
+                ("Fire DPS (C86)", "fire_dps", fmt2),
+                ("Poison DPS (C87)", "poison_dps", fmt2),
+                ("Smite DPS (C88)", "smite_dps", fmt2),
+                ("Black Hole DPS (C89)", "blackhole_dps", fmt2),
+                ("Total DPS (C91)", "total_dps", fmt2),
+                ("Berserk (C92)", "berserk", fmt2),
+                ("Moonstone (C93)", "moonstone", fmt2),
+                ("Min DPS (C95)", "min_dps", fmt2),
+                ("Max Burst (C96)", "max_dps", fmt2),
+            ]),
+            ("Time", [
+                ("TTK 25k (E91)", "ttk_25k", fmt2),
+                ("TTK 75k (E92)", "ttk_75k", fmt2),
+            ]),
         ]
-        for row, (label, key, fmt) in enumerate(rows):
-            result_row(row, label, key, fmt)
+
+        row = 0
+        for section_title, items in sections:
+            section_header(row, section_title)
+            row += 1
+            for label, key, fmt in items:
+                result_row(row, label, key, fmt)
+                row += 1
 
         self._traits_var = tk.StringVar(master=self.root, value="")
-        ttk.Label(parent, text="Active Traits (C14)").grid(row=len(rows), column=0, sticky="ne", padx=8, pady=4)
+        ttk.Label(parent, text="Active Traits (C14)").grid(row=row, column=0, sticky="ne", padx=8, pady=4)
         ttk.Label(parent, textvariable=self._traits_var, wraplength=320, justify="left").grid(
-            row=len(rows), column=1, sticky="nw", padx=8, pady=4)
+            row=row, column=1, sticky="nw", padx=8, pady=4)
 
-        self._result_formats = {key: fmt for _label, key, fmt in rows}
+        # Flatten sections for format lookup
+        all_rows = [(label, key, fmt) for section in sections for (label, key, fmt) in section[1]]
+        self._result_formats = {key: fmt for _label, key, fmt in all_rows}
 
     # --- recompute ---
 
@@ -344,6 +388,12 @@ class CalculatorTab(ttk.Frame):
         r = calculate(build, self.game)
         for key, var in self.result_vars.items():
             var.set(self._result_formats[key](getattr(r, key)))
+            label = self.result_labels.get(key)
+            if label:
+                val = getattr(r, key)
+                cap = CAPS.get(key)
+                at_cap = cap is not None and val is not None and val >= cap
+                label.configure(foreground="#cc0000" if at_cap else "black")
         self._traits_var.set(r.active_traits)
 
     def _build(self) -> Build:
@@ -447,6 +497,40 @@ class CalculatorTab(ttk.Frame):
         self._refresh_weapon_pin()
         if self.on_change is not None:
             self.on_change()
+
+    # --- actions ---
+
+    def _reset(self):
+        """Restore calculator to default values."""
+        for i, var in enumerate(self.ore_vars):
+            var.set(self.game.select_ore)
+        for var in self.amount_vars:
+            var.set("0")
+        self.type_var.set(_WEAPON_ALL)
+        self.weapon_var.set(self.game.weapons[0].name)
+        self.quality_var.set("0")
+        self.forge_var.set("0")
+        self.race_var.set("Human")
+        self.bonus_var.set(self.game.race_bonus_types[0])
+        self.base_cc_var.set("0")
+        self.base_cd_var.set("0")
+        self.armor_cc_var.set("0")
+        self.armor_cd_var.set("0")
+        self.armor_leth_var.set("0")
+        self.base_leth_var.set("0")
+        self.berserk_var.set("0")
+        for var in self.rune_vars:
+            var.set(self.game.none_label)
+        for var in self.ability_vars.values():
+            var.set("0")
+        self.achievement_var.set(self.game.none_label)
+
+    def _copy_total(self):
+        """Copy Total DPS to clipboard."""
+        total = self.result_vars.get("total_dps")
+        if total:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(total.get())
 
     # --- tooltips ---
 

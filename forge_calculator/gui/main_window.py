@@ -37,13 +37,20 @@ class MainWindow(ttk.Frame):
 
         self._tabs: dict[str, ttk.Frame] = {}
         self.calculator = CalculatorTab(self.notebook, game)
-        self.calculator.on_change = self._schedule_save
+        self.calculator.on_change = self._on_calculator_change
         self._add_tab("Calculator", self.calculator)
         self._add_tab("Ores", OresTab(self.notebook, game))
         self._add_tab("Races", RacesTab(self.notebook, game))
         self._add_tab("Weapons", WeaponsTab(self.notebook, game))
         self._add_tab("Achievements", AchievementsTab(self.notebook, game))
         self._add_tab("Runes", RunesTab(self.notebook, game))
+
+        # Status bar at bottom
+        self._status_var = tk.StringVar(master=self, value="Total DPS: —")
+        self._status_bar = ttk.Label(self, textvariable=self._status_var,
+                                      relief="sunken", anchor="w", padding=(8, 2))
+        self._status_bar.pack(fill="x", side="bottom")
+        self.notebook.bind("<<NotebookTabChanged>>", self._update_status)
 
     def _add_tab(self, title: str, widget: ttk.Frame) -> None:
         widget.pack(fill="both", expand=True)
@@ -83,6 +90,24 @@ class MainWindow(ttk.Frame):
         idx = state.get("tab")
         if isinstance(idx, int) and 0 <= idx < len(self._tabs):
             self.notebook.select(idx)
+
+    def _on_calculator_change(self):
+        self._schedule_save()
+        self._update_status()
+
+    def _update_status(self, *_args):
+        """Update status bar with current Total DPS and active tab."""
+        current_idx = self.notebook.index(self.notebook.select())
+        tab_name = self.notebook.tab(current_idx, "text")
+        if tab_name == "Calculator":
+            total = self.calculator.result_vars.get("total_dps")
+            if total:
+                total_str = total.get()
+            else:
+                total_str = "—"
+            self._status_var.set(f"Total DPS: {total_str}")
+        else:
+            self._status_var.set(f"Tab: {tab_name}")
 
     def _schedule_save(self, *_args):
         if self._save_job is not None:
