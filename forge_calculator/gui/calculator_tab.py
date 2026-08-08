@@ -13,7 +13,7 @@ from tkinter import ttk
 
 from ..data import GameData
 from ..engine import Abilities, Build, OreSlot, calculate
-from .widgets import ScrollableFrame, fmt2, fmt4, fmt_pct, sorted_display, to_float
+from .widgets import ScrollableFrame, SearchableCombo, fmt2, fmt4, fmt_pct, sorted_display, to_float
 
 __all__ = ["CalculatorTab"]
 
@@ -89,13 +89,15 @@ class CalculatorTab(ttk.Frame):
         parent.columnconfigure(1, weight=1)
         self.ore_vars = []
         self.amount_vars = []
+        self.ore_combos = []
+        ore_values = [self.game.select_ore] + [o.name for o in sorted_display(self.game.ores)]
         for row in range(4):
             ore_var = tk.StringVar(master=self.root, value=self.game.select_ore)
             amount_var = tk.StringVar(master=self.root, value="0")
             self.ore_vars.append(ore_var)
             self.amount_vars.append(amount_var)
-            combo = ttk.Combobox(parent, textvariable=ore_var, state="readonly", width=24)
-            combo["values"] = [self.game.select_ore] + [o.name for o in sorted_display(self.game.ores)]
+            combo = SearchableCombo(parent, values=ore_values, textvariable=ore_var, width=24)
+            self.ore_combos.append(combo)
             spin = ttk.Spinbox(parent, from_=0, to=999, increment=1, textvariable=amount_var, width=6)
             ttk.Label(parent, text=f"Slot {row + 1}").grid(row=row, column=0, sticky="w", padx=8, pady=2)
             combo.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
@@ -112,8 +114,9 @@ class CalculatorTab(ttk.Frame):
 
         type_combo = ttk.Combobox(parent, textvariable=self.type_var, state="readonly", width=24)
         type_combo["values"] = [_WEAPON_ALL] + sorted(self.game.weapon_types, key=str.lower)
-        self.weapon_combo = ttk.Combobox(parent, textvariable=self.weapon_var, state="readonly", width=24)
-        self.weapon_combo["values"] = [w.name for w in sorted_display(self.game.weapons)]
+        self.weapon_combo = SearchableCombo(
+            parent, values=[w.name for w in sorted_display(self.game.weapons)],
+            textvariable=self.weapon_var, width=24)
         self.weapon_var.set(self.game.weapons[0].name)
         quality_spin = ttk.Spinbox(parent, from_=0, to=500, increment=5, textvariable=self.quality_var, width=8)
         forge_combo = ttk.Combobox(parent, textvariable=self.forge_var, state="readonly", width=8)
@@ -144,8 +147,9 @@ class CalculatorTab(ttk.Frame):
         self.base_leth_var = tk.StringVar(master=self.root, value="0")
         self.berserk_var = tk.StringVar(master=self.root, value="0")
 
-        race_combo = ttk.Combobox(parent, textvariable=self.race_var, state="readonly", width=20)
-        race_combo["values"] = [r.name for r in sorted_display(self.game.races)]
+        race_combo = SearchableCombo(
+            parent, values=[r.name for r in sorted_display(self.game.races)],
+            textvariable=self.race_var, width=20)
         bonus_combo = ttk.Combobox(parent, textvariable=self.bonus_var, state="readonly", width=20)
         bonus_combo["values"] = sorted(self.game.race_bonus_types, key=str.lower)
 
@@ -178,8 +182,7 @@ class CalculatorTab(ttk.Frame):
             for col in range(2):
                 var = tk.StringVar(master=self.root, value=self.game.none_label)
                 self.rune_vars.append(var)
-                combo = ttk.Combobox(parent, textvariable=var, state="readonly", width=22)
-                combo["values"] = rune_values
+                combo = SearchableCombo(parent, values=rune_values, textvariable=var, width=22)
                 label_col = 0 + col * 2
                 combo_col = 1 + col * 2
                 ttk.Label(parent, text=f"Rune {row + 1}.{col + 1}").grid(row=row, column=label_col, sticky="e", padx=8, pady=2)
@@ -224,9 +227,11 @@ class CalculatorTab(ttk.Frame):
     def _build_achievement_group(self, parent):
         parent.columnconfigure(1, weight=1)
         self.achievement_var = tk.StringVar(master=self.root, value=self.game.none_label)
-        combo = ttk.Combobox(parent, textvariable=self.achievement_var, state="readonly", width=24)
-        combo["values"] = [a.name for a in sorted_display(self.game.achievements,
-                                                          first=(self.game.none_label,))]
+        combo = SearchableCombo(
+            parent,
+            values=[a.name for a in sorted_display(self.game.achievements,
+                                                   first=(self.game.none_label,))],
+            textvariable=self.achievement_var, width=24)
         ttk.Label(parent, text="Achievement (C80)").grid(row=0, column=0, sticky="e", padx=8, pady=2)
         combo.grid(row=0, column=1, sticky="ew", padx=4, pady=2)
         self._watch(self.achievement_var)
@@ -334,6 +339,4 @@ class CalculatorTab(ttk.Frame):
             names = [w.name for w in sorted_display(self.game.weapons)]
         else:
             names = [w.name for w in sorted_display(self.game.weapons_by_type(wtype))]
-        self.weapon_combo["values"] = names
-        if self.weapon_var.get() not in names:
-            self.weapon_var.set(names[0] if names else "")
+        self.weapon_combo.set_values(names)

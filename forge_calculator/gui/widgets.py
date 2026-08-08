@@ -5,8 +5,8 @@ from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
 
-__all__ = ["ScrollableFrame", "to_float", "fmt2", "fmt4", "fmt_pct",
-           "pct_fmt", "refill", "sorted_display", "STAT_LABELS"]
+__all__ = ["ScrollableFrame", "SearchableCombo", "to_float", "fmt2", "fmt4",
+           "fmt_pct", "pct_fmt", "refill", "sorted_display", "STAT_LABELS"]
 
 
 def to_float(text) -> float:
@@ -110,3 +110,174 @@ class ScrollableFrame(ttk.Frame):
 
     def _on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-event.delta / 120), "units")
+
+
+class SearchableCombo(ttk.Frame):
+    """A search-as-you-type dropdown: an Entry plus a filterable popup list.
+
+    Keeps the same value semantics as a read-only ttk.Combobox: the linked
+    StringVar is written only on commit (Enter / click), never while typing, so
+    callers' change traces fire once per selection instead of per keystroke.
+    Typing narrows the list case-insensitively (substring); ``Up``/``Down``
+    move the highlight, ``Enter`` commits, ``Esc`` closes and reverts.
+    """
+
+    def __init__(self, master, values=(), textvariable=None, width=24, height=8):
+        super().__init__(master)
+        self._choices = list(values)
+        self._var = textvariable if textvariable is not None else tk.StringVar(master=master)
+        self._height = height
+        self._open_token = 0
+        self._popup = None
+        self._list = None
+
+        self.entry = ttk.Entry(self, width=width)
+        self.arrow = ttk.Button(self, text="▾", width=3, command=lambda: self._open(reset=True))
+        self.entry.pack(side="left", fill="x", expand=True)
+        self.arrow.pack(side="left")
+
+        self._bind()
+        self._var.trace_add("write", lambda *_a: self._sync_entry())
+        self._sync_entry()
+
+    # --- public API ---
+
+    def set_values(self, values):
+        self._choices = list(values)
+        if self._var.get() not in self._choices and self._choices:
+            self._var.set(self._choices[0])
+        if self._popup is not None and self._popup.winfo_exists():
+            self._refresh()
+
+    def set(self, value):
+        self._var.set(value)
+
+    def get(self):
+        return self._var.get()
+
+    # --- event wiring ---
+
+    def _bind(self):
+        self.entry.bind("<Button-1>", lambda _e: self._open(reset=True))
+        self.entry.bind("<KeyRelease>", self._on_key_release)
+        self.entry.bind("<Down>", lambda _e: self._nav(1))
+        self.entry.bind("<Up>", lambda _e: self._nav(-1))
+        self.entry.bind("<Return>", lambda _e: self._commit_highlighted())
+        self.entry.bind("<Escape>", lambda _e: self._close(revert=True) or "break")
+        self.entry.bind("<FocusOut>", self._on_focus_out)
+
+    def _on_key_release(self, event):
+        if event.keysym in ("BackSpace", "Delete") or (event.char and event.char.isprintable()):
+            self._open()
+
+    def _nav(self, delta):
+        if self._popup is None or not self._popup.winfo_viewable():
+            self._open(reset=True)
+        elif self._list.size():
+            sel = self._list.curselection()
+            idx = sel[0] if sel else 0
+            idx = max(0, min(idx + delta, self._list.size() - 1))
+            self._select(idx)
+        return "break"
+
+    def _on_focus_out(self, _event):
+        token = self._open_token
+
+        def maybe_close():
+            if token == self._open_token and not self._focus_in_popup():
+                self._close(revert=True)
+
+        self.after(5, maybe_close)
+
+    def _focus_in_popup(self) -> bool:
+        if self._popup is None or not self._popup.winfo_exists():
+            return False
+        widget = self.focus_get()
+        while widget is not None:
+            if widget is self._popup or widget is self._list:
+                return True
+            try:
+                widget = widget.master
+            except tk.TclError:
+                break
+        return False
+
+    # --- popup lifecycle ---
+
+    def _open(self, reset=False):
+        if not self._choices:
+            return
+        self._open_token += 1
+        if reset:
+            self.entry.delete(0, "end")
+        if self._popup is None or not self._popup.winfo_exists():
+            self._popup = tk.Toplevel(self)
+            self._popup.withdraw()
+            self._popup.overrideredirect(True)
+            self._popup.transient(self.winfo_toplevel())
+            self._list = tk.Listbox(self._popup, height=self._height, activestyle="dotbox",
+                                    selectmode="browse", exportselection=False, borderwidth=1)
+            sbar = ttk.Scrollbar(self._popup, orient="vertical", command=self._list.yview)
+            self._list.configure(yscrollcommand=sbar.set)
+            self._list.pack(side="left", fill="both", expand=True)
+            sbar.pack(side="right", fill="y")
+            self._list.bind("<ButtonRelease-1>", self._on_list_click)
+            self._list.bind("<Return>", lambda _e: self._commit_highlighted())
+            self._list.bind("<Escape>", lambda _e: self._close(revert=True))
+        self._refresh()
+        self._popup.deiconify()
+        self._popup.lift()
+        self.update_idletasks()
+        self._popup.geometry(f"+{self.winfo_rootx()}+{self.winfo_rooty() + self.winfo_height()}")
+
+    def _refresh(self):
+        needle = self.entry.get().strip().lower()
+        shown = [o for o in self._choices if needle in o.lower()] if needle else list(self._choices)
+        self._list.delete(0, "end")
+        for option in shown:
+            self._list.insert("end", option)
+        committed = self._var.get()
+        idx = shown.index(committed) if committed in shown else 0
+        if shown:
+            self._select(min(idx, len(shown) - 1))
+        return shown
+
+    def _select(self, idx):
+        self._list.selection_clear(0, "end")
+        self._list.selection_set(idx)
+        self._list.activate(idx)
+        self._list.see(idx)
+
+    def _close(self, revert=False):
+        if self._popup is not None and self._popup.winfo_exists():
+            self._popup.withdraw()
+        if revert:
+            self._sync_entry()
+
+    # --- commit path (the only place the var is written) ---
+
+    def _on_list_click(self, _event=None):
+        sel = self._list.curselection()
+        if sel:
+            self._commit(self._list.get(sel[0]))
+
+    def _commit_highlighted(self):
+        if self._popup is not None and self._popup.winfo_exists() and self._list.size():
+            sel = self._list.curselection()
+            if sel:
+                self._commit(self._list.get(sel[0]))
+                return "break"
+        self._close(revert=True)
+        return "break"
+
+    def _commit(self, value):
+        self._close()
+        if value in self._choices:
+            self._var.set(value)
+        self._sync_entry()
+
+    def _sync_entry(self):
+        value = self._var.get() or ""
+        self.entry.delete(0, "end")
+        self.entry.insert(0, value)
+        self.entry.icursor("end")

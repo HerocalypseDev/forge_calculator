@@ -95,6 +95,31 @@ def main():
     if not after or after == before:
         failures.append(f"live recompute: total_dps stayed {before!r} after quality 100->200")
 
+    # --- SearchableCombo: type to filter, Enter to commit, recompute fires ---
+    slot = tab.ore_combos[2]
+    tab.amount_vars[2].set("10")
+    slot.entry.delete(0, "end")
+    slot.entry.insert(0, "gal")
+    slot._open()
+    shown = list(slot._list.get(0, "end"))
+    if not shown or "Galaxite" not in shown:
+        failures.append(f"search 'gal': expected Galaxite in first matches {shown[:5]!r}")
+    slot._commit_highlighted()
+    root.update_idletasks()
+    if tab.ore_vars[2].get() != "Galaxite":
+        failures.append("search commit: ore slot 3 var not set to Galaxite")
+    moved = label("total_dps")
+    if not moved or moved == after:
+        failures.append(f"search commit: total_dps stayed {after!r} after adding Galaxite 10")
+    slot.entry.delete(0, "end")
+    slot.entry.insert(0, "zzz")
+    slot._close(revert=True)
+    if slot.entry.get() != "Galaxite":
+        failures.append("search escape: entry did not revert to committed value")
+    tab.ore_vars[2].set("Select Ore")
+    tab.amount_vars[2].set("0")
+    root.update_idletasks()
+
     # --- browse tabs render with expected row counts ---
     for title, expected in BROWSE_EXPECTED.items():
         for i in range(nb.index("end")):
@@ -116,11 +141,23 @@ def main():
             names = [tree.item(i, "values")[0] for i in tree.get_children()]
             if names != sorted(names, key=str.lower):
                 failures.append("Ores list is not alphabetically sorted")
+            widget.filter_var.set("zzz")
+            root.update_idletasks()
+            if len(widget.tree.get_children()) != 0:
+                failures.append("Ores filter 'zzz': expected 0 rows")
+            widget.filter_entry.focus_force()
+            root.update()
+            widget.filter_entry.event_generate("<Escape>")
+            root.update_idletasks()
+            if widget.filter_var.get() != "":
+                failures.append("Escape did not clear the Ores filter")
+            if len(widget.tree.get_children()) != 140:
+                failures.append("Ores list not restored after Escape")
 
     root.destroy()
     if failures:
         raise SystemExit("SMOKE FAILED:\n  " + "\n  ".join(failures))
-    print("SMOKE OK: Golden-1 labels, live recompute, and all 6 tabs render correctly")
+    print("SMOKE OK: Golden-1 labels, live recompute, searchable combos, filters, and all 6 tabs")
 
 
 if __name__ == "__main__":

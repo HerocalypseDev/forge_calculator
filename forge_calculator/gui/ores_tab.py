@@ -32,7 +32,9 @@ class OresTab(ttk.Frame):
         top = ttk.Frame(self)
         top.pack(fill="x", padx=8, pady=(8, 4))
         ttk.Label(top, text="Filter:").pack(side="left")
-        ttk.Entry(top, textvariable=self.filter_var, width=30).pack(side="left", padx=4)
+        self.filter_entry = ttk.Entry(top, textvariable=self.filter_var, width=30)
+        self.filter_entry.pack(side="left", padx=4)
+        self.filter_entry.bind("<Escape>", lambda _e: self.filter_var.set(""))
 
         panes = ttk.Frame(self)
         panes.pack(fill="both", expand=True, padx=8, pady=4)

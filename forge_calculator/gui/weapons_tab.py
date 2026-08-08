@@ -24,6 +24,8 @@ class WeaponsTab(ttk.Frame):
 
         self.type_var = tk.StringVar(master=master, value=_WEAPON_ALL)
         self.type_var.trace_add("write", self._on_type)
+        self.name_var = tk.StringVar(master=master, value="")
+        self.name_var.trace_add("write", self._on_name)
 
         top = ttk.Frame(self)
         top.pack(fill="x", padx=8, pady=(8, 4))
@@ -31,6 +33,11 @@ class WeaponsTab(ttk.Frame):
         combo = ttk.Combobox(top, textvariable=self.type_var, state="readonly", width=24)
         combo["values"] = [_WEAPON_ALL] + sorted(self.game.weapon_types, key=str.lower)
         combo.pack(side="left", padx=4)
+        combo.bind("<Escape>", lambda _e: (self.type_var.set(_WEAPON_ALL), "break")[1])
+        ttk.Label(top, text="Name:").pack(side="left", padx=(12, 0))
+        self.name_entry = ttk.Entry(top, textvariable=self.name_var, width=24)
+        self.name_entry.pack(side="left", padx=4)
+        self.name_entry.bind("<Escape>", lambda _e: self.name_var.set(""))
 
         frame = ttk.LabelFrame(self, text=f"Weapons ({len(self.game.weapons)})")
         frame.pack(fill="both", expand=True, padx=8, pady=4)
@@ -53,9 +60,15 @@ class WeaponsTab(ttk.Frame):
         weapons = self.game.weapons
         if wtype not in (None, "", _WEAPON_ALL):
             weapons = self.game.weapons_by_type(wtype)
+        needle = self.name_var.get().strip().lower()
+        if needle:
+            weapons = [w for w in weapons if needle in w.name.lower()]
         rows = [(w.type, w.name, f"{w.interval:g}", f"{w.damage:g}")
                 for w in sorted_display(weapons)]
         refill(self.tree, rows)
 
     def _on_type(self, *_args):
+        self._refill()
+
+    def _on_name(self, *_args):
         self._refill()

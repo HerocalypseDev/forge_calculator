@@ -20,6 +20,16 @@ class RacesTab(ttk.Frame):
         super().__init__(master)
         self.game = game
 
+        self.filter_var = tk.StringVar(master=master, value="")
+        self.filter_var.trace_add("write", self._on_filter)
+
+        top = ttk.Frame(self)
+        top.pack(fill="x", padx=8, pady=(8, 4))
+        ttk.Label(top, text="Filter:").pack(side="left")
+        self.filter_entry = ttk.Entry(top, textvariable=self.filter_var, width=30)
+        self.filter_entry.pack(side="left", padx=4)
+        self.filter_entry.bind("<Escape>", lambda _e: self.filter_var.set(""))
+
         panes = ttk.Frame(self)
         panes.pack(fill="both", expand=True, padx=8, pady=8)
         panes.columnconfigure(0, weight=1)
@@ -50,8 +60,13 @@ class RacesTab(ttk.Frame):
         self._refill()
 
     def _refill(self):
-        rows = [(r.name, r.default_trait or "") for r in sorted_display(self.game.races)]
+        needle = self.filter_var.get().strip().lower()
+        races = self.game.races if not needle else [r for r in self.game.races if needle in r.name.lower()]
+        rows = [(r.name, r.default_trait or "") for r in sorted_display(races)]
         refill(self.tree, rows)
+
+    def _on_filter(self, *_args):
+        self._refill()
 
     def _on_select(self, _event=None):
         sel = self.tree.selection()
