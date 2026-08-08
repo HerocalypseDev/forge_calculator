@@ -58,3 +58,7 @@ class RunesTab(ttk.Frame):
 
     def _on_filter(self, *_args):
         self._refill()
+
+    @property
+    def filter_vars(self):
+        return {"name": self.filter_var}

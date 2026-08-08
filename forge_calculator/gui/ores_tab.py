@@ -101,6 +101,10 @@ class OresTab(ttk.Frame):
     def _on_filter(self, *_args):
         self._refill()
 
+    @property
+    def filter_vars(self):
+        return {"name": self.filter_var}
+
     def _on_select(self, _event=None):
         sel = self.tree.selection()
         if not sel:

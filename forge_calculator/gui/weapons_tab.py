@@ -72,3 +72,7 @@ class WeaponsTab(ttk.Frame):
 
     def _on_name(self, *_args):
         self._refill()
+
+    @property
+    def filter_vars(self):
+        return {"type": self.type_var, "name": self.name_var}

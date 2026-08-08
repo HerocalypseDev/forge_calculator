@@ -9,13 +9,16 @@ Instantiates the actual Tk root + MainWindow on Windows, then:
 The root is destroyed at the end; nothing is left behind.
 """
 
+import os
 import sys
+import tempfile
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from forge_calculator import settings
 from forge_calculator.app import build_app
 from forge_calculator.gui.calculator_tab import CalculatorTab
 
@@ -47,6 +50,8 @@ def _notebook(root: tk.Tk) -> ttk.Notebook:
 
 def main():
     failures = []
+    # isolated config dir so this never reads or clobbers the real user state
+    os.environ.setdefault("FORGE_CALCULATOR_CONFIG", tempfile.mkdtemp(prefix="forge_smoke_"))
     root = build_app()
     root.update_idletasks()
 
@@ -119,6 +124,28 @@ def main():
     tab.ore_vars[2].set("Select Ore")
     tab.amount_vars[2].set("0")
     root.update_idletasks()
+
+    # --- state persistence round-trip (isolated config dir) ---
+    window = nb.master
+    saved = window.capture_state()
+    if saved["calculator"].get("weapon") != "Demonic Spear":
+        failures.append("capture_state: weapon not Demonic Spear")
+    window.restore_state({"calculator": {"weapon": "Demonic Spear", "quality": "999", "forge": "9"},
+                          "tab": 0})
+    root.update_idletasks()
+    if tab.quality_var.get() != "999":
+        failures.append("state restore: quality '999' not applied")
+    if tab.forge_var.get() != "9":
+        failures.append("state restore: forge '9' not applied")
+    window.restore_state(saved)
+    root.update_idletasks()
+    window.save_now()
+    persisted = settings.load_state()
+    if persisted.get("calculator", {}).get("quality") != "200":
+        failures.append("state persist: quality not saved "
+                        f"({persisted.get('calculator', {}).get('quality')!r})")
+    if persisted.get("tab") != 0:
+        failures.append(f"state persist: tab not saved ({persisted.get('tab')!r})")
 
     # --- browse tabs render with expected row counts ---
     for title, expected in BROWSE_EXPECTED.items():

@@ -8,6 +8,7 @@ from tkinter import messagebox
 from . import __version__
 from .data import GameData, load_game_data
 from .gui.main_window import MainWindow
+from .settings import load_state
 
 __all__ = ["build_app", "APP_TITLE"]
 
@@ -44,9 +45,17 @@ def build_app(data_dir=None) -> tk.Tk:
     root = tk.Tk()
     root.title(f"{APP_TITLE} v{__version__}")
     root.minsize(900, 620)
-    MainWindow(root, game).pack(fill="both", expand=True)
+    window = MainWindow(root, game)
+    window.pack(fill="both", expand=True)
+    window.restore_state(load_state())
     _add_menu(root)
+    root.protocol("WM_DELETE_WINDOW", lambda: _on_close(window, root))
     return root
+
+
+def _on_close(window, root: tk.Tk) -> None:
+    window.save_now()
+    root.destroy()
 
 
 def main() -> None:

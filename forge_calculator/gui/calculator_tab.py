@@ -27,6 +27,7 @@ class CalculatorTab(ttk.Frame):
         self.game = game
         self.root = master
         self._pending = False
+        self.on_change = None  # set by MainWindow; called on input edits
         self.result_vars: dict[str, tk.StringVar] = {}
         self._build_widgets()
         self._recompute()
@@ -41,6 +42,8 @@ class CalculatorTab(ttk.Frame):
             return
         self._pending = True
         self.root.after_idle(self._recompute)
+        if self.on_change is not None:
+            self.on_change()
 
     # --- layout ---
 
@@ -340,3 +343,95 @@ class CalculatorTab(ttk.Frame):
         else:
             names = [w.name for w in sorted_display(self.game.weapons_by_type(wtype))]
         self.weapon_combo.set_values(names)
+
+    # --- persistence ---
+
+    def get_state(self) -> dict:
+        return {
+            "ores": [(v.get(), self.amount_vars[i].get()) for i, v in enumerate(self.ore_vars)],
+            "weapon_type": self.type_var.get(),
+            "weapon": self.weapon_var.get(),
+            "quality": self.quality_var.get(),
+            "forge": self.forge_var.get(),
+            "race": self.race_var.get(),
+            "bonus": self.bonus_var.get(),
+            "base_cc": self.base_cc_var.get(),
+            "base_cd": self.base_cd_var.get(),
+            "armor_cc": self.armor_cc_var.get(),
+            "armor_cd": self.armor_cd_var.get(),
+            "armor_leth": self.armor_leth_var.get(),
+            "base_leth": self.base_leth_var.get(),
+            "berserk": self.berserk_var.get(),
+            "runes": [v.get() for v in self.rune_vars],
+            "abilities": {k: v.get() for k, v in self.ability_vars.items()},
+            "achievement": self.achievement_var.get(),
+        }
+
+    def set_state(self, state: dict) -> None:
+        state = state or {}
+
+        valid_ores = {o.name for o in self.game.ores} | {self.game.select_ore}
+        ores = state.get("ores")
+        if isinstance(ores, list):
+            for i, slot in enumerate(ores[:4]):
+                if not isinstance(slot, (list, tuple)) or len(slot) != 2:
+                    continue
+                name, amount = slot
+                if isinstance(name, str) and name in valid_ores:
+                    self.ore_vars[i].set(name)
+                if isinstance(amount, (int, float)):
+                    amount = str(amount)
+                if isinstance(amount, str):
+                    self.amount_vars[i].set(amount)
+
+        wtype = state.get("weapon_type")
+        if isinstance(wtype, str) and (wtype == _WEAPON_ALL or wtype in self.game.weapon_types):
+            self.type_var.set(wtype)
+        weapon = state.get("weapon")
+        if isinstance(weapon, str) and self.game.weapon(weapon) is not None:
+            if wtype in (None, "", _WEAPON_ALL) or self.game.weapon(weapon).type == wtype:
+                self.weapon_var.set(weapon)
+
+        for key, var in [
+            ("quality", self.quality_var),
+            ("base_cc", self.base_cc_var),
+            ("base_cd", self.base_cd_var),
+            ("armor_cc", self.armor_cc_var),
+            ("armor_cd", self.armor_cd_var),
+            ("armor_leth", self.armor_leth_var),
+            ("base_leth", self.base_leth_var),
+            ("berserk", self.berserk_var),
+        ]:
+            val = state.get(key)
+            if isinstance(val, (int, float)):
+                val = str(val)
+            if isinstance(val, str):
+                var.set(val)
+
+        forge = state.get("forge")
+        if isinstance(forge, str) and forge in {str(n) for n in range(10)}:
+            self.forge_var.set(forge)
+
+        race = state.get("race")
+        if isinstance(race, str) and self.game.race(race) is not None:
+            self.race_var.set(race)
+        bonus = state.get("bonus")
+        if isinstance(bonus, str) and bonus in self.game.race_bonus_types:
+            self.bonus_var.set(bonus)
+
+        runes = state.get("runes")
+        if isinstance(runes, list):
+            valid_runes = {r.name for r in self.game.runes} | {self.game.none_label}
+            for i, val in enumerate(runes[:6]):
+                if isinstance(val, str) and val in valid_runes:
+                    self.rune_vars[i].set(val)
+
+        abilities = state.get("abilities")
+        if isinstance(abilities, dict):
+            for key, val in abilities.items():
+                if key in self.ability_vars and isinstance(val, str):
+                    self.ability_vars[key].set(val)
+
+        achievement = state.get("achievement")
+        if isinstance(achievement, str) and achievement in {a.name for a in self.game.achievements}:
+            self.achievement_var.set(achievement)
