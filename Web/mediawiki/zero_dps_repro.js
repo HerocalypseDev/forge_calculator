@@ -59,7 +59,7 @@ const build = {
   bonus_weapon_type: 'Gauntlet',
   rune_cells: ['None', 'None', 'None', 'None', 'None', 'None'],
   base_crit_chance: 0,
-  base_crit_dmg: 0,
+  base_crit_dmg: 1.45, // workbook C21 base crit damage (UI transform now sends this)
   armor_crit_chance: 1.0, // 100%
   armor_crit_dmg: 0,
   armor_lethality: 0,

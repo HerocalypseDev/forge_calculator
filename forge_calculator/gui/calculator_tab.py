@@ -435,7 +435,7 @@ class CalculatorTab(ttk.Frame):
             bonus_weapon_type=self._from_ui(self.bonus_var.get()),
             rune_cells=(),
             base_crit_chance=0.0,
-            base_crit_dmg=0.0,
+            base_crit_dmg=1.45,     # C21 workbook base crit damage
             armor_crit_chance=to_float(self.armor_cc_var.get()),
             armor_crit_dmg=to_float(self.armor_cd_var.get()),
             armor_lethality=to_float(self.armor_leth_var.get()),

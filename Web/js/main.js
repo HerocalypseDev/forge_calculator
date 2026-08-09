@@ -124,7 +124,7 @@ function transformBuildForEngine(build) {
     bonus_weapon_type: deriveBonusType(build),
     rune_cells: build.runes || [],
     base_crit_chance: 0,
-    base_crit_dmg: 0, // Not in InputPanel
+    base_crit_dmg: 1.45, // workbook C21 base crit damage (145% crits before bonuses)
     armor_crit_chance: build.armorCritChance,
     armor_crit_dmg: build.armorCritDmg,
     armor_lethality: build.armorLethality,

@@ -88,7 +88,7 @@ function build(args) {
     bonus_weapon_type: '',
     rune_cells: [],
     base_crit_chance: 0,
-    base_crit_dmg: 0,
+    base_crit_dmg: 1.45, // workbook C21 base crit damage
     armor_crit_chance: 0,
     armor_crit_dmg: 0,
     armor_lethality: 0,
@@ -110,7 +110,7 @@ approx(r.unforged_damage, 4.3 * 15.48, 'wolfarite unforged');
 approx(r.attack_rate, 1.08 / 0.47, 'wolfarite attack_rate');
 approx(r.weapon_dps, 175.89891063829785, 'wolfarite weapon_dps');
 approx(r.total_dps, r.weapon_dps, 'wolfarite total == weapon');
-approx(r.max_dps, 0.0, 'wolfarite max_dps');
+approx(r.max_dps, 255.05342042553187, 'wolfarite max_dps');
 
 // 2. test_wolfarite_exactly_at_gate_is_base_not_zero
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 3 }, { name: 'Stone', amount: 27 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
@@ -127,7 +127,7 @@ approx(r.fire_duration, 1.0, 'garg fire_duration');
 approx(r.explosion_dps, 24.01595744680851, 'garg explosion_dps');
 approx(r.fire_dps, 5.48936170212766, 'garg fire_dps');
 approx(r.total_dps, 166.73936170212767, 'garg total_dps');
-approx(r.max_dps, 81.51702127659576, 'garg max_dps');
+approx(r.max_dps, 280.50638297872337, 'garg max_dps');
 
 // 4. test_malachite_poison
 r = FC.calculate(build({ slots: [ { name: 'Malachite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);

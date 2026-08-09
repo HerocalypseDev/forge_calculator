@@ -127,7 +127,8 @@ def test_wolfarite_single_slot(game):
     assert r.weapon_dps == pytest.approx(175.89891063829785)
     assert r.total_dps == pytest.approx(r.weapon_dps)   # no procs
     assert r.min_dps == pytest.approx(r.weapon_dps)     # blend==1
-    assert r.max_dps == pytest.approx(0.0)              # no crit dmg, no procs
+    # C96 max burst = C18*(1+E44)*(C21+E46)*E21 + procs; C21 base crit dmg = 1.45
+    assert r.max_dps == pytest.approx(255.05342042553187)
 
 
 def test_wolfarite_exactly_at_gate_is_base_not_zero(game):
@@ -152,8 +153,8 @@ def test_gargantuan_procs(game):
     assert r.explosion_dps == pytest.approx(24.01595744680851)
     assert r.fire_dps == pytest.approx(5.48936170212766)
     assert r.total_dps == pytest.approx(166.73936170212767)
-    # max-burst uses FORGED C18 for procs
-    assert r.max_dps == pytest.approx(81.51702127659576)
+    # max-burst uses FORGED C18 for procs; C21 base crit dmg 1.45 added
+    assert r.max_dps == pytest.approx(280.50638297872337)
 
 
 def test_malachite_poison(game):

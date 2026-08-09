@@ -213,3 +213,16 @@ No linter or formatter is configured.
 | **Regression test** — `bonus-derive-test.js`: transform maps Ironhand→Gauntlet etc., engine reaches E44/E47 bonuses end-to-end (Felynx+Gauntlet→20% lethality, Vampire+Straight Sword→10%, Goblin+Dagger / Golem+Colossal Sword / Golem+Great Axe→10/15/15% atk speed), no stale bonus UI in source | `Web/mediawiki/bonus-derive-test.js` | — | ✅ Done | (this session) |
 
 **Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16); `node Web/mediawiki/bonus-derive-test.js` / `ability-inputs-test.js` / `results-panel-test.js` / `ore-slot-test.js` → all PASSED; `node --check` clean on modified JS. Engine and Python/desktop untouched. Note: the Felynx **plural** "Gauntlets" atk-speed bonus (E47) stays unreachable — no weapon has type "Gauntlets" (documented workbook quirk).
+
+### Base Crit Damage Fix (100% crit → 0 DPS) — COMPLETED ✅
+**Goal:** Fix the porting bug where a 100% crit chance with 0% crit-damage bonus produced **0 weapon DPS** (and `ttk = infinity` when no proc added DPS). Root cause: the workbook's crit blend (C84) is `MIN(C20+E45,1)*(C21+E46)+(1-MIN(C20+E45,1))`, where **C21 = 1.45** is the workbook's *base* crit damage (a crit deals 145% before bonuses). The port hardcoded `base_crit_dmg: 0`, so at 100% crit chance `blend = 1*0 + 0 = 0`. Fixed the default to the workbook's 1.45 everywhere (base crit chance C20=0 was already correct). The engine blend/max-DPS formulas were already correct — only the base value was wrong.
+
+| Change | Where | Status | Commit |
+|--------|-------|--------|--------|
+| **Engine default** — `Build.base_crit_dmg: 0.0 → 1.45` (C21) | `forge_calculator/engine.py` | ✅ Done | (this session) |
+| **Desktop GUI** — `base_crit_dmg=0.0 → 1.45` | `forge_calculator/gui/calculator_tab.py` | ✅ Done | (this session) |
+| **Web transforms** — `base_crit_dmg: 0 → 1.45` | `forge-calculator.common.js`, `Web/js/main.js` | ✅ Done | (this session) |
+| **Goldens updated** — wolfarite max_dps `0 → 255.05`, gargantuan `81.52 → 280.51` (C96 includes C21); workbook-cached golden now validates the 1.45 math directly | `tests/test_golden.py`, `verify-engine.js` | ✅ Done | (this session) |
+| **Repro** — `zero_dps_repro.js` demonstrates the fixed path (weapon DPS 0 → 135.6, blend 1.45, finite TTK) | `Web/mediawiki/zero_dps_repro.js` | ✅ Done | (this session) |
+
+**Verification:** `python -m pytest tests/` → **80 passed** (workbook-cached golden now runs and confirms C21 math); `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16); all focused tests (`ability-inputs`/`results-panel`/`ore-slot`/`bonus-derive`) PASSED; `node --check` clean; `python scripts/smoke_gui.py` → SMOKE OK. Fuzz untouched (`fuzz_gen.py` passes `base_crit_dmg` explicitly, so parity holds). Note: `min_dps`/`weapon_dps` at 0% crit are unchanged (blend = 1); only `max_dps` (C96, assumes all crits) and weapon DPS at **non-zero** crit chance change.

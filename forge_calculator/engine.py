@@ -138,7 +138,7 @@ class Build:
     bonus_weapon_type: str = ""     # C23
     rune_cells: tuple = ("None", "None", "None", "None", "None", "None")  # C27:D29
     base_crit_chance: float = 0.0   # C20
-    base_crit_dmg: float = 0.0      # C21
+    base_crit_dmg: float = 1.45     # C21 — workbook's base crit damage (a crit deals 145% before bonuses)
     armor_crit_chance: float = 0.0  # C41
     armor_crit_dmg: float = 0.0     # C42
     armor_lethality: float = 0.0    # C43
