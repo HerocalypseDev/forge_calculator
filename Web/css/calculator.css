@@ -522,6 +522,37 @@
    Toast (for copy feedback)
    ========================================================================== */
 
+/* ==========================================================================
+   Calculate DPS Button
+   ========================================================================== */
+
+.ep-btn {
+  font-family: inherit;
+  border-radius: var(--ep-radius);
+  cursor: pointer;
+  transition: background var(--ep-transition), border-color var(--ep-transition);
+}
+
+.ep-btn--primary {
+  background: var(--ep-gold);
+  border: 1px solid var(--ep-gold-dark);
+  color: #1a1a1a;
+}
+
+.ep-btn--primary:hover {
+  background: var(--ep-gold-dark);
+  color: #1a1a1a;
+}
+
+.ep-calc-btn {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* Toast styles are injected inline in main.js */
 
 /* ==========================================================================

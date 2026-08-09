@@ -23,9 +23,10 @@ const CLASS_BONUS_WRAPPER = 'ep-bonus-wrapper';
  * @param {Object} options.data - Loaded game data
  * @param {Object} options.build - Current build state
  * @param {Function} options.onBuildChange - Callback (build) => void
+ * @param {Function} options.onCalculate - Callback () => void triggered by Calculate DPS button
  * @returns {HTMLElement}
  */
-export function createInputPanel({ data, build, onBuildChange }) {
+export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   const container = createEl('div', { class: CLASS_PANEL });
 
   // Ore Slots Section
@@ -195,6 +196,16 @@ export function createInputPanel({ data, build, onBuildChange }) {
   }
   achievementSection.appendChild(achievementsContainer);
 
+  // Calculate DPS trigger (manual, no auto-recalc)
+  const calcBtn = createEl('button', {
+    type: 'button',
+    class: 'ep-btn ep-btn--primary ep-calc-btn'
+  }, ['Calculate DPS']);
+  calcBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (onCalculate) { onCalculate(); }
+  });
+
   // Append all sections
   container.append(
     oreSection,
@@ -203,7 +214,8 @@ export function createInputPanel({ data, build, onBuildChange }) {
     statSection,
     abilitySection,
     runeSection,
-    achievementSection
+    achievementSection,
+    calcBtn
   );
 
   // Expose methods

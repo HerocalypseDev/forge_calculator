@@ -5,7 +5,7 @@
 
 import { createEl } from '../utils/dom.js';
 import { createResultsCard, createStatRows, updateResultsCard, updateStatRow } from './ResultsCard.js';
-import { fmtDps, fmtTime, fmt2, fmt4, pctFmt } from '../utils/format.js';
+import { fmtDps, fmtTime, fmt2, pctFmt } from '../utils/format.js';
 
 const CLASS_PANEL = 'ep-results-panel';
 const CLASS_TITLE = 'ep-results-title';
@@ -32,7 +32,6 @@ export function createResultsPanel() {
       { label: 'Ore Power (avg)', value: '0.00x', valueClass: 'ep-sv-mult' },
       { label: 'Forged Damage', value: '0', valueClass: 'ep-sv-dmg' },
       { label: 'Attack Rate', value: '0.00', valueClass: 'ep-sv-rate' },
-      { label: 'Crit Blend', value: '0.00%', valueClass: 'ep-sv-pct' },
       { label: 'Weapon DPS', value: '0', valueClass: 'ep-sv-dmg', tooltip: 'Forged damage × (1+Lethality) × Crit Blend × Attack Rate' }
     ])
   });
@@ -70,15 +69,6 @@ export function createResultsPanel() {
     ])
   });
 
-  // Burst Card
-  const burstCard = createResultsCard({
-    title: 'Burst',
-    content: createStatRows([
-      { label: 'Min Burst', value: '0', valueClass: 'ep-sv-dmg', tooltip: 'Base damage only (no procs)' },
-      { label: 'Max Burst', value: '0', valueClass: 'ep-sv-dmg', tooltip: 'All procs on forged damage' }
-    ])
-  });
-
   // Traits Card (initially empty)
   const traitsCard = createResultsCard({
     title: 'Active Traits',
@@ -92,7 +82,6 @@ export function createResultsPanel() {
     statsCard,
     dpsCard,
     ttkCard,
-    burstCard,
     traitsCard
   );
 
@@ -102,7 +91,6 @@ export function createResultsPanel() {
     stats: statsCard,
     dps: dpsCard,
     ttk: ttkCard,
-    burst: burstCard,
     traits: traitsCard
   };
 
@@ -111,13 +99,12 @@ export function createResultsPanel() {
 
     // Core DPS
     const coreRows = coreDpsCard.querySelectorAll('.ep-stat-row');
-    if (coreRows.length >= 6) {
+    if (coreRows.length >= 5) {
       updateStatRow(coreRows[0], fmtDps(result.unforged_damage), false);
       updateStatRow(coreRows[1], fmt2(result.avg_power) + 'x', false);
       updateStatRow(coreRows[2], fmtDps(result.forged_damage), false);
       updateStatRow(coreRows[3], fmt2(result.attack_rate), false);
-      updateStatRow(coreRows[4], pctFmt(result.crit_blend), false);
-      updateStatRow(coreRows[5], fmtDps(result.weapon_dps), false);
+      updateStatRow(coreRows[4], fmtDps(result.weapon_dps), false);
     }
 
     // Stats (with cap highlighting)
@@ -147,13 +134,6 @@ export function createResultsPanel() {
       updateStatRow(ttkRows[1], fmtTime(result.ttk_75k), false);
     }
 
-    // Burst
-    const burstRows = burstCard.querySelectorAll('.ep-stat-row');
-    if (burstRows.length >= 2) {
-      updateStatRow(burstRows[0], fmtDps(result.min_dps), false);
-      updateStatRow(burstRows[1], fmtDps(result.max_dps), false);
-    }
-
     // Traits
     if (result.active_traits && result.active_traits.length > 0) {
       const traitsText = result.active_traits.map(t => `${t.name}: ${t.power}%`).join('; ');
@@ -173,7 +153,6 @@ export function createResultsPanel() {
       avg_power: 0,
       forged_damage: 0,
       attack_rate: 0,
-      crit_blend: 0,
       weapon_dps: 0,
       lethality: 0,
       crit_chance: 0,
@@ -186,8 +165,6 @@ export function createResultsPanel() {
       total_dps: 0,
       ttk_25k: 0,
       ttk_75k: 0,
-      min_dps: 0,
-      max_dps: 0,
       active_traits: []
     });
   };

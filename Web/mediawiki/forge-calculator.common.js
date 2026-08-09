@@ -1563,7 +1563,6 @@
         { label: 'Ore Power (avg)', value: '0.00x', valueClass: 'fc-sv-mult' },
         { label: 'Forged Damage', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Attack Rate', value: '0.00', valueClass: 'fc-sv-rate' },
-        { label: 'Crit Blend', value: '0.00%', valueClass: 'fc-sv-pct' },
         { label: 'Weapon DPS', value: '0', valueClass: 'fc-sv-dmg' }
       ])
     });
@@ -1601,15 +1600,6 @@
       ])
     });
 
-    // Burst Card
-    var burstCard = createResultsCard({
-      title: 'Burst',
-      content: createStatRows([
-        { label: 'Min Burst', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Max Burst', value: '0', valueClass: 'fc-sv-dmg' }
-      ])
-    });
-
     // Traits Card (initially empty)
     var traitsCard = createResultsCard({
       title: 'Active Traits',
@@ -1618,19 +1608,18 @@
       ])
     });
 
-    cardsContainer.append(coreDpsCard, statsCard, dpsCard, ttkCard, burstCard, traitsCard);
+    cardsContainer.append(coreDpsCard, statsCard, dpsCard, ttkCard, traitsCard);
 
     container.updateResults = function (result) {
       if (!result) { return; }
 
       var coreRows = coreDpsCard.querySelectorAll('.fc-stat-row');
-      if (coreRows.length >= 6) {
+      if (coreRows.length >= 5) {
         updateStatRow(coreRows[0], fmtDps(result.unforged_damage), false);
         updateStatRow(coreRows[1], fmt2(result.avg_power) + 'x', false);
         updateStatRow(coreRows[2], fmtDps(result.forged_damage), false);
         updateStatRow(coreRows[3], fmt2(result.attack_rate), false);
-        updateStatRow(coreRows[4], pctFmt(result.crit_blend), false);
-        updateStatRow(coreRows[5], fmtDps(result.weapon_dps), false);
+        updateStatRow(coreRows[4], fmtDps(result.weapon_dps), false);
       }
 
       var statRows = statsCard.querySelectorAll('.fc-stat-row');
@@ -1657,12 +1646,6 @@
         updateStatRow(ttkRows[1], fmtTime(result.ttk_75k), false);
       }
 
-      var burstRows = burstCard.querySelectorAll('.fc-stat-row');
-      if (burstRows.length >= 2) {
-        updateStatRow(burstRows[0], fmtDps(result.min_dps), false);
-        updateStatRow(burstRows[1], fmtDps(result.max_dps), false);
-      }
-
       if (result.active_traits) {
         updateResultsCard(traitsCard, createStatRows([
           { label: 'Active Traits', value: result.active_traits }
@@ -1681,6 +1664,7 @@
     var data = opts.data;
     var getBuild = opts.getBuild;
     var onBuildChange = opts.onBuildChange;
+    var onCalculate = opts.onCalculate;
 
     var noneLabel = data.constants.noneLabel;
     var selectOreLabel = data.constants.selectOreLabel;
@@ -1846,6 +1830,17 @@
       achievementSection
     );
 
+    /* --- Calculate DPS trigger (manual, no auto-recalc) --- */
+    var calcBtn = createEl('button', {
+      class: 'fc-btn fc-btn--primary fc-calc-btn',
+      type: 'button'
+    }, ['Calculate DPS']);
+    calcBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (onCalculate) { onCalculate(); }
+    });
+    container.appendChild(calcBtn);
+
     container.setBuild = function (newBuild) {
       for (var s = 0; s < 4; s++) {
         var slot = newBuild.oreSlots[s] || { name: noneLabel, amount: 0 };
@@ -1919,8 +1914,7 @@
     gameData: null,
     build: DEFAULT_BUILD,
     inputPanel: null,
-    resultsPanel: null,
-    recalcTimeout: null
+    resultsPanel: null
   };
 
   function transformBuildForEngine(build) {
@@ -1963,14 +1957,10 @@
     }
   }
 
-  function scheduleRecalc() {
-    clearTimeout(state.recalcTimeout);
-    state.recalcTimeout = setTimeout(recalculate, 150);
-  }
-
   function handleBuildChange(newBuild) {
+    // Inputs only update pending state — results are recomputed when the
+    // "Calculate DPS" button is pressed.
     state.build = newBuild;
-    scheduleRecalc();
   }
 
   function resetBuild() {
@@ -2025,7 +2015,6 @@
       'Avg Ore Power: ' + result.avg_power.toFixed(2) + 'x',
       'Forged Damage: ' + result.forged_damage.toFixed(2),
       'Attack Rate: ' + result.attack_rate.toFixed(2),
-      'Crit Blend: ' + (result.crit_blend * 100).toFixed(2) + '%',
       'Weapon DPS: ' + result.weapon_dps.toFixed(2),
       '',
       '--- Stats (Capped) ---',
@@ -2045,10 +2034,6 @@
       '--- Time to Kill ---',
       '25k HP: ' + result.ttk_25k.toFixed(2) + 's',
       '75k HP: ' + result.ttk_75k.toFixed(2) + 's',
-      '',
-      '--- Burst ---',
-      'Min Burst: ' + result.min_dps.toFixed(2),
-      'Max Burst: ' + result.max_dps.toFixed(2),
       '',
       '--- Active Traits ---',
       activeTraitsText,
@@ -2095,7 +2080,8 @@
       state.inputPanel = createInputPanel({
         data: gameData,
         getBuild: function () { return state.build; },
-        onBuildChange: handleBuildChange
+        onBuildChange: handleBuildChange,
+        onCalculate: recalculate
       });
       left.appendChild(state.inputPanel);
 

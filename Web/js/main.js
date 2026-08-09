@@ -8,8 +8,6 @@ import { createAppLayout } from './components/AppLayout.js';
 import { createInputPanel } from './components/InputPanel.js';
 import { createResultsPanel } from './components/ResultsPanel.js';
 import { calculate } from './engine/index.js';
-import { debounce } from './utils/events.js';
-import { deepClone } from './utils/object.js';
 
 // Default build state
 const DEFAULT_BUILD = {
@@ -48,7 +46,6 @@ let gameData = null;
 let currentBuild = { ...DEFAULT_BUILD };
 let inputPanel = null;
 let resultsPanel = null;
-let recalcTimeout = null;
 
 /**
  * Initialize the application
@@ -66,7 +63,8 @@ async function init() {
     inputPanel = createInputPanel({
       data: gameData,
       build: currentBuild,
-      onBuildChange: handleBuildChange
+      onBuildChange: handleBuildChange,
+      onCalculate: recalculate
     });
     left.appendChild(inputPanel);
 
@@ -94,17 +92,10 @@ async function init() {
  * @param {Object} newBuild
  */
 function handleBuildChange(newBuild) {
+  // Inputs only update pending state — results are recomputed when the
+  // "Calculate DPS" button is pressed.
   currentBuild = { ...newBuild };
   saveBuildToStorage();
-  scheduleRecalc();
-}
-
-/**
- * Schedule a debounced recalculation
- */
-function scheduleRecalc() {
-  clearTimeout(recalcTimeout);
-  recalcTimeout = setTimeout(recalculate, 150);
 }
 
 /**
@@ -246,7 +237,6 @@ function formatResultsForClipboard(result, build) {
     `Avg Ore Power: ${result.avg_power.toFixed(2)}x`,
     `Forged Damage: ${result.forged_damage.toFixed(2)}`,
     `Attack Rate: ${result.attack_rate.toFixed(2)}`,
-    `Crit Blend: ${(result.crit_blend * 100).toFixed(2)}%`,
     `Weapon DPS: ${result.weapon_dps.toFixed(2)}`,
     '',
     '--- Stats (Capped) ---',
@@ -266,10 +256,6 @@ function formatResultsForClipboard(result, build) {
     '--- Time to Kill ---',
     `25k HP: ${result.ttk_25k.toFixed(2)}s`,
     `75k HP: ${result.ttk_75k.toFixed(2)}s`,
-    '',
-    '--- Burst ---',
-    `Min Burst: ${result.min_dps.toFixed(2)}`,
-    `Max Burst: ${result.max_dps.toFixed(2)}`,
     '',
     '--- Active Traits ---',
     ...(result.active_traits.length > 0
@@ -348,15 +334,6 @@ function setupGlobalHandlers() {
 
   // Reset button (if we add one to UI)
   // Could add a button in the future
-}
-
-/**
- * Deep clone utility
- * @param {*} obj
- * @returns {*}
- */
-function deepClone(obj) {
-  return JSON.parse(JSON.stringify(obj));
 }
 
 // Export for potential external use
