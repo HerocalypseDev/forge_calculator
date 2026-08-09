@@ -3,8 +3,8 @@
  * @module components/StatInput
  */
 
-import { createEl, on } from '../utils/dom.js';
-import { debounce } from '../utils/events.js';
+import { createEl } from '../utils/dom.js';
+import { debounce, on } from '../utils/events.js';
 
 const CLASS_CONTAINER = 'ep-stat-input';
 const CLASS_ROW = 'ep-stat-input-row';

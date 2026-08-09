@@ -3,8 +3,8 @@
  * @module components/AbilityGrid
  */
 
-import { createEl, on } from '../utils/dom.js';
-import { debounce } from '../utils/events.js';
+import { createEl } from '../utils/dom.js';
+import { debounce, on } from '../utils/events.js';
 
 const CLASS_CONTAINER = 'ep-ability-grid';
 const CLASS_SECTION = 'ep-ability-section';

@@ -3,9 +3,9 @@
  * @module components/WeaponSelector
  */
 
-import { createEl, on } from '../utils/dom.js';
+import { createEl } from '../utils/dom.js';
 import { createSearchableDropdown } from './SearchableDropdown.js';
-import { debounce } from '../utils/events.js';
+import { debounce, on } from '../utils/events.js';
 
 const CLASS_WEAPON = 'ep-weapon-selector';
 const CLASS_TYPE_WRAPPER = 'ep-weapon-type-wrapper';

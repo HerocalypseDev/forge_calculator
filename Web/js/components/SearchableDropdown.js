@@ -3,8 +3,8 @@
  * @module components/SearchableDropdown
  */
 
-import { createEl, on, empty } from '../utils/dom.js';
-import { debounce } from '../utils/events.js';
+import { createEl, empty } from '../utils/dom.js';
+import { debounce, on } from '../utils/events.js';
 
 const CLASS_DROPDOWN = 'ep-searchable-dropdown';
 const CLASS_INPUT = 'ep-searchable-input';

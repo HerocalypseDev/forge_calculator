@@ -4,7 +4,8 @@
  */
 
 import { createEl } from '../utils/dom.js';
-import { createResultsCard, createStatRows, updateResultsCard, updateStatRow } from './ResultsCard.js';
+import { createResultsCard, updateResultsCard } from './ResultsCard.js';
+import { createStatRows, updateStatRow } from './StatRow.js';
 import { fmtDps, fmtTime, fmt2, pctFmt } from '../utils/format.js';
 
 const CLASS_PANEL = 'ep-results-panel';

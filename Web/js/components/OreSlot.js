@@ -3,9 +3,9 @@
  * @module components/OreSlot
  */
 
-import { createEl, on } from '../utils/dom.js';
+import { createEl } from '../utils/dom.js';
 import { createSearchableDropdown } from './SearchableDropdown.js';
-import { debounce } from '../utils/events.js';
+import { debounce, on } from '../utils/events.js';
 
 const CLASS_SLOT = 'ep-ore-slot';
 const CLASS_LABEL = 'ep-ore-slot-label';
