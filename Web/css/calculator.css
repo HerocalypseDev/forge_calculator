@@ -141,6 +141,16 @@
   flex-shrink: 0;
 }
 
+.ep-ore-slot-mult {
+  min-width: 48px;
+  flex-shrink: 0;
+  font-family: var(--ep-font-mono);
+  font-size: 12px;
+  color: var(--ep-gold-dark);
+  text-align: center;
+  white-space: nowrap;
+}
+
 /* Weapon selector */
 .ep-weapon-selector {
   display: flex;
@@ -440,7 +450,7 @@
 }
 
 /* ==========================================================================
-   Rune Selector Tags
+   Rune Selector Grid (3 lines × 2 slots)
    ========================================================================== */
 
 .ep-rune-selector {
@@ -449,44 +459,25 @@
   gap: 8px;
 }
 
-.ep-rune-tags {
+.ep-rune-line {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-height: 28px;
+  align-items: center;
+  gap: 8px;
 }
 
-.ep-rune-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 8px;
+.ep-rune-line-label {
+  flex-shrink: 0;
+  width: 52px;
   font-size: 12px;
-  color: var(--ep-text);
-  background: var(--ep-bg-alt);
-  border: 1px solid var(--ep-border);
-  border-radius: 100px;
-}
-
-.ep-rune-tag-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  font-size: 14px;
-  line-height: 1;
+  font-weight: 500;
   color: var(--ep-text-muted);
-  background: transparent;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background var(--ep-transition), color var(--ep-transition);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.ep-rune-tag-remove:hover {
-  background: var(--ep-border);
-  color: #cc0000;
+.ep-rune-slot {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ==========================================================================

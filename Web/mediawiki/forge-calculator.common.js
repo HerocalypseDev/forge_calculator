@@ -1038,13 +1038,18 @@
     var oreNames = opts.oreNames;
     var noneLabel = opts.noneLabel;
     var selectOreLabel = opts.selectOreLabel;
+    var prompt = opts.prompt || noneLabel;
+    var oreMultipliers = opts.oreMultipliers || {};
     var onChange = opts.onChange;
 
     var slotId = 'ore-slot-' + index;
     var currentName = opts.value || noneLabel;
     var currentAmount = opts.amount || 0;
 
-    var options = [noneLabel].concat(oreNames.filter(function (n) { return n !== selectOreLabel; }));
+    var options = [prompt].concat(oreNames.filter(function (n) { return n !== selectOreLabel; }));
+
+    function toUI(val) { return (val === noneLabel || val === undefined) ? prompt : val; }
+    function fromUI(val) { return val === prompt ? noneLabel : val; }
 
     var container = createEl('div', { class: 'fc-ore-slot', id: slotId });
     var label = createEl('label', { class: 'fc-ore-slot-label', for: slotId + '-ore' }, ['Slot ' + (index + 1)]);
@@ -1053,15 +1058,23 @@
     var dropdownWrapper = createEl('div', { class: 'fc-ore-slot-dropdown' });
     var dropdown = createSearchableDropdown({
       options: options,
-      value: currentName,
-      placeholder: noneLabel,
+      value: toUI(currentName),
+      placeholder: prompt,
       id: slotId + '-ore',
       onChange: function (newName) {
-        currentName = newName;
+        currentName = fromUI(newName);
+        updateMult();
         onChange(currentName, currentAmount);
       }
     });
     dropdownWrapper.appendChild(dropdown);
+
+    // Per-ore multiplier readout ("×2.33"), shown when a real ore is selected
+    var multLabel = createEl('span', { class: 'fc-ore-slot-mult' }, ['']);
+    function updateMult() {
+      var m = Number(oreMultipliers[currentName]);
+      multLabel.textContent = m ? '×' + String(parseFloat(m.toFixed(2))) : '';
+    }
 
     var amountInput = createEl('input', {
       type: 'number',
@@ -1084,18 +1097,20 @@
     amountInput.addEventListener('input', handleAmountChange);
     amountInput.addEventListener('change', commitAmount);
 
-    fields.append(dropdownWrapper, amountInput);
+    fields.append(dropdownWrapper, multLabel, amountInput);
     container.append(label, fields);
 
     container.setValue = function (name, amt) {
       currentName = name;
       currentAmount = amt;
-      dropdown.setValue(name);
+      dropdown.setValue(toUI(name));
       amountInput.value = amt;
+      updateMult();
     };
     container.getValue = function () { return { name: currentName, amount: currentAmount }; };
     container.getDropdown = function () { return dropdown; };
 
+    updateMult();
     return container;
   }
 
@@ -1107,7 +1122,20 @@
     var weaponTypes = opts.weaponTypes;
     var weapons = opts.weapons;
     var noneLabel = opts.noneLabel;
+    var weaponTypePrompt = opts.weaponTypePrompt || noneLabel;
+    var weaponPrompt = opts.weaponPrompt || noneLabel;
+    var enhancementPrompt = opts.enhancementPrompt || noneLabel;
     var onChange = opts.onChange;
+
+    // Prompt display ↔ "None" sentinel translation (see InputPanel).
+    function toUI(val, sentinel, prompt) {
+      return (val === sentinel || val === undefined) ? prompt : val;
+    }
+    function fromUI(val, sentinel, prompt) {
+      return val === prompt ? sentinel : val;
+    }
+
+    var QUALITY_MAX = 100;
 
     var currentType = opts.weaponType || noneLabel;
     var currentWeapon = opts.weaponName || noneLabel;
@@ -1119,25 +1147,25 @@
     // Weapon Type dropdown
     var typeWrapper = createEl('div', { class: 'fc-weapon-type-wrapper' });
     var typeLabel = createEl('label', { for: 'weapon-type' }, ['Weapon Type']);
-    var typeOptions = [noneLabel, 'All Types'].concat(weaponTypes);
+    var typeOptions = [weaponTypePrompt, 'All Types'].concat(weaponTypes);
     var typeDropdown = createSearchableDropdown({
       options: typeOptions,
-      value: currentType,
-      placeholder: noneLabel,
+      value: toUI(currentType, noneLabel, weaponTypePrompt),
+      placeholder: weaponTypePrompt,
       id: 'weapon-type',
       onChange: function (newType) {
-        currentType = newType;
+        currentType = fromUI(newType, noneLabel, weaponTypePrompt);
         var filteredWeapons;
-        if (newType === noneLabel || newType === 'All Types') {
+        if (currentType === noneLabel || currentType === 'All Types') {
           filteredWeapons = weapons;
         } else {
-          filteredWeapons = weapons.filter(function (w) { return w.type === newType; });
+          filteredWeapons = weapons.filter(function (w) { return w.type === currentType; });
         }
         var weaponNames = filteredWeapons.map(function (w) { return w.name; });
-        weaponDropdown.updateOptions([noneLabel].concat(weaponNames));
+        weaponDropdown.updateOptions([weaponPrompt].concat(weaponNames));
         if (weaponNames.indexOf(currentWeapon) === -1) {
           currentWeapon = noneLabel;
-          weaponDropdown.setValue(noneLabel);
+          weaponDropdown.setValue(weaponPrompt);
         }
         onChange(currentType, currentWeapon, currentQuality, currentEnhancement);
       }
@@ -1153,14 +1181,14 @@
     } else {
       initialWeapons = weapons.filter(function (w) { return w.type === currentType; });
     }
-    var weaponNames = [noneLabel].concat(initialWeapons.map(function (w) { return w.name; }));
+    var weaponNames = [weaponPrompt].concat(initialWeapons.map(function (w) { return w.name; }));
     var weaponDropdown = createSearchableDropdown({
       options: weaponNames,
-      value: currentWeapon,
-      placeholder: noneLabel,
+      value: toUI(currentWeapon, noneLabel, weaponPrompt),
+      placeholder: weaponPrompt,
       id: 'weapon-name',
       onChange: function (newWeapon) {
-        currentWeapon = newWeapon;
+        currentWeapon = fromUI(newWeapon, noneLabel, weaponPrompt);
         onChange(currentType, currentWeapon, currentQuality, currentEnhancement);
       }
     });
@@ -1175,12 +1203,15 @@
       id: 'quality',
       value: currentQuality,
       min: '0',
-      max: '500',
+      max: String(QUALITY_MAX),
       step: '5',
       inputmode: 'decimal'
     });
+    function clampQuality(v) {
+      return Math.min(parseFloat(v) || 0, QUALITY_MAX);
+    }
     function commitQuality() {
-      currentQuality = parseFloat(qualityInput.value) || 0;
+      currentQuality = clampQuality(qualityInput.value);
       qualityInput.value = currentQuality;
       onChange(currentType, currentWeapon, currentQuality, currentEnhancement);
     }
@@ -1194,14 +1225,14 @@
     var enhancementLabel = createEl('label', { for: 'enhancement' }, ['Enhancement']);
     var enhancementLevels = [];
     for (var i = 0; i < 10; i++) { enhancementLevels.push(String(i)); }
-    var enhancementOptions = [noneLabel].concat(enhancementLevels);
+    var enhancementOptions = [enhancementPrompt].concat(enhancementLevels);
     var enhancementDropdown = createSearchableDropdown({
       options: enhancementOptions,
       value: String(currentEnhancement),
-      placeholder: noneLabel,
+      placeholder: enhancementPrompt,
       id: 'enhancement',
       onChange: function (newEnhancement) {
-        currentEnhancement = newEnhancement === noneLabel ? 0 : parseInt(newEnhancement, 10);
+        currentEnhancement = newEnhancement === enhancementPrompt ? 0 : parseInt(newEnhancement, 10);
         onChange(currentType, currentWeapon, currentQuality, currentEnhancement);
       }
     });
@@ -1214,8 +1245,8 @@
       currentWeapon = name;
       currentQuality = qual;
       currentEnhancement = enh;
-      typeDropdown.setValue(type);
-      weaponDropdown.setValue(name);
+      typeDropdown.setValue(toUI(type, noneLabel, weaponTypePrompt));
+      weaponDropdown.setValue(toUI(name, noneLabel, weaponPrompt));
       qualityInput.value = qual;
       enhancementDropdown.setValue(String(enh));
     };
@@ -1237,8 +1268,7 @@
     var fields = [
       { key: 'armorLethality', label: 'Armor Lethality', placeholder: '0', min: 0, step: '0.01' },
       { key: 'armorCritChance', label: 'Armor Crit Chance', placeholder: '0', min: 0, step: '0.01' },
-      { key: 'armorCritDmg', label: 'Armor Crit Damage', placeholder: '0', min: 0, step: '0.01' },
-      { key: 'baseCritChance', label: 'Base Crit Chance', placeholder: '0', min: 0, step: '0.01' }
+      { key: 'armorCritDmg', label: 'Armor Crit Damage', placeholder: '0', min: 0, step: '0.01' }
     ];
 
     for (var i = 0; i < fields.length; i++) {
@@ -1390,68 +1420,67 @@
   }
 
   /* ==========================================================================
-   * UI — RUNE SELECTOR (multi-select via tags)
+   * UI — RUNE SELECTOR (3 lines × 2 slots = 6 fixed cells)
    * ======================================================================== */
 
   function createRuneSelector(opts) {
     var runes = opts.runes;
     var noneLabel = opts.noneLabel;
+    var prompt = opts.prompt || noneLabel;
     var onChange = opts.onChange;
-    var currentRunes = (opts.selectedRunes || []).slice();
 
-    var container = createEl('div', { class: 'fc-rune-selector' });
-    var tagsContainer = createEl('div', { class: 'fc-rune-tags' });
-    renderTags();
-
-    var dropdownWrapper = createEl('div', { class: 'fc-rune-dropdown' });
-    var runeNames = runes.map(function (r) { return r.name; });
-    var dropdown = createSearchableDropdown({
-      options: [noneLabel].concat(runeNames),
-      value: noneLabel,
-      placeholder: noneLabel,
-      id: 'rune-selector',
-      onChange: function (selected) {
-        if (selected === noneLabel) { return; }
-        if (currentRunes.indexOf(selected) === -1) {
-          currentRunes.push(selected);
-          renderTags();
-          onChange(currentRunes.slice());
-        }
-        dropdown.setValue(noneLabel);
-      }
-    });
-    dropdownWrapper.appendChild(dropdown);
-
-    container.append(tagsContainer, dropdownWrapper);
-
-    function renderTags() {
-      empty(tagsContainer);
-      for (var i = 0; i < currentRunes.length; i++) {
-        (function (runeName) {
-          var tag = createEl('span', { class: 'fc-rune-tag' });
-          var nameSpan = createEl('span', {}, [runeName]);
-          var removeBtn = createEl('button', {
-            class: 'fc-rune-tag-remove',
-            type: 'button',
-            'aria-label': 'Remove ' + runeName
-          }, ['×']);
-          removeBtn.addEventListener('click', function () {
-            currentRunes = currentRunes.filter(function (r) { return r !== runeName; });
-            renderTags();
-            onChange(currentRunes.slice());
-          });
-          tag.append(nameSpan, removeBtn);
-          tagsContainer.appendChild(tag);
-        })(currentRunes[i]);
-      }
+    // Normalize to exactly 6 cells (pad short arrays from old saved builds)
+    var initial = opts.values || [];
+    var current = [];
+    for (var ci = 0; ci < 6; ci++) {
+      current.push(initial[ci] !== undefined ? initial[ci] : noneLabel);
     }
 
-    container.setValues = function (runeNamesList) {
-      currentRunes = runeNamesList.slice();
-      renderTags();
-    };
+    // Prompt display ↔ "None" sentinel translation (see WeaponSelector).
+    function toUI(val) { return (val === noneLabel || val === undefined) ? prompt : val; }
+    function fromUI(val) { return val === prompt ? noneLabel : val; }
 
-    container.getValues = function () { return currentRunes.slice(); };
+    var container = createEl('div', { class: 'fc-rune-selector' });
+    var runeNames = runes.map(function (r) { return r.name; });
+    var options = [prompt].concat(runeNames);
+
+    var dropdowns = [];
+    for (var line = 0; line < 3; line++) {
+      var lineEl = createEl('div', { class: 'fc-rune-line' });
+      var lineLabel = createEl('span', { class: 'fc-rune-line-label' }, ['Rune ' + (line + 1)]);
+      lineEl.appendChild(lineLabel);
+      for (var col = 0; col < 2; col++) {
+        (function (idx) {
+          var dropdown = createSearchableDropdown({
+            options: options,
+            value: toUI(current[idx]),
+            placeholder: prompt,
+            id: 'rune-slot-' + idx,
+            onChange: function (name) {
+              current[idx] = fromUI(name);
+              onChange(current.slice());
+            }
+          });
+          dropdowns.push(dropdown);
+          var slotEl = createEl('div', { class: 'fc-rune-slot' });
+          slotEl.appendChild(dropdown);
+          lineEl.appendChild(slotEl);
+        })(line * 2 + col);
+      }
+      container.appendChild(lineEl);
+    }
+
+    container.setValues = function (vals) {
+      vals = vals || [];
+      current = [];
+      for (var i = 0; i < 6; i++) {
+        current.push(vals[i] !== undefined ? vals[i] : noneLabel);
+      }
+      for (var d = 0; d < 6; d++) {
+        dropdowns[d].setValue(toUI(current[d]));
+      }
+    };
+    container.getValues = function () { return current.slice(); };
 
     return container;
   }
@@ -1559,9 +1588,9 @@
     var coreDpsCard = createResultsCard({
       title: 'Core DPS',
       content: createStatRows([
-        { label: 'Weapon Base', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Ore Power (avg)', value: '0.00x', valueClass: 'fc-sv-mult' },
-        { label: 'Forged Damage', value: '0', valueClass: 'fc-sv-dmg' },
+        { label: 'Base Damage', value: '0', valueClass: 'fc-sv-dmg' },
+        { label: 'Average Multiplier', value: '0.00x', valueClass: 'fc-sv-mult' },
+        { label: 'Weapon Damage', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Attack Rate', value: '0.00', valueClass: 'fc-sv-rate' },
         { label: 'Weapon DPS', value: '0', valueClass: 'fc-sv-dmg' }
       ])
@@ -1595,8 +1624,8 @@
     var ttkCard = createResultsCard({
       title: 'Time to Kill',
       content: createStatRows([
-        { label: 'TTK (25k HP)', value: '0.00s', valueClass: 'fc-sv-time' },
-        { label: 'TTK (75k HP)', value: '0.00s', valueClass: 'fc-sv-time' }
+        { label: 'Time taken to defeat Golem', value: '0.00s', valueClass: 'fc-sv-time' },
+        { label: 'Time taken to defeat Asura', value: '0.00s', valueClass: 'fc-sv-time' }
       ])
     });
 
@@ -1669,6 +1698,19 @@
     var noneLabel = data.constants.noneLabel;
     var selectOreLabel = data.constants.selectOreLabel;
 
+    // Contextual "Select X" prompts (display layer; build state keeps the "None" sentinel)
+    var ORE_PROMPT = 'Select Ores';
+    var RACE_PROMPT = 'Select Race';
+    var BONUS_PROMPT = 'Select Bonus Type';
+    var WEAPON_TYPE_PROMPT = 'Select Weapon Type';
+    var WEAPON_PROMPT = 'Select Weapon';
+    var ENHANCEMENT_PROMPT = 'Select Enhancement';
+    var ACHIEVEMENT_PROMPT = 'Select Achievement';
+    var RUNE_PROMPT = 'Select Rune';
+
+    function toUI(val, prompt) { return (val === noneLabel || val === undefined) ? prompt : val; }
+    function fromUI(val, prompt) { return val === prompt ? noneLabel : val; }
+
     var container = createEl('div', { class: 'fc-input-panel' });
 
     function patch(partial) {
@@ -1679,11 +1721,15 @@
       onBuildChange(merged);
     }
 
-    /* --- Forge Slots --- */
+    /* --- Ore Slots --- */
     var oreSection = createEl('div', { class: 'fc-input-section' });
-    oreSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Forge Slots']));
+    oreSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Ore Slots']));
 
     var oreNames = data.ores.map(function (o) { return o.name; });
+    var oreMultipliers = {};
+    for (var j = 0; j < data.ores.length; j++) {
+      oreMultipliers[data.ores[j].name] = data.ores[j].multiplier;
+    }
     var oreSlots = [];
     for (var i = 0; i < 4; i++) {
       (function (idx) {
@@ -1693,6 +1739,8 @@
           oreNames: oreNames,
           noneLabel: noneLabel,
           selectOreLabel: selectOreLabel,
+          prompt: ORE_PROMPT,
+          oreMultipliers: oreMultipliers,
           value: slotBuild.name,
           amount: slotBuild.amount || 0,
           onChange: function (name, amount) {
@@ -1714,6 +1762,9 @@
       weaponTypes: data.weapon_types,
       weapons: data.weapons,
       noneLabel: noneLabel,
+      weaponTypePrompt: WEAPON_TYPE_PROMPT,
+      weaponPrompt: WEAPON_PROMPT,
+      enhancementPrompt: ENHANCEMENT_PROMPT,
       weaponType: getBuild().weaponType,
       weaponName: getBuild().weaponName,
       quality: getBuild().quality,
@@ -1730,40 +1781,39 @@
 
     var raceWrapper = createEl('div', { class: 'fc-race-wrapper' });
     var raceLabel = createEl('label', { for: 'race-select' }, ['Race']);
-    var raceOptions = [noneLabel].concat(data.races.map(function (r) { return r.name; }));
+    var raceOptions = [RACE_PROMPT].concat(data.races.map(function (r) { return r.name; }));
     var raceDropdown = createSearchableDropdown({
       options: raceOptions,
-      value: getBuild().race || noneLabel,
-      placeholder: noneLabel,
+      value: toUI(getBuild().race, RACE_PROMPT),
+      placeholder: RACE_PROMPT,
       id: 'race-select',
-      onChange: function (race) { patch({ race: race }); }
+      onChange: function (race) { patch({ race: fromUI(race, RACE_PROMPT) }); }
     });
     raceWrapper.append(raceLabel, raceDropdown);
 
     var bonusWrapper = createEl('div', { class: 'fc-bonus-wrapper' });
     var bonusLabel = createEl('label', { for: 'bonus-type-select' }, ['Bonus Type']);
-    var bonusOptions = [noneLabel].concat(data.race_bonus_types);
+    var bonusOptions = [BONUS_PROMPT].concat(data.race_bonus_types);
     var bonusDropdown = createSearchableDropdown({
       options: bonusOptions,
-      value: getBuild().bonusType || noneLabel,
-      placeholder: noneLabel,
+      value: toUI(getBuild().bonusType, BONUS_PROMPT),
+      placeholder: BONUS_PROMPT,
       id: 'bonus-type-select',
-      onChange: function (bonusType) { patch({ bonusType: bonusType }); }
+      onChange: function (bonusType) { patch({ bonusType: fromUI(bonusType, BONUS_PROMPT) }); }
     });
     bonusWrapper.append(bonusLabel, bonusDropdown);
 
     raceSection.append(raceWrapper, bonusWrapper);
 
-    /* --- Armor & Base Stats --- */
+    /* --- Armor Stats --- */
     var statSection = createEl('div', { class: 'fc-input-section' });
-    statSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Armor & Base Stats']));
+    statSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Armor Stats']));
 
     var statInput = createStatInput({
       values: {
         armorLethality: getBuild().armorLethality,
         armorCritChance: getBuild().armorCritChance,
-        armorCritDmg: getBuild().armorCritDmg,
-        baseCritChance: getBuild().baseCritChance
+        armorCritDmg: getBuild().armorCritDmg
       },
       onChange: function (values) { patch(values); }
     });
@@ -1794,8 +1844,9 @@
 
     var runeSelector = createRuneSelector({
       runes: data.runes,
-      selectedRunes: getBuild().runes || [],
+      values: getBuild().runes || [],
       noneLabel: noneLabel,
+      prompt: RUNE_PROMPT,
       onChange: function (runes) { patch({ runes: runes }); }
     });
     runeSection.appendChild(runeSelector);
@@ -1809,13 +1860,13 @@
     var achievementNames = data.achievements
       .map(function (a) { return a.name; })
       .filter(function (n) { return n !== noneLabel && n !== 'None'; });
-    var achievementOptions = [noneLabel].concat(achievementNames);
+    var achievementOptions = [ACHIEVEMENT_PROMPT].concat(achievementNames);
     var achievementDropdown = createSearchableDropdown({
       options: achievementOptions,
-      value: getBuild().achievement || noneLabel,
-      placeholder: noneLabel,
+      value: toUI(getBuild().achievement, ACHIEVEMENT_PROMPT),
+      placeholder: ACHIEVEMENT_PROMPT,
       id: 'achievement-select',
-      onChange: function (name) { patch({ achievement: name }); }
+      onChange: function (name) { patch({ achievement: fromUI(name, ACHIEVEMENT_PROMPT) }); }
     });
     achievementWrapper.append(achievementLabel, achievementDropdown);
     achievementSection.appendChild(achievementWrapper);
@@ -1852,13 +1903,12 @@
         newBuild.quality !== undefined ? newBuild.quality : 100,
         newBuild.enhancement !== undefined ? newBuild.enhancement : 0
       );
-      raceDropdown.setValue(newBuild.race || noneLabel);
-      bonusDropdown.setValue(newBuild.bonusType || noneLabel);
+      raceDropdown.setValue(toUI(newBuild.race, RACE_PROMPT));
+      bonusDropdown.setValue(toUI(newBuild.bonusType, BONUS_PROMPT));
       statInput.setValues({
         armorLethality: newBuild.armorLethality,
         armorCritChance: newBuild.armorCritChance,
-        armorCritDmg: newBuild.armorCritDmg,
-        baseCritChance: newBuild.baseCritChance
+        armorCritDmg: newBuild.armorCritDmg
       });
       abilityGrid.setValues({
         fireDmg: newBuild.fireDmg,
@@ -1871,7 +1921,7 @@
         blastChance: newBuild.blastChance
       });
       runeSelector.setValues(newBuild.runes || []);
-      achievementDropdown.setValue(newBuild.achievement || noneLabel);
+      achievementDropdown.setValue(toUI(newBuild.achievement, ACHIEVEMENT_PROMPT));
     };
 
     return container;
@@ -1897,7 +1947,6 @@
     armorLethality: 0,
     armorCritChance: 0,
     armorCritDmg: 0,
-    baseCritChance: 0,
     fireDmg: 0,
     fireChance: 0,
     fireTime: 0,
@@ -1906,7 +1955,7 @@
     poisonTime: 0,
     blastDmg: 0,
     blastChance: 0,
-    runes: [],
+    runes: [NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL],
     achievement: NONE_LABEL
   };
 
@@ -1926,7 +1975,7 @@
       race: build.race,
       bonus_weapon_type: build.bonusType,
       rune_cells: build.runes || [],
-      base_crit_chance: build.baseCritChance,
+      base_crit_chance: 0, // Base Crit Chance input removed; engine's C20 quirk preserved
       base_crit_dmg: 0,
       armor_crit_chance: build.armorCritChance,
       armor_crit_dmg: build.armorCritDmg,
@@ -2011,9 +2060,9 @@
       'Race: ' + build.race + ' | Bonus: ' + build.bonusType,
       '',
       '--- Core DPS ---',
-      'Weapon Base: ' + result.unforged_damage.toFixed(2),
-      'Avg Ore Power: ' + result.avg_power.toFixed(2) + 'x',
-      'Forged Damage: ' + result.forged_damage.toFixed(2),
+      'Base Damage: ' + result.unforged_damage.toFixed(2),
+      'Average Multiplier: ' + result.avg_power.toFixed(2) + 'x',
+      'Weapon Damage: ' + result.forged_damage.toFixed(2),
       'Attack Rate: ' + result.attack_rate.toFixed(2),
       'Weapon DPS: ' + result.weapon_dps.toFixed(2),
       '',
@@ -2032,17 +2081,17 @@
       'Total DPS: ' + result.total_dps.toFixed(2),
       '',
       '--- Time to Kill ---',
-      '25k HP: ' + result.ttk_25k.toFixed(2) + 's',
-      '75k HP: ' + result.ttk_75k.toFixed(2) + 's',
+      'Golem: ' + result.ttk_25k.toFixed(2) + 's',
+      'Asura: ' + result.ttk_75k.toFixed(2) + 's',
       '',
       '--- Active Traits ---',
       activeTraitsText,
       '',
-      '--- Forge Slots ---',
+      '--- Ore Slots ---',
       build.oreSlots.map(function (slot, i) { return 'Slot ' + (i + 1) + ': ' + slot.name + ' x' + slot.amount; }).join('\n'),
       '',
       '--- Runes ---',
-      build.runes.length > 0 ? build.runes.join(', ') : 'None',
+      build.runes.filter(function (r) { return r && r !== NONE_LABEL; }).join(', ') || 'None',
       '',
       '--- Achievement ---',
       build.achievement || 'None'

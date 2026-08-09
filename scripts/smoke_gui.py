@@ -91,11 +91,19 @@ def main():
     # live-recompute check: bump quality, the totals must move through the same
     # change-trace path a user typing would hit.
     before = label("total_dps")
-    tab.quality_var.set("200")
+    tab.quality_var.set("50")
     root.update_idletasks()
     after = label("total_dps")
     if not after or after == before:
-        failures.append(f"live recompute: total_dps stayed {before!r} after quality 100->200")
+        failures.append(f"live recompute: total_dps stayed {before!r} after quality 100->50")
+
+    # quality cap: values above 100 are clamped by _build()
+    tab.quality_var.set("200")
+    root.update_idletasks()
+    if tab._build().quality != 100:
+        failures.append("quality cap: _build() did not clamp quality 200 -> 100")
+    tab.quality_var.set("50")
+    root.update_idletasks()
 
     # --- SearchableCombo: type to filter, Enter to commit, recompute fires ---
     slot = tab.ore_combos[2]
@@ -118,7 +126,7 @@ def main():
     slot._close(revert=True)
     if slot.entry.get() != "Galaxite":
         failures.append("search escape: entry did not revert to committed value")
-    tab.ore_vars[2].set("Select Ore")
+    tab.ore_vars[2].set("Select Ores")
     tab.amount_vars[2].set("0")
     root.update_idletasks()
 
@@ -138,7 +146,7 @@ def main():
     root.update_idletasks()
     window.save_now()
     persisted = settings.load_state()
-    if persisted.get("calculator", {}).get("quality") != "200":
+    if persisted.get("calculator", {}).get("quality") != "50":
         failures.append("state persist: quality not saved "
                         f"({persisted.get('calculator', {}).get('quality')!r})")
     if persisted.get("tab") != 0:

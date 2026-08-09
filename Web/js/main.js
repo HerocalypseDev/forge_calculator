@@ -26,7 +26,6 @@ const DEFAULT_BUILD = {
   armorLethality: 0,
   armorCritChance: 0,
   armorCritDmg: 0,
-  baseCritChance: 0,
   fireDmg: 0,
   fireChance: 0,
   fireTime: 0,
@@ -35,7 +34,7 @@ const DEFAULT_BUILD = {
   poisonTime: 0,
   blastDmg: 0,
   blastChance: 0,
-  runes: [],
+  runes: ['None', 'None', 'None', 'None', 'None', 'None'],
   achievements: []
 };
 
@@ -112,7 +111,7 @@ function transformBuildForEngine(build) {
     race: build.race,
     bonus_weapon_type: build.bonusType,
     rune_cells: build.runes || [],
-    base_crit_chance: build.baseCritChance,
+    base_crit_chance: 0,
     base_crit_dmg: 0, // Not in InputPanel
     armor_crit_chance: build.armorCritChance,
     armor_crit_dmg: build.armorCritDmg,
@@ -174,6 +173,11 @@ function loadBuildFromStorage() {
       if (!Array.isArray(currentBuild.oreSlots) || currentBuild.oreSlots.length !== 4) {
         currentBuild.oreSlots = DEFAULT_BUILD.oreSlots;
       }
+      // Normalize runes to 6 fixed cells (pad old variable-length arrays)
+      if (!Array.isArray(currentBuild.runes) || currentBuild.runes.length !== 6) {
+        const old = Array.isArray(currentBuild.runes) ? currentBuild.runes : [];
+        currentBuild.runes = Array.from({ length: 6 }, (_, i) => old[i] ?? 'None');
+      }
       // Update UI
       if (inputPanel && inputPanel.updateFromBuild) {
         inputPanel.updateFromBuild(currentBuild);
@@ -233,9 +237,9 @@ function formatResultsForClipboard(result, build) {
     `Race: ${build.race} | Bonus: ${build.bonusType}`,
     '',
     '--- Core DPS ---',
-    `Weapon Base: ${result.unforged_damage.toFixed(2)}`,
-    `Avg Ore Power: ${result.avg_power.toFixed(2)}x`,
-    `Forged Damage: ${result.forged_damage.toFixed(2)}`,
+    `Base Damage: ${result.unforged_damage.toFixed(2)}`,
+    `Average Multiplier: ${result.avg_power.toFixed(2)}x`,
+    `Weapon Damage: ${result.forged_damage.toFixed(2)}`,
     `Attack Rate: ${result.attack_rate.toFixed(2)}`,
     `Weapon DPS: ${result.weapon_dps.toFixed(2)}`,
     '',
@@ -254,8 +258,8 @@ function formatResultsForClipboard(result, build) {
     `Total DPS: ${result.total_dps.toFixed(2)}`,
     '',
     '--- Time to Kill ---',
-    `25k HP: ${result.ttk_25k.toFixed(2)}s`,
-    `75k HP: ${result.ttk_75k.toFixed(2)}s`,
+    `Golem: ${result.ttk_25k.toFixed(2)}s`,
+    `Asura: ${result.ttk_75k.toFixed(2)}s`,
     '',
     '--- Active Traits ---',
     ...(result.active_traits.length > 0
@@ -266,7 +270,7 @@ function formatResultsForClipboard(result, build) {
     ...build.oreSlots.map((slot, i) => `Slot ${i + 1}: ${slot.name} x${slot.amount}`),
     '',
     '--- Runes ---',
-    build.runes.length > 0 ? build.runes.join(', ') : 'None',
+    build.runes.filter(r => r && r !== 'None').join(', ') || 'None',
     '',
     '--- Achievements ---',
     build.achievements.length > 0 ? build.achievements.join(', ') : 'None'

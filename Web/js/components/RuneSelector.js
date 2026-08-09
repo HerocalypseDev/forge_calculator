@@ -1,86 +1,75 @@
 /** Rune Selector Component
- * Multi-select for runes with search
+ * 3 lines × 2 slots = 6 fixed rune selections, matching the workbook's
+ * 6 rune cells (C27/D27, C28/D28, C29/D29).
  * @module components/RuneSelector
  */
 
-import { createEl, on } from '../utils/dom.js';
+import { createEl } from '../utils/dom.js';
 import { createSearchableDropdown } from './SearchableDropdown.js';
-import { debounce } from '../utils/events.js';
 
 const CLASS_CONTAINER = 'ep-rune-selector';
-const CLASS_DROPDOWN = 'ep-rune-dropdown';
-const CLASS_TAGS = 'ep-rune-tags';
-const CLASS_TAG = 'ep-rune-tag';
-const CLASS_TAG_REMOVE = 'ep-rune-tag-remove';
+const CLASS_LINE = 'ep-rune-line';
+const CLASS_SLOT = 'ep-rune-slot';
+const CLASS_LABEL = 'ep-rune-line-label';
+
+const RUNE_SLOT_COUNT = 6;
+
+// Prompt display ↔ "None" sentinel translation (see WeaponSelector.js).
+const toUI = (val, sentinel, prompt) => (val === sentinel || val === undefined ? prompt : val);
+const fromUI = (val, sentinel, prompt) => (val === prompt ? sentinel : val);
 
 /**
- * Create rune selector with multi-select via tags
+ * Create rune selector with 3 lines × 2 slots
  * @param {Object} options
  * @param {Rune[]} options.runes - All runes
- * @param {string[]} options.selectedRunes - Currently selected rune names
- * @param {string} options.noneLabel - "None" label
- * @param {Function} options.onChange - Callback (selectedRuneNames[]) => void
+ * @param {string[]} options.values - 6 selected rune names (sentinels for empty)
+ * @param {string} options.noneLabel - "None" sentinel label
+ * @param {string} [options.prompt] - "Select Rune" placeholder
+ * @param {Function} options.onChange - Callback (values[6]) => void
  * @returns {HTMLElement}
  */
-export function createRuneSelector({ runes, selectedRunes, noneLabel, onChange }) {
-  let currentRunes = [...selectedRunes];
+export function createRuneSelector({ runes, values = [], noneLabel, prompt = noneLabel, onChange }) {
+  // Normalize to exactly 6 cells (pad short arrays from old saved builds)
+  const cell = (i) => values[i] ?? noneLabel;
+  let current = Array.from({ length: RUNE_SLOT_COUNT }, (_, i) => cell(i));
 
   const container = createEl('div', { class: CLASS_CONTAINER });
-
-  // Selected runes tags display
-  const tagsContainer = createEl('div', { class: CLASS_TAGS });
-  renderTags();
-
-  // Searchable dropdown for adding runes
-  const dropdownWrapper = createEl('div', { class: CLASS_DROPDOWN });
   const runeNames = runes.map(r => r.name);
-  const dropdown = createSearchableDropdown({
-    options: [noneLabel, ...runeNames],
-    value: noneLabel,
-    placeholder: noneLabel,
-    id: 'rune-selector',
-    onChange: (selected) => {
-      if (selected === noneLabel) return;
-      if (!currentRunes.includes(selected)) {
-        currentRunes.push(selected);
-        renderTags();
-        onChange([...currentRunes]);
-      }
-      dropdown.setValue(noneLabel);
-    }
-  });
-  dropdownWrapper.appendChild(dropdown);
+  const options = [prompt, ...runeNames];
 
-  container.append(tagsContainer, dropdownWrapper);
-
-  function renderTags() {
-    tagsContainer.innerHTML = '';
-    for (const runeName of currentRunes) {
-      const tag = createEl('span', { class: CLASS_TAG });
-      const nameSpan = createEl('span', {}, [runeName]);
-      const removeBtn = createEl('button', {
-        class: CLASS_TAG_REMOVE,
-        type: 'button',
-        'aria-label': `Remove ${runeName}`
-      }, ['×']);
-
-      removeBtn.addEventListener('click', () => {
-        currentRunes = currentRunes.filter(r => r !== runeName);
-        renderTags();
-        onChange([...currentRunes]);
+  const dropdowns = [];
+  for (let line = 0; line < 3; line++) {
+    const lineEl = createEl('div', { class: CLASS_LINE });
+    const lineLabel = createEl('span', { class: CLASS_LABEL }, [`Rune ${line + 1}`]);
+    lineEl.appendChild(lineLabel);
+    for (let col = 0; col < 2; col++) {
+      const idx = line * 2 + col;
+      const dropdown = createSearchableDropdown({
+        options,
+        value: toUI(current[idx], noneLabel, prompt),
+        placeholder: prompt,
+        id: `rune-slot-${idx}`,
+        onChange: (name) => {
+          current[idx] = fromUI(name, noneLabel, prompt);
+          onChange([...current]);
+        }
       });
-
-      tag.append(nameSpan, removeBtn);
-      tagsContainer.appendChild(tag);
+      dropdowns.push(dropdown);
+      const slotEl = createEl('div', { class: CLASS_SLOT });
+      slotEl.appendChild(dropdown);
+      lineEl.appendChild(slotEl);
     }
+    container.appendChild(lineEl);
   }
 
-  container.setValues = (runeNames) => {
-    currentRunes = [...runeNames];
-    renderTags();
+  // Expose methods
+  container.setValues = (vals = []) => {
+    current = Array.from({ length: RUNE_SLOT_COUNT }, (_, i) => vals[i] ?? noneLabel);
+    for (let i = 0; i < RUNE_SLOT_COUNT; i++) {
+      dropdowns[i].setValue(toUI(current[i], noneLabel, prompt));
+    }
   };
-
-  container.getValues = () => [...currentRunes];
+  container.getValues = () => [...current];
 
   return container;
 }

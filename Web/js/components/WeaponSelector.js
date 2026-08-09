@@ -13,12 +13,23 @@ const CLASS_WEAPON_WRAPPER = 'ep-weapon-wrapper';
 const CLASS_QUALITY = 'ep-quality-input';
 const CLASS_ENHANCEMENT = 'ep-enhancement-input';
 
+const QUALITY_MAX = 100;
+
+// Prompt display ↔ "None" sentinel translation. The UI shows a contextual
+// "Select X" prompt when a slot is empty, while the build state keeps the
+// engine's "None" sentinel.
+const toUI = (val, sentinel, prompt) => (val === sentinel || val === undefined ? prompt : val);
+const fromUI = (val, sentinel, prompt) => (val === prompt ? sentinel : val);
+
 /**
  * Create weapon selector component
  * @param {Object} options
  * @param {string[]} options.weaponTypes - Available weapon types
  * @param {Weapon[]} options.weapons - All weapons
- * @param {string} options.noneLabel - "None" label
+ * @param {string} options.noneLabel - "None" sentinel label
+ * @param {string} [options.weaponTypePrompt] - "Select Weapon Type" placeholder
+ * @param {string} [options.weaponPrompt] - "Select Weapon" placeholder
+ * @param {string} [options.enhancementPrompt] - "Select Enhancement" placeholder
  * @param {string} options.weaponType - Current weapon type
  * @param {string} options.weaponName - Current weapon name
  * @param {number} options.quality - Current quality (default 100)
@@ -26,7 +37,11 @@ const CLASS_ENHANCEMENT = 'ep-enhancement-input';
  * @param {Function} options.onChange - Callback (weaponType, weaponName, quality, enhancement) => void
  * @returns {HTMLElement}
  */
-export function createWeaponSelector({ weaponTypes, weapons, noneLabel, weaponType, weaponName, quality, enhancement, onChange }) {
+export function createWeaponSelector({
+  weaponTypes, weapons, noneLabel,
+  weaponTypePrompt = noneLabel, weaponPrompt = noneLabel, enhancementPrompt = noneLabel,
+  weaponType, weaponName, quality, enhancement, onChange
+}) {
   let currentType = weaponType || noneLabel;
   let currentWeapon = weaponName || noneLabel;
   let currentQuality = quality ?? 100;
@@ -37,27 +52,27 @@ export function createWeaponSelector({ weaponTypes, weapons, noneLabel, weaponTy
   // Weapon Type dropdown
   const typeWrapper = createEl('div', { class: CLASS_TYPE_WRAPPER });
   const typeLabel = createEl('label', { for: 'weapon-type' }, ['Weapon Type']);
-  const typeOptions = [noneLabel, 'All Types', ...weaponTypes];
+  const typeOptions = [weaponTypePrompt, 'All Types', ...weaponTypes];
   const typeDropdown = createSearchableDropdown({
     options: typeOptions,
-    value: currentType,
-    placeholder: noneLabel,
+    value: toUI(currentType, noneLabel, weaponTypePrompt),
+    placeholder: weaponTypePrompt,
     id: 'weapon-type',
     onChange: (newType) => {
-      currentType = newType;
+      currentType = fromUI(newType, noneLabel, weaponTypePrompt);
       // Filter weapons based on type
       let filteredWeapons;
-      if (newType === noneLabel || newType === 'All Types') {
+      if (currentType === noneLabel || currentType === 'All Types') {
         filteredWeapons = weapons;
       } else {
-        filteredWeapons = weapons.filter(w => w.type === newType);
+        filteredWeapons = weapons.filter(w => w.type === currentType);
       }
       const weaponNames = filteredWeapons.map(w => w.name);
-      weaponDropdown.updateOptions([noneLabel, ...weaponNames]);
+      weaponDropdown.updateOptions([weaponPrompt, ...weaponNames]);
       // Reset weapon selection if current weapon not in filtered list
       if (!weaponNames.includes(currentWeapon)) {
         currentWeapon = noneLabel;
-        weaponDropdown.setValue(noneLabel);
+        weaponDropdown.setValue(weaponPrompt);
       }
       onChange(currentType, currentWeapon, currentQuality, currentEnhancement);
     }
@@ -74,14 +89,14 @@ export function createWeaponSelector({ weaponTypes, weapons, noneLabel, weaponTy
   } else {
     initialWeapons = weapons.filter(w => w.type === currentType);
   }
-  const weaponNames = [noneLabel, ...initialWeapons.map(w => w.name)];
+  const weaponNames = [weaponPrompt, ...initialWeapons.map(w => w.name)];
   const weaponDropdown = createSearchableDropdown({
     options: weaponNames,
-    value: currentWeapon,
-    placeholder: noneLabel,
+    value: toUI(currentWeapon, noneLabel, weaponPrompt),
+    placeholder: weaponPrompt,
     id: 'weapon-name',
     onChange: (newWeapon) => {
-      currentWeapon = newWeapon;
+      currentWeapon = fromUI(newWeapon, noneLabel, weaponPrompt);
       onChange(currentType, currentWeapon, currentQuality, currentEnhancement);
     }
   });
@@ -96,34 +111,32 @@ export function createWeaponSelector({ weaponTypes, weapons, noneLabel, weaponTy
     id: 'quality',
     value: currentQuality,
     min: '0',
-    max: '500',
+    max: String(QUALITY_MAX),
     step: '5',
     inputmode: 'decimal'
   });
-  const handleQualityChange = debounce((e) => {
-    currentQuality = parseFloat(e.target.value) || 0;
+  const clampQuality = (v) => Math.min(parseFloat(v) || 0, QUALITY_MAX);
+  const commitQuality = (e) => {
+    currentQuality = clampQuality(e.target.value);
     qualityInput.value = currentQuality;
     onChange(currentType, currentWeapon, currentQuality, currentEnhancement);
-  }, 150);
+  };
+  const handleQualityChange = debounce(commitQuality, 150);
   on(qualityInput, 'input', handleQualityChange);
-  on(qualityInput, 'change', (e) => {
-    currentQuality = parseFloat(e.target.value) || 0;
-    qualityInput.value = currentQuality;
-    onChange(currentType, currentWeapon, currentQuality, currentEnhancement);
-  });
+  on(qualityInput, 'change', commitQuality);
   qualityWrapper.append(qualityLabel, qualityInput);
 
   // Enhancement dropdown (replaces "Forge Level")
   const enhancementWrapper = createEl('div', { class: 'ep-enhancement-wrapper' });
   const enhancementLabel = createEl('label', { for: 'enhancement' }, ['Enhancement']);
-  const enhancementOptions = [noneLabel, ...Array.from({ length: 10 }, (_, i) => String(i))];
+  const enhancementOptions = [enhancementPrompt, ...Array.from({ length: 10 }, (_, i) => String(i))];
   const enhancementDropdown = createSearchableDropdown({
     options: enhancementOptions,
     value: String(currentEnhancement),
-    placeholder: noneLabel,
+    placeholder: enhancementPrompt,
     id: 'enhancement',
     onChange: (newEnhancement) => {
-      currentEnhancement = newEnhancement === noneLabel ? 0 : parseInt(newEnhancement, 10);
+      currentEnhancement = newEnhancement === enhancementPrompt ? 0 : parseInt(newEnhancement, 10);
       onChange(currentType, currentWeapon, currentQuality, currentEnhancement);
     }
   });
@@ -137,8 +150,8 @@ export function createWeaponSelector({ weaponTypes, weapons, noneLabel, weaponTy
     currentWeapon = name;
     currentQuality = qual;
     currentEnhancement = enh;
-    typeDropdown.setValue(type);
-    weaponDropdown.setValue(name);
+    typeDropdown.setValue(toUI(type, noneLabel, weaponTypePrompt));
+    weaponDropdown.setValue(toUI(name, noneLabel, weaponPrompt));
     qualityInput.value = qual;
     enhancementDropdown.setValue(String(enh));
   };

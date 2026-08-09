@@ -28,9 +28,9 @@ export function createResultsPanel() {
   const coreDpsCard = createResultsCard({
     title: 'Core DPS',
     content: createStatRows([
-      { label: 'Weapon Base', value: '0', valueClass: 'ep-sv-dmg' },
-      { label: 'Ore Power (avg)', value: '0.00x', valueClass: 'ep-sv-mult' },
-      { label: 'Forged Damage', value: '0', valueClass: 'ep-sv-dmg' },
+      { label: 'Base Damage', value: '0', valueClass: 'ep-sv-dmg' },
+      { label: 'Average Multiplier', value: '0.00x', valueClass: 'ep-sv-mult' },
+      { label: 'Weapon Damage', value: '0', valueClass: 'ep-sv-dmg' },
       { label: 'Attack Rate', value: '0.00', valueClass: 'ep-sv-rate' },
       { label: 'Weapon DPS', value: '0', valueClass: 'ep-sv-dmg', tooltip: 'Forged damage × (1+Lethality) × Crit Blend × Attack Rate' }
     ])
@@ -64,8 +64,8 @@ export function createResultsPanel() {
   const ttkCard = createResultsCard({
     title: 'Time to Kill',
     content: createStatRows([
-      { label: 'TTK (25k HP)', value: '0.00s', valueClass: 'ep-sv-time' },
-      { label: 'TTK (75k HP)', value: '0.00s', valueClass: 'ep-sv-time' }
+      { label: 'Time taken to defeat Golem', value: '0.00s', valueClass: 'ep-sv-time' },
+      { label: 'Time taken to defeat Asura', value: '0.00s', valueClass: 'ep-sv-time' }
     ])
   });
 

@@ -23,6 +23,21 @@ __all__ = ["CalculatorTab"]
 _WEAPON_ALL = "(All Types)"
 _DECIMAL_HINT = "Percent inputs are decimals: 0.30 = 30%"
 
+# Contextual "Select X" prompts shown when a field is empty. The engine's
+# "None" sentinel is untouched; _build()/get_state() translate prompt → sentinel
+# at the state boundary.
+_ORE_PROMPT = "Select Ores"
+_WEAPON_TYPE_PROMPT = "Select Weapon Type"
+_WEAPON_PROMPT = "Select Weapon"
+_ENHANCEMENT_PROMPT = "Select Enhancement"
+_RACE_PROMPT = "Select Race"
+_BONUS_PROMPT = "Select Bonus Type"
+_ACHIEVEMENT_PROMPT = "Select Achievement"
+_PROMPTS = frozenset({
+    _ORE_PROMPT, _WEAPON_TYPE_PROMPT, _WEAPON_PROMPT,
+    _ENHANCEMENT_PROMPT, _RACE_PROMPT, _BONUS_PROMPT, _ACHIEVEMENT_PROMPT,
+})
+
 # Short formula summaries shown when hovering a result row.
 _RESULT_HELP = {
     "avg_power": "E10 = weighted average of ore multipliers",
@@ -78,6 +93,10 @@ class CalculatorTab(ttk.Frame):
         if self.on_change is not None:
             self.on_change()
 
+    def _from_ui(self, val: str) -> str:
+        """Translate a UI 'Select X' prompt back to the engine's 'None' sentinel."""
+        return self.game.none_label if val in _PROMPTS else val
+
     # --- layout ---
 
     def _build_widgets(self):
@@ -129,9 +148,10 @@ class CalculatorTab(ttk.Frame):
         self.ore_vars = []
         self.amount_vars = []
         self.ore_combos = []
-        ore_values = self._ore_values()  # includes "None" at start
+        self.ore_mult_labels = []
+        ore_values = self._ore_values()  # "Select Ores" prompt at start
         for row in range(4):
-            ore_var = tk.StringVar(master=self.root, value=self.game.none_label)
+            ore_var = tk.StringVar(master=self.root, value=_ORE_PROMPT)
             amount_var = tk.StringVar(master=self.root, value="0")
             self.ore_vars.append(ore_var)
             self.amount_vars.append(amount_var)
@@ -139,29 +159,37 @@ class CalculatorTab(ttk.Frame):
             self.ore_combos.append(combo)
             self._attach_tooltip(combo.entry, lambda row=row: self._ore_tooltip_text(row))
             spin = ttk.Spinbox(parent, from_=0, to=999, increment=1, textvariable=amount_var, width=6)
+            mult_label = ttk.Label(parent, text="", foreground="#a88840", width=6)
+            self.ore_mult_labels.append(mult_label)
             ttk.Label(parent, text=f"Slot {row + 1}").grid(row=row, column=0, sticky="w", padx=8, pady=2)
             combo.grid(row=row, column=1, sticky="ew", padx=4, pady=2)
             spin.grid(row=row, column=2, sticky="w", padx=4, pady=2)
+            mult_label.grid(row=row, column=3, sticky="w", padx=4, pady=2)
             self._watch(ore_var)
             self._watch(amount_var)
+            ore_var.trace_add("write", lambda *_a, r=row: self._update_ore_mult(r))
+
+    def _update_ore_mult(self, row):
+        """Refresh the '×multiplier' readout next to an ore slot."""
+        ore = self.game.ore(self.ore_vars[row].get())
+        self.ore_mult_labels[row].configure(text=f"×{ore.multiplier:g}" if ore else "")
 
     def _build_weapon_group(self, parent):
         parent.columnconfigure(1, weight=1)
-        self.type_var = tk.StringVar(master=self.root, value=self.game.none_label)
-        self.weapon_var = tk.StringVar(master=self.root)
+        self.type_var = tk.StringVar(master=self.root, value=_WEAPON_TYPE_PROMPT)
+        self.weapon_var = tk.StringVar(master=self.root, value=_WEAPON_PROMPT)
         self.quality_var = tk.StringVar(master=self.root, value="100")
         self.enhancement_var = tk.StringVar(master=self.root, value="0")
 
-        type_values = [self.game.none_label] + [_WEAPON_ALL] + sorted(self.game.weapon_types, key=str.lower)
+        type_values = [_WEAPON_TYPE_PROMPT] + [_WEAPON_ALL] + sorted(self.game.weapon_types, key=str.lower)
         type_combo = ttk.Combobox(parent, textvariable=self.type_var, state="readonly", width=24)
         type_combo["values"] = type_values
         self.weapon_combo = SearchableCombo(parent, values=self._weapon_values(),
                                             textvariable=self.weapon_var, width=24)
         self._attach_tooltip(self.weapon_combo.entry, self._weapon_tooltip_text)
-        self.weapon_var.set(self.game.none_label)
-        quality_spin = ttk.Spinbox(parent, from_=0, to=500, increment=5, textvariable=self.quality_var, width=8)
+        quality_spin = ttk.Spinbox(parent, from_=0, to=100, increment=5, textvariable=self.quality_var, width=8)
         enhancement_combo = ttk.Combobox(parent, textvariable=self.enhancement_var, state="readonly", width=8)
-        enhancement_combo["values"] = [str(n) for n in range(10)]
+        enhancement_combo["values"] = [_ENHANCEMENT_PROMPT] + [str(n) for n in range(10)]
 
         ttk.Label(parent, text="Weapon type").grid(row=0, column=0, sticky="e", padx=8, pady=2)
         type_combo.grid(row=0, column=1, sticky="ew", padx=4, pady=2)
@@ -178,19 +206,19 @@ class CalculatorTab(ttk.Frame):
 
     def _build_stats_group(self, parent):
         parent.columnconfigure(1, weight=1)
-        self.race_var = tk.StringVar(master=self.root, value=self.game.none_label)
-        self.bonus_var = tk.StringVar(master=self.root, value=self.game.none_label)
+        self.race_var = tk.StringVar(master=self.root, value=_RACE_PROMPT)
+        self.bonus_var = tk.StringVar(master=self.root, value=_BONUS_PROMPT)
         self.armor_cc_var = tk.StringVar(master=self.root, value="0")
         self.armor_cd_var = tk.StringVar(master=self.root, value="0")
         self.armor_leth_var = tk.StringVar(master=self.root, value="0")
         self.berserk_var = tk.StringVar(master=self.root, value="0")
 
-        race_values = [self.game.none_label] + [r.name for r in sorted_display(self.game.races)]
+        race_values = [_RACE_PROMPT] + [r.name for r in sorted_display(self.game.races)]
         race_combo = SearchableCombo(
             parent, values=race_values,
             textvariable=self.race_var, width=20)
 
-        bonus_values = [self.game.none_label] + sorted(self.game.race_bonus_types, key=str.lower)
+        bonus_values = [_BONUS_PROMPT] + sorted(self.game.race_bonus_types, key=str.lower)
         bonus_combo = ttk.Combobox(parent, textvariable=self.bonus_var, state="readonly", width=20)
         bonus_combo["values"] = bonus_values
 
@@ -239,11 +267,11 @@ class CalculatorTab(ttk.Frame):
 
     def _build_achievement_group(self, parent):
         parent.columnconfigure(1, weight=1)
-        self.achievement_var = tk.StringVar(master=self.root, value=self.game.none_label)
+        self.achievement_var = tk.StringVar(master=self.root, value=_ACHIEVEMENT_PROMPT)
         combo = SearchableCombo(
             parent,
             values=[a.name for a in sorted_display(self.game.achievements,
-                                                       first=(self.game.none_label,))],
+                                                       first=(_ACHIEVEMENT_PROMPT,))],
             textvariable=self.achievement_var, width=24)
         ttk.Label(parent, text="Achievement").grid(row=0, column=0, sticky="e", padx=8, pady=2)
         combo.grid(row=0, column=1, sticky="ew", padx=4, pady=2)
@@ -304,9 +332,9 @@ class CalculatorTab(ttk.Frame):
 
         # Core Stats card
         core_items = [
-            ("Avg Ore Power", "avg_power", fmt2),
-            ("Unforged Damage", "unforged_damage", fmt2),
-            ("Forged Damage", "forged_damage", fmt2),
+            ("Average Multiplier", "avg_power", fmt2),
+            ("Base Damage", "unforged_damage", fmt2),
+            ("Weapon Damage", "forged_damage", fmt2),
             ("Swing Interval", "interval", fmt2),
             ("Attack Rate", "attack_rate", fmt4),
         ]
@@ -357,8 +385,8 @@ class CalculatorTab(ttk.Frame):
 
         # Time to Kill card
         time_items = [
-            ("TTK (25k HP)", "ttk_25k", fmt2),
-            ("TTK (75k HP)", "ttk_75k", fmt2),
+            ("Time taken to defeat Golem", "ttk_25k", fmt2),
+            ("Time taken to defeat Asura", "ttk_75k", fmt2),
         ]
         for i, (label, key, fmt) in enumerate(time_items):
             result_row(time_card, i, label, key, fmt)
@@ -395,16 +423,16 @@ class CalculatorTab(ttk.Frame):
     def _build(self) -> Build:
         return Build(
             slots=(
-                OreSlot(self.ore_vars[0].get(), to_float(self.amount_vars[0].get())),
-                OreSlot(self.ore_vars[1].get(), to_float(self.amount_vars[1].get())),
-                OreSlot(self.ore_vars[2].get(), to_float(self.amount_vars[2].get())),
-                OreSlot(self.ore_vars[3].get(), to_float(self.amount_vars[3].get())),
+                OreSlot(self._from_ui(self.ore_vars[0].get()), to_float(self.amount_vars[0].get())),
+                OreSlot(self._from_ui(self.ore_vars[1].get()), to_float(self.amount_vars[1].get())),
+                OreSlot(self._from_ui(self.ore_vars[2].get()), to_float(self.amount_vars[2].get())),
+                OreSlot(self._from_ui(self.ore_vars[3].get()), to_float(self.amount_vars[3].get())),
             ),
-            weapon_name=self.weapon_var.get(),
-            quality=to_float(self.quality_var.get()),
+            weapon_name=self._from_ui(self.weapon_var.get()),
+            quality=min(to_float(self.quality_var.get()), 100),
             forge_level=int(to_float(self.enhancement_var.get())),
-            race=self.race_var.get(),
-            bonus_weapon_type=self.bonus_var.get(),
+            race=self._from_ui(self.race_var.get()),
+            bonus_weapon_type=self._from_ui(self.bonus_var.get()),
             rune_cells=(),
             base_crit_chance=0.0,
             base_crit_dmg=0.0,
@@ -423,45 +451,45 @@ class CalculatorTab(ttk.Frame):
                 blast_chance=to_float(self.ability_vars["blast_chance"].get()),
             ),
             berserk=to_float(self.berserk_var.get()),
-            achievement=self.achievement_var.get(),
+            achievement=self._from_ui(self.achievement_var.get()),
         )
 
     # --- callbacks ---
 
     def _on_weapon_type_change(self, *_args):
         wtype = self.type_var.get()
-        if wtype in (None, "", _WEAPON_ALL, self.game.none_label):
+        if wtype in (None, "", _WEAPON_ALL, self.game.none_label, _WEAPON_TYPE_PROMPT):
             names = [w.name for w in self.game.weapons]
         else:
             names = [w.name for w in self.game.weapons_by_type(wtype)]
-        self.weapon_combo.set_values(sorted(names, key=str.lower))
+        self.weapon_combo.set_values([_WEAPON_PROMPT] + sorted(names, key=str.lower))
 
     def _reset(self):
-        """Restore calculator to default values."""
+        """Restore calculator to default values (empty fields show 'Select X')."""
         for i, var in enumerate(self.ore_vars):
-            var.set(self.game.none_label)
+            var.set(_ORE_PROMPT)
         for var in self.amount_vars:
             var.set("0")
-        self.type_var.set(self.game.none_label)
-        self.weapon_var.set(self.game.none_label)
+        self.type_var.set(_WEAPON_TYPE_PROMPT)
+        self.weapon_var.set(_WEAPON_PROMPT)
         self.quality_var.set("100")
         self.enhancement_var.set("0")
-        self.race_var.set(self.game.none_label)
-        self.bonus_var.set(self.game.none_label)
+        self.race_var.set(_RACE_PROMPT)
+        self.bonus_var.set(_BONUS_PROMPT)
         self.armor_cc_var.set("0")
         self.armor_cd_var.set("0")
         self.armor_leth_var.set("0")
         self.berserk_var.set("0")
         for var in self.ability_vars.values():
             var.set("0")
-        self.achievement_var.set(self.game.none_label)
+        self.achievement_var.set(_ACHIEVEMENT_PROMPT)
 
     def _ore_values(self):
         names = [o.name for o in self.game.ores]
-        return [self.game.none_label] + sorted(names, key=str.lower)
+        return [_ORE_PROMPT] + sorted(names, key=str.lower)
 
     def _weapon_values(self):
-        return sorted([w.name for w in self.game.weapons], key=str.lower)
+        return [_WEAPON_PROMPT] + sorted([w.name for w in self.game.weapons], key=str.lower)
 
     def _copy_total(self):
         """Copy Total DPS to clipboard."""
@@ -503,19 +531,19 @@ class CalculatorTab(ttk.Frame):
 
     def get_state(self) -> dict:
         return {
-            "ores": [(v.get(), self.amount_vars[i].get()) for i, v in enumerate(self.ore_vars)],
-            "weapon_type": self.type_var.get(),
-            "weapon": self.weapon_var.get(),
+            "ores": [(self._from_ui(v.get()), self.amount_vars[i].get()) for i, v in enumerate(self.ore_vars)],
+            "weapon_type": self._from_ui(self.type_var.get()),
+            "weapon": self._from_ui(self.weapon_var.get()),
             "quality": self.quality_var.get(),
             "enhancement": self.enhancement_var.get(),
-            "race": self.race_var.get(),
-            "bonus": self.bonus_var.get(),
+            "race": self._from_ui(self.race_var.get()),
+            "bonus": self._from_ui(self.bonus_var.get()),
             "armor_cc": self.armor_cc_var.get(),
             "armor_cd": self.armor_cd_var.get(),
             "armor_leth": self.armor_leth_var.get(),
             "berserk": self.berserk_var.get(),
             "abilities": {k: v.get() for k, v in self.ability_vars.items()},
-            "achievement": self.achievement_var.get(),
+            "achievement": self._from_ui(self.achievement_var.get()),
         }
 
     def set_state(self, state: dict) -> None:
@@ -528,20 +556,29 @@ class CalculatorTab(ttk.Frame):
                 if not isinstance(slot, (list, tuple)) or len(slot) != 2:
                     continue
                 name, amount = slot
-                if isinstance(name, str) and name in valid_ores:
-                    self.ore_vars[i].set(name)
+                if isinstance(name, str):
+                    if name == self.game.none_label:
+                        name = _ORE_PROMPT
+                    if name in valid_ores:
+                        self.ore_vars[i].set(name)
                 if isinstance(amount, (int, float)):
                     amount = str(amount)
                 if isinstance(amount, str):
                     self.amount_vars[i].set(amount)
 
         wtype = state.get("weapon_type")
-        if isinstance(wtype, str) and (wtype == _WEAPON_ALL or wtype in self.game.weapon_types):
-            self.type_var.set(wtype)
+        if isinstance(wtype, str):
+            if wtype == self.game.none_label:
+                wtype = _WEAPON_TYPE_PROMPT
+            if wtype == _WEAPON_ALL or wtype in self.game.weapon_types:
+                self.type_var.set(wtype)
         weapon = state.get("weapon")
-        if isinstance(weapon, str) and self.game.weapon(weapon) is not None:
-            if wtype in (None, "", _WEAPON_ALL) or self.game.weapon(weapon).type == wtype:
-                self.weapon_var.set(weapon)
+        if isinstance(weapon, str):
+            if weapon == self.game.none_label:
+                weapon = _WEAPON_PROMPT
+            if self.game.weapon(weapon) is not None:
+                if wtype in (None, "", _WEAPON_ALL, _WEAPON_TYPE_PROMPT) or self.game.weapon(weapon).type == wtype:
+                    self.weapon_var.set(weapon)
 
         for key, var in [
             ("quality", self.quality_var),
@@ -561,11 +598,17 @@ class CalculatorTab(ttk.Frame):
             self.enhancement_var.set(enhancement)
 
         race = state.get("race")
-        if isinstance(race, str) and self.game.race(race) is not None:
-            self.race_var.set(race)
+        if isinstance(race, str):
+            if race == self.game.none_label:
+                race = _RACE_PROMPT
+            if self.game.race(race) is not None:
+                self.race_var.set(race)
         bonus = state.get("bonus")
-        if isinstance(bonus, str) and bonus in self.game.race_bonus_types:
-            self.bonus_var.set(bonus)
+        if isinstance(bonus, str):
+            if bonus == self.game.none_label:
+                bonus = _BONUS_PROMPT
+            if bonus in self.game.race_bonus_types:
+                self.bonus_var.set(bonus)
 
         abilities = state.get("abilities")
         if isinstance(abilities, dict):
@@ -574,7 +617,10 @@ class CalculatorTab(ttk.Frame):
                     self.ability_vars[key].set(val)
 
         achievement = state.get("achievement")
-        if isinstance(achievement, str) and achievement in {a.name for a in self.game.achievements}:
-            self.achievement_var.set(achievement)
+        if isinstance(achievement, str):
+            if achievement == self.game.none_label:
+                achievement = _ACHIEVEMENT_PROMPT
+            if achievement in {a.name for a in self.game.achievements}:
+                self.achievement_var.set(achievement)
 
         self._on_weapon_type_change()

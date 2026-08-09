@@ -31,12 +31,28 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
 
   // Ore Slots Section
   const oreSection = createEl('div', { class: CLASS_SECTION });
-  const oreTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Forge Slots']);
+  const oreTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Ore Slots']);
   oreSection.appendChild(oreTitle);
 
   const oreNames = data.ores.map(o => o.name);
   const selectOreLabel = data.constants.selectOreLabel;
   const noneLabel = data.constants.noneLabel;
+
+  // Contextual "Select X" prompts (display layer; build state keeps the "None" sentinel)
+  const ORE_PROMPT = 'Select Ores';
+  const RACE_PROMPT = 'Select Race';
+  const BONUS_PROMPT = 'Select Bonus Type';
+  const WEAPON_TYPE_PROMPT = 'Select Weapon Type';
+  const WEAPON_PROMPT = 'Select Weapon';
+  const ENHANCEMENT_PROMPT = 'Select Enhancement';
+  const ACHIEVEMENT_PROMPT = 'Select Achievement';
+  const RUNE_PROMPT = 'Select Rune';
+
+  const toUI = (val, prompt) => (val === noneLabel || val === undefined ? prompt : val);
+  const fromUI = (val, prompt) => (val === prompt ? noneLabel : val);
+
+  const oreMultipliers = {};
+  for (const o of data.ores) oreMultipliers[o.name] = o.multiplier;
 
   const oreSlots = [];
   for (let i = 0; i < 4; i++) {
@@ -45,6 +61,8 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
       oreNames,
       noneLabel,
       selectOreLabel,
+      prompt: ORE_PROMPT,
+      oreMultipliers,
       value: build.oreSlots[i]?.name || noneLabel,
       amount: build.oreSlots[i]?.amount || 0,
       onChange: (name, amount) => {
@@ -66,6 +84,9 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
     weaponTypes: data.weapon_types,
     weapons: data.weapons,
     noneLabel,
+    weaponTypePrompt: WEAPON_TYPE_PROMPT,
+    weaponPrompt: WEAPON_PROMPT,
+    enhancementPrompt: ENHANCEMENT_PROMPT,
     weaponType: build.weaponType,
     weaponName: build.weaponName,
     quality: build.quality,
@@ -83,45 +104,44 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
 
   const raceWrapper = createEl('div', { class: CLASS_RACE_WRAPPER });
   const raceLabel = createEl('label', { for: 'race-select' }, ['Race']);
-  const raceOptions = [noneLabel, ...data.races.map(r => r.name)];
+  const raceOptions = [RACE_PROMPT, ...data.races.map(r => r.name)];
   const raceDropdown = createSearchableDropdown({
     options: raceOptions,
-    value: build.race || noneLabel,
-    placeholder: noneLabel,
+    value: toUI(build.race, RACE_PROMPT),
+    placeholder: RACE_PROMPT,
     id: 'race-select',
     onChange: (race) => {
-      onBuildChange({ ...build, race });
+      onBuildChange({ ...build, race: fromUI(race, RACE_PROMPT) });
     }
   });
   raceWrapper.append(raceLabel, raceDropdown);
 
   const bonusWrapper = createEl('div', { class: CLASS_BONUS_WRAPPER });
   const bonusLabel = createEl('label', { for: 'bonus-type-select' }, ['Bonus Type']);
-  const bonusOptions = [noneLabel, ...data.race_bonus_types];
+  const bonusOptions = [BONUS_PROMPT, ...data.race_bonus_types];
   const bonusDropdown = createSearchableDropdown({
     options: bonusOptions,
-    value: build.bonusType || noneLabel,
-    placeholder: noneLabel,
+    value: toUI(build.bonusType, BONUS_PROMPT),
+    placeholder: BONUS_PROMPT,
     id: 'bonus-type-select',
     onChange: (bonusType) => {
-      onBuildChange({ ...build, bonusType });
+      onBuildChange({ ...build, bonusType: fromUI(bonusType, BONUS_PROMPT) });
     }
   });
   bonusWrapper.append(bonusLabel, bonusDropdown);
 
   raceSection.append(raceWrapper, bonusWrapper);
 
-  // Armor & Base Stats Section
+  // Armor Stats Section
   const statSection = createEl('div', { class: CLASS_SECTION });
-  const statTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Armor & Base Stats']);
+  const statTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Armor Stats']);
   statSection.appendChild(statTitle);
 
   const statInput = createStatInput({
     values: {
       armorLethality: build.armorLethality,
       armorCritChance: build.armorCritChance,
-      armorCritDmg: build.armorCritDmg,
-      baseCritChance: build.baseCritChance
+      armorCritDmg: build.armorCritDmg
     },
     onChange: (values) => {
       onBuildChange({ ...build, ...values });
@@ -158,8 +178,9 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
 
   const runeSelector = createRuneSelector({
     runes: data.runes,
-    selectedRunes: build.runes || [],
+    values: build.runes || [],
     noneLabel,
+    prompt: RUNE_PROMPT,
     onChange: (runes) => {
       onBuildChange({ ...build, runes });
     }
@@ -232,14 +253,13 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
       newBuild.enhancement ?? 0
     );
     // Update race and bonus
-    raceDropdown.setValue(newBuild.race || noneLabel);
-    bonusDropdown.setValue(newBuild.bonusType || noneLabel);
+    raceDropdown.setValue(toUI(newBuild.race, RACE_PROMPT));
+    bonusDropdown.setValue(toUI(newBuild.bonusType, BONUS_PROMPT));
     // Update stat inputs
     statInput.setValues({
       armorLethality: newBuild.armorLethality,
       armorCritChance: newBuild.armorCritChance,
-      armorCritDmg: newBuild.armorCritDmg,
-      baseCritChance: newBuild.baseCritChance
+      armorCritDmg: newBuild.armorCritDmg
     });
     // Update abilities
     abilityGrid.setValues({

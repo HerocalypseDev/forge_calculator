@@ -279,6 +279,16 @@
   flex-shrink: 0;
 }
 
+.fc-ore-slot-mult {
+  min-width: 48px;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: 12px;
+  color: #a88840;
+  text-align: center;
+  white-space: nowrap;
+}
+
 /* Weapon selector */
 .fc-weapon-selector {
   display: flex;
@@ -561,44 +571,25 @@
   gap: 8px;
 }
 
-.fc-rune-tags {
+.fc-rune-line {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-height: 28px;
+  align-items: center;
+  gap: 8px;
 }
 
-.fc-rune-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 8px;
+.fc-rune-line-label {
+  flex-shrink: 0;
+  width: 52px;
   font-size: 12px;
-  color: #1a1a1a;
-  background: #efeadd;
-  border: 1px solid #c8b898;
-  border-radius: 100px;
-}
-
-.fc-rune-tag-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  font-size: 14px;
-  line-height: 1;
+  font-weight: 500;
   color: #4a4a3a;
-  background: transparent;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-.fc-rune-tag-remove:hover {
-  background: #c8b898;
-  color: #cc0000;
+.fc-rune-slot {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ==========================================================================
@@ -802,16 +793,10 @@
     font-size: 12px;
   }
 
-  /* Rune tags */
-  .fc-rune-tag {
+  /* Rune grid */
+  .fc-rune-line-label {
+    width: 44px;
     font-size: 11px;
-    padding: 3px 8px 3px 6px;
-  }
-
-  .fc-rune-tag-remove {
-    width: 16px;
-    height: 16px;
-    font-size: 12px;
   }
 
   /* Searchable dropdown list */
@@ -894,8 +879,7 @@
 @media (prefers-contrast: high) {
   .fc-calculator .fc-input-section,
   .fc-calculator .fc-results-panel,
-  .fc-calculator .fc-card,
-  .fc-calculator .fc-rune-tag {
+  .fc-calculator .fc-card {
     border-color: #000;
   }
 

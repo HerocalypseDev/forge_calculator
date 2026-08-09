@@ -15,7 +15,7 @@ const CLASS_INPUT = 'ep-stat-input-input';
 /**
  * Create a group of stat inputs
  * @param {Object} options
- * @param {Object} options.values - Current values {armorLethality, armorCritChance, armorCritDmg, baseCritChance}
+ * @param {Object} options.values - Current values {armorLethality, armorCritChance, armorCritDmg}
  * @param {Function} options.onChange - Callback (values) => void
  * @returns {HTMLElement}
  */
@@ -28,7 +28,6 @@ export function createStatInput({ values, onChange }) {
     { key: 'armorLethality', label: 'Armor Lethality', placeholder: '0', min: 0, step: '0.01', tooltip: 'Armor lethality bonus (decimal, e.g., 0.15 = 15%)' },
     { key: 'armorCritChance', label: 'Armor Crit Chance', placeholder: '0', min: 0, step: '0.01', tooltip: 'Armor crit chance bonus (decimal, e.g., 0.10 = 10%)' },
     { key: 'armorCritDmg', label: 'Armor Crit Damage', placeholder: '0', min: 0, step: '0.01', tooltip: 'Armor crit damage bonus (decimal, e.g., 0.25 = 25%)' },
-    { key: 'baseCritChance', label: 'Base Crit Chance', placeholder: '0', min: 0, step: '0.01', tooltip: 'Base crit chance from other sources (decimal)' },
   ];
 
   for (const field of fields) {

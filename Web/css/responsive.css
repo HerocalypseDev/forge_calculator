@@ -190,16 +190,10 @@
     font-size: 12px;
   }
 
-  /* Rune tags */
-  .ep-rune-tag {
+  /* Rune grid */
+  .ep-rune-line-label {
+    width: 44px;
     font-size: 11px;
-    padding: 3px 8px 3px 6px;
-  }
-
-  .ep-rune-tag-remove {
-    width: 16px;
-    height: 16px;
-    font-size: 12px;
   }
 
   /* Searchable dropdown list */
