@@ -1506,9 +1506,10 @@
       title: 'DPS Breakdown',
       content: createStatRows([
         { label: 'Weapon DPS', value: '0', valueClass: 'fc-sv-dmg' },
+        { label: 'Explosion DPS', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Fire DPS', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Poison DPS', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Blast DPS', value: '0', valueClass: 'fc-sv-dmg' },
+        { label: 'Smite DPS', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Black Hole DPS', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold' }
       ])
@@ -1552,13 +1553,14 @@
       }
 
       var dpsRows = dpsCard.querySelectorAll('.fc-stat-row');
-      if (dpsRows.length >= 6) {
+      if (dpsRows.length >= 7) {
         updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
-        updateStatRow(dpsRows[1], fmtDps(result.fire_dps), false);
-        updateStatRow(dpsRows[2], fmtDps(result.poison_dps), false);
-        updateStatRow(dpsRows[3], fmtDps(result.smite_dps), false);
-        updateStatRow(dpsRows[4], fmtDps(result.blackhole_dps), false);
-        updateStatRow(dpsRows[5], fmtDps(result.total_dps), false);
+        updateStatRow(dpsRows[1], fmtDps(result.explosion_dps), false);
+        updateStatRow(dpsRows[2], fmtDps(result.fire_dps), false);
+        updateStatRow(dpsRows[3], fmtDps(result.poison_dps), false);
+        updateStatRow(dpsRows[4], fmtDps(result.smite_dps), false);
+        updateStatRow(dpsRows[5], fmtDps(result.blackhole_dps), false);
+        updateStatRow(dpsRows[6], fmtDps(result.total_dps), false);
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
@@ -1953,9 +1955,10 @@
       '',
       '--- DPS Breakdown ---',
       'Weapon DPS: ' + result.weapon_dps.toFixed(2),
+      'Explosion DPS: ' + result.explosion_dps.toFixed(2),
       'Fire DPS: ' + result.fire_dps.toFixed(2),
       'Poison DPS: ' + result.poison_dps.toFixed(2),
-      'Blast DPS: ' + result.smite_dps.toFixed(2),
+      'Smite DPS: ' + result.smite_dps.toFixed(2),
       'Black Hole DPS: ' + result.blackhole_dps.toFixed(2),
       'Total DPS: ' + result.total_dps.toFixed(2),
       '',

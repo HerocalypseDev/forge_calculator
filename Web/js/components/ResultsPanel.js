@@ -52,9 +52,10 @@ export function createResultsPanel() {
     title: 'DPS Breakdown',
     content: createStatRows([
       { label: 'Weapon DPS', value: '0', valueClass: 'ep-sv-dmg' },
+      { label: 'Explosion DPS', value: '0', valueClass: 'ep-sv-dmg' },
       { label: 'Fire DPS', value: '0', valueClass: 'ep-sv-dmg' },
       { label: 'Poison DPS', value: '0', valueClass: 'ep-sv-dmg' },
-      { label: 'Blast DPS', value: '0', valueClass: 'ep-sv-dmg' },
+      { label: 'Smite DPS', value: '0', valueClass: 'ep-sv-dmg' },
       { label: 'Black Hole DPS', value: '0', valueClass: 'ep-sv-dmg' },
       { label: 'Total DPS', value: '0', valueClass: 'ep-sv-dmg ep-bold' }
     ])
@@ -118,13 +119,14 @@ export function createResultsPanel() {
 
     // DPS Breakdown
     const dpsRows = dpsCard.querySelectorAll('.ep-stat-row');
-    if (dpsRows.length >= 6) {
+    if (dpsRows.length >= 7) {
       updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
-      updateStatRow(dpsRows[1], fmtDps(result.fire_dps), false);
-      updateStatRow(dpsRows[2], fmtDps(result.poison_dps), false);
-      updateStatRow(dpsRows[3], fmtDps(result.smite_dps), false);
-      updateStatRow(dpsRows[4], fmtDps(result.blackhole_dps), false);
-      updateStatRow(dpsRows[5], fmtDps(result.total_dps), false);
+      updateStatRow(dpsRows[1], fmtDps(result.explosion_dps), false);
+      updateStatRow(dpsRows[2], fmtDps(result.fire_dps), false);
+      updateStatRow(dpsRows[3], fmtDps(result.poison_dps), false);
+      updateStatRow(dpsRows[4], fmtDps(result.smite_dps), false);
+      updateStatRow(dpsRows[5], fmtDps(result.blackhole_dps), false);
+      updateStatRow(dpsRows[6], fmtDps(result.total_dps), false);
     }
 
     // TTK

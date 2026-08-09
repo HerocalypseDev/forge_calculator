@@ -152,3 +152,16 @@ No linter or formatter is configured.
 | **Tests** — new `ability-inputs-test.js`: DOM-level checks for clamp logic, min/max/step/placeholder/title attrs, change/blur/input clamping, percent→decimal transform | `Web/mediawiki/ability-inputs-test.js` | ✅ Done | (this session) |
 
 **Known behavior (intentional):** clamping is silent — a value outside the range snaps to the bound on blur/change; the valid range is always visible in the field's placeholder and hover tooltip.
+
+### DPS Breakdown Blast/Smite Display Fix — COMPLETED ✅
+**Goal:** Fix the web results panel showing the wrong DPS component for the Blast ability. The "Blast DPS" row displayed `smite_dps` (a separate Heavenite / Angel / Archangel proc, workbook C88) while the real blast proc `explosion_dps` (C85 — fed by the Blast ability inputs E34/E35 and by Gargantuan/Magmaite/Meteorite/SSBH ores) was folded into `total_dps` but never displayed — so blast ability inputs appeared to "do nothing" in the DPS breakdown. Root cause was a porting bug shared by **both** web versions; the desktop GUI (`calculator_tab.py`) already shows the two procs separately. Fixed to match the desktop: DPS Breakdown now has 7 rows.
+
+| Change | MediaWiki (`Web/mediawiki/`) | Standalone (`Web/js/`) | Status | Commit |
+|--------|------------------------------|------------------------|--------|--------|
+| **DPS Breakdown rows** — Weapon / **Explosion** / Fire / Poison / **Smite** / Black Hole / Total (was Weapon / Fire / Poison / "Blast" / Black Hole / Total) | `forge-calculator.common.js` dps card + `updateResults` | `ResultsPanel.js` | ✅ Done | (this session) |
+| **Clipboard** — add `Explosion DPS`, rename `Blast DPS` → `Smite DPS` | `formatResultsForClipboard` | `main.js` | ✅ Done | (this session) |
+| **Regression test** — `results-panel-test.js`: renders real panel in a Node DOM mock, asserts 7 row labels + `explosion_dps`↔Explosion / `smite_dps`↔Smite mapping + no stale "Blast DPS" label | `Web/mediawiki/results-panel-test.js` | — | ✅ Done | (this session) |
+
+**Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (worst rel err 5.19e-16); `node Web/mediawiki/ability-inputs-test.js` and `results-panel-test.js` → PASSED; `node --check` clean on all modified JS. Engine untouched — this is display/porting only.
+
+**Note for users:** Fire/Poison abilities still show 0 DPS without a matching fire/poison ore — that's the workbook's duration gate (documented quirk, not changed here).
