@@ -20,7 +20,7 @@ from forge_calculator.engine import (
 )
 
 ROOT = DEFAULT_DATA_DIR.parent
-WORKBOOK = ROOT / "reference" / "Copy of Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx"
+WORKBOOK = ROOT / "reference" / "Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx"
 
 
 @pytest.fixture(scope="module")

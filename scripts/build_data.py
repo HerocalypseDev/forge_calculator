@@ -17,7 +17,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from build_data.extract import extract  # noqa: E402
 
-DEFAULT_XLSX = PROJECT_ROOT / "reference" / "Copy of Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx"
+DEFAULT_XLSX = PROJECT_ROOT / "reference" / "Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx"
 
 
 def main(argv=None):

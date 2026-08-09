@@ -9,7 +9,7 @@ from pathlib import Path
 from openpyxl import load_workbook
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-XLSX = PROJECT_ROOT / "reference" / "Copy of Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx"
+XLSX = PROJECT_ROOT / "reference" / "Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx"
 
 INPUTS = ["C6", "C7", "C8", "C9", "D6", "D7", "D8", "D9", "C12", "D12", "C13", "E12",
           "C20", "C21", "C22", "C23", "C41", "C42", "C43", "A44",
