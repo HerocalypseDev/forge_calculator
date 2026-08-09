@@ -1,0 +1,167 @@
+local p = {}
+local oreData = require('Module:Ore/Data')
+
+local function buildImageMap()
+    local map = {}
+    for _, ore in ipairs(oreData.ores) do
+        map[ore.name:lower()] = ore.image
+    end
+    return map
+end
+
+local function getOreImage(name, imageMap)
+    if not name or name == '' then return nil end
+    return imageMap[name:lower()] or (name .. '.png')
+end
+
+local function makeBox(html, imageName, label, amount, linkTarget)
+    local box = html:tag('div')
+    box:cssText('display:inline-flex;flex-direction:column;align-items:center;justify-content:flex-end;width:88px;height:96px;background:#150F0D;border:2px solid #7A5533;border-radius:14px;overflow:hidden;position:relative;cursor:pointer;vertical-align:middle;')
+
+    local imageArea = box:tag('div')
+    imageArea:cssText('flex:1;position:relative;width:100%;display:flex;align-items:center;justify-content:center;padding:4px;box-sizing:border-box;')
+
+    if amount and amount ~= '' then
+        imageArea:tag('div')
+            :cssText('position:absolute;top:2px;left:4px;color:#f7f2a0;font-size:13px;font-weight:bold;line-height:1;')
+            :wikitext(amount)
+    end
+
+    local imgDiv = imageArea:tag('div')
+    imgDiv:cssText('display:flex;align-items:center;justify-content:center;')
+    if imageName and linkTarget then
+        imgDiv:wikitext('[[File:' .. imageName .. '|52x52px|link=' .. linkTarget .. ']]')
+    elseif imageName then
+        imgDiv:wikitext('[[File:' .. imageName .. '|52x52px|link=]]')
+    end
+
+    if label and label ~= '' then
+        local labelDiv = box:tag('div')
+        labelDiv:cssText('width:100%;text-align:center;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;font-weight:bold;line-height:1.1;padding:3px 2px 4px;box-sizing:border-box;')
+        if linkTarget then
+            labelDiv:wikitext('[[' .. linkTarget .. '|' .. label .. ']]')
+        else
+            labelDiv:wikitext(label)
+        end
+    end
+end
+
+local function makeIngredientCard(html, imageName, label, amount, linkTarget, isCost)
+    local card = html:tag('div')
+    card:cssText('display:flex;align-items:center;gap:4px;width:160px;height:36px;padding:3px 6px;box-sizing:border-box;background:#150F0D;border:2px solid #7A5533;border-radius:8px;overflow:hidden;position:relative;cursor:pointer;')
+
+    local imgDiv = card:tag('div')
+    imgDiv:cssText('flex-shrink:0;width:26px;height:26px;display:flex;align-items:center;justify-content:center;')
+    if imageName and linkTarget then
+        imgDiv:wikitext('[[File:' .. imageName .. '|22x22px|link=' .. linkTarget .. ']]')
+    elseif imageName then
+        imgDiv:wikitext('[[File:' .. imageName .. '|22x22px|link=]]')
+    end
+
+    if isCost then
+        if amount and amount ~= '' then
+            card:tag('div')
+                :cssText('flex:1;color:#fff;font-size:12px;font-weight:bold;line-height:1;text-align:left;')
+                :wikitext('$' .. amount)
+        end
+    else
+        if label and label ~= '' then
+            local labelDiv = card:tag('div')
+            labelDiv:cssText('flex:1;color:#fff;font-size:10px;font-weight:bold;line-height:1.1;text-align:left;')
+            if linkTarget then
+                labelDiv:wikitext('[[' .. linkTarget .. '|' .. label .. ']]')
+            else
+                labelDiv:wikitext(label)
+            end
+        end
+
+        if amount and amount ~= '' then
+            card:tag('div')
+                :cssText('flex-shrink:0;color:#fff;font-size:12px;font-weight:normal;line-height:1;padding-left:4px;')
+                :wikitext('x' .. amount)
+        end
+    end
+end
+
+local function distributeColumns(n)
+    if n <= 0 then return {} end
+    local numCols = math.ceil(n / 2)
+    local base = math.floor(n / numCols)
+    local extra = n % numCols
+    local cols = {}
+    for i = 1, numCols do
+        local size = base
+        if i <= extra then size = size + 1 end
+        table.insert(cols, size)
+    end
+    return cols
+end
+
+function p.recipe(frame)
+    local args = frame:getParent().args
+    local imageMap = buildImageMap()
+
+    local wrapper = mw.html.create('div'):addClass('crafting-recipe-wrap')
+
+    local items = {}
+    for i = 1, 3 do
+        local name   = args['ore'    .. i] or ''
+        local amount = args['amount' .. i] or ''
+        if name ~= '' then
+            table.insert(items, {
+                image  = getOreImage(name, imageMap),
+                label  = name,
+                amount = amount,
+                link   = name,
+                isCost = false,
+            })
+        end
+    end
+
+    local goldAmount = args['gold'] or ''
+    table.insert(items, {
+        image  = 'Money.svg',
+        label  = nil,
+        amount = goldAmount,
+        link   = nil,
+        isCost = true,
+    })
+
+    local colSizes = distributeColumns(#items)
+    local group = wrapper:tag('div'):addClass('crafting-recipe-columns')
+
+    local idx = 1
+    for _, size in ipairs(colSizes) do
+        local col = group:tag('div')
+        col:cssText('display:flex;flex-direction:column;gap:8px;')
+        for _ = 1, size do
+            local item = items[idx]
+            makeIngredientCard(col, item.image, item.label, item.amount, item.link, item.isCost)
+            idx = idx + 1
+        end
+    end
+
+    local time = args['time'] or ''
+    local arrowWrap = wrapper:tag('div')
+    arrowWrap:cssText('display:inline-flex;flex-direction:column;align-items:center;justify-content:center;vertical-align:middle;gap:3px;')
+
+    if time ~= '' then
+        arrowWrap:tag('div')
+            :cssText('color:#c8b89a;font-size:11px;font-weight:bold;letter-spacing:0.05em;')
+            :wikitext(time)
+    end
+
+    arrowWrap:tag('div')
+        :cssText('color:#FFB74D;font-size:28px;line-height:1;')
+        :wikitext('➜')
+
+    local resultName = args['result'] or ''
+    if resultName ~= '' then
+        local img = getOreImage(resultName, imageMap)
+        makeBox(wrapper, img, resultName, '', resultName)
+    end
+
+    return tostring(wrapper)
+end
+
+return p

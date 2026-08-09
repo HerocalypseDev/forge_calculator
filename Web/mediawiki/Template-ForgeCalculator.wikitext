@@ -1,0 +1,15 @@
+<noinclude>{{Short description|Interactive DPS calculator for the forge/weapon system}}
+</noinclude><templatestyles src="Template:ForgeCalculator/styles.css" />
+<div class="fc-calculator" id="fc-root">
+  <noscript><div class="fc-loading" style="padding: 1.5rem; color: #4a4a3a;">The Forge Calculator requires JavaScript. Please enable JavaScript and reload the page.</div></noscript>
+  <div class="fc-loading" style="padding: 1.5rem; color: #4a4a3a;">Loading Forge Calculator…</div>
+</div><noinclude>
+
+{{Documentation|content=
+The calculator is built and updated entirely by the [[MediaWiki:Common.js]] Forge Calculator module, which reads its data from the [[Data:Ores.json]], [[Data:Weapons.json]], [[Data:Races.json]], [[Data:Runes.json]], and [[Data:Achievements.json]] pages.
+
+Transclude this template on any article with <code><nowiki>{{ForgeCalculator}}</nowiki></code>.
+}}
+
+[[Category:Calculator templates]]
+</noinclude>

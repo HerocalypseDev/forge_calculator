@@ -1,0 +1,83 @@
+{
+  "source": "DPS Calculator C80 data-validation list",
+  "achievements": [
+    {
+      "name": "None"
+    },
+    {
+      "name": "Attack Speed +4%",
+      "stat": "atk_speed",
+      "value": 0.04
+    },
+    {
+      "name": "Attack Speed +8%",
+      "stat": "atk_speed",
+      "value": 0.08
+    },
+    {
+      "name": "Attack Speed +12%",
+      "stat": "atk_speed",
+      "value": 0.12
+    },
+    {
+      "name": "Attack Speed +16%",
+      "stat": "atk_speed",
+      "value": 0.16
+    },
+    {
+      "name": "Attack Speed +20%",
+      "stat": "atk_speed",
+      "value": 0.2
+    },
+    {
+      "name": "Crit Chance +7%",
+      "stat": "crit_chance",
+      "value": 0.07
+    },
+    {
+      "name": "Crit Chance +14%",
+      "stat": "crit_chance",
+      "value": 0.14
+    },
+    {
+      "name": "Crit Chance +21%",
+      "stat": "crit_chance",
+      "value": 0.21
+    },
+    {
+      "name": "Crit Chance +28%",
+      "stat": "crit_chance",
+      "value": 0.28
+    },
+    {
+      "name": "Crit Chance +35%",
+      "stat": "crit_chance",
+      "value": 0.35
+    },
+    {
+      "name": "Damage Boost +4%",
+      "stat": "lethality",
+      "value": 0.04
+    },
+    {
+      "name": "Damage Boost +8%",
+      "stat": "lethality",
+      "value": 0.08
+    },
+    {
+      "name": "Damage Boost +12%",
+      "stat": "lethality",
+      "value": 0.12
+    },
+    {
+      "name": "Damage Boost +16%",
+      "stat": "lethality",
+      "value": 0.16
+    },
+    {
+      "name": "Damage Boost +20%",
+      "stat": "lethality",
+      "value": 0.2
+    }
+  ]
+}

@@ -1,0 +1,923 @@
+/* ==========================================================================
+   Forge Calculator — Template:ForgeCalculator/styles.css
+   --------------------------------------------------------------------------
+   Consolidated for MediaWiki TemplateStyles from web/css/:
+     • wiki-styles.css   (base theme + layout)
+     • calculator.css    (input panel, dropdowns, results, runes)
+     • responsive.css    (breakpoints, print, reduced-motion, contrast)
+
+   Adaptations made for TemplateStyles safety:
+     • All rules scoped under `.fc-calculator` (no bare `body`, `a`, `:root`,
+       or `*` selectors that would restyle the surrounding wiki page).
+     • Custom properties renamed `--ep-*` → `--fc-*` and classes `ep-*` → `fc-*`
+       to avoid colliding with the wiki's existing `--ep-*` Infobox theme.
+     • Tooltip styles removed (tooltips not included in the wiki build).
+     • Scrollbar / global selection styling scoped or dropped.
+   ========================================================================== */
+
+/* ==========================================================================
+   Root + variables (scoped)
+   ========================================================================== */
+
+.fc-calculator {
+  --fc-bg: #f8f8f0;
+  --fc-bg-alt: #efeadd;
+  --fc-border: #c8b898;
+  --fc-border-dark: #a89878;
+  --fc-text: #1a1a1a;
+  --fc-text-muted: #4a4a3a;
+  --fc-link: #2e7d32;
+  --fc-link-hover: #1b5e20;
+  --fc-gold: #c8a85a;
+  --fc-gold-dark: #a88840;
+  --fc-card-bg: #fefefe;
+  --fc-card-border: #d8c8a8;
+  --fc-head-bg: #efeadd;
+  --fc-head-border: #c8b898;
+  --fc-input-bg: #ffffff;
+  --fc-input-border: #b8a888;
+  --fc-input-focus: #c8a85a;
+  --fc-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --fc-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --fc-radius: 4px;
+  --fc-transition: 0.15s ease;
+  --fc-font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --fc-font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+}
+
+.fc-calculator,
+.fc-calculator *,
+.fc-calculator *::before,
+.fc-calculator *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.fc-calculator {
+  font-family: var(--fc-font);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--fc-text);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 8px 16px;
+}
+
+.fc-calculator ::selection {
+  background: var(--fc-gold);
+  color: #1a1a1a;
+}
+
+.fc-calculator :focus-visible {
+  outline: 2px solid var(--fc-gold);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Page Layout: fc-body, fc-left, fc-right
+   ========================================================================== */
+
+.fc-body {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-content: start;
+}
+
+/* Left panel - inputs */
+.fc-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Right panel - results */
+.fc-right {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   Toolbar (Copy / Reset buttons)
+   ========================================================================== */
+
+.fc-results-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fc-results-head .fc-results-title {
+  margin-bottom: 0;
+}
+
+.fc-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.fc-btn {
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--fc-font);
+  color: var(--fc-text);
+  background: var(--fc-bg-alt);
+  border: 1px solid var(--fc-border);
+  border-radius: var(--fc-radius);
+  cursor: pointer;
+  transition: background var(--fc-transition), border-color var(--fc-transition);
+}
+
+.fc-btn:hover {
+  border-color: var(--fc-gold-dark);
+  background: var(--fc-head-bg);
+}
+
+.fc-btn--primary {
+  background: var(--fc-gold);
+  border-color: var(--fc-gold-dark);
+  color: #1a1a1a;
+}
+
+.fc-btn--primary:hover {
+  background: var(--fc-gold-dark);
+  color: #1a1a1a;
+}
+
+/* ==========================================================================
+   Input Panel & Sections
+   ========================================================================== */
+
+.fc-input-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fc-input-section {
+  background: var(--fc-card-bg);
+  border: 1px solid var(--fc-card-border);
+  border-radius: var(--fc-radius);
+  padding: 16px;
+  box-shadow: var(--fc-shadow);
+}
+
+.fc-input-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fc-text);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--fc-border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Form Controls
+   ========================================================================== */
+
+/* Labels */
+.fc-input-section label,
+.fc-weapon-selector label,
+.fc-ore-slot-label,
+.fc-quality-wrapper label,
+.fc-enhancement-wrapper label,
+.fc-stat-input-label,
+.fc-ability-label,
+.fc-race-wrapper label,
+.fc-bonus-wrapper label,
+.fc-achievement-wrapper label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fc-text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Inputs */
+.fc-stat-input-input,
+.fc-ability-input,
+.fc-quality-input,
+.fc-ore-slot-amount {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--fc-font-mono);
+  color: var(--fc-text);
+  background: var(--fc-input-bg);
+  border: 1px solid var(--fc-input-border);
+  border-radius: var(--fc-radius);
+  transition: border-color var(--fc-transition), box-shadow var(--fc-transition);
+}
+
+.fc-stat-input-input:focus,
+.fc-ability-input:focus,
+.fc-quality-input:focus,
+.fc-ore-slot-amount:focus {
+  border-color: var(--fc-input-focus);
+  box-shadow: 0 0 0 3px rgba(200, 168, 90, 0.2);
+  outline: none;
+}
+
+.fc-stat-input-input::placeholder,
+.fc-ability-input::placeholder,
+.fc-ore-slot-amount::placeholder {
+  color: var(--fc-text-muted);
+  opacity: 0.5;
+}
+
+/* Input rows */
+.fc-stat-input-row,
+.fc-ability-row,
+.fc-ore-slot-fields {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.fc-stat-input-row:last-child,
+.fc-ability-row:last-child {
+  margin-bottom: 0;
+}
+
+.fc-stat-input-label,
+.fc-ability-label {
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+.fc-stat-input-field,
+.fc-ability-field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Ore slot specific */
+.fc-ore-slot {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.fc-ore-slot:not(:last-child) {
+  border-bottom: 1px solid var(--fc-border);
+}
+
+.fc-ore-slot-label {
+  min-width: 60px;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.fc-ore-slot-dropdown {
+  flex: 1;
+  min-width: 0;
+}
+
+.fc-ore-slot-amount {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+/* Weapon selector */
+.fc-weapon-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fc-weapon-type-wrapper,
+.fc-weapon-wrapper,
+.fc-quality-wrapper,
+.fc-enhancement-wrapper,
+.fc-achievement-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fc-weapon-type-wrapper label,
+.fc-weapon-wrapper label,
+.fc-quality-wrapper label,
+.fc-enhancement-wrapper label {
+  min-width: auto;
+}
+
+/* Race & Bonus wrappers */
+.fc-race-wrapper,
+.fc-bonus-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.fc-race-wrapper:last-child,
+.fc-bonus-wrapper:last-child {
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Searchable Dropdown
+   ========================================================================== */
+
+.fc-searchable-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.fc-searchable-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--fc-font);
+  color: var(--fc-text);
+  background: var(--fc-input-bg);
+  border: 1px solid var(--fc-input-border);
+  border-radius: var(--fc-radius);
+  transition: border-color var(--fc-transition), box-shadow var(--fc-transition);
+  outline: none;
+}
+
+.fc-searchable-input:hover {
+  border-color: var(--fc-gold-dark);
+}
+
+.fc-searchable-input:focus {
+  border-color: var(--fc-input-focus);
+  box-shadow: 0 0 0 3px rgba(200, 168, 90, 0.2);
+  outline: none;
+}
+
+.fc-searchable-input[aria-expanded="true"] {
+  border-color: var(--fc-input-focus);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.fc-searchable-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: var(--fc-radius);
+  cursor: pointer;
+  color: var(--fc-text-muted);
+  font-size: 12px;
+  transition: background var(--fc-transition), color var(--fc-transition);
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.fc-searchable-input[aria-expanded="true"] + .fc-searchable-arrow {
+  color: var(--fc-input-focus);
+}
+
+.fc-searchable-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--fc-input-bg);
+  border: 1px solid var(--fc-input-border);
+  border-top: none;
+  border-radius: 0 0 var(--fc-radius) var(--fc-radius);
+  box-shadow: var(--fc-shadow-hover);
+  z-index: 100;
+  list-style: none;
+}
+
+.fc-hidden {
+  display: none !important;
+}
+
+.fc-searchable-item {
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--fc-text);
+  cursor: pointer;
+  transition: background var(--fc-transition);
+}
+
+.fc-searchable-item:hover,
+.fc-searchable-item--highlighted,
+.fc-searchable-item[aria-selected="true"] {
+  background: var(--fc-bg-alt);
+}
+
+.fc-searchable-item[aria-selected="true"] {
+  font-weight: 500;
+}
+
+.fc-searchable-no-results {
+  padding: 12px;
+  text-align: center;
+  color: var(--fc-text-muted);
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   Results Panel
+   ========================================================================== */
+
+.fc-results-panel {
+  background: var(--fc-card-bg);
+  border: 1px solid var(--fc-card-border);
+  border-radius: var(--fc-radius);
+  padding: 16px;
+  box-shadow: var(--fc-shadow);
+}
+
+.fc-results-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fc-text);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--fc-gold);
+}
+
+.fc-results-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Cards */
+.fc-card {
+  background: var(--fc-bg);
+  border: 1px solid var(--fc-card-border);
+  border-radius: var(--fc-radius);
+  overflow: hidden;
+  transition: box-shadow var(--fc-transition), border-color var(--fc-transition);
+}
+
+.fc-card:hover {
+  box-shadow: var(--fc-shadow-hover);
+  border-color: var(--fc-border-dark);
+}
+
+.fc-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--fc-head-bg);
+  border-bottom: 1px solid var(--fc-head-border);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--fc-text);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.fc-card-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8a85a' stroke-width='2'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5z'/%3E%3Cpath d='M2 17l10 5 10-5'/%3E%3Cpath d='M2 12l10 5 10-5'/%3E%3C/svg%3E") center/contain no-repeat;
+  flex-shrink: 0;
+}
+
+.fc-card-title {
+  flex: 1;
+}
+
+.fc-card-body {
+  padding: 12px 14px;
+}
+
+.fc-stat-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fc-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.fc-stat-label {
+  color: var(--fc-text-muted);
+  flex-shrink: 0;
+}
+
+.fc-stat-val {
+  font-family: var(--fc-font-mono);
+  font-weight: 500;
+  color: var(--fc-text);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.fc-stat-val.fc-bold {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--fc-text);
+}
+
+.fc-stat-val.fc-sv-dmg {
+  color: #2e7d32;
+}
+
+.fc-stat-val.fc-sv-mult {
+  color: var(--fc-gold-dark);
+}
+
+.fc-stat-val.fc-sv-rate {
+  color: #1565c0;
+}
+
+.fc-stat-val.fc-sv-pct {
+  color: #6a1b9a;
+}
+
+.fc-stat-val.fc-sv-time {
+  color: #e65100;
+}
+
+/* ==========================================================================
+   Rune Selector Tags
+   ========================================================================== */
+
+.fc-rune-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fc-rune-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.fc-rune-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  font-size: 12px;
+  color: var(--fc-text);
+  background: var(--fc-bg-alt);
+  border: 1px solid var(--fc-border);
+  border-radius: 100px;
+}
+
+.fc-rune-tag-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--fc-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background var(--fc-transition), color var(--fc-transition);
+}
+
+.fc-rune-tag-remove:hover {
+  background: var(--fc-border);
+  color: #cc0000;
+}
+
+/* ==========================================================================
+   Ability Grid Notes
+   ========================================================================== */
+
+.fc-ability-note {
+  font-size: 11px;
+  color: var(--fc-text-muted);
+  font-style: italic;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--fc-bg-alt);
+  border-radius: var(--fc-radius);
+  border: 1px dashed var(--fc-border);
+}
+
+/* ==========================================================================
+   Responsive Layout
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .fc-body {
+    grid-template-columns: 1fr;
+  }
+
+  .fc-right {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 780px) {
+  .fc-calculator {
+    padding: 0 12px;
+  }
+
+  .fc-body {
+    gap: 16px;
+  }
+
+  /* Input sections */
+  .fc-input-section {
+    padding: 12px;
+  }
+
+  .fc-input-section-title {
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+
+  /* Form rows - stack labels on top */
+  .fc-stat-input-row,
+  .fc-ability-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .fc-stat-input-label,
+  .fc-ability-label {
+    min-width: auto;
+    margin-bottom: 2px;
+  }
+
+  .fc-stat-input-field,
+  .fc-ability-field {
+    width: 100%;
+  }
+
+  /* Ore slots - stack dropdown and amount */
+  .fc-ore-slot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .fc-ore-slot-label {
+    min-width: auto;
+  }
+
+  .fc-ore-slot-dropdown {
+    width: 100%;
+  }
+
+  .fc-ore-slot-amount {
+    width: 100%;
+  }
+
+  /* Weapon selector */
+  .fc-weapon-selector {
+    gap: 8px;
+  }
+
+  /* Results cards */
+  .fc-card-head {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .fc-card-body {
+    padding: 10px 12px;
+  }
+
+  .fc-stat-row {
+    font-size: 12px;
+    gap: 8px;
+  }
+
+  .fc-stat-val.fc-bold {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 520px) {
+  .fc-calculator {
+    padding: 0 8px;
+  }
+
+  /* Input sections tighter */
+  .fc-input-section {
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+
+  .fc-input-section-title {
+    font-size: 12px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+
+  /* Labels smaller */
+  .fc-input-section label,
+  .fc-weapon-selector label,
+  .fc-ore-slot-label,
+  .fc-quality-wrapper label,
+  .fc-enhancement-wrapper label,
+  .fc-stat-input-label,
+  .fc-ability-label,
+  .fc-race-wrapper label,
+  .fc-bonus-wrapper label,
+  .fc-achievement-wrapper label {
+    font-size: 11px;
+  }
+
+  /* Inputs smaller */
+  .fc-stat-input-input,
+  .fc-ability-input,
+  .fc-quality-input,
+  .fc-ore-slot-amount,
+  .fc-searchable-input {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  /* Results panel */
+  .fc-results-panel {
+    padding: 12px;
+  }
+
+  .fc-results-title {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .fc-card {
+    border-radius: 3px;
+  }
+
+  .fc-card-head {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .fc-card-icon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .fc-card-body {
+    padding: 8px 10px;
+  }
+
+  .fc-stat-rows {
+    gap: 4px;
+  }
+
+  .fc-stat-row {
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .fc-stat-val {
+    font-size: 11px;
+  }
+
+  .fc-stat-val.fc-bold {
+    font-size: 12px;
+  }
+
+  /* Rune tags */
+  .fc-rune-tag {
+    font-size: 11px;
+    padding: 3px 8px 3px 6px;
+  }
+
+  .fc-rune-tag-remove {
+    width: 16px;
+    height: 16px;
+    font-size: 12px;
+  }
+
+  /* Searchable dropdown list */
+  .fc-searchable-list {
+    max-height: 200px;
+  }
+}
+
+/* ==========================================================================
+   Landscape Mobile (width > height, small height)
+   ========================================================================== */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .fc-right {
+    position: static;
+    max-height: none;
+  }
+
+  .fc-input-section {
+    padding: 8px;
+  }
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+  .fc-calculator {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+
+  .fc-body {
+    display: block;
+  }
+
+  .fc-left,
+  .fc-right {
+    width: 100%;
+  }
+
+  .fc-input-section,
+  .fc-results-panel,
+  .fc-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #999;
+  }
+
+  .fc-searchable-dropdown,
+  .fc-stat-input-input,
+  .fc-ability-input,
+  .fc-quality-input,
+  .fc-ore-slot-amount {
+    border: 1px solid #999;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-calculator,
+  .fc-calculator *,
+  .fc-calculator *::before,
+  .fc-calculator *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   High Contrast Mode
+   ========================================================================== */
+
+@media (prefers-contrast: high) {
+  .fc-calculator {
+    --fc-border: #000;
+    --fc-border-dark: #000;
+    --fc-gold: #000;
+    --fc-gold-dark: #000;
+    --fc-link: #000;
+    --fc-card-border: #000;
+    --fc-head-border: #000;
+    --fc-input-border: #000;
+    --fc-input-focus: #000;
+  }
+
+  .fc-stat-val.fc-sv-dmg,
+  .fc-stat-val.fc-sv-mult,
+  .fc-stat-val.fc-sv-rate,
+  .fc-stat-val.fc-sv-pct,
+  .fc-stat-val.fc-sv-time {
+    color: #000;
+  }
+}

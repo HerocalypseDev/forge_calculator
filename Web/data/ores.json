@@ -1,0 +1,1585 @@
+{
+  "source": "_OptionsCrafter!A56:F195 + formulas C44..C75",
+  "select_ore": "Select Ore",
+  "formula_only_ores": [
+    "Tigers Eye"
+  ],
+  "ores": [
+    {
+      "name": "Graphite",
+      "equipment": "Armour",
+      "multiplier": 2.33,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Aetherit",
+      "equipment": "Armour",
+      "multiplier": 2.55,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Frost Fossil",
+      "equipment": "Weapon",
+      "multiplier": 3.34,
+      "trait10": "+1.75% Lethality | -0.5% Swiftness",
+      "trait30": "+17.5% Lethality | -5% Swiftness",
+      "comments": "All effects stack with all similar effects",
+      "stats": {
+        "lethality": {
+          "base": 1.75,
+          "max": 17.5,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Crimsonite",
+      "equipment": "Weapon",
+      "multiplier": 5.8,
+      "trait10": "+2% Lethality",
+      "trait30": "+20% Lethality",
+      "comments": "Stacks with all Lethality effects",
+      "stats": {
+        "lethality": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Malachite",
+      "equipment": "Weapon",
+      "multiplier": 6.4,
+      "trait10": "Deals +1% of weapon damage as poison per second for 0.3 seconds. 3.3% chance on hit",
+      "trait30": "Deals +10% of weapon damage as poison per second for 3 seconds. 33% chance on hit",
+      "comments": "Only the Poison damage stacks with similar effects, highest % and timer is chosen between ore trait and rune traits",
+      "stats": {
+        "poison_dmg": {
+          "base": 1.0,
+          "max": 10.0,
+          "divisor": 100
+        },
+        "poison_chance": {
+          "base": 3.3,
+          "max": 33.0,
+          "divisor": 100
+        },
+        "poison_duration": {
+          "base": 0.3,
+          "max": 3.0,
+          "divisor": 1
+        }
+      }
+    },
+    {
+      "name": "Frogite",
+      "equipment": "Armour",
+      "multiplier": 6.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Mosasaursit",
+      "equipment": "Armour",
+      "multiplier": 7.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Coinite",
+      "equipment": null,
+      "multiplier": 1.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Prismatic Heart",
+      "equipment": "Weapon",
+      "multiplier": 4.3,
+      "trait10": "+2% Critical Chance | +0.5% Critical Damage | Freeze enemies for 0.2 seconds. 1.5% chance on hit. Has cooldown of 15",
+      "trait30": "+20% Critical Chance | +5% Critical Damage | Freeze enemies for 2 seconds. 15% chance on hit. Has cooldown of 15",
+      "comments": "Between ore and runes, highest freeze chance is chosen, highest freeze timer is chosen and lowest cooldown is chosen.  All other effects stack with similar effects",
+      "stats": {
+        "crit_chance": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 0.5,
+          "max": 5.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Velchire",
+      "equipment": "Armour",
+      "multiplier": 4.7,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Sanctis",
+      "equipment": "Armour",
+      "multiplier": 5.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Snowite",
+      "equipment": "Weapon",
+      "multiplier": 6.0,
+      "trait10": "Slows enemies by 1.5% for 0.3s with 3% chance on hit",
+      "trait30": "Slows enemies by 15% for 3s with 30% chance on hit",
+      "comments": "Only the highest value of all snow effects is used",
+      "stats": {}
+    },
+    {
+      "name": "Moon Stone",
+      "equipment": "Weapon",
+      "multiplier": 7.2,
+      "trait10": "+2.5% Moonboost (Physical Damage at night time)",
+      "trait30": "+25% Moonboost (Physical Damage at night time)",
+      "comments": "Add that value to Moon Boost",
+      "stats": {
+        "moon": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Voidstar",
+      "equipment": "Weapon",
+      "multiplier": 7.5,
+      "trait10": "+3.3% Crit Chance | +1.5% Crit Damage | -1.5% Vitality",
+      "trait30": "+33% Crit Chance | +15% Crit Damage | -15% Vitality",
+      "comments": "All effects stack with similar effects",
+      "stats": {
+        "crit_chance": {
+          "base": 3.3,
+          "max": 33.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Gulabite",
+      "equipment": null,
+      "multiplier": 7.77,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Yeti Heart",
+      "equipment": "Weapon",
+      "multiplier": 6.0,
+      "trait10": "+3% Critical Chance | +1% Critical Damage | +1% Attack Speed",
+      "trait30": "+30% Critical Chance | +10% Critical Damage | +10% Attack Speed",
+      "comments": "All effects stack with all similar effects",
+      "stats": {
+        "crit_chance": {
+          "base": 3.0,
+          "max": 30.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 1.0,
+          "max": 10.0,
+          "divisor": 100
+        },
+        "atk_speed": {
+          "base": 1.0,
+          "max": 10.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Iceite",
+      "equipment": "Weapon",
+      "multiplier": 8.0,
+      "trait10": "Freeze enemies for 0.2 seconds. 2.5% chance on hit. Has cooldown of 12sec",
+      "trait30": "Freeze enemies for 2 seconds. 25% chance on hit. Has cooldown of 12sec",
+      "comments": "Between ore and runes, highest freeze chance is chosen, highest freeze timer is chosen and lowest cooldown is chosen.",
+      "stats": {}
+    },
+    {
+      "name": "Etherealite",
+      "equipment": "Armour",
+      "multiplier": 8.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Duranite",
+      "equipment": "Armour",
+      "multiplier": 9.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Evil Eye Ore",
+      "equipment": null,
+      "multiplier": 9.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Suryafal",
+      "equipment": null,
+      "multiplier": 11.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Heart of the Island",
+      "equipment": "Armour",
+      "multiplier": 13.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Golem Heart",
+      "equipment": "Weapon",
+      "multiplier": 8.5,
+      "trait10": "+4% Critical Chance | +1.5% Critical Damage | Slows enemies by 2.5% for 0.3s with 2.5% chance on hit",
+      "trait30": "+40% Critical Chance | +15% Critical Damage | Slows enemies by 25% for 3s with 25% chance on hit",
+      "comments": "Only the highest value of all snow effects is used\nAll other effects stack with similar effects",
+      "stats": {
+        "crit_chance": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Stolen Heart",
+      "equipment": "Weapon",
+      "multiplier": 12.5,
+      "trait10": "+0.7% Life Steal",
+      "trait30": "+7% Life Steal",
+      "comments": "Stacks with all lifesteal effects",
+      "stats": {}
+    },
+    {
+      "name": "Heavenite",
+      "equipment": "Weapon",
+      "multiplier": 13.7,
+      "trait10": "+2.5% of weapon damage done as smite, 4% chance on hit",
+      "trait30": "+25% of weapon damage done as smite, 40% chance on hit",
+      "comments": "Only smite damage stacks with Angel's passive, the rest uses highest value between ore and race",
+      "stats": {
+        "smite_dmg": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        },
+        "smite_chance": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Gargantuan",
+      "equipment": "Weapon",
+      "multiplier": 15.0,
+      "trait10": "3.5% Chance for 5% weapon damage AOE Explosion | Deals 2% of weapon damage as fire per second for 0.2s (2% chance)",
+      "trait30": "35% Chance for 50% weapon damage AOE Explosion | Deals 20% of weapon damage as fire per second for 2s (20% chance)",
+      "comments": "Only the damage for both effects stack with other similar effects, the rest takes the highest value",
+      "stats": {
+        "explosion_dmg": {
+          "base": 5.0,
+          "max": 50.0,
+          "divisor": 100
+        },
+        "explosion_chance": {
+          "base": 3.5,
+          "max": 35.0,
+          "divisor": 100
+        },
+        "fire_dmg": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "fire_chance": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "fire_duration": {
+          "base": 0.2,
+          "max": 2.0,
+          "divisor": 1
+        }
+      }
+    },
+    {
+      "name": "Bamboo",
+      "equipment": null,
+      "multiplier": 4.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Root Spire",
+      "equipment": null,
+      "multiplier": 4.44,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Water Stone",
+      "equipment": null,
+      "multiplier": 4.7,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Earthite",
+      "equipment": "Armor",
+      "multiplier": 5.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Melonite",
+      "equipment": null,
+      "multiplier": 5.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Rock Seed",
+      "equipment": null,
+      "multiplier": 5.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Aurelia-No-Ki",
+      "equipment": null,
+      "multiplier": 9.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Sakuranite",
+      "equipment": null,
+      "multiplier": 10.1,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Fruite",
+      "equipment": null,
+      "multiplier": 10.33,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Wraith",
+      "equipment": null,
+      "multiplier": 5.75,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Tiger's Eye",
+      "equipment": "Weapons",
+      "multiplier": 6.0,
+      "trait10": "+0.75% Attack Speed | +0.5% Lethality | +0.5% Swiftness | -1% Vitality",
+      "trait30": "7.5% Attack Speed | +5% Lethality | +5% Swiftness | -10% Vitality",
+      "comments": "All effects stack with all similar effects",
+      "stats": {
+        "atk_speed": {
+          "base": 0.75,
+          "max": 7.5,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Shikanite",
+      "equipment": null,
+      "multiplier": 6.15,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Cyanite Jade",
+      "equipment": "Armor",
+      "multiplier": 6.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Magit",
+      "equipment": null,
+      "multiplier": 6.8,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Blue Gem Quill",
+      "equipment": "Armor",
+      "multiplier": 11.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Heat Steel",
+      "equipment": null,
+      "multiplier": 11.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Sealed Curse",
+      "equipment": "Weapons",
+      "multiplier": 12.0,
+      "trait10": "+3% Lethality | -2% Vitality | -1% Stamina | -1.5% Movement Speed | (Armor only) +2% Physical Damage and +2% Movement Speed for 0.6 seconds when HP drops below 35%",
+      "trait30": "+30% Lethality | -20% Vitality | -10% Stamina | -15% Movement Speed | +20% Physical Damage and +20% Movement Speed for 6 seconds when HP drops below 35%",
+      "comments": "All effects stack with similar effects, \"Physical Damage & Movement Speed\" = berserk",
+      "stats": {
+        "lethality": {
+          "base": 3.0,
+          "max": 30.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Lucky Cat",
+      "equipment": "Armor",
+      "multiplier": 11.1,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Duquack",
+      "equipment": "Armor",
+      "multiplier": 8.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Onyx",
+      "equipment": "Weapons",
+      "multiplier": 10.0,
+      "trait10": "+3.5% Critical Chance | +1.75% Critical Damage",
+      "trait30": "+35% Critical Chance | +17.5% Critical Damage",
+      "comments": "All effects stack with similar effects",
+      "stats": {
+        "crit_chance": {
+          "base": 3.5,
+          "max": 35.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 1.75,
+          "max": 17.5,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Zenstone",
+      "equipment": null,
+      "multiplier": 12.21,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Azuryxite",
+      "equipment": "Armor",
+      "multiplier": 13.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Sun Stone",
+      "equipment": "Weapons",
+      "multiplier": 13.39,
+      "trait10": "Deals 3.5% of weapon damage as fire per second for 0.5s (3.5% chance)",
+      "trait30": "Deals 35% of weapon damage as fire per second for 5s (35% chance)",
+      "comments": "Only fire damage stacks, the rest takes highest value between ores and runes",
+      "stats": {
+        "fire_dmg": {
+          "base": 3.5,
+          "max": 35.0,
+          "divisor": 100
+        },
+        "fire_chance": {
+          "base": 3.5,
+          "max": 35.0,
+          "divisor": 100
+        },
+        "fire_duration": {
+          "base": 0.5,
+          "max": 5.0,
+          "divisor": 1
+        }
+      }
+    },
+    {
+      "name": "Roosite",
+      "equipment": null,
+      "multiplier": 14.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Onite",
+      "equipment": null,
+      "multiplier": 9.8,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Meteorite",
+      "equipment": "Weapons",
+      "multiplier": 14.44,
+      "trait10": "2.5% Chance for 6% weapon damage AOE Explosion",
+      "trait30": "25% Chance for 60% weapon damage AOE Explosion",
+      "comments": "Only damage stacks with other similar effects, the rest takes highest value between ores and runes",
+      "stats": {
+        "explosion_dmg": {
+          "base": 6.0,
+          "max": 60.0,
+          "divisor": 100
+        },
+        "explosion_chance": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Heavenly Orb",
+      "equipment": "Armor",
+      "multiplier": 15.15,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Kyubite",
+      "equipment": "Weapons",
+      "multiplier": 17.0,
+      "trait10": "+4% Critical Chance | +1.8% Critical Damage | Deals 4.5% of weapon damage as fire per second for 0.5s (4% chance)",
+      "trait30": "+40% Critical Chance | +18% Critical Damage | Deals 45% of weapon damage as fire per second for 5s (40% chance)",
+      "comments": "Crit damage, Crit Chance and Burn damage stack with other similar effects, the rest takes highest value between ores and runes",
+      "stats": {
+        "crit_chance": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 1.8,
+          "max": 18.0,
+          "divisor": 100
+        },
+        "fire_dmg": {
+          "base": 4.5,
+          "max": 45.0,
+          "divisor": 100
+        },
+        "fire_chance": {
+          "base": 4.5,
+          "max": 45.0,
+          "divisor": 100
+        },
+        "fire_duration": {
+          "base": 0.5,
+          "max": 5.0,
+          "divisor": 1
+        }
+      }
+    },
+    {
+      "name": "Stone",
+      "equipment": null,
+      "multiplier": 0.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Sand Stone",
+      "equipment": null,
+      "multiplier": 0.25,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Copper",
+      "equipment": null,
+      "multiplier": 0.3,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Iron",
+      "equipment": null,
+      "multiplier": 0.35,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Tin",
+      "equipment": null,
+      "multiplier": 0.425,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Silver",
+      "equipment": null,
+      "multiplier": 0.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Gold",
+      "equipment": null,
+      "multiplier": 0.65,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Mushroomite",
+      "equipment": null,
+      "multiplier": 0.8,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Platinum",
+      "equipment": null,
+      "multiplier": 0.8,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Bananite",
+      "equipment": null,
+      "multiplier": 0.85,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Cardboardite",
+      "equipment": null,
+      "multiplier": 0.7,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Aite",
+      "equipment": null,
+      "multiplier": 1.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Poopite",
+      "equipment": "Armor",
+      "multiplier": 1.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Fichillium",
+      "equipment": null,
+      "multiplier": 0.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Cobalt",
+      "equipment": null,
+      "multiplier": 1.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Titanium",
+      "equipment": null,
+      "multiplier": 1.15,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Volcanic Rock",
+      "equipment": null,
+      "multiplier": 1.55,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Lapis Lazuli",
+      "equipment": null,
+      "multiplier": 1.3,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Quartz",
+      "equipment": null,
+      "multiplier": 1.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Amethyst",
+      "equipment": null,
+      "multiplier": 1.65,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Topaz",
+      "equipment": null,
+      "multiplier": 1.75,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Diamond",
+      "equipment": null,
+      "multiplier": 2.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Sapphire",
+      "equipment": null,
+      "multiplier": 2.25,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Cuprite",
+      "equipment": null,
+      "multiplier": 2.43,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Obsidian",
+      "equipment": "Armor",
+      "multiplier": 2.35,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Emerald",
+      "equipment": null,
+      "multiplier": 2.55,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Ruby",
+      "equipment": null,
+      "multiplier": 2.95,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Rivalite",
+      "equipment": "Weapons",
+      "multiplier": 3.33,
+      "trait10": "+2% Critical Chance",
+      "trait30": "+20% Crit chance",
+      "comments": null,
+      "stats": {
+        "crit_chance": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Uranium",
+      "equipment": "Armor",
+      "multiplier": 3.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Mythril",
+      "equipment": "Armor",
+      "multiplier": 3.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Eye Ore",
+      "equipment": "Weapons",
+      "multiplier": 4.0,
+      "trait10": "+1.5% Lethality",
+      "trait30": "+15% Lethality",
+      "comments": null,
+      "stats": {
+        "lethality": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Fireite",
+      "equipment": "Weapons",
+      "multiplier": 4.5,
+      "trait10": "3% chance to burn for 2% weapon damage per second for 0.2 seconds on attack",
+      "trait30": "30% chance to burn for 20% weapon damage per second for 2 seconds on attack",
+      "comments": "Burn damage stacks, burn chance does not stack.",
+      "stats": {
+        "fire_dmg": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "fire_chance": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "fire_duration": {
+          "base": 0.2,
+          "max": 2.0,
+          "divisor": 1
+        }
+      }
+    },
+    {
+      "name": "Magmaite",
+      "equipment": "Weapons",
+      "multiplier": 5.0,
+      "trait10": "+3.5% AOE Explosion on Weapons with 2% chance",
+      "trait30": "+35% AOE Explosion on Weapons with 20% chance",
+      "comments": "Explosion damage stacks but chance does not",
+      "stats": {
+        "explosion_dmg": {
+          "base": 3.5,
+          "max": 35.0,
+          "divisor": 100
+        },
+        "explosion_chance": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Lightite",
+      "equipment": "Armor",
+      "multiplier": 4.6,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Demonite",
+      "equipment": "Armor",
+      "multiplier": 5.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Darkryte",
+      "equipment": "Armor",
+      "multiplier": 6.3,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Boneite",
+      "equipment": null,
+      "multiplier": 1.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Dark Boneite",
+      "equipment": null,
+      "multiplier": 2.25,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Slimite",
+      "equipment": null,
+      "multiplier": 2.25,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Green Crystal",
+      "equipment": null,
+      "multiplier": 3.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Magenta Crystal",
+      "equipment": null,
+      "multiplier": 3.1,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Orange Crystal",
+      "equipment": null,
+      "multiplier": 3.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Crimson Crystal",
+      "equipment": null,
+      "multiplier": 3.3,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Blue Crystal",
+      "equipment": null,
+      "multiplier": 3.4,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Rainbow Crystal",
+      "equipment": null,
+      "multiplier": 5.25,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Arcane Crystal",
+      "equipment": null,
+      "multiplier": 7.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Grass",
+      "equipment": null,
+      "multiplier": 0.1,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Tungsten",
+      "equipment": null,
+      "multiplier": 1.95,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Sulfur",
+      "equipment": null,
+      "multiplier": 2.1,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Pumice",
+      "equipment": null,
+      "multiplier": 2.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Scheelite",
+      "equipment": null,
+      "multiplier": 2.8,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Larimar",
+      "equipment": null,
+      "multiplier": 3.1,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Neurotite",
+      "equipment": null,
+      "multiplier": 3.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Tide Carve",
+      "equipment": null,
+      "multiplier": 3.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Mistvein",
+      "equipment": null,
+      "multiplier": 5.4,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Lagarite",
+      "equipment": null,
+      "multiplier": 5.7,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Voidfractal",
+      "equipment": null,
+      "multiplier": 6.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Moltenfrost",
+      "equipment": null,
+      "multiplier": 6.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Aqujade",
+      "equipment": null,
+      "multiplier": 6.75,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Cryptex",
+      "equipment": null,
+      "multiplier": 7.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Galestor",
+      "equipment": null,
+      "multiplier": 7.2,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Seedheart",
+      "equipment": null,
+      "multiplier": 12.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Viridite",
+      "equipment": null,
+      "multiplier": 13.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Star Dust",
+      "equipment": null,
+      "multiplier": 2.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Yin",
+      "equipment": "Armor",
+      "multiplier": 13.0,
+      "trait10": "+0.8% Vitality | +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%",
+      "trait30": "+8% Vitality | +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%",
+      "comments": "Vitality stacks infinitely\nBerserker Damage/Movespeed stacks, rest does not",
+      "stats": {}
+    },
+    {
+      "name": "Yang",
+      "equipment": "Weapon",
+      "multiplier": 13.0,
+      "trait10": "+4% Critical Chance | +1.8% Critical Damage",
+      "trait30": "+40% Critical Chance | +18% Critical Damage",
+      "comments": "Critical Chance stacks to 100%\nCritical Damage stacks to 100%",
+      "stats": {
+        "crit_chance": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 1.8,
+          "max": 18.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Ancienite",
+      "equipment": null,
+      "multiplier": 13.33,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Kyomutite",
+      "equipment": null,
+      "multiplier": 13.9,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Oni Mask",
+      "equipment": null,
+      "multiplier": 14.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Takiseki",
+      "equipment": null,
+      "multiplier": 14.7,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Kokorite",
+      "equipment": "Weapons",
+      "multiplier": 14.75,
+      "trait10": "Both: +3% Lethality | -0.5% Vitality | -0.5% Endurance | -0.5% Swiftness\nArmor only: +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%",
+      "trait30": "Both: +30% Lethality | -5% Vitality | -5% Endurance | -5% Swiftness\nArmor only: +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%",
+      "comments": "Lethality stacks up to 150%\nNegative traits stack with the same effects\nBerserker Damage/Movespeed stacks, rest does not",
+      "stats": {
+        "lethality": {
+          "base": 3.0,
+          "max": 30.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Takenokoishi",
+      "equipment": "Armor",
+      "multiplier": 13.75,
+      "trait10": "-1% Swiftness | +1.5% Vitality | +0.5 Health Regeneration | +7% chance to reduce incoming damage by 2.5%",
+      "trait30": "-10% Swiftness | +15% Vitality | +5 Health Regeneration | +70% chance to reduce incoming damage by 25%",
+      "comments": "Negative traits stack with the same effects\nVitality stacks infinitely\nHealth Regeneration stacks up to 1000\nDamage Reduction stacks, chance does not",
+      "stats": {}
+    },
+    {
+      "name": "Dorabell",
+      "equipment": null,
+      "multiplier": 14.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Starite",
+      "equipment": "Armor",
+      "multiplier": 4.0,
+      "trait10": "+0.4% Luck | +0.6% Yield Chance",
+      "trait30": "+4% Luck | +6% Yield Chance",
+      "comments": "Luck stacks up to 1000%\nYield Chance stacks up to 100%",
+      "stats": {}
+    },
+    {
+      "name": "Sakurite",
+      "equipment": "Armor",
+      "multiplier": 14.2,
+      "trait10": "+0.6% Jump Boost | +1.2% Dash Distance | +1% longer Dash Invincibility duration| +1.5% Dash cooldown reduction",
+      "trait30": "+6% Jump Boost | +12% Dash Distance | +10% longer Dash Invincibility duration| +15% Dash cooldown reduction",
+      "comments": "Jump Boost stacks up to 200%\nStride stacks up to 75%\nPhase stacks up to 90%\nSurge stacks up to 75%",
+      "stats": {}
+    },
+    {
+      "name": "Ryuseki",
+      "equipment": null,
+      "multiplier": 15.8,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Ceyite",
+      "equipment": null,
+      "multiplier": 16.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Marblite",
+      "equipment": null,
+      "multiplier": 18.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Matter",
+      "equipment": null,
+      "multiplier": 8.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Anti Matter",
+      "equipment": null,
+      "multiplier": 11.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Sentira",
+      "equipment": "Armor",
+      "multiplier": 16.3,
+      "trait10": "+0.5% Vitality | +1 Health Regeneration | +5% chance to reduce incoming damage by 5% | +0.3% Thorn damage",
+      "trait30": "+5% Vitality | +10 Health Regeneration | +50% chance to reduce incoming damage by 50% | +3% Thorn damage",
+      "comments": "Vitality stacks infinitely\nHealth Regeneration stacks up to 1000\nOnly damage reduction stacks, chance does not\nThorn Damage stacks infinitely, damage dealt caps at 5% max HP",
+      "stats": {}
+    },
+    {
+      "name": "Singularity",
+      "equipment": null,
+      "multiplier": 12.75,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Wolfarite",
+      "equipment": "Weapon",
+      "multiplier": 15.48,
+      "trait10": "+0.8% Attack Speed | +1.5% Lethality | +0.6% Swiftness | -0.8% Vitality",
+      "trait30": "+8% Attack Speed | +15% Lethality | +6% Swiftness | -8% Vitality",
+      "comments": "Attack Speed stacks up to 150%\nLethality stacks up to 150%\nSwftness stacks infinitely\nNegative traits stack with the same effects",
+      "stats": {
+        "lethality": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        },
+        "atk_speed": {
+          "base": 0.8,
+          "max": 8.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Supermassive Black Hole",
+      "equipment": "Weapon",
+      "multiplier": 18.0,
+      "trait10": "4.5% Chance for 6.5% weapon damage AOE Explosion | Deals 5% of weapon damage as fire per second for 0.5s (4.5% chance)",
+      "trait30": "45% Chance for 65% weapon damage AOE Explosion | Deals 50% of weapon damage as fire per second for 5s (45% chance)",
+      "comments": "Explosion Damage stacks, chance does not\nBurn Damage stacks, chance and duration do not",
+      "stats": {
+        "explosion_dmg": {
+          "base": 6.5,
+          "max": 65.0,
+          "divisor": 100
+        },
+        "explosion_chance": {
+          "base": 4.5,
+          "max": 45.0,
+          "divisor": 100
+        },
+        "fire_dmg": {
+          "base": 5.0,
+          "max": 50.0,
+          "divisor": 100
+        },
+        "fire_chance": {
+          "base": 4.5,
+          "max": 45.0,
+          "divisor": 100
+        },
+        "fire_duration": {
+          "base": 0.5,
+          "max": 5.0,
+          "divisor": 1
+        }
+      }
+    },
+    {
+      "name": "Yin-Yang",
+      "equipment": "Weapons",
+      "multiplier": 13.5,
+      "trait10": "+4.5% Critical Chance | +2% Critical Damage | +0.8% Vitality | +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%",
+      "trait30": "+45% Critical Chance | +20% Critical Damage | +8% Vitality | +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%",
+      "comments": "Critical Chance stacks up to 100%\nCritical Damage stacks up to 100%\nVitality stacks infinitely\nBerserker Damage/Movespeed stacks, rest does not",
+      "stats": {
+        "crit_chance": {
+          "base": 4.5,
+          "max": 45.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Galaxite",
+      "equipment": "Weapons",
+      "multiplier": 25.0,
+      "trait10": "Weapons only: +6% Black Hole Damage | +3% Black Hole Chance | +6.5% Black Hole Radius | +4.5% Critical Chance | +2% Critical Damage",
+      "trait30": "Weapons only: +60% Black Hole Damage | +30% Black Hole Chance | +65% Black Hole Radius | +45% Critical Chance | +20% Critical Damage",
+      "comments": "the Black Hole traits exists only once currently\nCritical Chance stacks up to 100%\nCritical Damage stacks up to 100%\nVitality stacks infinitely\nHealth Regeneration stacks up to 1000\nDamage Reduction stacks, chance does not\nThorn Damage stacks infinitely, damage dealt caps at 5% max HP",
+      "stats": {
+        "crit_chance": {
+          "base": 4.5,
+          "max": 45.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "blackhole_dmg": {
+          "base": 6.0,
+          "max": 60.0,
+          "divisor": 100
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+local p = {}
+local data = require('Module:Ore/Data') 
+
+function p.getData(frame)
+    local oreName = frame.args[1]
+    local property = frame.args[2]
+    
+    if not oreName or not property then return "" end
+    
+    oreName = mw.text.trim(oreName)
+    property = mw.text.trim(property)
+    
+    local oreData = nil
+    
+    if data.ores then
+        for i = 1, #data.ores do
+            local ore = data.ores[i]
+            if ore and ore.name == oreName then
+                oreData = ore
+                break
+            end
+        end
+    end
+    
+    if not oreData then return "" end
+    
+    -- Safe translator
+    if property == "multiplier" then property = "multi" end
+    if property == "value" then property = "price" end
+    if property == "traits" then property = "trait" end
+    if property == "area1" then property = "category" end
+    if property == "area1rocks" then property = "rocks" end
+    
+    local val = oreData[property]
+    if val == nil then return "" end
+    
+    -- FORMAT Location Names Map
+    if property == "category" then
+        local names = {
+            ["Stonewake"] = "Stonewake's Cross",
+            ["ForgottenKingdom"] = "Forgotten Kingdom",
+            ["GoblinCave"] = "Goblin Cave",
+            ["FrostspireExpanse"] = "Frostspire Expanse",
+            ["ThePeak"] = "The Peak",
+            ["ravencave"] = "Raven Cave",
+            ["bambooforest"] = "Bamboo Forest",
+            ["holytree"] = "Holy Tree",
+            ["Exclusive"] = "Exclusive"
+        }
+        return names[val] or val
+    end
+    
+    -- FORMAT strings into your native {{List}} bullet points automatically!
+    if property == "rocks" or property == "trait" or property == "traits" then
+        if type(val) == "string" and string.find(val, ",") then
+            local formatted = mw.ustring.gsub(val, "%s*,%s*", "|")
+            return frame:preprocess("{{List|" .. formatted .. "}}")
+        elseif type(val) == "string" then
+            return frame:preprocess("{{List|" .. val .. "}}")
+        end
+    end
+    
+    return tostring(val)
+end
+
+return p

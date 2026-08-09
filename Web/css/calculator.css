@@ -1,0 +1,553 @@
+/* ==========================================================================
+   Calculator Styles - Component-specific styling
+   ========================================================================== */
+
+/* ==========================================================================
+   Input Panel & Sections
+   ========================================================================== */
+
+.ep-input-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ep-input-section {
+  background: var(--ep-card-bg);
+  border: 1px solid var(--ep-card-border);
+  border-radius: var(--ep-radius);
+  padding: 16px;
+  box-shadow: var(--ep-shadow);
+}
+
+.ep-input-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ep-text);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--ep-border);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   Form Controls
+   ========================================================================== */
+
+/* Labels */
+.ep-input-section label,
+.ep-weapon-selector label,
+.ep-ore-slot-label,
+.ep-quality-wrapper label,
+.ep-enhancement-wrapper label,
+.ep-stat-input-label,
+.ep-ability-label,
+.ep-race-wrapper label,
+.ep-bonus-wrapper label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ep-text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Inputs */
+.ep-stat-input-input,
+.ep-ability-input,
+.ep-quality-input,
+.ep-ore-slot-amount {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--ep-font-mono);
+  color: var(--ep-text);
+  background: var(--ep-input-bg);
+  border: 1px solid var(--ep-input-border);
+  border-radius: var(--ep-radius);
+  transition: border-color var(--ep-transition), box-shadow var(--ep-transition);
+}
+
+.ep-stat-input-input:focus,
+.ep-ability-input:focus,
+.ep-quality-input:focus,
+.ep-ore-slot-amount:focus {
+  border-color: var(--ep-input-focus);
+  box-shadow: 0 0 0 3px rgba(200, 168, 90, 0.2);
+  outline: none;
+}
+
+.ep-stat-input-input::placeholder,
+.ep-ability-input::placeholder,
+.ep-ore-slot-amount::placeholder {
+  color: var(--ep-text-muted);
+  opacity: 0.5;
+}
+
+/* Input rows */
+.ep-stat-input-row,
+.ep-ability-row,
+.ep-ore-slot-fields {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ep-stat-input-row:last-child,
+.ep-ability-row:last-child {
+  margin-bottom: 0;
+}
+
+.ep-stat-input-label,
+.ep-ability-label {
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+.ep-stat-input-field,
+.ep-ability-field {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Ore slot specific */
+.ep-ore-slot {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.ep-ore-slot:not(:last-child) {
+  border-bottom: 1px solid var(--ep-border);
+}
+
+.ep-ore-slot-label {
+  min-width: 60px;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.ep-ore-slot-dropdown {
+  flex: 1;
+  min-width: 0;
+}
+
+.ep-ore-slot-amount {
+  width: 70px;
+  flex-shrink: 0;
+}
+
+/* Weapon selector */
+.ep-weapon-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ep-weapon-type-wrapper,
+.ep-weapon-wrapper,
+.ep-quality-wrapper,
+.ep-enhancement-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ep-weapon-type-wrapper label,
+.ep-weapon-wrapper label,
+.ep-quality-wrapper label,
+.ep-enhancement-wrapper label {
+  min-width: auto;
+}
+
+/* Race & Bonus wrappers */
+.ep-race-wrapper,
+.ep-bonus-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.ep-race-wrapper:last-child,
+.ep-bonus-wrapper:last-child {
+  margin-bottom: 0;
+}
+
+/* Achievements */
+.ep-achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.ep-achievement-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--ep-radius);
+  transition: background var(--ep-transition);
+}
+
+.ep-achievement-checkbox:hover {
+  background: var(--ep-bg-alt);
+}
+
+.ep-achievement-input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--ep-gold);
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Searchable Dropdown
+   ========================================================================== */
+
+.ep-searchable-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.ep-searchable-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: var(--ep-font);
+  color: var(--ep-text);
+  background: var(--ep-input-bg);
+  border: 1px solid var(--ep-input-border);
+  border-radius: var(--ep-radius);
+  transition: border-color var(--ep-transition), box-shadow var(--ep-transition);
+  outline: none;
+}
+
+.ep-searchable-input:hover {
+  border-color: var(--ep-gold-dark);
+}
+
+.ep-searchable-input:focus {
+  border-color: var(--ep-input-focus);
+  box-shadow: 0 0 0 3px rgba(200, 168, 90, 0.2);
+  outline: none;
+}
+
+.ep-searchable-input[aria-expanded="true"] {
+  border-color: var(--ep-input-focus);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.ep-searchable-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: var(--ep-radius);
+  cursor: pointer;
+  color: var(--ep-text-muted);
+  font-size: 12px;
+  transition: background var(--ep-transition), color var(--ep-transition);
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.ep-searchable-input[aria-expanded="true"] + .ep-searchable-arrow {
+  color: var(--ep-input-focus);
+}
+
+.ep-searchable-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--ep-input-bg);
+  border: 1px solid var(--ep-input-border);
+  border-top: none;
+  border-radius: 0 0 var(--ep-radius) var(--ep-radius);
+  box-shadow: var(--ep-shadow-hover);
+  z-index: 100;
+  display: none;
+  list-style: none;
+}
+
+.ep-searchable-list[aria-hidden="false"] {
+  display: block;
+}
+
+.ep-searchable-item {
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--ep-text);
+  cursor: pointer;
+  transition: background var(--ep-transition);
+}
+
+.ep-searchable-item:hover,
+.ep-searchable-item[aria-selected="true"] {
+  background: var(--ep-bg-alt);
+}
+
+.ep-searchable-item[aria-selected="true"] {
+  font-weight: 500;
+}
+
+.ep-searchable-no-results {
+  padding: 12px;
+  text-align: center;
+  color: var(--ep-text-muted);
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   Results Panel
+   ========================================================================== */
+
+.ep-results-panel {
+  background: var(--ep-card-bg);
+  border: 1px solid var(--ep-card-border);
+  border-radius: var(--ep-radius);
+  padding: 16px;
+  box-shadow: var(--ep-shadow);
+}
+
+.ep-results-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ep-text);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--ep-gold);
+}
+
+.ep-results-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Cards */
+.ep-card {
+  background: var(--ep-bg);
+  border: 1px solid var(--ep-card-border);
+  border-radius: var(--ep-radius);
+  overflow: hidden;
+  transition: box-shadow var(--ep-transition), border-color var(--ep-transition);
+}
+
+.ep-card:hover {
+  box-shadow: var(--ep-shadow-hover);
+  border-color: var(--ep-border-dark);
+}
+
+.ep-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--ep-head-bg);
+  border-bottom: 1px solid var(--ep-head-border);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ep-text);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ep-card-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8a85a' stroke-width='2'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5z'/%3E%3Cpath d='M2 17l10 5 10-5'/%3E%3Cpath d='M2 12l10 5 10-5'/%3E%3C/svg%3E") center/contain no-repeat;
+  flex-shrink: 0;
+}
+
+.ep-card-title {
+  flex: 1;
+}
+
+.ep-card-body {
+  padding: 12px 14px;
+}
+
+.ep-stat-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ep-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ep-stat-label {
+  color: var(--ep-text-muted);
+  flex-shrink: 0;
+}
+
+.ep-stat-val {
+  font-family: var(--ep-font-mono);
+  font-weight: 500;
+  color: var(--ep-text);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.ep-stat-val.ep-bold {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ep-text);
+}
+
+.ep-stat-val.ep-sv-dmg {
+  color: #2e7d32;
+}
+
+.ep-stat-val.ep-sv-mult {
+  color: var(--ep-gold-dark);
+}
+
+.ep-stat-val.ep-sv-rate {
+  color: #1565c0;
+}
+
+.ep-stat-val.ep-sv-pct {
+  color: #6a1b9a;
+}
+
+.ep-stat-val.ep-sv-time {
+  color: #e65100;
+}
+
+/* ==========================================================================
+   Rune Selector Tags
+   ========================================================================== */
+
+.ep-rune-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ep-rune-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 28px;
+}
+
+.ep-rune-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  font-size: 12px;
+  color: var(--ep-text);
+  background: var(--ep-bg-alt);
+  border: 1px solid var(--ep-border);
+  border-radius: 100px;
+}
+
+.ep-rune-tag-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ep-text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background var(--ep-transition), color var(--ep-transition);
+}
+
+.ep-rune-tag-remove:hover {
+  background: var(--ep-border);
+  color: #cc0000;
+}
+
+/* ==========================================================================
+   Tooltip
+   ========================================================================== */
+
+.ep-tooltip {
+  font-family: var(--ep-font);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.ep-tooltip strong {
+  color: var(--ep-text);
+}
+
+/* ==========================================================================
+   Ability Grid Notes
+   ========================================================================== */
+
+.ep-ability-note {
+  font-size: 11px;
+  color: var(--ep-text-muted);
+  font-style: italic;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--ep-bg-alt);
+  border-radius: var(--ep-radius);
+  border: 1px dashed var(--ep-border);
+}
+
+/* ==========================================================================
+   Toast (for copy feedback)
+   ========================================================================== */
+
+/* Toast styles are injected inline in main.js */
+
+/* ==========================================================================
+   Scrollbar Styling
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ep-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ep-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ep-border-dark);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ep-border) var(--ep-bg);
+}

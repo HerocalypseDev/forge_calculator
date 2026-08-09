@@ -1,0 +1,498 @@
+{
+  "source": "_Weapon!C2:E80 (+ DPS C12/C23 validation lists)",
+  "types": [
+    "Dagger",
+    "Straight Sword",
+    "Mace",
+    "Gauntlet",
+    "Axe",
+    "Katana",
+    "Great Sword",
+    "Spear",
+    "Great Axe",
+    "Colossal Sword"
+  ],
+  "race_bonus_types": [
+    "Dagger",
+    "Straight Sword",
+    "Gauntlets",
+    "Great Axe",
+    "Colossal Sword"
+  ],
+  "weapons": [
+    {
+      "name": "Dagger",
+      "type": "Dagger",
+      "interval": 0.47,
+      "damage": 4.3
+    },
+    {
+      "name": "Falchion Knife",
+      "type": "Dagger",
+      "interval": 0.47,
+      "damage": 4.3
+    },
+    {
+      "name": "Gladius Dagger",
+      "type": "Dagger",
+      "interval": 0.47,
+      "damage": 4.3
+    },
+    {
+      "name": "Hook",
+      "type": "Dagger",
+      "interval": 0.52,
+      "damage": 4.73
+    },
+    {
+      "name": "Cultist Dagger",
+      "type": "Dagger",
+      "interval": 0.47,
+      "damage": 5.25
+    },
+    {
+      "name": "Shark's Fang",
+      "type": "Dagger",
+      "interval": 0.36,
+      "damage": 3.87
+    },
+    {
+      "name": "Curved Dagger",
+      "type": "Dagger",
+      "interval": 0.41,
+      "damage": 4.95
+    },
+    {
+      "name": "Kunai",
+      "type": "Dagger",
+      "interval": 0.39,
+      "damage": 3.87
+    },
+    {
+      "name": "Jitte",
+      "type": "Dagger",
+      "interval": 0.49,
+      "damage": 4.95
+    },
+    {
+      "name": "Damascus Dagger",
+      "type": "Dagger",
+      "interval": 0.47,
+      "damage": 4.73
+    },
+    {
+      "name": "Falchion",
+      "type": "Straight Sword",
+      "interval": 0.7,
+      "damage": 7.5
+    },
+    {
+      "name": "Gladius",
+      "type": "Straight Sword",
+      "interval": 0.74,
+      "damage": 7.88
+    },
+    {
+      "name": "Cutlass",
+      "type": "Straight Sword",
+      "interval": 0.48,
+      "damage": 9.375
+    },
+    {
+      "name": "Rapier",
+      "type": "Straight Sword",
+      "interval": 0.58,
+      "damage": 7.5
+    },
+    {
+      "name": "Chaos",
+      "type": "Straight Sword",
+      "interval": 0.7,
+      "damage": 9.375
+    },
+    {
+      "name": "Hell Slayer",
+      "type": "Straight Sword",
+      "interval": 0.7,
+      "damage": 10.125
+    },
+    {
+      "name": "Candy Cane",
+      "type": "Straight Sword",
+      "interval": 0.52,
+      "damage": 7.5
+    },
+    {
+      "name": "Crystalized Broadsword",
+      "type": "Straight Sword",
+      "interval": 0.74,
+      "damage": 9.98
+    },
+    {
+      "name": "Hook Blade",
+      "type": "Straight Sword",
+      "interval": 0.52,
+      "damage": 8.25
+    },
+    {
+      "name": "Hachiwari",
+      "type": "Straight Sword",
+      "interval": 0.7,
+      "damage": 8.25
+    },
+    {
+      "name": "Chokuto",
+      "type": "Straight Sword",
+      "interval": 0.64,
+      "damage": 7.5
+    },
+    {
+      "name": "Dragon Blade",
+      "type": "Straight Sword",
+      "interval": 0.7,
+      "damage": 10.5
+    },
+    {
+      "name": "Mace",
+      "type": "Mace",
+      "interval": 1.17,
+      "damage": 6.0
+    },
+    {
+      "name": "Spiked Mace",
+      "type": "Mace",
+      "interval": 1.17,
+      "damage": 6.3
+    },
+    {
+      "name": "Winged Mace",
+      "type": "Mace",
+      "interval": 1.17,
+      "damage": 6.6
+    },
+    {
+      "name": "Hammerhead Mace",
+      "type": "Mace",
+      "interval": 1.17,
+      "damage": 6.9
+    },
+    {
+      "name": "Grave Maker",
+      "type": "Mace",
+      "interval": 1.17,
+      "damage": 7.8
+    },
+    {
+      "name": "Kanabo",
+      "type": "Mace",
+      "interval": 1.3,
+      "damage": 7.2
+    },
+    {
+      "name": "Tetsubo",
+      "type": "Mace",
+      "interval": 1.11,
+      "damage": 6.72
+    },
+    {
+      "name": "Ironhand",
+      "type": "Gauntlet",
+      "interval": 0.55,
+      "damage": 7.6
+    },
+    {
+      "name": "Boxing Glove",
+      "type": "Gauntlet",
+      "interval": 0.63,
+      "damage": 8.0
+    },
+    {
+      "name": "Relevator",
+      "type": "Gauntlet",
+      "interval": 0.74,
+      "damage": 9.6
+    },
+    {
+      "name": "Savage Claws",
+      "type": "Gauntlet",
+      "interval": 0.51,
+      "damage": 8.0
+    },
+    {
+      "name": "DKG",
+      "type": "Gauntlet",
+      "interval": 0.51,
+      "damage": 10.0
+    },
+    {
+      "name": "Axe",
+      "type": "Axe",
+      "interval": 0.88,
+      "damage": 7.0
+    },
+    {
+      "name": "Battleaxe",
+      "type": "Axe",
+      "interval": 0.88,
+      "damage": 7.35
+    },
+    {
+      "name": "Curved Handle Axe",
+      "type": "Axe",
+      "interval": 0.88,
+      "damage": 7.7
+    },
+    {
+      "name": "Spade Armed Axe",
+      "type": "Axe",
+      "interval": 0.88,
+      "damage": 8.05
+    },
+    {
+      "name": "Ornate short axe",
+      "type": "Axe",
+      "interval": 0.88,
+      "damage": 8.4
+    },
+    {
+      "name": "Uchigatana",
+      "type": "Katana",
+      "interval": 0.69,
+      "damage": 8.5
+    },
+    {
+      "name": "Tachi",
+      "type": "Katana",
+      "interval": 0.73,
+      "damage": 8.925
+    },
+    {
+      "name": "Straight Edge Katana",
+      "type": "Katana",
+      "interval": 0.69,
+      "damage": 9.35
+    },
+    {
+      "name": "Washimaru",
+      "type": "Katana",
+      "interval": 0.58,
+      "damage": 10.2
+    },
+    {
+      "name": "Kurokiba-gatana",
+      "type": "Katana",
+      "interval": 0.63,
+      "damage": 9.35
+    },
+    {
+      "name": "Juto Katana",
+      "type": "Katana",
+      "interval": 0.69,
+      "damage": 8.5
+    },
+    {
+      "name": "Crusader Sword",
+      "type": "Great Sword",
+      "interval": 1.2,
+      "damage": 12.0
+    },
+    {
+      "name": "Long Sword",
+      "type": "Great Sword",
+      "interval": 1.33,
+      "damage": 12.0
+    },
+    {
+      "name": "Dark Knight Greatsword",
+      "type": "Great Sword",
+      "interval": 1.33,
+      "damage": 15.0
+    },
+    {
+      "name": "Anchored Greatsword",
+      "type": "Great Sword",
+      "interval": 1.09,
+      "damage": 13.8
+    },
+    {
+      "name": "Zweihander",
+      "type": "Great Sword",
+      "interval": 1.26,
+      "damage": 14.4
+    },
+    {
+      "name": "Spear",
+      "type": "Spear",
+      "interval": 0.73,
+      "damage": 7.5
+    },
+    {
+      "name": "Trident",
+      "type": "Spear",
+      "interval": 0.73,
+      "damage": 7.5
+    },
+    {
+      "name": "Angelic Spear",
+      "type": "Spear",
+      "interval": 0.66,
+      "damage": 9.75
+    },
+    {
+      "name": "Demonic Spear",
+      "type": "Spear",
+      "interval": 0.79,
+      "damage": 9.0
+    },
+    {
+      "name": "Knight Spear",
+      "type": "Spear",
+      "interval": 0.6,
+      "damage": 7.5
+    },
+    {
+      "name": "Compass Spear",
+      "type": "Spear",
+      "interval": 0.76,
+      "damage": 10.5
+    },
+    {
+      "name": "Shakujo",
+      "type": "Spear",
+      "interval": 0.73,
+      "damage": 7.5
+    },
+    {
+      "name": "Sodegarami",
+      "type": "Spear",
+      "interval": 0.66,
+      "damage": 10.13
+    },
+    {
+      "name": "Bo Staff",
+      "type": "Spear",
+      "interval": 0.66,
+      "damage": 10.5
+    },
+    {
+      "name": "Naginata",
+      "type": "Spear",
+      "interval": 0.73,
+      "damage": 10.88
+    },
+    {
+      "name": "Double Battle Axe",
+      "type": "Great Axe",
+      "interval": 1.7,
+      "damage": 15.75
+    },
+    {
+      "name": "Scythe",
+      "type": "Great Axe",
+      "interval": 1.54,
+      "damage": 14.25
+    },
+    {
+      "name": "Greater Battle Axe",
+      "type": "Great Axe",
+      "interval": 1.62,
+      "damage": 17.25
+    },
+    {
+      "name": "Wyvern Axe",
+      "type": "Great Axe",
+      "interval": 1.47,
+      "damage": 18.75
+    },
+    {
+      "name": "Reaper Scythe",
+      "type": "Great Axe",
+      "interval": 1.54,
+      "damage": 14.25
+    },
+    {
+      "name": "Executioner's Greataxe",
+      "type": "Great Axe",
+      "interval": 1.7,
+      "damage": 19.5
+    },
+    {
+      "name": "Anchored Straight Blade",
+      "type": "Great Axe",
+      "interval": 1.62,
+      "damage": 18.0
+    },
+    {
+      "name": "Sun Great Axe",
+      "type": "Great Axe",
+      "interval": 1.35,
+      "damage": 19.5
+    },
+    {
+      "name": "Great Sword",
+      "type": "Colossal Sword",
+      "interval": 1.4,
+      "damage": 20.0
+    },
+    {
+      "name": "Hammer",
+      "type": "Colossal Sword",
+      "interval": 1.56,
+      "damage": 22.0
+    },
+    {
+      "name": "Skull Crusher",
+      "type": "Colossal Sword",
+      "interval": 1.75,
+      "damage": 24.0
+    },
+    {
+      "name": "Dragon Slayer",
+      "type": "Colossal Sword",
+      "interval": 1.4,
+      "damage": 22.0
+    },
+    {
+      "name": "Comically Large Spoon",
+      "type": "Colossal Sword",
+      "interval": 1.4,
+      "damage": 18.0
+    },
+    {
+      "name": "Excalibur",
+      "type": "Colossal Sword",
+      "interval": 1.4,
+      "damage": 26.0
+    },
+    {
+      "name": "Colossal Terrorblade",
+      "type": "Colossal Sword",
+      "interval": 1.28,
+      "damage": 22.0
+    },
+    {
+      "name": "Colossal Gemblade",
+      "type": "Colossal Sword",
+      "interval": 1.4,
+      "damage": 23.0
+    },
+    {
+      "name": "Otsuchi",
+      "type": "Colossal Sword",
+      "interval": 1.56,
+      "damage": 25.0
+    },
+    {
+      "name": "Kinmon Kamagatana",
+      "type": "Colossal Sword",
+      "interval": 1.4,
+      "damage": 23.4
+    },
+    {
+      "name": "Sharktooth Odachi",
+      "type": "Colossal Sword",
+      "interval": 1.4,
+      "damage": 27.0
+    }
+  ]
+}

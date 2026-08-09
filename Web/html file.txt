@@ -1,0 +1,83 @@
+<includeonly><templatestyles src="Template:Infobox Ore/styles.css"/>__NOTOC__
+{{SEO
+|title ={{#invoke:Ores|getData|{{{name}}}|name}} Stats & Traits | The Forge Wiki
+|description = Learn about {{#invoke:Ores|getData|{{{name}}}|name}} in The Forge. View full base value, drop chances, rarity, multiplier, and locations!
+|keywords = {{#invoke:Ores|getData|{{{name}}}|name}}, Wiki, The Forge, {{#invoke:Ores|getData|{{{name}}}|rarity}} Ore, Items, Roblox, Mining, Drops, Value, PC, Mobile
+|image = {{#invoke:Ores|getData|{{{name}}}|image}}
+}}
+<div class="ep-page"><div class="no-content-padding" style="display:none"></div>
+<div class="ep-top">{{#if:{{{bg_image|}}}|<div class="ep-image-bg">[[File:{{{bg_image}}}|frameless|link=]]</div>}}<div class="ep-image">
+<div class="ep-image-text">
+<div class="ep-name">{{{name|Unnamed Ore}}}</div>
+<div class="ep-tags">
+<span class="ep-tag {{#switch:{{{rarity|}}}|Common=ep-tag-rarity-common|Uncommon=ep-tag-rarity-uncommon|Rare=ep-tag-rarity-rare|Epic=ep-tag-rarity-epic|Legendary=ep-tag-rarity-legendary|Mythic=ep-tag-rarity-mythic|Mythical=ep-tag-rarity-mythic|Divine=ep-tag-rarity-divine|Exotic=ep-tag-rarity-exotic|Relic=ep-tag-rarity-relic|#default=ep-tag-rarity-common}}">Ore</span>
+<span class="ep-tag ep-tag-island">{{#if:{{{island_link|}}}|[[{{{island_link|}}}|{{{island|}}}]]|{{{island|}}}}}</span>{{#if:{{{island2|}}}|<span class="ep-tag ep-tag-island">{{#if:{{{island2_link|}}}|[[{{{island2_link|}}}|{{{island2|}}}]]|{{{island2|}}}}}</span>}}
+</div>
+{{#if:{{{description|{{{systemmsg|}}}}}}|<div class="ep-desc">{{{description|{{{systemmsg|}}}}}}</div>}}
+</div></div>
+<div class="ep-portrait">
+{{#if:{{{image|}}}|[[File:{{{image}}}|frameless|link=File:{{{image}}}|alt={{{name|Ore}}}]]|<div class="ep-portrait-placeholder">No image</div>}}
+</div>
+</div>
+<div class="ep-body">
+<div class="ep-left">
+
+{{#if:{{{crafted_with|}}}{{{used_for|}}}|
+<tabber>
+Overview=<div class="ep-panel-ov">
+{{#if:{{{overview|}}}|<div class="ep-card"><div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Overview</span></div><div class="ep-card-body"><p>{{{overview}}}</p></div></div>}}
+<div class="ep-two-up">
+<div class="ep-card"><div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Location</span></div>
+<ul class="ep-loc-list">{{#if:{{{area1|}}}|<li class="ep-loc-header"><strong>{{{area1}}}</strong></li>}}{{{area1rocks|}}}{{#if:{{{area2|}}}|<li class="ep-loc-header"><strong>{{{area2}}}</strong></li>}}{{{area2rocks|}}}{{#if:{{{area3|}}}|<li class="ep-loc-header"><strong>{{{area3}}}</strong></li>}}{{{area3rocks|}}}{{#if:{{{area4|}}}|<li class="ep-loc-header"><strong>{{{area4}}}</strong></li>}}{{{area4rocks|}}}</ul></div>
+<div class="ep-card"><div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Traits</span></div>
+<ul class="ep-loc-list">{{{traits|}}}{{#if:{{{weapontraits|}}}|<li class="ep-loc-header ep-trait-header">Weapon Traits</li>{{{weapontraits}}}}}{{#if:{{{armortraits|}}}|<li class="ep-loc-header ep-trait-header">Armor Traits</li>{{{armortraits}}}}}{{#if:{{{bothtraits|}}}|<li class="ep-loc-header ep-trait-header">Weapon and Armor Traits</li>{{{bothtraits}}}}}</ul>
+</div>
+</div>
+</div>
+|-|Crafting=<div class="ep-panel-ov">
+{{#if:{{{crafted_with|}}}|<div class="ep-card"><div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Crafted With</span></div><div class="ep-card-body">{{{crafted_with}}}</div></div>}}
+{{#if:{{{used_for|}}}|<div class="ep-card"><div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Used For</span></div><div class="ep-card-body">{{{used_for}}}</div></div>}}
+</div>
+</tabber>
+|
+<div class="ep-panel-ov">
+{{#if:{{{overview|}}}|<div class="ep-card"><div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Overview</span></div><div class="ep-card-body"><p>{{{overview}}}</p></div></div>}}
+<div class="ep-two-up">
+<div class="ep-card"><div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Location</span></div>
+<ul class="ep-loc-list">{{#if:{{{area1|}}}|<li class="ep-loc-header"><strong>{{{area1}}}</strong></li>}}{{{area1rocks|}}}{{#if:{{{area2|}}}|<li class="ep-loc-header"><strong>{{{area2}}}</strong></li>}}{{{area2rocks|}}}{{#if:{{{area3|}}}|<li class="ep-loc-header"><strong>{{{area3}}}</strong></li>}}{{{area3rocks|}}}{{#if:{{{area4|}}}|<li class="ep-loc-header"><strong>{{{area4}}}</strong></li>}}{{{area4rocks|}}}</ul></div>
+<div class="ep-card"><div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Traits</span></div>
+<ul class="ep-loc-list">{{{traits|}}}{{#if:{{{weapontraits|}}}|<li class="ep-loc-header ep-trait-header">Weapon Traits</li>{{{weapontraits}}}}}{{#if:{{{armortraits|}}}|<li class="ep-loc-header ep-trait-header">Armor Traits</li>{{{armortraits}}}}}{{#if:{{{bothtraits|}}}|<li class="ep-loc-header ep-trait-header">Weapon and Armor Traits</li>{{{bothtraits}}}}}</ul>
+</div>
+</div>
+</div>
+}}
+
+</div>
+<div class="ep-right">
+<div class="ep-card">
+<div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Information</span></div>
+<div class="ep-stat-rows">
+{{#if:{{{rarity|}}}|<div class="ep-stat-row"><span class="ep-stat-label">Rarity</span><span class="ep-stat-val" style="color: {{#switch:{{{rarity|}}}|Common=#cccccc|Uncommon=#88dd88|Rare=#88aaff|Epic=#cc88ff|Legendary=#ffcc00|Mythic=#ff3b3b|Mythical=#ff3b3b|Divine=#ddaaff|Exotic=#ddaaff|Relic=#ffee44|#default=#cccccc}};">{{{rarity}}}</span></div>}}
+{{#if:{{{chance|}}}|<div class="ep-stat-row"><span class="ep-stat-label">Chance</span><span class="ep-stat-val ep-sv-xp">{{{chance}}}</span></div>}}
+{{#if:{{{multiplier|}}}|<div class="ep-stat-row"><span class="ep-stat-label">Multiplier</span><span class="ep-stat-val ep-sv-gold">{{{multiplier}}}</span></div>}}
+{{#if:{{{value|}}}|<div class="ep-stat-row"><span class="ep-stat-label">Value</span><span class="ep-stat-val ep-sv-hp">{{{value}}}</span></div>}}
+</div>
+</div>
+{{#if:{{{cat1|}}}{{{categories|}}}|<div class="ep-card">
+<div class="ep-card-head"><span class="ep-card-icon"></span><span class="ep-card-title">Categories</span></div>
+<ul class="ep-loc-list">
+{{{categories|}}}
+<ul class="ore-panel-list">
+{{#if:{{{cat1|}}}|<li>[[:Category:{{{cat1}}}|{{{cat1}}}]]</li>}}
+{{#if:{{{cat2|}}}|<li>[[:Category:{{{cat2}}}|{{{cat2}}}]]</li>}}
+{{#if:{{{cat3|}}}|<li>[[:Category:{{{cat3}}}|{{{cat3}}}]]</li>}}
+{{#if:{{{cat4|}}}|<li>[[:Category:{{{cat4}}}|{{{cat4}}}]]</li>}}
+{{#if:{{{cat5|}}}|<li>[[:Category:{{{cat5}}}|{{{cat5}}}]]</li>}}
+</ul>
+</ul>
+</div>}}
+</div>
+</div>
+</div>{{#if:{{{cat1|}}}|[[Category:{{{cat1}}}]]}}{{#if:{{{cat2|}}}|[[Category:{{{cat2}}}]]}}{{#if:{{{cat3|}}}|[[Category:{{{cat3}}}]]}}{{#if:{{{cat4|}}}|[[Category:{{{cat4}}}]]}}{{#if:{{{cat5|}}}|[[Category:{{{cat5}}}]]}}</includeonly><noinclude>
+{{Documentation}}
+</noinclude>

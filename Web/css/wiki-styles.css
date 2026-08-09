@@ -1,0 +1,205 @@
+/* ==========================================================================
+   Wiki Styles - MediaWiki/Encyclopedia Pugna page styling
+   Based on reference/wiki-page.html
+   ========================================================================== */
+
+/* CSS Custom Properties */
+:root {
+  --ep-bg: #f8f8f0;
+  --ep-bg-alt: #efeadd;
+  --ep-border: #c8b898;
+  --ep-border-dark: #a89878;
+  --ep-text: #1a1a1a;
+  --ep-text-muted: #4a4a3a;
+  --ep-link: #2e7d32;
+  --ep-link-hover: #1b5e20;
+  --ep-gold: #c8a85a;
+  --ep-gold-dark: #a88840;
+  --ep-card-bg: #fefefe;
+  --ep-card-border: #d8c8a8;
+  --ep-head-bg: #efeadd;
+  --ep-head-border: #c8b898;
+  --ep-input-bg: #ffffff;
+  --ep-input-border: #b8a888;
+  --ep-input-focus: #c8a85a;
+  --ep-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --ep-shadow-hover: 0 4px 16px rgba(0,0,0,0.12);
+  --ep-radius: 4px;
+  --ep-transition: 0.15s ease;
+  --ep-font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --ep-font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--ep-font);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ep-text);
+  background: var(--ep-bg);
+  min-height: 100vh;
+}
+
+/* Links */
+a {
+  color: var(--ep-link);
+  text-decoration: none;
+  transition: color var(--ep-transition);
+}
+
+a:hover {
+  color: var(--ep-link-hover);
+  text-decoration: underline;
+}
+
+/* Selection */
+::selection {
+  background: var(--ep-gold);
+  color: #1a1a1a;
+}
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid var(--ep-gold);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Page Layout: ep-page, ep-top, ep-image, ep-body, ep-left, ep-right
+   ========================================================================== */
+
+.ep-page {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Top section with title/image */
+.ep-top {
+  margin-bottom: 16px;
+}
+
+.ep-image {
+  background: linear-gradient(135deg, var(--ep-bg-alt) 0%, var(--ep-border) 100%);
+  border: 1px solid var(--ep-border);
+  border-radius: var(--ep-radius);
+  padding: 24px 32px;
+  text-align: center;
+  box-shadow: var(--ep-shadow);
+}
+
+.ep-image h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ep-text);
+  letter-spacing: -0.5px;
+}
+
+.ep-image .subtitle {
+  font-size: 14px;
+  color: var(--ep-text-muted);
+  margin-top: 4px;
+}
+
+/* Body - two column layout */
+.ep-body {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-content: start;
+}
+
+/* Left panel - inputs */
+.ep-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Right panel - results */
+.ep-right {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   Responsive Layout
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .ep-body {
+    grid-template-columns: 1fr;
+  }
+  .ep-right {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 780px) {
+  .ep-page {
+    padding: 0 12px;
+  }
+  .ep-image {
+    padding: 16px 20px;
+  }
+  .ep-image h1 {
+    font-size: 22px;
+  }
+  .ep-body {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .ep-page {
+    padding: 0 8px;
+  }
+  .ep-image {
+    padding: 12px 16px;
+  }
+  .ep-image h1 {
+    font-size: 18px;
+  }
+  .ep-body {
+    gap: 12px;
+  }
+}
+
+/* ==========================================================================
+   Utility Classes
+   ========================================================================== */
+
+.ep-bold { font-weight: 600; }
+.ep-muted { color: var(--ep-text-muted); }
+.ep-small { font-size: 12px; }
+.ep-mono { font-family: var(--ep-font-mono); }
+.ep-center { text-align: center; }
+.ep-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

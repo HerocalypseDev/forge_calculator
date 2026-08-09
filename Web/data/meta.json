@@ -1,0 +1,15 @@
+{
+  "workbook": "Copy of Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx",
+  "built_at": "2026-08-08T05:46:22+00:00",
+  "counts": {
+    "ores": 140,
+    "weapons": 79,
+    "races": 16,
+    "runes": 47,
+    "achievements": 16
+  },
+  "stat_formulas_sha256": "f84986751901f4bf42fecb42030b67f9a4b1f02b19684d5947b1f1972c5db61d",
+  "formula_only_ores": [
+    "Tigers Eye"
+  ]
+}
