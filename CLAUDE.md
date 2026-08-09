@@ -110,3 +110,16 @@ No linter or formatter is configured.
 | 5 | **Deploy guide + verification** — `DEPLOY.md`; `verify-engine.js` (9 golden checks) + `fuzz_verify.js` (250 builds, 8755 numeric fields, active_traits) all pass | ✅ Done | 205757e |
 
 **Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (worst rel err 5.19e-16). Deploy steps in `Web/mediawiki/DEPLOY.md`.
+
+### Manual Calculation Refactor — COMPLETED ✅
+**Goal:** Move the web calculator to explicit "Calculate DPS" triggering, remove auto-recalc and two display metrics. Mirrored in both the MediaWiki IIFE and the standalone ESM app.
+
+| Change | MediaWiki (`Web/mediawiki/`) | Standalone (`Web/js/`) | Status | Commit |
+|--------|------------------------------|------------------------|--------|--------|
+| **Calculate DPS button** — manual trigger below inputs; inputs hold pending state; no partial re-renders on change | `forge-calculator.common.js` (+ `fc-calc-btn` in `Template-ForgeCalculator-styles.css`) | `main.js`, `InputPanel.js` (+ `.ep-btn`/`.ep-calc-btn` in `css/calculator.css`) | ✅ Done | 2d9ac4d |
+| **Disable auto-recalc** — removed `scheduleRecalc`/`recalcTimeout`; `handleBuildChange` only stores build; `onCalculate: recalculate` wired in `init` | `forge-calculator.common.js` | `main.js` | ✅ Done | 2d9ac4d |
+| **Remove Crit Blend** — dropped from Core DPS card and clipboard copy | `forge-calculator.common.js` | `main.js`, `ResultsPanel.js` | ✅ Done | 2d9ac4d |
+| **Remove Burst section** — card, update block, and clipboard section removed; engine still returns `min_dps`/`max_dps`/`crit_blend` for fuzz parity | `forge-calculator.common.js` | `main.js`, `ResultsPanel.js` | ✅ Done | 2d9ac4d |
+| **Fix pre-existing standalone bug** — duplicate `deepClone` declaration (import + local func) was a module SyntaxError; removed unused `debounce`/`fmt4` imports | — | `main.js`, `ResultsPanel.js` | ✅ Done | 2d9ac4d |
+
+**Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (worst rel err 5.19e-16); `node --check`/`node --input-type=module --check` clean on all modified JS.
