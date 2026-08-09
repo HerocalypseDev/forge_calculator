@@ -226,3 +226,15 @@ No linter or formatter is configured.
 | **Repro** — `zero_dps_repro.js` demonstrates the fixed path (weapon DPS 0 → 135.6, blend 1.45, finite TTK) | `Web/mediawiki/zero_dps_repro.js` | ✅ Done | (this session) |
 
 **Verification:** `python -m pytest tests/` → **80 passed** (workbook-cached golden now runs and confirms C21 math); `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16); all focused tests (`ability-inputs`/`results-panel`/`ore-slot`/`bonus-derive`) PASSED; `node --check` clean; `python scripts/smoke_gui.py` → SMOKE OK. Fuzz untouched (`fuzz_gen.py` passes `base_crit_dmg` explicitly, so parity holds). Note: `min_dps`/`weapon_dps` at 0% crit are unchanged (blend = 1); only `max_dps` (C96, assumes all crits) and weapon DPS at **non-zero** crit chance change.
+
+### MediaWiki Armor Stats Whole-Percent Input — COMPLETED ✅
+**Goal:** MediaWiki-only pass on the Armor Stats section: enter percentages as whole numbers (15 = 15%) instead of decimals (0.15). Values clamp to the stat cap on commit; `transformBuildForEngine` divides the 3 armor pct fields by 100 before the engine. The engine itself is untouched — the /100 lives in the UI transform (same precedent as the Abilities whole-percent overhaul). Standalone `Web/js` and desktop keep decimal inputs.
+
+| Change | Where | Status | Commit |
+|--------|-------|--------|--------|
+| **Whole-percent format** — `createStatInput` fields use `step:1`, `max` = stat cap (lethality 150, crit chance/dmg 100); `transformBuildForEngine` divides the 3 armor pct fields by 100 | `forge-calculator.common.js` | ✅ Done | (this session) |
+| **Commit clamping** — `[0, max]` clamp on change; non-numeric/empty → 0 | `createStatInput` | ✅ Done | (this session) |
+| **Subtext** — "Enter percentages as whole numbers (15 = 15%)." under the Armor Stats title | `forge-calculator.common.js` + `.fc-input-section-subtext` in `Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
+| **Test** — `armor-stats-test.js`: DOM-level checks for step/max/min attrs, clamp on commit, percent→decimal transform, no stale decimal inputmode | `Web/mediawiki/armor-stats-test.js` | ✅ Done | (this session) |
+
+**Verification:** `node Web/mediawiki/armor-stats-test.js` → ALL ARMOR-STATS CHECKS PASSED; `verify-engine.js` / `fuzz_verify.js` / `ability-inputs-test.js` / `results-panel-test.js` / `ore-slot-test.js` / `bonus-derive-test.js` all pass; `node --check` clean. Engine untouched.

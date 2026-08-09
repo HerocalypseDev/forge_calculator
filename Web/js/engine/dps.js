@@ -8,6 +8,7 @@ import { statTotals, calcOreContributions } from './stats.js';
 import { procComponents } from './procs.js';
 import { slotShares } from './formulas.js';
 import { activeTraits } from './traits.js';
+import { normalizeBuild } from './normalize.js';
 
 /**
  * Full DPS calculation
@@ -16,6 +17,7 @@ import { activeTraits } from './traits.js';
  * @returns {CalculateResult}
  */
 export function calculate(build, game) {
+  build = normalizeBuild(build);
   const shares = slotShares(build.slots);
   const avgPower = avgOrePower(build.slots, game);
 

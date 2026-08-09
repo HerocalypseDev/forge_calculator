@@ -116,28 +116,28 @@ function deriveBonusType(build) {
  */
 function transformBuildForEngine(build) {
   return {
-    slots: build.oreSlots.map(s => ({ name: s.name, amount: s.amount })),
+    slots: build.oreSlots.map(s => ({ name: s.name, amount: Number(s.amount) || 0 })),
     weapon_name: build.weaponName,
-    quality: build.quality,
-    forge_level: build.enhancement,
+    quality: Number(build.quality) || 0,
+    forge_level: Number(build.enhancement) || 0,
     race: build.race,
     bonus_weapon_type: deriveBonusType(build),
     rune_cells: build.runes || [],
     base_crit_chance: 0,
     base_crit_dmg: 1.45, // workbook C21 base crit damage (145% crits before bonuses)
-    armor_crit_chance: build.armorCritChance,
-    armor_crit_dmg: build.armorCritDmg,
-    armor_lethality: build.armorLethality,
+    armor_crit_chance: Number(build.armorCritChance) || 0,
+    armor_crit_dmg: Number(build.armorCritDmg) || 0,
+    armor_lethality: Number(build.armorLethality) || 0,
     base_lethality: 0, // Not in InputPanel
     abilities: {
-      fire_dmg: build.fireDmg,
-      fire_chance: build.fireChance,
-      fire_time: build.fireTime,
-      poison_dmg: build.poisonDmg,
-      poison_chance: build.poisonChance,
-      poison_time: build.poisonTime,
-      blast_dmg: build.blastDmg,
-      blast_chance: build.blastChance
+      fire_dmg: Number(build.fireDmg) || 0,
+      fire_chance: Number(build.fireChance) || 0,
+      fire_time: Number(build.fireTime) || 0,
+      poison_dmg: Number(build.poisonDmg) || 0,
+      poison_chance: Number(build.poisonChance) || 0,
+      poison_time: Number(build.poisonTime) || 0,
+      blast_dmg: Number(build.blastDmg) || 0,
+      blast_chance: Number(build.blastChance) || 0
     },
     berserk: 0, // Not in InputPanel
     achievement: (build.achievements || []).join(', ') // Engine expects string

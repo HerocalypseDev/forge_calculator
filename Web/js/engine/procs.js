@@ -22,7 +22,7 @@ import { shareScaling } from './formulas.js';
  * @returns {number}
  */
 function duration(oreTerms, raceTime, abilityTime, minus) {
-  const top = Math.max(...oreTerms, raceTime, abilityTime);
+  const top = Math.max(...oreTerms, raceTime ?? 0, abilityTime ?? 0);
   return Math.max(top - minus, 0.0);
 }
 

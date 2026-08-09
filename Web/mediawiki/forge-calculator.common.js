@@ -351,7 +351,53 @@
     return parts.length ? parts.join(' | ') : 'No active weapon traits';
   }
 
+  function num(v) {
+    var n = Number(v);
+    return n === n && n !== Infinity && n !== -Infinity ? n : 0;
+  }
+
+  function baseCritDmg(v) {
+    if (v === null || v === undefined || v === '') { return 1.45; }
+    var n = Number(v);
+    return n === n && n !== Infinity && n !== -Infinity ? n : 1.45;
+  }
+
+  function normalizeBuild(build) {
+    var b = build || {};
+    var slots = b.slots ? b.slots.slice() : [];
+    return {
+      slots: slots.map(function (s) {
+        return { name: String(s && s.name != null ? s.name : ''), amount: num(s && s.amount) };
+      }),
+      weapon_name: typeof b.weapon_name === 'string' ? b.weapon_name : '',
+      quality: num(b.quality),
+      forge_level: num(b.forge_level),
+      race: typeof b.race === 'string' ? b.race : '',
+      bonus_weapon_type: typeof b.bonus_weapon_type === 'string' ? b.bonus_weapon_type : '',
+      rune_cells: b.rune_cells ? b.rune_cells.map(String) : [],
+      base_crit_chance: num(b.base_crit_chance),
+      base_crit_dmg: baseCritDmg(b.base_crit_dmg),
+      armor_crit_chance: num(b.armor_crit_chance),
+      armor_crit_dmg: num(b.armor_crit_dmg),
+      armor_lethality: num(b.armor_lethality),
+      base_lethality: num(b.base_lethality),
+      abilities: {
+        blast_dmg: num(b.abilities && b.abilities.blast_dmg),
+        blast_chance: num(b.abilities && b.abilities.blast_chance),
+        fire_dmg: num(b.abilities && b.abilities.fire_dmg),
+        fire_chance: num(b.abilities && b.abilities.fire_chance),
+        fire_time: num(b.abilities && b.abilities.fire_time),
+        poison_dmg: num(b.abilities && b.abilities.poison_dmg),
+        poison_chance: num(b.abilities && b.abilities.poison_chance),
+        poison_time: num(b.abilities && b.abilities.poison_time)
+      },
+      berserk: num(b.berserk),
+      achievement: typeof b.achievement === 'string' ? b.achievement : ''
+    };
+  }
+
   function calculate(build, game) {
+    build = normalizeBuild(build);
     var shares = slotShares(build.slots);
     var avgPower = avgOrePower(build.slots, game);
 
@@ -1165,10 +1211,13 @@
 
     var container = createEl('div', { class: 'fc-stat-input' });
 
+    // Whole-percent entry (15 = 15%); max = the stat's cap (lethality 150%,
+    // crit chance/crit dmg 100%). The build stores percents and
+    // transformBuildForEngine divides by 100.
     var fields = [
-      { key: 'armorLethality', label: 'Armor Lethality', placeholder: '0', min: 0, step: '0.01' },
-      { key: 'armorCritChance', label: 'Armor Crit Chance', placeholder: '0', min: 0, step: '0.01' },
-      { key: 'armorCritDmg', label: 'Armor Crit Damage', placeholder: '0', min: 0, step: '0.01' }
+      { key: 'armorLethality', label: 'Armor Lethality', placeholder: '0', min: 0, max: 150, step: 1 },
+      { key: 'armorCritChance', label: 'Armor Crit Chance', placeholder: '0', min: 0, max: 100, step: 1 },
+      { key: 'armorCritDmg', label: 'Armor Crit Damage', placeholder: '0', min: 0, max: 100, step: 1 }
     ];
 
     for (var i = 0; i < fields.length; i++) {
@@ -1181,13 +1230,14 @@
           id: field.key,
           value: currentValues[field.key] !== undefined ? currentValues[field.key] : '',
           min: String(field.min),
+          max: String(field.max),
           step: field.step,
           placeholder: field.placeholder,
-          inputmode: 'decimal'
+          inputmode: 'numeric'
         });
 
         function commit() {
-          currentValues[field.key] = parseFloat(input.value) || 0;
+          currentValues[field.key] = Math.max(0, Math.min(parseFloat(input.value) || 0, field.max));
           input.value = currentValues[field.key];
           var out = {};
           for (var k2 in currentValues) { out[k2] = currentValues[k2]; }
@@ -1702,6 +1752,9 @@
 
     var statSection = createEl('div', { class: 'fc-input-section' });
     statSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Armor Stats']));
+    statSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
+      'Enter percentages as whole numbers (15 = 15%). Leave 0 for no armor stat.'
+    ]));
 
     var statInput = createStatInput({
       values: {
@@ -1864,30 +1917,30 @@
 
   function transformBuildForEngine(build) {
     return {
-      slots: build.oreSlots.map(function (s) { return { name: s.name, amount: s.amount }; }),
+      slots: build.oreSlots.map(function (s) { return { name: s.name, amount: Number(s.amount) || 0 }; }),
       weapon_name: build.weaponName,
-      quality: build.quality,
-      forge_level: build.enhancement,
+      quality: Number(build.quality) || 0,
+      forge_level: Number(build.enhancement) || 0,
       race: build.race,
       bonus_weapon_type: deriveBonusType(build),
       rune_cells: build.runes || [],
       base_crit_chance: 0,
       base_crit_dmg: 1.45, // workbook C21 base crit damage (145% crits before bonuses)
-      armor_crit_chance: build.armorCritChance,
-      armor_crit_dmg: build.armorCritDmg,
-      armor_lethality: build.armorLethality,
+      armor_crit_chance: (Number(build.armorCritChance) || 0) / 100,
+      armor_crit_dmg: (Number(build.armorCritDmg) || 0) / 100,
+      armor_lethality: (Number(build.armorLethality) || 0) / 100,
       base_lethality: 0,
       abilities: {
         // UI stores ability percents as whole numbers (15 = 15%); engine wants
         // decimal fractions. Times are plain seconds already.
-        fire_dmg: build.fireDmg / 100,
-        fire_chance: build.fireChance / 100,
-        fire_time: build.fireTime,
-        poison_dmg: build.poisonDmg / 100,
-        poison_chance: build.poisonChance / 100,
-        poison_time: build.poisonTime,
-        blast_dmg: build.blastDmg / 100,
-        blast_chance: build.blastChance / 100
+        fire_dmg: (Number(build.fireDmg) || 0) / 100,
+        fire_chance: (Number(build.fireChance) || 0) / 100,
+        fire_time: Number(build.fireTime) || 0,
+        poison_dmg: (Number(build.poisonDmg) || 0) / 100,
+        poison_chance: (Number(build.poisonChance) || 0) / 100,
+        poison_time: Number(build.poisonTime) || 0,
+        blast_dmg: (Number(build.blastDmg) || 0) / 100,
+        blast_chance: (Number(build.blastChance) || 0) / 100
       },
       berserk: 0,
       achievement: build.achievement || NONE_LABEL

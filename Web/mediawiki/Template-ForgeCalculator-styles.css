@@ -590,7 +590,8 @@
   margin: 12px 0 8px;
 }
 
-.fc-ability-section-subtext {
+.fc-ability-section-subtext,
+.fc-input-section-subtext {
   font-size: 11px;
   color: #4a4a3a;
   font-style: italic;

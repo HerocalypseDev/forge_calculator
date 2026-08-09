@@ -171,5 +171,16 @@ approx(r.fire_duration, 4.0, 'fire time alone');
 r = FC.calculate(build({ weapon_name: 'Dagger', abilities: { fire_dmg: 0, fire_chance: 0, fire_time: 0, poison_dmg: 0, poison_chance: 0, poison_time: 5, blast_dmg: 0, blast_chance: 0 } }), game);
 approx(r.poison_duration, 3.0, 'poison time alone');
 
+// 11. Missing ability/armor fields must never produce NaN (regression for ∞ TTK)
+r = FC.calculate(build({ weapon_name: 'Dagger', abilities: {}, armor_crit_chance: undefined }), game);
+let nanFail = 0;
+if (!Number.isFinite(r.total_dps)) { nanFail++; console.log('  FAIL partial build: total_dps not finite'); }
+if (!(r.ttk_25k > 0)) { nanFail++; console.log('  FAIL partial build: ttk_25k not > 0'); }
+failures += nanFail;
+if (nanFail === 0) { console.log('  PASS partial build: total_dps finite, ttk_25k > 0'); }
+const partialTotal = r.total_dps;
+r = FC.calculate(build({ weapon_name: 'Dagger' }), game);
+approx(partialTotal, r.total_dps, 'partial build == full-zero-abilities total');
+
 console.log(failures === 0 ? '\nALL GOLDEN CHECKS PASSED ✓' : `\n${failures} CHECK(S) FAILED ✗`);
 process.exit(failures === 0 ? 0 : 1);
