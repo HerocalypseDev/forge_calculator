@@ -176,3 +176,13 @@ No linter or formatter is configured.
 | **Regression test** — `results-panel-test.js` now asserts the traits block renders with the full text preserved (no truncation) and no stat row is used | `Web/mediawiki/results-panel-test.js` | — | ✅ Done | (this session) |
 
 **Verification:** `node Web/mediawiki/results-panel-test.js` → ALL RESULTS-PANEL CHECKS PASSED; `verify-engine.js` / `ability-inputs-test.js` / `fuzz_verify.js` all pass; `node --check` clean on all modified JS. Display-only change — engine untouched.
+
+### Ore Slot Amount Reset on Ore Change — COMPLETED ✅
+**Goal:** When an ore is changed to a different ore (or removed via the prompt) in an ore slot, the slot's amount resets to 0. Re-selecting the same ore keeps the typed amount; programmatic `setValue` (state restore / Reset) preserves the amount (the dropdown's `setValue` does not fire `onChange`).
+
+| Change | MediaWiki (`Web/mediawiki/`) | Standalone (`Web/js/`) | Status | Commit |
+|--------|------------------------------|------------------------|--------|--------|
+| **Amount reset** — dropdown `onChange` compares new name vs current; on change/removal it zeroes `currentAmount` + the amount input before emitting | `forge-calculator.common.js` `createOreSlot` | `OreSlot.js` | ✅ Done | (this session) |
+| **Regression test** — `ore-slot-test.js`: renders the real slot, drives the dropdown via item clicks, asserts reset on change/removal, preserve on same-ore re-select, preserve on `setValue` | `Web/mediawiki/ore-slot-test.js` | — | ✅ Done | (this session) |
+
+**Verification:** `node Web/mediawiki/ore-slot-test.js` → ALL ORE-SLOT CHECKS PASSED; `verify-engine.js` / `ability-inputs-test.js` / `results-panel-test.js` / `fuzz_verify.js` all pass; `node --check` clean. Engine untouched.

@@ -962,7 +962,13 @@
       placeholder: prompt,
       id: slotId + '-ore',
       onChange: function (newName) {
-        currentName = fromUI(newName);
+        var parsed = fromUI(newName);
+        if (parsed !== currentName) {
+          // Ore changed or removed — reset the amount to 0.
+          currentName = parsed;
+          currentAmount = 0;
+          amountInput.value = 0;
+        }
         updateMult();
         onChange(currentName, currentAmount);
       }

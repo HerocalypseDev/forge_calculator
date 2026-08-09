@@ -60,7 +60,13 @@ export function createOreSlot({
     placeholder: prompt,
     id: `${slotId}-ore`,
     onChange: (newName) => {
-      currentName = fromUI(newName, noneLabel, prompt);
+      const parsed = fromUI(newName, noneLabel, prompt);
+      if (parsed !== currentName) {
+        // Ore changed or removed — reset the amount to 0.
+        currentName = parsed;
+        currentAmount = 0;
+        amountInput.value = 0;
+      }
       updateMult();
       onChange(currentName, currentAmount);
     }
