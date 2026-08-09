@@ -12,7 +12,7 @@ import {
   CLASS_ATK_SPEED
 } from './constants.js';
 import { shareScaling } from './formulas.js';
-import { parseTrait } from '../../utils/parse.js';
+import { parseTrait } from '../utils/parse.js';
 
 /**
  * Sum one stat's share-scaled contributions across slots
