@@ -22,7 +22,6 @@ const DEFAULT_BUILD = {
   quality: 100,
   enhancement: 0,
   race: 'None',
-  bonusType: 'None',
   armorLethality: 0,
   armorCritChance: 0,
   armorCritDmg: 0,
@@ -98,6 +97,19 @@ function handleBuildChange(newBuild) {
 }
 
 /**
+ * Auto-detect the race/class weapon-type bonus from the selected weapon's type
+ * (workbook E44/E47 check C23 = bonus type, which now always equals the
+ * equipped weapon's type). Empty when no weapon is selected.
+ * @param {Object} build - Build in InputPanel format
+ * @returns {string}
+ */
+function deriveBonusType(build) {
+  if (!gameData || !build.weaponName || build.weaponName === gameData.constants.noneLabel) return '';
+  const weapon = gameData._weapon_index.get(build.weaponName);
+  return weapon ? weapon.type : '';
+}
+
+/**
  * Transform build from InputPanel format (camelCase) to Engine format (snake_case)
  * @param {Object} build - Build in InputPanel format
  * @returns {Object} Build in Engine format
@@ -109,7 +121,7 @@ function transformBuildForEngine(build) {
     quality: build.quality,
     forge_level: build.enhancement,
     race: build.race,
-    bonus_weapon_type: build.bonusType,
+    bonus_weapon_type: deriveBonusType(build),
     rune_cells: build.runes || [],
     base_crit_chance: 0,
     base_crit_dmg: 0, // Not in InputPanel
@@ -234,7 +246,7 @@ function formatResultsForClipboard(result, build) {
     '',
     `Weapon: ${build.weaponName} (${build.weaponType})`,
     `Quality: ${build.quality}% | Enhancement: +${build.enhancement}`,
-    `Race: ${build.race} | Bonus: ${build.bonusType}`,
+    `Race: ${build.race} | Weapon-Type Bonus: ${deriveBonusType(build) || 'None'}`,
     '',
     '--- Core DPS ---',
     `Base Damage: ${result.unforged_damage.toFixed(2)}`,

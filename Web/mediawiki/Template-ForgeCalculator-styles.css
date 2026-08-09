@@ -152,7 +152,6 @@
 .fc-stat-input-label,
 .fc-ability-label,
 .fc-race-wrapper label,
-.fc-bonus-wrapper label,
 .fc-achievement-wrapper label {
   display: block;
   font-size: 12px;
@@ -284,17 +283,15 @@
   min-width: auto;
 }
 
-/* Race & Bonus wrappers */
-.fc-race-wrapper,
-.fc-bonus-wrapper {
+/* Race wrapper */
+.fc-race-wrapper {
   display: flex;
   flex-direction: column;
   gap: 4px;
   margin-bottom: 10px;
 }
 
-.fc-race-wrapper:last-child,
-.fc-bonus-wrapper:last-child {
+.fc-race-wrapper:last-child {
   margin-bottom: 0;
 }
 
@@ -739,7 +736,6 @@
   .fc-stat-input-label,
   .fc-ability-label,
   .fc-race-wrapper label,
-  .fc-bonus-wrapper label,
   .fc-achievement-wrapper label {
     font-size: 11px;
   }

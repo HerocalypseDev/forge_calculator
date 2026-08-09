@@ -43,8 +43,7 @@
 .ep-enhancement-wrapper label,
 .ep-stat-input-label,
 .ep-ability-label,
-.ep-race-wrapper label,
-.ep-bonus-wrapper label {
+.ep-race-wrapper label {
   display: block;
   font-size: 12px;
   font-weight: 500;
@@ -174,17 +173,15 @@
   min-width: auto;
 }
 
-/* Race & Bonus wrappers */
-.ep-race-wrapper,
-.ep-bonus-wrapper {
+/* Race wrapper */
+.ep-race-wrapper {
   display: flex;
   flex-direction: column;
   gap: 4px;
   margin-bottom: 10px;
 }
 
-.ep-race-wrapper:last-child,
-.ep-bonus-wrapper:last-child {
+.ep-race-wrapper:last-child {
   margin-bottom: 0;
 }
 

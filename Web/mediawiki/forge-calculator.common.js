@@ -1609,7 +1609,6 @@
     // "Select X" prompts — build state keeps "None" sentinel
     var ORE_PROMPT = 'Select Ores';
     var RACE_PROMPT = 'Select Race';
-    var BONUS_PROMPT = 'Select Bonus Type';
     var WEAPON_TYPE_PROMPT = 'Select Weapon Type';
     var WEAPON_PROMPT = 'Select Weapon';
     var ENHANCEMENT_PROMPT = 'Select Enhancement';
@@ -1681,8 +1680,11 @@
     });
     weaponSection.appendChild(weaponSelector);
 
+    // The race/class weapon-type bonus is auto-detected from the selected
+    // weapon's type (workbook E44/E47 key off C23 = bonus type, which now
+    // always equals the equipped weapon's type), so there is no separate input.
     var raceSection = createEl('div', { class: 'fc-input-section' });
-    raceSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Race & Bonus']));
+    raceSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Race']));
 
     var raceWrapper = createEl('div', { class: 'fc-race-wrapper' });
     var raceLabel = createEl('label', { for: 'race-select' }, ['Race']);
@@ -1696,19 +1698,7 @@
     });
     raceWrapper.append(raceLabel, raceDropdown);
 
-    var bonusWrapper = createEl('div', { class: 'fc-bonus-wrapper' });
-    var bonusLabel = createEl('label', { for: 'bonus-type-select' }, ['Bonus Type']);
-    var bonusOptions = [BONUS_PROMPT].concat(data.race_bonus_types);
-    var bonusDropdown = createSearchableDropdown({
-      options: bonusOptions,
-      value: toUI(getBuild().bonusType, BONUS_PROMPT),
-      placeholder: BONUS_PROMPT,
-      id: 'bonus-type-select',
-      onChange: function (bonusType) { patch({ bonusType: fromUI(bonusType, BONUS_PROMPT) }); }
-    });
-    bonusWrapper.append(bonusLabel, bonusDropdown);
-
-    raceSection.append(raceWrapper, bonusWrapper);
+    raceSection.appendChild(raceWrapper);
 
     var statSection = createEl('div', { class: 'fc-input-section' });
     statSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Armor Stats']));
@@ -1807,7 +1797,6 @@
         newBuild.enhancement !== undefined ? newBuild.enhancement : 0
       );
       raceDropdown.setValue(toUI(newBuild.race, RACE_PROMPT));
-      bonusDropdown.setValue(toUI(newBuild.bonusType, BONUS_PROMPT));
       statInput.setValues({
         armorLethality: newBuild.armorLethality,
         armorCritChance: newBuild.armorCritChance,
@@ -1842,7 +1831,6 @@
     quality: 100,
     enhancement: 0,
     race: NONE_LABEL,
-    bonusType: NONE_LABEL,
     armorLethality: 0,
     armorCritChance: 0,
     armorCritDmg: 0,
@@ -1865,6 +1853,15 @@
     resultsPanel: null
   };
 
+  // Auto-detect the race/class weapon-type bonus from the selected weapon's
+  // type (workbook E44/E47 check C23 = bonus type, and it now always equals
+  // the equipped weapon's type). Empty when no weapon is selected.
+  function deriveBonusType(build) {
+    if (!state.gameData || !build.weaponName || build.weaponName === NONE_LABEL) { return ''; }
+    var weapon = state.gameData._weapon_index.get(build.weaponName);
+    return weapon ? weapon.type : '';
+  }
+
   function transformBuildForEngine(build) {
     return {
       slots: build.oreSlots.map(function (s) { return { name: s.name, amount: s.amount }; }),
@@ -1872,7 +1869,7 @@
       quality: build.quality,
       forge_level: build.enhancement,
       race: build.race,
-      bonus_weapon_type: build.bonusType,
+      bonus_weapon_type: deriveBonusType(build),
       rune_cells: build.runes || [],
       base_crit_chance: 0,
       base_crit_dmg: 0,
@@ -1956,7 +1953,7 @@
       '',
       'Weapon: ' + build.weaponName + ' (' + build.weaponType + ')',
       'Quality: ' + build.quality + '% | Enhancement: +' + build.enhancement,
-      'Race: ' + build.race + ' | Bonus: ' + build.bonusType,
+      'Race: ' + build.race + ' | Weapon-Type Bonus: ' + (deriveBonusType(build) || 'None'),
       '',
       '--- Core DPS ---',
       'Base Damage: ' + result.unforged_damage.toFixed(2),

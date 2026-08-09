@@ -15,7 +15,6 @@ const CLASS_PANEL = 'ep-input-panel';
 const CLASS_SECTION = 'ep-input-section';
 const CLASS_SECTION_TITLE = 'ep-input-section-title';
 const CLASS_RACE_WRAPPER = 'ep-race-wrapper';
-const CLASS_BONUS_WRAPPER = 'ep-bonus-wrapper';
 
 /**
  * Create the full input panel
@@ -41,7 +40,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   // Contextual "Select X" prompts (display layer; build state keeps the "None" sentinel)
   const ORE_PROMPT = 'Select Ores';
   const RACE_PROMPT = 'Select Race';
-  const BONUS_PROMPT = 'Select Bonus Type';
   const WEAPON_TYPE_PROMPT = 'Select Weapon Type';
   const WEAPON_PROMPT = 'Select Weapon';
   const ENHANCEMENT_PROMPT = 'Select Enhancement';
@@ -97,9 +95,11 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   });
   weaponSection.appendChild(weaponSelector);
 
-  // Race & Bonus Type Section
+  // Race Section — the race/class weapon-type bonus is auto-detected from the
+  // selected weapon's type (workbook E44/E47 key off the bonus type, which now
+  // always equals the equipped weapon's type), so there is no separate input.
   const raceSection = createEl('div', { class: CLASS_SECTION });
-  const raceTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Race & Bonus']);
+  const raceTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Race']);
   raceSection.appendChild(raceTitle);
 
   const raceWrapper = createEl('div', { class: CLASS_RACE_WRAPPER });
@@ -116,21 +116,7 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   });
   raceWrapper.append(raceLabel, raceDropdown);
 
-  const bonusWrapper = createEl('div', { class: CLASS_BONUS_WRAPPER });
-  const bonusLabel = createEl('label', { for: 'bonus-type-select' }, ['Bonus Type']);
-  const bonusOptions = [BONUS_PROMPT, ...data.race_bonus_types];
-  const bonusDropdown = createSearchableDropdown({
-    options: bonusOptions,
-    value: toUI(build.bonusType, BONUS_PROMPT),
-    placeholder: BONUS_PROMPT,
-    id: 'bonus-type-select',
-    onChange: (bonusType) => {
-      onBuildChange({ ...build, bonusType: fromUI(bonusType, BONUS_PROMPT) });
-    }
-  });
-  bonusWrapper.append(bonusLabel, bonusDropdown);
-
-  raceSection.append(raceWrapper, bonusWrapper);
+  raceSection.appendChild(raceWrapper);
 
   // Armor Stats Section
   const statSection = createEl('div', { class: CLASS_SECTION });
@@ -252,9 +238,8 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
       newBuild.quality ?? 100,
       newBuild.enhancement ?? 0
     );
-    // Update race and bonus
+    // Update race
     raceDropdown.setValue(toUI(newBuild.race, RACE_PROMPT));
-    bonusDropdown.setValue(toUI(newBuild.bonusType, BONUS_PROMPT));
     // Update stat inputs
     statInput.setValues({
       armorLethality: newBuild.armorLethality,

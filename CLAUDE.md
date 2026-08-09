@@ -200,3 +200,16 @@ No linter or formatter is configured.
 | **Fuzz regenerated** — `fuzz-cases.json` rebuilt (138 fire-alone + 129 poison-alone cases now positive) | — | — | `fuzz-cases.json` | ✅ Done | (this session) |
 
 **Verification:** `python -m pytest tests/` → 79 passed, 1 skipped; `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED (10 checks); `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16); `node --check` clean on both edited JS engines; `python scripts/smoke_gui.py` → SMOKE OK.
+
+### Auto-Derived Race/Class Weapon Bonus — COMPLETED ✅
+**Goal:** Remove the "Select Bonus Type" dropdown from the web calculators and auto-detect the race/class weapon-type bonus from the selected weapon's type. The workbook E44/E47 formulas check `AND(C22=<race>, C23=<bonus type>)`; C23 is now always the equipped weapon's type (workbook intends the bonus to come from the actual weapon). No engine/formula changes — the derivation lives in the UI transform layer, so `fuzz_verify.js` (which calls `calculate` directly with its own `bonus_weapon_type`) is unaffected.
+
+| Change | MediaWiki (`Web/mediawiki/`) | Standalone (`Web/js/`) | Status | Commit |
+|--------|------------------------------|------------------------|--------|--------|
+| **Remove Bonus Type input** — dropdown, label, `BONUS_PROMPT`, `bonusType` build field, `setBuild`/`updateFromBuild` line all removed; "Race & Bonus" → "Race" | `forge-calculator.common.js` `createInputPanel` | `InputPanel.js` | ✅ Done | (this session) |
+| **Auto-derive** — `deriveBonusType(build)` resolves `gameData._weapon_index.get(weaponName).type`; `transformBuildForEngine` sets `bonus_weapon_type` from it (empty when no weapon) | `forge-calculator.common.js` | `main.js` | ✅ Done | (this session) |
+| **Clipboard** — `| Bonus: …` → `| Weapon-Type Bonus: <derived>` | `formatResultsForClipboard` | `formatResultsForClipboard` | ✅ Done | (this session) |
+| **CSS** — `.fc-bonus-wrapper`/`.ep-bonus-wrapper` rules removed (incl. responsive label group) | `Template-ForgeCalculator-styles.css` | `calculator.css`, `responsive.css` | ✅ Done | (this session) |
+| **Regression test** — `bonus-derive-test.js`: transform maps Ironhand→Gauntlet etc., engine reaches E44/E47 bonuses end-to-end (Felynx+Gauntlet→20% lethality, Vampire+Straight Sword→10%, Goblin+Dagger / Golem+Colossal Sword / Golem+Great Axe→10/15/15% atk speed), no stale bonus UI in source | `Web/mediawiki/bonus-derive-test.js` | — | ✅ Done | (this session) |
+
+**Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16); `node Web/mediawiki/bonus-derive-test.js` / `ability-inputs-test.js` / `results-panel-test.js` / `ore-slot-test.js` → all PASSED; `node --check` clean on modified JS. Engine and Python/desktop untouched. Note: the Felynx **plural** "Gauntlets" atk-speed bonus (E47) stays unreachable — no weapon has type "Gauntlets" (documented workbook quirk).

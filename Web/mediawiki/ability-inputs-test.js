@@ -154,7 +154,7 @@ console.log('== transformBuildForEngine ==');
 function uiBuild(overrides) {
   return Object.assign({
     oreSlots: [], weaponName: 'Dagger', quality: 100, enhancement: 0,
-    race: 'None', bonusType: 'None',
+    race: 'None',
     armorLethality: 0, armorCritChance: 0, armorCritDmg: 0,
     fireDmg: 0, fireChance: 0, fireTime: 0,
     poisonDmg: 0, poisonChance: 0, poisonTime: 0,
