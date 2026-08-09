@@ -196,6 +196,23 @@ assert(val(6) === '439.38', `Total DPS row shows total_dps (got ${val(6)})`);
 assert(val(1) !== val(4), 'Explosion and Smite rows are distinct components');
 assert(val(3) === '22.22' && val(2) === '11.11', 'Fire/Poison rows map correctly');
 
+// --- Active Traits: full-width wrapping block (not clipped stat row) ---
+console.log('== Active Traits block ==');
+const longTraits = 'Cinder Blade — Fire Damage | Shadow Essence — Lethality + Critical Damage | ' +
+  'A very long trait description that should wrap onto multiple lines instead of being clipped';
+fake.active_traits = longTraits;
+panel.updateResults(fake);
+
+const traitsCard = panel.querySelectorAll('.fc-card').find((c) =>
+  (c.querySelector('.fc-card-title') || {}).textContent === 'Active Traits');
+assert(!!traitsCard, 'Active Traits card found');
+const traitsLabel = traitsCard.querySelector('.fc-traits-label');
+const traitsValue = traitsCard.querySelector('.fc-traits-value');
+assert(traitsLabel && traitsLabel.textContent === 'Active Traits', 'traits label rendered');
+assert(!!traitsValue, 'traits value element rendered');
+assert(traitsValue.textContent === longTraits, 'full trait text preserved (no truncation)');
+assert(!traitsCard.querySelector('.fc-stat-row'), 'traits use the wrapping block, not a stat row');
+
 // Source-level guard: clipboard uses explosion_dps + smite_dps (no stale "Blast DPS")
 console.log('== Clipboard (source) ==');
 assert(SRC.indexOf("'Explosion DPS: ' + result.explosion_dps") !== -1, 'clipboard has Explosion DPS');

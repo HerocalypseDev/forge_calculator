@@ -136,17 +136,21 @@ export function createResultsPanel() {
       updateStatRow(ttkRows[1], fmtTime(result.ttk_75k), false);
     }
 
-    // Traits
+    // Traits — full-width wrapping block so long trait text is never clipped
+    // by the stat-row layout (`.ep-stat-val` is flex-shrink:0, cards clip overflow).
+    const traitsBlock = createEl('div', { class: 'ep-traits-block' });
     if (result.active_traits && result.active_traits.length > 0) {
       const traitsText = result.active_traits.map(t => `${t.name}: ${t.power}%`).join('; ');
-      updateResultsCard(traitsCard, createStatRows([
-        { label: 'Active Traits', value: traitsText }
-      ]));
+      traitsBlock.append(
+        createEl('div', { class: 'ep-traits-label' }, ['Active Traits']),
+        createEl('div', { class: 'ep-traits-value' }, [traitsText])
+      );
     } else {
-      updateResultsCard(traitsCard, createStatRows([
-        { label: 'No active traits', value: '' }
-      ]));
+      traitsBlock.append(
+        createEl('div', { class: 'ep-traits-label' }, ['No active traits'])
+      );
     }
+    updateResultsCard(traitsCard, traitsBlock);
   };
 
   container.reset = () => {

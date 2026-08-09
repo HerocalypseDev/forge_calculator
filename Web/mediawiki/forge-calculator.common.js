@@ -1570,9 +1570,14 @@
       }
 
       if (result.active_traits) {
-        updateResultsCard(traitsCard, createStatRows([
-          { label: 'Active Traits', value: result.active_traits }
-        ]));
+        // Full-width wrapping block so long trait text is never clipped by the
+        // stat-row layout (`.fc-stat-val` is flex-shrink:0, cards clip overflow).
+        var traitsBlock = createEl('div', { class: 'fc-traits-block' });
+        traitsBlock.append(
+          createEl('div', { class: 'fc-traits-label' }, ['Active Traits']),
+          createEl('div', { class: 'fc-traits-value' }, [result.active_traits])
+        );
+        updateResultsCard(traitsCard, traitsBlock);
       }
     };
 

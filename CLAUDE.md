@@ -165,3 +165,14 @@ No linter or formatter is configured.
 **Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (worst rel err 5.19e-16); `node Web/mediawiki/ability-inputs-test.js` and `results-panel-test.js` → PASSED; `node --check` clean on all modified JS. Engine untouched — this is display/porting only.
 
 **Note for users:** Fire/Poison abilities still show 0 DPS without a matching fire/poison ore — that's the workbook's duration gate (documented quirk, not changed here).
+
+### Active Traits Text Overflow Fix — COMPLETED ✅
+**Goal:** The Active Traits card rendered its (long, multi-trait) text as a `.fc-stat-row`/`.fc-stat-val`, which is `flex-shrink:0` inside an `overflow:hidden` card — long trait strings overflowed and got clipped. Replaced the stat row with a full-width wrapping block in both web versions.
+
+| Change | MediaWiki (`Web/mediawiki/`) | Standalone (`Web/js/`) | Status | Commit |
+|--------|------------------------------|------------------------|--------|--------|
+| **Traits render** — `.fc-traits-block` with label on top + `.fc-traits-value` below (`white-space:normal; overflow-wrap:anywhere; word-break:break-word`) instead of a flex stat row | `forge-calculator.common.js` `updateResults` | `ResultsPanel.js` | ✅ Done | (this session) |
+| **CSS** — `.fc-traits-block`/`-label`/`-value` (plain class selectors, TemplateStyles-safe); mobile size tweak at ≤520px | `Template-ForgeCalculator-styles.css` | `calculator.css` | ✅ Done | (this session) |
+| **Regression test** — `results-panel-test.js` now asserts the traits block renders with the full text preserved (no truncation) and no stat row is used | `Web/mediawiki/results-panel-test.js` | — | ✅ Done | (this session) |
+
+**Verification:** `node Web/mediawiki/results-panel-test.js` → ALL RESULTS-PANEL CHECKS PASSED; `verify-engine.js` / `ability-inputs-test.js` / `fuzz_verify.js` all pass; `node --check` clean on all modified JS. Display-only change — engine untouched.

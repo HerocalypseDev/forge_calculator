@@ -449,6 +449,31 @@
   color: #e65100;
 }
 
+/* Active Traits — full-width wrapping block so long trait text is never
+   clipped (stat rows shrink the value and cards clip overflow). */
+
+.ep-traits-block {
+  display: block;
+}
+
+.ep-traits-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ep-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+
+.ep-traits-value {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ep-text);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* ==========================================================================
    Rune Selector Grid (3 lines × 2 slots)
    ========================================================================== */

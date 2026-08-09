@@ -528,6 +528,31 @@
   color: #e65100;
 }
 
+/* Active Traits — full-width wrapping block so long trait text is never
+   clipped (stat rows shrink the value and cards clip overflow). */
+
+.fc-traits-block {
+  display: block;
+}
+
+.fc-traits-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a4a3a;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+
+.fc-traits-value {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #1a1a1a;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* Rune selector */
 
 .fc-rune-selector {
@@ -773,6 +798,15 @@
   }
 
   .fc-stat-val.fc-bold {
+    font-size: 12px;
+  }
+
+  /* Active traits */
+  .fc-traits-label {
+    font-size: 11px;
+  }
+
+  .fc-traits-value {
     font-size: 12px;
   }
 
