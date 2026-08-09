@@ -47,7 +47,7 @@ Workbook sheets:
 
 - `Gauntlet` (singular, E44) vs `Gauntlets` (plural, E47/C23); `Tigers Eye` (formula-only) vs `Tiger's Eye` (catalog).
 - Armor stats feed E44/E45/E46 via **C41/C42/C43** (E41–E43 are dead cells).
-- Fire/poison duration quirks: `-1` / `-2`, and an ability time alone does nothing without a matching fire/poison ore (outer `MAX(ore)=0` gate).
+- Fire/poison duration offsets `-1` / `-2`. The outer `MAX(ore)=0` gate was removed (user workbook edit): a fire/poison ability time alone now counts, even without a matching ore and for fire without Dragonborn. Poison duration takes only the **first** Malachite slot (C68 XLOOKUP), not the max.
 - `C76` (black hole chance) = 0.3 when `COUNTIF("Galaxite")/COUNTA(slots) ≥ 0.1`; COUNTA counts "Select Ore" as non-blank, so **any** Galaxite slot triggers it.
 - Cross-wired ability inputs: Fire DMG=C34 / Chance=C35 / Time=C36, Poison=D34/D35/D36, Blast=E34/E35 (no time).
 - C20 (base crit chance) enters **only** the crit blend, not E45.
@@ -59,7 +59,7 @@ Workbook sheets:
 
 ```bash
 python -m forge_calculator            # run the app (stdlib-only)
-python -m pytest tests/               # 69 tests (engine/golden/parser/data)
+python -m pytest tests/               # 79 tests (engine/golden/parser/data)
 python scripts/smoke_gui.py           # real-GUI smoke: Golden-1 labels + all tabs
 pip install -e .[build]               # dev: add openpyxl
 python -m scripts.build_data "<xlsx>" # regenerate data/*.json
@@ -164,7 +164,7 @@ No linter or formatter is configured.
 
 **Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (worst rel err 5.19e-16); `node Web/mediawiki/ability-inputs-test.js` and `results-panel-test.js` → PASSED; `node --check` clean on all modified JS. Engine untouched — this is display/porting only.
 
-**Note for users:** Fire/Poison abilities still show 0 DPS without a matching fire/poison ore — that's the workbook's duration gate (documented quirk, not changed here).
+**Note for users:** Fire/Poison abilities no longer need a matching fire/poison ore — the workbook's duration gate was removed (see the Fire/Poison Ability Traits section below).
 
 ### Active Traits Text Overflow Fix — COMPLETED ✅
 **Goal:** The Active Traits card rendered its (long, multi-trait) text as a `.fc-stat-row`/`.fc-stat-val`, which is `flex-shrink:0` inside an `overflow:hidden` card — long trait strings overflowed and got clipped. Replaced the stat row with a full-width wrapping block in both web versions.
@@ -186,3 +186,17 @@ No linter or formatter is configured.
 | **Regression test** — `ore-slot-test.js`: renders the real slot, drives the dropdown via item clicks, asserts reset on change/removal, preserve on same-ore re-select, preserve on `setValue` | `Web/mediawiki/ore-slot-test.js` | — | ✅ Done | (this session) |
 
 **Verification:** `node Web/mediawiki/ore-slot-test.js` → ALL ORE-SLOT CHECKS PASSED; `verify-engine.js` / `ability-inputs-test.js` / `results-panel-test.js` / `fuzz_verify.js` all pass; `node --check` clean. Engine untouched.
+
+### Fire/Poison Ability Traits Without Ores — COMPLETED ✅
+**Goal:** Mirror the user's workbook edit (C63/C68) that removed the fire/poison duration gate, so rune ability traits contribute DPS without a matching fire/poison ore (and for fire without Dragonborn). Poison duration uses only the FIRST Malachite slot (C68 XLOOKUP), not the max. Ported to all three engines; the stat-matrix parser was taught to extract from the new XLOOKUP array formula.
+
+| Change | Python | Standalone (`Web/js/`) | MediaWiki (`Web/mediawiki/`) | Status | Commit |
+|--------|--------|------------------------|------------------------------|--------|--------|
+| **Duration gate removed** — `_duration`/`duration` drops the `MAX(ore)=0` gate; ability time alone counts | `engine.py` | `procs.js` | `forge-calculator.common.js` | ✅ Done | (this session) |
+| **Poison first-Malachite** — `first_slot_val`/`firstSlotVal` helper (C68 XLOOKUP semantics) | `engine.py` | `procs.js` | `forge-calculator.common.js` | ✅ Done | (this session) |
+| **Reference files** — C63/C68 replaced with the workbook's new formulas (C68 whitespace-normalized `-2`) | `all_formulas.txt` + `all_formulas_reference (1).txt` | — | — | ✅ Done | (this session) |
+| **Parser** — `_XLOOKUP_SCALE` path in `parse_stat_matrix` so Malachite `poison_duration (0.3,3,1)` still parses from the new C68 (txt + workbook) | `build_data/formula_parser.py` | — | — | ✅ Done | (this session) |
+| **Tests** — 5 engine cases (fire/poison time alone, Dragonborn combine, first-Malachite) + golden check #10 | `tests/test_engine.py` | — | `verify-engine.js` | ✅ Done | (this session) |
+| **Fuzz regenerated** — `fuzz-cases.json` rebuilt (138 fire-alone + 129 poison-alone cases now positive) | — | — | `fuzz-cases.json` | ✅ Done | (this session) |
+
+**Verification:** `python -m pytest tests/` → 79 passed, 1 skipped; `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED (10 checks); `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16); `node --check` clean on both edited JS engines; `python scripts/smoke_gui.py` → SMOKE OK.

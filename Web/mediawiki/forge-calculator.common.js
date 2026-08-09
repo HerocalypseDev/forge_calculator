@@ -241,11 +241,8 @@
   }
 
   function duration(oreTerms, raceTime, abilityTime, minus) {
-    var maxOre = 0;
-    for (var i = 0; i < oreTerms.length; i++) { if (oreTerms[i] > maxOre) { maxOre = oreTerms[i]; } }
-    var combined = maxOre + raceTime;
-    if (combined === 0) { return 0.0; }
-    var top = maxOre;
+    var top = 0;
+    for (var i = 0; i < oreTerms.length; i++) { if (oreTerms[i] > top) { top = oreTerms[i]; } }
     if (raceTime > top) { top = raceTime; }
     if (abilityTime > top) { top = abilityTime; }
     return Math.max(top - minus, 0.0);
@@ -292,9 +289,19 @@
     return total;
   }
 
+  function firstSlotVal(slots, shares, game, name, stat) {
+    for (var i = 0; i < slots.length; i++) {
+      if (slots[i].name !== name) { continue; }
+      var ore = game._ore_index.get(name);
+      var rng = ore ? ore.stats[stat] : null;
+      if (!rng) { return 0.0; }
+      return shareScaling(rng.base, rng.max, shares[i], rng.divisor);
+    }
+    return 0.0;
+  }
+
   function procComponents(build, shares, game) {
     var fireTerms = slotVals(build.slots, shares, game, 'fire_duration');
-    var poisonTerms = slotVals(build.slots, shares, game, 'poison_duration');
 
     return {
       moon: slotSum(build.slots, shares, game, 'moon'),
@@ -308,7 +315,7 @@
       fire_duration: duration(fireTerms, RACE_FIRE_TIME[build.race] !== undefined ? RACE_FIRE_TIME[build.race] : 0, build.abilities.fire_time, 1),
       poison_dmg: slotSum(build.slots, shares, game, 'poison_dmg') + build.abilities.poison_dmg,
       poison_chance: Math.max(slotMax(build.slots, shares, game, 'poison_chance'), build.abilities.poison_chance),
-      poison_duration: duration(poisonTerms, 0, build.abilities.poison_time, 2),
+      poison_duration: duration([firstSlotVal(build.slots, shares, game, 'Malachite', 'poison_duration')], 0, build.abilities.poison_time, 2),
       smite_dmg: slotSum(build.slots, shares, game, 'smite_dmg') + (RACE_SMITE_DMG[build.race] !== undefined ? RACE_SMITE_DMG[build.race] : 0.0),
       smite_chance: Math.max(slotMax(build.slots, shares, game, 'smite_chance'), RACE_SMITE_CHANCE[build.race] !== undefined ? RACE_SMITE_CHANCE[build.race] : 0.0),
       blackhole_dmg: slotSum(build.slots, shares, game, 'blackhole_dmg'),

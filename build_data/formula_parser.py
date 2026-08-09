@@ -165,6 +165,20 @@ _SCALE = re.compile(
     r"\s*(?P<div>/100)?"
 )
 
+# C68-style: XLOOKUP("Ore", $C$6:$C$9, BYROW($D$6:$D$9, LAMBDA(row, IF(SUM=0,0,
+# IF(row/SUM<0.1,0, base+delta*MIN((row/SUM-0.1)/0.2,1)))))...).  The scale is a
+# base+delta literal instead of (base+(max-base)*...), so max = base + delta.
+_XLOOKUP_SCALE = re.compile(
+    r'XLOOKUP\(\s*"([^"]+)"\s*,\s*\$C\$6:\$C\$9\s*,\s*BYROW\(\s*\$D\$6:\$D\$9\s*,\s*'
+    r"LAMBDA\(\s*row\s*,\s*"
+    r"IF\(\s*SUM\(\$D\$6:\$D\$9\)\s*=\s*0\s*,\s*0\s*,\s*"
+    r"IF\(\s*row\s*/\s*SUM\(\$D\$6:\$D\$9\)\s*<\s*0\.1\s*,\s*0\s*,\s*"
+    r"(?P<base>\d+(?:\.\d+)?)\s*\+\s*(?P<delta>\d+(?:\.\d+)?)\s*\*\s*MIN\s*\("
+    r"\s*\(\s*row\s*/\s*SUM\(\$D\$6:\$D\$9\)\s*-\s*0\.1\s*\)\s*/\s*0\.2\s*,\s*1\s*\)"
+    r"(?P<div>/100)?",
+    re.S,
+)
+
 
 def _extract_scale(value):
     """Return ``{base, max, divisor}`` from a scaling expression, or ``None``."""
@@ -203,4 +217,11 @@ def parse_stat_matrix(formulas, stat_cells=None):
                     continue
                 for ore in ores:
                     matrix.setdefault(ore, {})[stat] = dict(entry)
+        for m in _XLOOKUP_SCALE.finditer(s):
+            base = float(m.group("base"))
+            matrix.setdefault(m.group(1), {})[stat] = {
+                "base": base,
+                "max": base + float(m.group("delta")),
+                "divisor": 100 if m.group("div") else 1,
+            }
     return matrix

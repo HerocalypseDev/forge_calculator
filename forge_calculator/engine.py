@@ -319,14 +319,11 @@ class ProcComponents:
 
 
 def _duration(ore_terms, race_time: float, ability_time: float, minus: int) -> float:
-    """C63/C68 duration: ``IF(MAX(ore,race)=0, 0, MAX(MAX(ore,race,ability)-N, 0))``.
+    """C63/C68 duration: ``MAX(MAX(ore,race,ability)-N, 0)``.
 
-    Quirk: the outer condition ignores the ability-time input, so a fire/poison
-    time alone (no fire/poison ore, and for fire no Dragonborn) yields 0.
+    No ore gate: a fire/poison time alone now counts (ability traits work
+    without a matching ore, and for fire without Dragonborn too).
     """
-    combined = max(ore_terms or [0.0]) + race_time
-    if combined == 0:
-        return 0.0
     top = max([*ore_terms, race_time, ability_time])
     return max(top - minus, 0.0)
 
@@ -371,8 +368,19 @@ def proc_components(build: Build, shares, game: GameData) -> ProcComponents:
     def slot_sum(stat: str) -> float:
         return sum(slot_vals(stat))
 
+    def first_slot_val(name: str, stat: str) -> float:
+        """Value of the FIRST slot holding ``name`` (C68 XLOOKUP; 0 when absent)."""
+        for slot, share in zip(build.slots, shares):
+            if slot.name != name:
+                continue
+            ore = game.ore(name)
+            rng = ore.stat(stat) if ore else None
+            if rng is None:
+                return 0.0
+            return share_scaling(rng.base, rng.max, share, rng.divisor)
+        return 0.0
+
     fire_terms = slot_vals("fire_duration")
-    poison_terms = slot_vals("poison_duration")
 
     return ProcComponents(
         moon=slot_sum("moon"),
@@ -383,7 +391,7 @@ def proc_components(build: Build, shares, game: GameData) -> ProcComponents:
         fire_duration=_duration(fire_terms, RACE_FIRE_TIME.get(build.race, 0), build.abilities.fire_time, minus=1),
         poison_dmg=slot_sum("poison_dmg") + build.abilities.poison_dmg,  # +D34
         poison_chance=max(slot_max("poison_chance"), build.abilities.poison_chance),  # MAX(...,D35)
-        poison_duration=_duration(poison_terms, 0, build.abilities.poison_time, minus=2),
+        poison_duration=_duration([first_slot_val("Malachite", "poison_duration")], 0, build.abilities.poison_time, minus=2),
         smite_dmg=slot_sum("smite_dmg") + RACE_SMITE_DMG.get(build.race, 0.0),
         smite_chance=max(slot_max("smite_chance"), RACE_SMITE_CHANCE.get(build.race, 0.0)),
         blackhole_dmg=slot_sum("blackhole_dmg"),

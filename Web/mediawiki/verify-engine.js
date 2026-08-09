@@ -165,5 +165,11 @@ approx(game.races.length, 16, 'race count');
 approx(game.runes.length, 47, 'rune count');
 approx(game.achievements.length, 16, 'achievement count');
 
+// 10. Ability time counts without a matching ore (C63/C68 gate removed)
+r = FC.calculate(build({ weapon_name: 'Dagger', abilities: { fire_dmg: 0, fire_chance: 0, fire_time: 5, poison_dmg: 0, poison_chance: 0, poison_time: 0, blast_dmg: 0, blast_chance: 0 } }), game);
+approx(r.fire_duration, 4.0, 'fire time alone');
+r = FC.calculate(build({ weapon_name: 'Dagger', abilities: { fire_dmg: 0, fire_chance: 0, fire_time: 0, poison_dmg: 0, poison_chance: 0, poison_time: 5, blast_dmg: 0, blast_chance: 0 } }), game);
+approx(r.poison_duration, 3.0, 'poison time alone');
+
 console.log(failures === 0 ? '\nALL GOLDEN CHECKS PASSED ✓' : `\n${failures} CHECK(S) FAILED ✗`);
 process.exit(failures === 0 ? 0 : 1);

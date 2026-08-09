@@ -13,8 +13,8 @@ import {
 import { shareScaling } from './formulas.js';
 
 /**
- * Duration calculation with workbook quirks
- * IF(MAX(ore, race) = 0, 0, MAX(MAX(ore, race, ability) - N, 0))
+ * Duration calculation (C63/C68): MAX(MAX(ore, race, ability) - N, 0)
+ * No ore gate, so an ability time alone counts.
  * @param {number[]} oreTerms
  * @param {number} raceTime
  * @param {number} abilityTime
@@ -22,8 +22,6 @@ import { shareScaling } from './formulas.js';
  * @returns {number}
  */
 function duration(oreTerms, raceTime, abilityTime, minus) {
-  const combined = Math.max(...oreTerms, 0) + raceTime;
-  if (combined === 0) return 0.0;
   const top = Math.max(...oreTerms, raceTime, abilityTime);
   return Math.max(top - minus, 0.0);
 }
@@ -92,6 +90,26 @@ function slotSum(slots, shares, game, stat) {
 }
 
 /**
+ * Value of the FIRST slot holding `name` (C68 XLOOKUP; 0 when absent)
+ * @param {OreSlot[]} slots
+ * @param {number[]} shares
+ * @param {GameData} game
+ * @param {string} name
+ * @param {string} stat
+ * @returns {number}
+ */
+function firstSlotVal(slots, shares, game, name, stat) {
+  for (let i = 0; i < slots.length; i++) {
+    if (slots[i].name !== name) continue;
+    const ore = game._ore_index?.get(name);
+    const rng = ore?.stats[stat];
+    if (!rng) return 0.0;
+    return shareScaling(rng.base, rng.max, shares[i], rng.divisor);
+  }
+  return 0.0;
+}
+
+/**
  * All proc components (C52-C76)
  * These feed DPS rows C85-C89, which scale on UNFORGED A18
  * @param {Build} build
@@ -101,7 +119,6 @@ function slotSum(slots, shares, game, stat) {
  */
 export function procComponents(build, shares, game) {
   const fireTerms = slotVals(build.slots, shares, game, 'fire_duration');
-  const poisonTerms = slotVals(build.slots, shares, game, 'poison_duration');
 
   return {
     moon: slotSum(build.slots, shares, game, 'moon'),
@@ -115,7 +132,7 @@ export function procComponents(build, shares, game) {
     fire_duration: duration(fireTerms, RACE_FIRE_TIME[build.race] ?? 0, build.abilities.fire_time, 1),
     poison_dmg: slotSum(build.slots, shares, game, 'poison_dmg') + build.abilities.poison_dmg,
     poison_chance: Math.max(slotMax(build.slots, shares, game, 'poison_chance'), build.abilities.poison_chance),
-    poison_duration: duration(poisonTerms, 0, build.abilities.poison_time, 2),
+    poison_duration: duration([firstSlotVal(build.slots, shares, game, 'Malachite', 'poison_duration')], 0, build.abilities.poison_time, 2),
     smite_dmg: slotSum(build.slots, shares, game, 'smite_dmg') + (RACE_SMITE_DMG[build.race] ?? 0.0),
     smite_chance: Math.max(slotMax(build.slots, shares, game, 'smite_chance'), RACE_SMITE_CHANCE[build.race] ?? 0.0),
     blackhole_dmg: slotSum(build.slots, shares, game, 'blackhole_dmg'),
