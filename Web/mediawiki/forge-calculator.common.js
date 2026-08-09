@@ -1208,6 +1208,31 @@
     return container;
   }
 
+  // Ability (rune) input ranges. `unit` is 'pct' (entered as whole percents,
+  // converted to a decimal fraction for the engine) or 'sec' (plain seconds).
+  var ABILITY_RANGES = {
+    fireDmg: { min: 1, max: 22, unit: 'pct' },
+    fireChance: { min: 1, max: 50, unit: 'pct' },
+    fireTime: { min: 1, max: 3, unit: 'sec' },
+    poisonDmg: { min: 1, max: 7, unit: 'pct' },
+    poisonChance: { min: 1, max: 35, unit: 'pct' },
+    poisonTime: { min: 1, max: 6, unit: 'sec' },
+    blastDmg: { min: 1, max: 40, unit: 'pct' },
+    blastChance: { min: 1, max: 20, unit: 'pct' }
+  };
+
+  // Clamp an ability input into [min, max]. Empty, non-numeric and 0 all mean
+  // "no ability" (the default/reset state); any other value snaps to the range.
+  function clampAbilityValue(raw, min, max) {
+    if (raw === '' || raw === undefined || raw === null) { return 0; }
+    var v = parseFloat(raw);
+    if (isNaN(v)) { return 0; }
+    if (v === 0) { return 0; }
+    if (v < min) { return min; }
+    if (v > max) { return max; }
+    return v;
+  }
+
   function createAbilityGrid(opts) {
     var onChange = opts.onChange;
     var currentValues = {};
@@ -1222,6 +1247,10 @@
 
       for (var i = 0; i < fields.length; i++) {
         (function (field) {
+          var range = ABILITY_RANGES[field.key];
+          var min = range.min;
+          var max = range.max;
+          var rangeHint = (range.unit === 'sec') ? (min + '-' + max + 's') : (min + '-' + max + '%');
           var row = createEl('div', { class: 'fc-ability-row' });
           var label = createEl('label', { class: 'fc-ability-label', for: field.key }, [field.label]);
           var input = createEl('input', {
@@ -1229,15 +1258,16 @@
             class: 'fc-ability-input',
             id: field.key,
             value: currentValues[field.key] !== undefined ? currentValues[field.key] : '',
-            min: String(field.min !== undefined ? field.min : 0),
-            max: field.max !== undefined ? String(field.max) : undefined,
-            step: field.step,
-            placeholder: field.placeholder,
+            min: String(min),
+            max: String(max),
+            step: '1',
+            placeholder: rangeHint,
+            title: field.label + ' (from runes). Range: ' + rangeHint + '. 0 = no ability.',
             inputmode: 'decimal'
           });
 
           function commit() {
-            currentValues[field.key] = parseFloat(input.value) || 0;
+            currentValues[field.key] = clampAbilityValue(input.value, min, max);
             input.value = currentValues[field.key];
             var out = {};
             for (var k2 in currentValues) { out[k2] = currentValues[k2]; }
@@ -1246,6 +1276,7 @@
           var handleChange = debounce(commit, 150);
           input.addEventListener('input', handleChange);
           input.addEventListener('change', commit);
+          input.addEventListener('blur', commit);
 
           var fieldWrapper = createEl('div', { class: 'fc-ability-field' });
           fieldWrapper.appendChild(input);
@@ -1258,20 +1289,20 @@
     }
 
     var fireSection = createSection('Fire', [
-      { key: 'fireDmg', label: 'Fire DMG', placeholder: '0', min: 0, step: '0.01' },
-      { key: 'fireChance', label: 'Fire Chance', placeholder: '0', min: 0, step: '0.01', max: 1 },
-      { key: 'fireTime', label: 'Fire Time (s)', placeholder: '0', min: 0, step: '1' }
+      { key: 'fireDmg', label: 'Fire DMG' },
+      { key: 'fireChance', label: 'Fire Chance' },
+      { key: 'fireTime', label: 'Fire Time (s)' }
     ]);
 
     var poisonSection = createSection('Poison', [
-      { key: 'poisonDmg', label: 'Poison DMG', placeholder: '0', min: 0, step: '0.01' },
-      { key: 'poisonChance', label: 'Poison Chance', placeholder: '0', min: 0, step: '0.01', max: 1 },
-      { key: 'poisonTime', label: 'Poison Time (s)', placeholder: '0', min: 0, step: '1' }
+      { key: 'poisonDmg', label: 'Poison DMG' },
+      { key: 'poisonChance', label: 'Poison Chance' },
+      { key: 'poisonTime', label: 'Poison Time (s)' }
     ]);
 
     var blastSection = createSection('Blast', [
-      { key: 'blastDmg', label: 'Blast DMG', placeholder: '0', min: 0, step: '0.01' },
-      { key: 'blastChance', label: 'Blast Chance', placeholder: '0', min: 0, step: '0.01', max: 1 }
+      { key: 'blastDmg', label: 'Blast DMG' },
+      { key: 'blastChance', label: 'Blast Chance' }
     ]);
 
     container.append(fireSection, poisonSection, blastSection);
@@ -1673,7 +1704,10 @@
     statSection.appendChild(statInput);
 
     var abilitySection = createEl('div', { class: 'fc-input-section' });
-    abilitySection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Abilities']));
+    abilitySection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Abilities (From Runes)']));
+    abilitySection.appendChild(createEl('p', { class: 'fc-ability-section-subtext' }, [
+      'Ability stats granted by your equipped runes. Enter percentages as whole numbers (15 = 15%). Leave 0 for no ability.'
+    ]));
 
     var abilityGrid = createAbilityGrid({
       values: {
@@ -1827,14 +1861,16 @@
       armor_lethality: build.armorLethality,
       base_lethality: 0,
       abilities: {
-        fire_dmg: build.fireDmg,
-        fire_chance: build.fireChance,
+        // UI stores ability percents as whole numbers (15 = 15%); engine wants
+        // decimal fractions. Times are plain seconds already.
+        fire_dmg: build.fireDmg / 100,
+        fire_chance: build.fireChance / 100,
         fire_time: build.fireTime,
-        poison_dmg: build.poisonDmg,
-        poison_chance: build.poisonChance,
+        poison_dmg: build.poisonDmg / 100,
+        poison_chance: build.poisonChance / 100,
         poison_time: build.poisonTime,
-        blast_dmg: build.blastDmg,
-        blast_chance: build.blastChance
+        blast_dmg: build.blastDmg / 100,
+        blast_chance: build.blastChance / 100
       },
       berserk: 0,
       achievement: build.achievement || NONE_LABEL

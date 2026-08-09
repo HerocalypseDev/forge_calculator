@@ -137,3 +137,18 @@ No linter or formatter is configured.
 | **Rune 3×2 grid** — 6 fixed cells (C27/D27–C29/D29); `runes` → 6-element array in DEFAULT_BUILD (web only) | `createRuneSelector` + CSS | `RuneSelector.js` + CSS | — | ✅ Done | 4aaa441 |
 
 **Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED; `python -m pytest tests/` → 75 passed; `python scripts/smoke_gui.py` → SMOKE OK (incl. new quality-cap + quality 100→50 recompute checks).
+
+### MediaWiki Abilities Input Overhaul — COMPLETED ✅
+**Goal:** MediaWiki-only pass on the Abilities section: label it as rune-sourced, switch percent inputs to whole-percent entry (15 = 15%), and clamp each ability field to its valid range via `min`/`max` attrs, change/blur validation, and range placeholders/tooltips. **The engine is untouched** — the clamp ranges are **user-specified UI validation constraints** (game rune-ability ranges), not formula constants, so they don't fall under the "Zero invented mechanics" rule (same precedent as the Quality cap). Standalone `Web/js` and desktop are intentionally not changed.
+
+| Change | Where | Status | Commit |
+|--------|-------|--------|--------|
+| **Section labeling** — "Abilities" → "Abilities (From Runes)" + subtext ("Enter percentages as whole numbers (15 = 15%). Leave 0 for no ability.") | `forge-calculator.common.js` | ✅ Done | (this session) |
+| **Whole-percent format** — UI/build store percents (15 = 15%); `transformBuildForEngine` divides the 6 pct fields by 100, times stay seconds | `forge-calculator.common.js` | ✅ Done | (this session) |
+| **Clamp ranges** — Fire DMG/Chance/Time 1–22/1–50/1–3s; Poison 1–7/1–35/1–6s; Blast 1–40/1–20. `0`/empty/non-numeric = no ability (keeps `DEFAULT_BUILD` + reset at 0) | `ABILITY_RANGES` + `clampAbilityValue` in `forge-calculator.common.js` | ✅ Done | (this session) |
+| **min/max + step + placeholder + tooltip** — HTML attrs = clamp range, `step=1`, range hints (`1-22%`, `1-3s`) + title tooltips ("Range: X–Y. 0 = no ability.") | `createAbilityGrid` | ✅ Done | (this session) |
+| **Validation on change/blur/input** — debounced `input` + `change` + `blur` all clamp | `forge-calculator.common.js` | ✅ Done | (this session) |
+| **CSS** — `.fc-ability-section-title`/`.fc-ability-section-subtext`; neutralize `:invalid`/`:out-of-range` on `.fc-ability-input` (keeps `:focus` ring) | `Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
+| **Tests** — new `ability-inputs-test.js`: DOM-level checks for clamp logic, min/max/step/placeholder/title attrs, change/blur/input clamping, percent→decimal transform | `Web/mediawiki/ability-inputs-test.js` | ✅ Done | (this session) |
+
+**Known behavior (intentional):** clamping is silent — a value outside the range snaps to the bound on blur/change; the valid range is always visible in the field's placeholder and hover tooltip.
