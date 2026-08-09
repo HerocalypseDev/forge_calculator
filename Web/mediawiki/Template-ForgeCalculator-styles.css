@@ -9,41 +9,19 @@
    Adaptations made for TemplateStyles safety:
      • All rules scoped under `.fc-calculator` (no bare `body`, `a`, `:root`,
        or `*` selectors that would restyle the surrounding wiki page).
-     • Custom properties renamed `--ep-*` → `--fc-*` and classes `ep-*` → `fc-*`
-       to avoid colliding with the wiki's existing `--ep-*` Infobox theme.
+     • Classes `ep-*` → `fc-*` to avoid colliding with the wiki's `--ep-*`
+       Infobox theme.
+     • No CSS custom properties (`--fc-*` / `var()`): the TemplateStyles
+       sanitizer does not support them, so every value is inlined.
+     • No `pointer-events`, no `:focus-visible`, no `url(data:…)` backgrounds
+       (all rejected by the sanitizer).
      • Tooltip styles removed (tooltips not included in the wiki build).
      • Scrollbar / global selection styling scoped or dropped.
    ========================================================================== */
 
 /* ==========================================================================
-   Root + variables (scoped)
+   Base
    ========================================================================== */
-
-.fc-calculator {
-  --fc-bg: #f8f8f0;
-  --fc-bg-alt: #efeadd;
-  --fc-border: #c8b898;
-  --fc-border-dark: #a89878;
-  --fc-text: #1a1a1a;
-  --fc-text-muted: #4a4a3a;
-  --fc-link: #2e7d32;
-  --fc-link-hover: #1b5e20;
-  --fc-gold: #c8a85a;
-  --fc-gold-dark: #a88840;
-  --fc-card-bg: #fefefe;
-  --fc-card-border: #d8c8a8;
-  --fc-head-bg: #efeadd;
-  --fc-head-border: #c8b898;
-  --fc-input-bg: #ffffff;
-  --fc-input-border: #b8a888;
-  --fc-input-focus: #c8a85a;
-  --fc-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  --fc-shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
-  --fc-radius: 4px;
-  --fc-transition: 0.15s ease;
-  --fc-font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --fc-font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
-}
 
 .fc-calculator,
 .fc-calculator *,
@@ -55,22 +33,22 @@
 }
 
 .fc-calculator {
-  font-family: var(--fc-font);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--fc-text);
+  color: #1a1a1a;
   max-width: 1400px;
   margin: 0 auto;
   padding: 8px 16px;
 }
 
 .fc-calculator ::selection {
-  background: var(--fc-gold);
+  background: #c8a85a;
   color: #1a1a1a;
 }
 
-.fc-calculator :focus-visible {
-  outline: 2px solid var(--fc-gold);
+.fc-calculator :focus {
+  outline: 2px solid #c8a85a;
   outline-offset: 2px;
 }
 
@@ -127,28 +105,28 @@
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 500;
-  font-family: var(--fc-font);
-  color: var(--fc-text);
-  background: var(--fc-bg-alt);
-  border: 1px solid var(--fc-border);
-  border-radius: var(--fc-radius);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #1a1a1a;
+  background: #efeadd;
+  border: 1px solid #c8b898;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background var(--fc-transition), border-color var(--fc-transition);
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .fc-btn:hover {
-  border-color: var(--fc-gold-dark);
-  background: var(--fc-head-bg);
+  border-color: #a88840;
+  background: #efeadd;
 }
 
 .fc-btn--primary {
-  background: var(--fc-gold);
-  border-color: var(--fc-gold-dark);
+  background: #c8a85a;
+  border-color: #a88840;
   color: #1a1a1a;
 }
 
 .fc-btn--primary:hover {
-  background: var(--fc-gold-dark);
+  background: #a88840;
   color: #1a1a1a;
 }
 
@@ -163,20 +141,20 @@
 }
 
 .fc-input-section {
-  background: var(--fc-card-bg);
-  border: 1px solid var(--fc-card-border);
-  border-radius: var(--fc-radius);
+  background: #fefefe;
+  border: 1px solid #d8c8a8;
+  border-radius: 4px;
   padding: 16px;
-  box-shadow: var(--fc-shadow);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .fc-input-section-title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--fc-text);
+  color: #1a1a1a;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--fc-border);
+  border-bottom: 1px solid #c8b898;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -199,7 +177,7 @@
   display: block;
   font-size: 12px;
   font-weight: 500;
-  color: var(--fc-text-muted);
+  color: #4a4a3a;
   margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -213,19 +191,19 @@
   width: 100%;
   padding: 8px 10px;
   font-size: 13px;
-  font-family: var(--fc-font-mono);
-  color: var(--fc-text);
-  background: var(--fc-input-bg);
-  border: 1px solid var(--fc-input-border);
-  border-radius: var(--fc-radius);
-  transition: border-color var(--fc-transition), box-shadow var(--fc-transition);
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  color: #1a1a1a;
+  background: #ffffff;
+  border: 1px solid #b8a888;
+  border-radius: 4px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .fc-stat-input-input:focus,
 .fc-ability-input:focus,
 .fc-quality-input:focus,
 .fc-ore-slot-amount:focus {
-  border-color: var(--fc-input-focus);
+  border-color: #c8a85a;
   box-shadow: 0 0 0 3px rgba(200, 168, 90, 0.2);
   outline: none;
 }
@@ -233,7 +211,7 @@
 .fc-stat-input-input::placeholder,
 .fc-ability-input::placeholder,
 .fc-ore-slot-amount::placeholder {
-  color: var(--fc-text-muted);
+  color: #4a4a3a;
   opacity: 0.5;
 }
 
@@ -273,7 +251,7 @@
 }
 
 .fc-ore-slot:not(:last-child) {
-  border-bottom: 1px solid var(--fc-border);
+  border-bottom: 1px solid #c8b898;
 }
 
 .fc-ore-slot-label {
@@ -343,27 +321,27 @@
   width: 100%;
   padding: 8px 10px;
   font-size: 13px;
-  font-family: var(--fc-font);
-  color: var(--fc-text);
-  background: var(--fc-input-bg);
-  border: 1px solid var(--fc-input-border);
-  border-radius: var(--fc-radius);
-  transition: border-color var(--fc-transition), box-shadow var(--fc-transition);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #1a1a1a;
+  background: #ffffff;
+  border: 1px solid #b8a888;
+  border-radius: 4px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   outline: none;
 }
 
 .fc-searchable-input:hover {
-  border-color: var(--fc-gold-dark);
+  border-color: #a88840;
 }
 
 .fc-searchable-input:focus {
-  border-color: var(--fc-input-focus);
+  border-color: #c8a85a;
   box-shadow: 0 0 0 3px rgba(200, 168, 90, 0.2);
   outline: none;
 }
 
 .fc-searchable-input[aria-expanded="true"] {
-  border-color: var(--fc-input-focus);
+  border-color: #c8a85a;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -376,20 +354,19 @@
   height: 28px;
   background: transparent;
   border: none;
-  border-radius: var(--fc-radius);
+  border-radius: 4px;
   cursor: pointer;
-  color: var(--fc-text-muted);
+  color: #4a4a3a;
   font-size: 12px;
-  transition: background var(--fc-transition), color var(--fc-transition);
+  transition: background 0.15s ease, color 0.15s ease;
   position: absolute;
   right: 4px;
   top: 50%;
   transform: translateY(-50%);
-  pointer-events: none;
 }
 
 .fc-searchable-input[aria-expanded="true"] + .fc-searchable-arrow {
-  color: var(--fc-input-focus);
+  color: #c8a85a;
 }
 
 .fc-searchable-list {
@@ -399,11 +376,11 @@
   right: 0;
   max-height: 240px;
   overflow-y: auto;
-  background: var(--fc-input-bg);
-  border: 1px solid var(--fc-input-border);
+  background: #ffffff;
+  border: 1px solid #b8a888;
   border-top: none;
-  border-radius: 0 0 var(--fc-radius) var(--fc-radius);
-  box-shadow: var(--fc-shadow-hover);
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   z-index: 100;
   list-style: none;
 }
@@ -415,15 +392,15 @@
 .fc-searchable-item {
   padding: 8px 10px;
   font-size: 13px;
-  color: var(--fc-text);
+  color: #1a1a1a;
   cursor: pointer;
-  transition: background var(--fc-transition);
+  transition: background 0.15s ease;
 }
 
 .fc-searchable-item:hover,
 .fc-searchable-item--highlighted,
 .fc-searchable-item[aria-selected="true"] {
-  background: var(--fc-bg-alt);
+  background: #efeadd;
 }
 
 .fc-searchable-item[aria-selected="true"] {
@@ -433,7 +410,7 @@
 .fc-searchable-no-results {
   padding: 12px;
   text-align: center;
-  color: var(--fc-text-muted);
+  color: #4a4a3a;
   font-size: 12px;
 }
 
@@ -442,20 +419,20 @@
    ========================================================================== */
 
 .fc-results-panel {
-  background: var(--fc-card-bg);
-  border: 1px solid var(--fc-card-border);
-  border-radius: var(--fc-radius);
+  background: #fefefe;
+  border: 1px solid #d8c8a8;
+  border-radius: 4px;
   padding: 16px;
-  box-shadow: var(--fc-shadow);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .fc-results-title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--fc-text);
+  color: #1a1a1a;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 2px solid var(--fc-gold);
+  border-bottom: 2px solid #c8a85a;
 }
 
 .fc-results-cards {
@@ -466,16 +443,16 @@
 
 /* Cards */
 .fc-card {
-  background: var(--fc-bg);
-  border: 1px solid var(--fc-card-border);
-  border-radius: var(--fc-radius);
+  background: #f8f8f0;
+  border: 1px solid #d8c8a8;
+  border-radius: 4px;
   overflow: hidden;
-  transition: box-shadow var(--fc-transition), border-color var(--fc-transition);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .fc-card:hover {
-  box-shadow: var(--fc-shadow-hover);
-  border-color: var(--fc-border-dark);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border-color: #a89878;
 }
 
 .fc-card-head {
@@ -483,11 +460,11 @@
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background: var(--fc-head-bg);
-  border-bottom: 1px solid var(--fc-head-border);
+  background: #efeadd;
+  border-bottom: 1px solid #c8b898;
   font-weight: 600;
   font-size: 13px;
-  color: var(--fc-text);
+  color: #1a1a1a;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -496,7 +473,10 @@
   display: inline-block;
   width: 14px;
   height: 14px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c8a85a' stroke-width='2'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5z'/%3E%3Cpath d='M2 17l10 5 10-5'/%3E%3Cpath d='M2 12l10 5 10-5'/%3E%3C/svg%3E") center/contain no-repeat;
+  color: #c8a85a;
+  font-size: 11px;
+  line-height: 14px;
+  text-align: center;
   flex-shrink: 0;
 }
 
@@ -524,14 +504,14 @@
 }
 
 .fc-stat-label {
-  color: var(--fc-text-muted);
+  color: #4a4a3a;
   flex-shrink: 0;
 }
 
 .fc-stat-val {
-  font-family: var(--fc-font-mono);
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
   font-weight: 500;
-  color: var(--fc-text);
+  color: #1a1a1a;
   text-align: right;
   flex-shrink: 0;
 }
@@ -539,7 +519,7 @@
 .fc-stat-val.fc-bold {
   font-weight: 700;
   font-size: 14px;
-  color: var(--fc-text);
+  color: #1a1a1a;
 }
 
 .fc-stat-val.fc-sv-dmg {
@@ -547,7 +527,7 @@
 }
 
 .fc-stat-val.fc-sv-mult {
-  color: var(--fc-gold-dark);
+  color: #a88840;
 }
 
 .fc-stat-val.fc-sv-rate {
@@ -585,9 +565,9 @@
   gap: 6px;
   padding: 4px 10px 4px 8px;
   font-size: 12px;
-  color: var(--fc-text);
-  background: var(--fc-bg-alt);
-  border: 1px solid var(--fc-border);
+  color: #1a1a1a;
+  background: #efeadd;
+  border: 1px solid #c8b898;
   border-radius: 100px;
 }
 
@@ -599,16 +579,16 @@
   height: 18px;
   font-size: 14px;
   line-height: 1;
-  color: var(--fc-text-muted);
+  color: #4a4a3a;
   background: transparent;
   border: none;
   border-radius: 50%;
   cursor: pointer;
-  transition: background var(--fc-transition), color var(--fc-transition);
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .fc-rune-tag-remove:hover {
-  background: var(--fc-border);
+  background: #c8b898;
   color: #cc0000;
 }
 
@@ -618,13 +598,13 @@
 
 .fc-ability-note {
   font-size: 11px;
-  color: var(--fc-text-muted);
+  color: #4a4a3a;
   font-style: italic;
   margin-top: 8px;
   padding: 8px 10px;
-  background: var(--fc-bg-alt);
-  border-radius: var(--fc-radius);
-  border: 1px dashed var(--fc-border);
+  background: #efeadd;
+  border-radius: 4px;
+  border: 1px dashed #c8b898;
 }
 
 /* ==========================================================================
@@ -788,6 +768,8 @@
   .fc-card-icon {
     width: 12px;
     height: 12px;
+    font-size: 10px;
+    line-height: 12px;
   }
 
   .fc-card-body {
@@ -901,16 +883,11 @@
    ========================================================================== */
 
 @media (prefers-contrast: high) {
-  .fc-calculator {
-    --fc-border: #000;
-    --fc-border-dark: #000;
-    --fc-gold: #000;
-    --fc-gold-dark: #000;
-    --fc-link: #000;
-    --fc-card-border: #000;
-    --fc-head-border: #000;
-    --fc-input-border: #000;
-    --fc-input-focus: #000;
+  .fc-calculator .fc-input-section,
+  .fc-calculator .fc-results-panel,
+  .fc-calculator .fc-card,
+  .fc-calculator .fc-rune-tag {
+    border-color: #000;
   }
 
   .fc-stat-val.fc-sv-dmg,

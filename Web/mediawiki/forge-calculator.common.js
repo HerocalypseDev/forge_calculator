@@ -1459,7 +1459,8 @@
   function createResultsCard(opts) {
     var card = createEl('div', { class: 'fc-card' });
     var head = createEl('div', { class: 'fc-card-head' });
-    var iconEl = createEl('span', { class: 'fc-card-icon' });
+    // Text glyph instead of a data-URI image: TemplateStyles blocks url(data:…)
+    var iconEl = createEl('span', { class: 'fc-card-icon' }, ['◆']);
     var titleEl = createEl('span', { class: 'fc-card-title' }, [opts.title]);
     head.append(iconEl, titleEl);
 
