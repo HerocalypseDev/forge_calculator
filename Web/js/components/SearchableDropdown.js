@@ -119,13 +119,15 @@ export function createSearchableDropdown({ options, value, onChange, placeholder
   };
 
   // Open dropdown
-  const open = () => {
+  const open = (showAll) => {
     if (isOpen) return;
     isOpen = true;
     listContainer.classList.remove(CLASS_HIDDEN);
     input.setAttribute('aria-expanded', 'true');
     arrow.textContent = '▴';
-    filteredOptions = filterOptions(input.value);
+    // The selected value (e.g. "None") must not act as a filter: show the full
+    // list unless the user has actually typed a search term that differs from it.
+    filteredOptions = filterOptions(showAll ? '' : (input.value === currentValue ? '' : input.value));
     renderList();
     // Focus input to maintain keyboard focus
     input.focus();
@@ -142,9 +144,9 @@ export function createSearchableDropdown({ options, value, onChange, placeholder
   };
 
   // Toggle dropdown
-  const toggle = () => {
+  const toggle = (showAll) => {
     if (isOpen) close();
-    else open();
+    else open(showAll);
   };
 
   // Handle input
@@ -225,14 +227,16 @@ export function createSearchableDropdown({ options, value, onChange, placeholder
   const handleArrowClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    toggle();
+    // The arrow always browses the full list, ignoring whatever is in the box.
+    toggle(true);
   };
 
   // Event listeners
   on(input, 'input', handleInput);
   on(input, 'keydown', handleKeydown);
   on(input, 'focus', () => {
-    if (!isOpen && filteredOptions.length > 0) {
+    input.select();
+    if (!isOpen && options.length > 0) {
       open();
     }
   });
@@ -257,7 +261,7 @@ export function createSearchableDropdown({ options, value, onChange, placeholder
   // Update options dynamically
   container.updateOptions = (newOptions) => {
     options = newOptions;
-    filteredOptions = filterOptions(input.value);
+    filteredOptions = filterOptions(input.value === currentValue ? '' : input.value);
     renderList();
     if (!isOpen && filteredOptions.length > 0) {
       open();

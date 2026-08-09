@@ -895,13 +895,15 @@
       }
     }
 
-    function open() {
+    function open(showAll) {
       if (isOpen) { return; }
       isOpen = true;
       listContainer.classList.remove(CLASS_HIDDEN);
       input.setAttribute('aria-expanded', 'true');
       arrow.textContent = '▴';
-      filteredOptions = filterOptions(input.value);
+      // The selected value (e.g. "None") must not act as a filter: show the full
+      // list unless the user has actually typed a search term that differs from it.
+      filteredOptions = filterOptions(showAll ? '' : (input.value === currentValue ? '' : input.value));
       renderList();
       input.focus();
     }
@@ -915,8 +917,8 @@
       highlightedIndex = -1;
     }
 
-    function toggle() {
-      if (isOpen) { close(); } else { open(); }
+    function toggle(showAll) {
+      if (isOpen) { close(); } else { open(showAll); }
     }
 
     var handleInput = debounce(function (e) {
@@ -995,13 +997,15 @@
     function handleArrowClick(e) {
       e.preventDefault();
       e.stopPropagation();
-      toggle();
+      // The arrow always browses the full list, ignoring whatever is in the box.
+      toggle(true);
     }
 
     input.addEventListener('input', handleInput);
     input.addEventListener('keydown', handleKeydown);
     input.addEventListener('focus', function () {
-      if (!isOpen && filteredOptions.length > 0) { open(); }
+      input.select();
+      if (!isOpen && options.length > 0) { open(); }
     });
     arrow.addEventListener('click', handleArrowClick);
     listContainer.addEventListener('click', handleItemClick);
@@ -1016,7 +1020,7 @@
     container.close = close;
     container.updateOptions = function (newOptions) {
       options = newOptions;
-      filteredOptions = filterOptions(input.value);
+      filteredOptions = filterOptions(input.value === currentValue ? '' : input.value);
       renderList();
       if (!isOpen && filteredOptions.length > 0) { open(); }
     };
