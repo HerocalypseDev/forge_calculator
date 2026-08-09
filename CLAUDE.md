@@ -123,3 +123,17 @@ No linter or formatter is configured.
 | **Fix pre-existing standalone bug** — duplicate `deepClone` declaration (import + local func) was a module SyntaxError; removed unused `debounce`/`fmt4` imports | — | `main.js`, `ResultsPanel.js` | ✅ Done | 2d9ac4d |
 
 **Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (worst rel err 5.19e-16); `node --check`/`node --input-type=module --check` clean on all modified JS.
+
+### UI Label / Validation / Placeholder / Layout Overhaul — COMPLETED ✅
+**Goal:** UX polish pass across all three calculators (MediaWiki IIFE, standalone ESM, Python/Tkinter desktop): cap Quality at 100, rename result labels, replace "None" dropdown placeholders with contextual "Select X" prompts (internal sentinel stays `"None"`), remove Base Crit Chance (web only), show each ore's multiplier, rebuild Runes as 3 lines × 2 slots (web only). Engine/formulas untouched.
+
+| Change | MediaWiki | Standalone | Desktop | Status | Commit |
+|--------|-----------|------------|---------|--------|--------|
+| **Quality cap (100)** — `max`/`to=100`, clamp in change handler / `_build()` | `forge-calculator.common.js` | `WeaponSelector.js` | `calculator_tab.py` | ✅ Done | 4aaa441 |
+| **Label renames** — Base Damage, Average Multiplier, Weapon Damage, Time taken to defeat Golem/Asura, Ore Slots | cards + clipboard | `ResultsPanel.js`, `main.js` | result cards | ✅ Done | 4aaa441 |
+| **"Select X" placeholders** — prompt-first dropdown options, `toUI`/`fromUI` at state boundaries; desktop `_build`/`get_state`/`set_state`/`_reset` translate prompt ↔ sentinel | `forge-calculator.common.js` | `WeaponSelector.js`, `InputPanel.js` | `calculator_tab.py` | ✅ Done | 4aaa441 |
+| **Remove Base Crit Chance** — UI field, DEFAULT_BUILD, `base_crit_chance: 0` (web only) | `forge-calculator.common.js` | `StatInput.js`, `InputPanel.js`, `main.js` | — | ✅ Done | 4aaa441 |
+| **Per-ore multiplier** — `×multiplier` readout beside each slot, live-updated | `.fc-ore-slot-mult` CSS | `OreSlot.js` + `.ep-ore-slot-mult` CSS | `_update_ore_mult` label | ✅ Done | 4aaa441 |
+| **Rune 3×2 grid** — 6 fixed cells (C27/D27–C29/D29); `runes` → 6-element array in DEFAULT_BUILD (web only) | `createRuneSelector` + CSS | `RuneSelector.js` + CSS | — | ✅ Done | 4aaa441 |
+
+**Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED; `python -m pytest tests/` → 75 passed; `python scripts/smoke_gui.py` → SMOKE OK (incl. new quality-cap + quality 100→50 recompute checks).
