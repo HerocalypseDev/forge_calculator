@@ -576,13 +576,8 @@
   margin: 0 0 10px;
 }
 
-/* Range-clamped in JS, so suppress the browser's out-of-range styling
-   (keep the focus ring via :not(:focus)) */
-.fc-ability-input:invalid:not(:focus),
-.fc-ability-input:out-of-range:not(:focus) {
-  border-color: #b8a888;
-  box-shadow: none;
-}
+/* Ability range is enforced in JS (clampAbilityValue) on change/blur; no
+   form-state pseudo-class styling is used here (TemplateStyles rejects it). */
 
 /* Ability notes */
 

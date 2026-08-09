@@ -148,7 +148,7 @@ No linter or formatter is configured.
 | **Clamp ranges** — Fire DMG/Chance/Time 1–22/1–50/1–3s; Poison 1–7/1–35/1–6s; Blast 1–40/1–20. `0`/empty/non-numeric = no ability (keeps `DEFAULT_BUILD` + reset at 0) | `ABILITY_RANGES` + `clampAbilityValue` in `forge-calculator.common.js` | ✅ Done | (this session) |
 | **min/max + step + placeholder + tooltip** — HTML attrs = clamp range, `step=1`, range hints (`1-22%`, `1-3s`) + title tooltips ("Range: X–Y. 0 = no ability.") | `createAbilityGrid` | ✅ Done | (this session) |
 | **Validation on change/blur/input** — debounced `input` + `change` + `blur` all clamp | `forge-calculator.common.js` | ✅ Done | (this session) |
-| **CSS** — `.fc-ability-section-title`/`.fc-ability-section-subtext`; neutralize `:invalid`/`:out-of-range` on `.fc-ability-input` (keeps `:focus` ring) | `Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
+| **CSS** — `.fc-ability-section-title`/`.fc-ability-section-subtext` (plain class selectors, TemplateStyles-safe). No `:invalid`/`:out-of-range` neutralizer — the TemplateStyles sanitizer rejects form-state pseudo-classes; range is enforced purely in JS | `Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
 | **Tests** — new `ability-inputs-test.js`: DOM-level checks for clamp logic, min/max/step/placeholder/title attrs, change/blur/input clamping, percent→decimal transform | `Web/mediawiki/ability-inputs-test.js` | ✅ Done | (this session) |
 
 **Known behavior (intentional):** clamping is silent — a value outside the range snaps to the bound on blur/change; the valid range is always visible in the field's placeholder and hover tooltip.
