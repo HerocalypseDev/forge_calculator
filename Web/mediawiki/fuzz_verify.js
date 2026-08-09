@@ -14,9 +14,9 @@ const vm = require('vm');
 const HERE = __dirname;
 const SRC = fs.readFileSync(path.join(HERE, 'forge-calculator.common.js'), 'utf8');
 
-const marker = '* DATA LOADING';
+const marker = 'var DATA_TITLES = {';
 const idx = SRC.indexOf(marker);
-const blockStart = SRC.lastIndexOf('/* ===', idx);
+const blockStart = SRC.lastIndexOf('\n', idx) + 1;
 const instrumented = SRC.slice(0, blockStart) +
   '  globalThis.__FC = { calculate: calculate, buildGameData: buildGameData };\n' +
   SRC.slice(blockStart);

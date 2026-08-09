@@ -1,27 +1,6 @@
-/* ==========================================================================
-   Forge Calculator — Template:ForgeCalculator/styles.css
-   --------------------------------------------------------------------------
-   Consolidated for MediaWiki TemplateStyles from web/css/:
-     • wiki-styles.css   (base theme + layout)
-     • calculator.css    (input panel, dropdowns, results, runes)
-     • responsive.css    (breakpoints, print, reduced-motion, contrast)
+/* Forge Calculator — scoped under .fc-calculator, TemplateStyles-safe */
 
-   Adaptations made for TemplateStyles safety:
-     • All rules scoped under `.fc-calculator` (no bare `body`, `a`, `:root`,
-       or `*` selectors that would restyle the surrounding wiki page).
-     • Classes `ep-*` → `fc-*` to avoid colliding with the wiki's `--ep-*`
-       Infobox theme.
-     • No CSS custom properties (`--fc-*` / `var()`): the TemplateStyles
-       sanitizer does not support them, so every value is inlined.
-     • No `pointer-events`, no `:focus-visible`, no `url(data:…)` backgrounds
-       (all rejected by the sanitizer).
-     • Tooltip styles removed (tooltips not included in the wiki build).
-     • Scrollbar / global selection styling scoped or dropped.
-   ========================================================================== */
-
-/* ==========================================================================
-   Base
-   ========================================================================== */
+/* Base */
 
 .fc-calculator,
 .fc-calculator *,
@@ -52,9 +31,7 @@
   outline-offset: 2px;
 }
 
-/* ==========================================================================
-   Page Layout: fc-body, fc-left, fc-right
-   ========================================================================== */
+/* Page layout */
 
 .fc-body {
   display: grid;
@@ -79,9 +56,7 @@
   overflow-y: auto;
 }
 
-/* ==========================================================================
-   Toolbar (Copy / Reset buttons)
-   ========================================================================== */
+/* Toolbar (copy / reset buttons) */
 
 .fc-results-head {
   display: flex;
@@ -139,9 +114,7 @@
   letter-spacing: 0.5px;
 }
 
-/* ==========================================================================
-   Input Panel & Sections
-   ========================================================================== */
+/* Input panel & sections */
 
 .fc-input-panel {
   display: flex;
@@ -168,9 +141,7 @@
   letter-spacing: 0.5px;
 }
 
-/* ==========================================================================
-   Form Controls
-   ========================================================================== */
+/* Form controls */
 
 /* Labels */
 .fc-input-section label,
@@ -327,9 +298,7 @@
   margin-bottom: 0;
 }
 
-/* ==========================================================================
-   Searchable Dropdown
-   ========================================================================== */
+/* Searchable dropdown */
 
 .fc-searchable-dropdown {
   position: relative;
@@ -433,9 +402,7 @@
   font-size: 12px;
 }
 
-/* ==========================================================================
-   Results Panel
-   ========================================================================== */
+/* Results panel */
 
 .fc-results-panel {
   background: #fefefe;
@@ -561,9 +528,7 @@
   color: #e65100;
 }
 
-/* ==========================================================================
-   Rune Selector Tags
-   ========================================================================== */
+/* Rune selector */
 
 .fc-rune-selector {
   display: flex;
@@ -592,9 +557,34 @@
   min-width: 0;
 }
 
-/* ==========================================================================
-   Ability Grid Notes
-   ========================================================================== */
+/* Ability grid */
+
+.fc-ability-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 12px 0 8px;
+}
+
+.fc-ability-section-subtext {
+  font-size: 11px;
+  color: #4a4a3a;
+  font-style: italic;
+  line-height: 1.4;
+  margin: 0 0 10px;
+}
+
+/* Range-clamped in JS, so suppress the browser's out-of-range styling
+   (keep the focus ring via :not(:focus)) */
+.fc-ability-input:invalid:not(:focus),
+.fc-ability-input:out-of-range:not(:focus) {
+  border-color: #b8a888;
+  box-shadow: none;
+}
+
+/* Ability notes */
 
 .fc-ability-note {
   font-size: 11px;
@@ -607,9 +597,7 @@
   border: 1px dashed #c8b898;
 }
 
-/* ==========================================================================
-   Responsive Layout
-   ========================================================================== */
+/* Responsive layout */
 
 @media (max-width: 1024px) {
   .fc-body {
@@ -805,9 +793,7 @@
   }
 }
 
-/* ==========================================================================
-   Landscape Mobile (width > height, small height)
-   ========================================================================== */
+/* Landscape mobile */
 
 @media (max-height: 500px) and (orientation: landscape) {
   .fc-right {
@@ -820,9 +806,7 @@
   }
 }
 
-/* ==========================================================================
-   Print
-   ========================================================================== */
+/* Print */
 
 @media print {
   .fc-calculator {
@@ -857,9 +841,7 @@
   }
 }
 
-/* ==========================================================================
-   Reduced Motion
-   ========================================================================== */
+/* Reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
   .fc-calculator,
@@ -872,9 +854,7 @@
   }
 }
 
-/* ==========================================================================
-   High Contrast Mode
-   ========================================================================== */
+/* High contrast */
 
 @media (prefers-contrast: high) {
   .fc-calculator .fc-input-section,

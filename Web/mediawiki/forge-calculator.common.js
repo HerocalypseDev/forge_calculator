@@ -1,21 +1,4 @@
-/*!
- * Forge Calculator — Forge Calculator Module for MediaWiki:Common.js
- * -----------------------------------------------------------------------------
- * Consolidated from the standalone web app (Web/js/) for the Forge wiki:
- *
- *   • engine/*   — pure DPS engine, ported verbatim (unchanged math)
- *   • data/*     — loader rewritten to fetch the 5 Data: namespace pages
- *   • utils/*    — only the helpers actually used
- *   • components/* — rewritten with `fc-` class names; tooltips removed;
- *                  achievement is a single-select dropdown (matches the
- *                  authoritative Python GUI + workbook C80 validation list)
- *
- * Mounts into #fc-root on any page that transcludes Template:ForgeCalculator.
- * Requires: Data:Ores.json, Data:Weapons.json, Data:Races.json,
- *           Data:Runes.json, Data:Achievements.json (JsonConfig pages).
- *
- * Paste the contents of this file at the end of MediaWiki:Common.js.
- */
+// Forge Calculator for MediaWiki — see Web/mediawiki/DEPLOY.md for setup
 (function (mw) {
   'use strict';
 
@@ -30,22 +13,16 @@
   var NONE_LABEL = 'None';
   var SELECT_ORE = 'Select Ore';
 
-  /* ==========================================================================
-   * ENGINE CONSTANTS — verbatim from engine/constants.js
-   * ======================================================================== */
-
   // Share scaling gate and ramp
   var SHARE_GATE = 0.10;
   var RAMP_TOP = 0.30;
-  var RAMP_SPAN = RAMP_TOP - SHARE_GATE; // 0.20
+  var RAMP_SPAN = RAMP_TOP - SHARE_GATE;
 
-  // Forge multiplier SWITCH (C18) — level 9 = 1.5 breaks the 0.05/level pattern
   var FORGE_MULT = {
     0: 1.0, 1: 1.05, 2: 1.1, 3: 1.15, 4: 1.2,
     5: 1.25, 6: 1.3, 7: 1.35, 8: 1.4, 9: 1.5
   };
 
-  // Race lethality addends (E44 SWITCH)
   var RACE_LETHALITY = {
     'Archangel': 0.20,
     'Demon': 0.20,
@@ -54,20 +31,17 @@
     'Dragonborn': 0.12
   };
 
-  // Class lethality addends (E44 IFS) — SINGULAR "Gauntlet" (quirk)
   var CLASS_LETHALITY = {
     'Felynx,Gauntlet': 0.20,
     'Vampire,Straight Sword': 0.10
   };
 
-  // Race attack speed addends (E47 SWITCH)
   var RACE_ATK_SPEED = {
     'Shadow': 0.10,
     'Demon': 0.20,
     'Archangel': 0.20
   };
 
-  // Class attack speed addends (E47 IFS) — PLURAL "Gauntlets" (quirk)
   var CLASS_ATK_SPEED = {
     'Goblin,Dagger': 0.10,
     'Golem,Colossal Sword': 0.15,
@@ -75,19 +49,15 @@
     'Felynx,Gauntlets': 0.20
   };
 
-  // Dragonborn fire bonuses (C61/C62/C63)
   var RACE_FIRE_DMG = { 'Dragonborn': 0.30 };
   var RACE_FIRE_CHANCE = { 'Dragonborn': 0.40 };
   var RACE_FIRE_TIME = { 'Dragonborn': 3 };
 
-  // Smite bonuses (C71/C72)
   var RACE_SMITE_DMG = { 'Angel': 0.30, 'Archangel': 1.50 };
   var RACE_SMITE_CHANCE = { 'Angel': 0.50, 'Archangel': 0.33 };
 
-  // Minotaur berserk (E53)
   var RACE_BERSERK = { 'Minotaur': 0.30 };
 
-  // Stat caps (E44–E47)
   var CAPS = {
     lethality: 1.5,
     crit_chance: 1.0,
@@ -95,14 +65,11 @@
     atk_speed: 1.5
   };
 
-  // Active trait power (K6–K9)
   var TRAIT_POWER_SLOPE = 4.5;
   var TRAIT_POWER_FLOOR = 0.1;
 
-  // Core stat keys
   var CORE_STATS = ['lethality', 'crit_chance', 'crit_dmg', 'atk_speed'];
 
-  // Expected data counts from the source workbook
   var EXPECTED_COUNTS = {
     ores: 140,
     weapons: 79,
@@ -111,14 +78,6 @@
     achievements: 16
   };
 
-  /* ==========================================================================
-   * ENGINE — ported verbatim from engine/*.js (no math changes)
-   * ======================================================================== */
-
-  /**
-   * Share scaling formula
-   * IF(share < 0.1, 0, (base + (max - base) * MIN((share - 0.1) / 0.2, 1)) / divisor)
-   */
   function shareScaling(base, max, share, divisor) {
     if (divisor === undefined) { divisor = 100; }
     if (share < SHARE_GATE) { return 0.0; }
@@ -126,7 +85,6 @@
     return value / divisor;
   }
 
-  /** Calculate slot shares (J6:J9) — 0 when total is 0 */
   function slotShares(slots) {
     var total = 0;
     for (var i = 0; i < slots.length; i++) { total += slots[i].amount; }
@@ -134,14 +92,12 @@
     return slots.map(function (s) { return s.amount / total; });
   }
 
-  /** Get ore power multiplier for a slot (E6:E9) — "Select Ore"/missing -> 1 */
   function slotPower(slot, game) {
     if (slot.name === game.select_ore) { return 1.0; }
     var ore = game._ore_index.get(slot.name);
     return (ore && typeof ore.multiplier === 'number') ? ore.multiplier : 1.0;
   }
 
-  /** Average ore power (E10) */
   function avgOrePower(slots, game) {
     var powers = slots.map(function (s) { return slotPower(s, game); });
     var total = 0;
@@ -159,34 +115,26 @@
     return 0.0;
   }
 
-  /** Forge multiplier from level (C18 SWITCH) — default 1 outside 0–9 */
   function forgeMultiplier(level) {
     return FORGE_MULT[level] !== undefined ? FORGE_MULT[level] : 1.0;
   }
 
-  /** Weapon base damages (A18 unforged, C18 forged) */
   function weaponBases(weapon, avgPower, quality, forgeLevel) {
     if (!weapon) { return [1.0, 1.0]; }
     var base = weapon.damage * avgPower * (1 + quality / 100.0);
     return [base, base * forgeMultiplier(forgeLevel)];
   }
 
-  /** Attack rate (E21) = (1 + atk_speed_total) / interval */
   function attackRate(weapon, atkSpeedTotal) {
     var interval = (weapon && typeof weapon.interval === 'number') ? weapon.interval : 1.0;
     return (1 + atkSpeedTotal) / interval;
   }
 
-  /** Crit blend multiplier (part of C84) */
   function critBlend(ccTotal, cdTotal) {
     var cc = Math.min(ccTotal, 1.0);
     return cc * cdTotal + (1 - cc);
   }
 
-  /**
-   * Stat patterns matching the workbook formulas (from utils/parse.js)
-   * e.g. "Crit Chance +14%" -> { stat: 'crit_chance', value: 0.14 }
-   */
   var STAT_PATTERNS = [
     ['lethality', ['Damage Boost', 'Lethality']],
     ['crit_chance', ['Crit Chance']],
@@ -199,7 +147,6 @@
     if (idx < 0) { return null; }
     var rest = text.slice(idx + 1);
     if (!rest) { return null; }
-    // Drop exactly one trailing character (the %)
     var numStr = rest.slice(0, -1).trim();
     var val = parseFloat(numStr);
     return isNaN(val) ? null : val;
@@ -224,7 +171,6 @@
     return null;
   }
 
-  /** Sum one stat's share-scaled contributions across slots */
   function oreStatSum(slots, shares, game, stat) {
     var total = 0.0;
     for (var i = 0; i < slots.length; i++) {
@@ -240,7 +186,6 @@
     return total;
   }
 
-  /** Rune totals from 6 rune cells (A27–A31) */
   function runeTotals(runeCells) {
     var totals = { lethality: 0.0, crit_chance: 0.0, crit_dmg: 0.0, atk_speed: 0.0 };
     for (var i = 0; i < runeCells.length; i++) {
@@ -250,14 +195,12 @@
     return totals;
   }
 
-  /** Stat totals with caps (E44–E47) */
   function statTotals(build, game, oreContribs) {
     var runes = runeTotals(build.rune_cells);
     var ach = parseTrait(build.achievement);
     var achStat = ach ? ach.stat : null;
     var achValue = ach ? ach.value : 0.0;
 
-    // Lethality (E44)
     var lethality = oreContribs.lethality
       + build.armor_lethality
       + runes.lethality
@@ -266,18 +209,15 @@
       + (CLASS_LETHALITY[build.race + ',' + build.bonus_weapon_type] !== undefined ? CLASS_LETHALITY[build.race + ',' + build.bonus_weapon_type] : 0.0)
       + (achStat === 'lethality' ? achValue : 0.0);
 
-    // Crit Chance (E45) — base_crit_chance (C20) enters ONLY the crit blend
     var crit_chance = oreContribs.crit_chance
       + build.armor_crit_chance
       + runes.crit_chance
       + (achStat === 'crit_chance' ? achValue : 0.0);
 
-    // Crit Damage (E46)
     var crit_dmg = oreContribs.crit_dmg
       + build.armor_crit_dmg
       + runes.crit_dmg;
 
-    // Attack Speed (E47)
     var atk_speed = oreContribs.atk_speed
       + runes.atk_speed
       + (RACE_ATK_SPEED[build.race] !== undefined ? RACE_ATK_SPEED[build.race] : 0.0)
@@ -292,7 +232,6 @@
     };
   }
 
-  /** Calculate all ore contributions for core stats */
   function calcOreContributions(slots, shares, game) {
     var contribs = {};
     for (var i = 0; i < CORE_STATS.length; i++) {
@@ -301,7 +240,6 @@
     return contribs;
   }
 
-  /** Duration calculation with workbook quirks */
   function duration(oreTerms, raceTime, abilityTime, minus) {
     var maxOre = 0;
     for (var i = 0; i < oreTerms.length; i++) { if (oreTerms[i] > maxOre) { maxOre = oreTerms[i]; } }
@@ -313,7 +251,6 @@
     return Math.max(top - minus, 0.0);
   }
 
-  /** Black hole chance (C76) — any Galaxite slot triggers it (COUNTA quirk) */
   function blackholeChance(slots, game) {
     var galaxite = 0;
     var nonblank = 0;
@@ -325,7 +262,6 @@
     return galaxite / nonblank >= 0.1 ? 0.3 : 0.0;
   }
 
-  /** Get all scaled values for a stat across slots */
   function slotVals(slots, shares, game, stat) {
     var vals = [];
     for (var i = 0; i < slots.length; i++) {
@@ -356,7 +292,6 @@
     return total;
   }
 
-  /** All proc components (C52–C76) — feed DPS rows C85–C89 (scale on UNFORGED A18) */
   function procComponents(build, shares, game) {
     var fireTerms = slotVals(build.slots, shares, game, 'fire_duration');
     var poisonTerms = slotVals(build.slots, shares, game, 'poison_duration');
@@ -381,7 +316,6 @@
     };
   }
 
-  /** Active weapon trait text (C14) */
   function activeTraits(build, shares, game) {
     var parts = [];
     for (var i = 0; i < build.slots.length; i++) {
@@ -410,9 +344,6 @@
     return parts.length ? parts.join(' | ') : 'No active weapon traits';
   }
 
-  /**
-   * Full DPS calculation (C84–C96, E91/E92)
-   */
   function calculate(build, game) {
     var shares = slotShares(build.slots);
     var avgPower = avgOrePower(build.slots, game);
@@ -434,7 +365,6 @@
 
     var procs = procComponents(build, shares, game);
 
-    // C84–C89 DPS components
     var weapon_dps = forged * (1 + totals.lethality) * blend * atkRate;
     var explosion_dps = unforged * procs.explosion_dmg * procs.explosion_chance * atkRate;
     var fire_dps = atkRate
@@ -447,7 +377,6 @@
     var blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * atkRate;
     var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps;
 
-    // C92 Berserk: E53 = C53 + Minotaur 30%
     var berserkLevel = build.berserk + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0);
     var berserk = null;
     if (berserkLevel !== 0) {
@@ -456,10 +385,8 @@
         + forged * (1 + lethBoosted) * blend * atkRate;
     }
 
-    // C93 Moonstone: E52 = 1 + C52, applied to weapon DPS only
     var moonstone = procs.moon !== 0 ? weapon_dps * (1 + procs.moon) : null;
 
-    // C95 Min DPS / C96 Max Burst (procs on FORGED C18 — preserved quirk)
     var min_dps = forged * (1 + totals.lethality) * atkRate;
     var max_dps = forged * (1 + totals.lethality) * (build.base_crit_dmg + totals.crit_dmg) * atkRate
       + forged * procs.explosion_dmg * atkRate
@@ -468,7 +395,6 @@
       + procs.smite_dmg * forged
       + procs.blackhole_dmg * forged;
 
-    // E91/E92 TTK
     var ttk_25k = total_dps > 0 ? 25000 / total_dps : null;
     var ttk_75k = total_dps > 0 ? 75000 / total_dps : null;
 
@@ -513,10 +439,6 @@
     };
   }
 
-  /* ==========================================================================
-   * DATA LOADING — Data: namespace pages (JsonConfig)
-   * ======================================================================== */
-
   var DATA_TITLES = {
     ores: 'Data:Ores.json',
     weapons: 'Data:Weapons.json',
@@ -525,14 +447,12 @@
     achievements: 'Data:Achievements.json'
   };
 
-  /** Wrap a thenable (jQuery promise) into a native Promise */
   function native(p) {
     return new Promise(function (resolve, reject) {
       Promise.resolve(p).then(resolve, reject);
     });
   }
 
-  /** Load a JSON page via action=query + prop=revisions (standard API) */
   function loadViaQuery(api, title) {
     return native(api.get({
       action: 'query',
@@ -552,7 +472,6 @@
     });
   }
 
-  /** Load a JSON page via the JsonConfig action=jsondata API */
   function loadViaJsondata(api, title) {
     return native(api.get({ action: 'jsondata', format: 'json', title: title })).then(function (res) {
       var jsondata = res.jsondata;
@@ -569,7 +488,6 @@
     });
   }
 
-  /** Load a JSON page via action=raw (plain fetch fallback) */
   function loadViaRaw(title) {
     var url = mw.config.get('wgScriptPath') + '/index.php?title=' + encodeURIComponent(title) + '&action=raw';
     return window.fetch(url, { credentials: 'same-origin' }).then(function (r) {
@@ -578,7 +496,6 @@
     });
   }
 
-  /** Try each data-loading strategy in order until one returns valid JSON */
   function loadJSONPage(title) {
     var attempts = [
       function () {
@@ -613,7 +530,6 @@
     });
   }
 
-  /** Normalize + index loaded data */
   function buildGameData(files) {
     var rawOres = files.ores;
     var rawWeapons = files.weapons;
@@ -626,7 +542,7 @@
         name: raw.name,
         multiplier: raw.multiplier,
         equipment: raw.equipment != null ? raw.equipment : null,
-        // Preserved quirk from data.py: "eapon" (lower-case substring of "weapon")
+        // Preserved quirk: "eapon" substring check
         is_weapon: raw.equipment != null && String(raw.equipment).toLowerCase().indexOf('eapon') !== -1,
         trait10: raw.trait10 != null ? raw.trait10 : null,
         trait30: raw.trait30 != null ? raw.trait30 : null,
@@ -692,7 +608,6 @@
     return data;
   }
 
-  /** Validate loaded data against expected counts (non-fatal) */
   function validateData(data) {
     var counts = {
       ores: data.ores.length,
@@ -741,10 +656,6 @@
     });
   }
 
-  /* ==========================================================================
-   * DOM HELPERS
-   * ======================================================================== */
-
   function createEl(tag, attrs, children) {
     var el = document.createElement(tag);
     attrs = attrs || {};
@@ -778,10 +689,6 @@
   function empty(el) {
     while (el.firstChild) { el.removeChild(el.firstChild); }
   }
-
-  /* ==========================================================================
-   * UI — SEARCHABLE DROPDOWN
-   * ======================================================================== */
 
   var CLASS_DROPDOWN = 'fc-searchable-dropdown';
   var CLASS_INPUT = 'fc-searchable-input';
@@ -901,8 +808,6 @@
       listContainer.classList.remove(CLASS_HIDDEN);
       input.setAttribute('aria-expanded', 'true');
       arrow.textContent = '▴';
-      // The selected value (e.g. "None") must not act as a filter: show the full
-      // list unless the user has actually typed a search term that differs from it.
       filteredOptions = filterOptions(showAll ? '' : (input.value === currentValue ? '' : input.value));
       renderList();
       input.focus();
@@ -997,7 +902,6 @@
     function handleArrowClick(e) {
       e.preventDefault();
       e.stopPropagation();
-      // The arrow always browses the full list, ignoring whatever is in the box.
       toggle(true);
     }
 
@@ -1028,10 +932,6 @@
     container.append(input, arrow, listContainer);
     return container;
   }
-
-  /* ==========================================================================
-   * UI — ORE SLOT
-   * ======================================================================== */
 
   function createOreSlot(opts) {
     var index = opts.index;
@@ -1069,7 +969,6 @@
     });
     dropdownWrapper.appendChild(dropdown);
 
-    // Per-ore multiplier readout ("×2.33"), shown when a real ore is selected
     var multLabel = createEl('span', { class: 'fc-ore-slot-mult' }, ['']);
     function updateMult() {
       var m = Number(oreMultipliers[currentName]);
@@ -1114,10 +1013,6 @@
     return container;
   }
 
-  /* ==========================================================================
-   * UI — WEAPON SELECTOR
-   * ======================================================================== */
-
   function createWeaponSelector(opts) {
     var weaponTypes = opts.weaponTypes;
     var weapons = opts.weapons;
@@ -1127,7 +1022,7 @@
     var enhancementPrompt = opts.enhancementPrompt || noneLabel;
     var onChange = opts.onChange;
 
-    // Prompt display ↔ "None" sentinel translation (see InputPanel).
+    // Prompt ↔ "None" sentinel translation
     function toUI(val, sentinel, prompt) {
       return (val === sentinel || val === undefined) ? prompt : val;
     }
@@ -1144,7 +1039,6 @@
 
     var container = createEl('div', { class: 'fc-weapon-selector' });
 
-    // Weapon Type dropdown
     var typeWrapper = createEl('div', { class: 'fc-weapon-type-wrapper' });
     var typeLabel = createEl('label', { for: 'weapon-type' }, ['Weapon Type']);
     var typeOptions = [weaponTypePrompt, 'All Types'].concat(weaponTypes);
@@ -1172,7 +1066,6 @@
     });
     typeWrapper.append(typeLabel, typeDropdown);
 
-    // Weapon dropdown
     var weaponWrapper = createEl('div', { class: 'fc-weapon-wrapper' });
     var weaponLabel = createEl('label', { for: 'weapon-name' }, ['Weapon']);
     var initialWeapons;
@@ -1194,7 +1087,6 @@
     });
     weaponWrapper.append(weaponLabel, weaponDropdown);
 
-    // Quality input
     var qualityWrapper = createEl('div', { class: 'fc-quality-wrapper' });
     var qualityLabel = createEl('label', { for: 'quality' }, ['Quality']);
     var qualityInput = createEl('input', {
@@ -1220,7 +1112,6 @@
     qualityInput.addEventListener('change', commitQuality);
     qualityWrapper.append(qualityLabel, qualityInput);
 
-    // Enhancement dropdown
     var enhancementWrapper = createEl('div', { class: 'fc-enhancement-wrapper' });
     var enhancementLabel = createEl('label', { for: 'enhancement' }, ['Enhancement']);
     var enhancementLevels = [];
@@ -1253,10 +1144,6 @@
 
     return container;
   }
-
-  /* ==========================================================================
-   * UI — STAT INPUT
-   * ======================================================================== */
 
   function createStatInput(opts) {
     var onChange = opts.onChange;
@@ -1321,10 +1208,6 @@
     return container;
   }
 
-  /* ==========================================================================
-   * UI — ABILITY GRID
-   * ======================================================================== */
-
   function createAbilityGrid(opts) {
     var onChange = opts.onChange;
     var currentValues = {};
@@ -1332,7 +1215,7 @@
 
     var container = createEl('div', { class: 'fc-ability-grid' });
 
-    function createSection(title, fields, note) {
+    function createSection(title, fields) {
       var section = createEl('div', { class: 'fc-ability-section' });
       var sectionTitle = createEl('h4', { class: 'fc-ability-section-title' }, [title]);
       section.appendChild(sectionTitle);
@@ -1371,9 +1254,6 @@
         })(fields[i]);
       }
 
-      if (note) {
-        section.appendChild(createEl('p', { class: 'fc-ability-note' }, [note]));
-      }
       return section;
     }
 
@@ -1392,7 +1272,7 @@
     var blastSection = createSection('Blast', [
       { key: 'blastDmg', label: 'Blast DMG', placeholder: '0', min: 0, step: '0.01' },
       { key: 'blastChance', label: 'Blast Chance', placeholder: '0', min: 0, step: '0.01', max: 1 }
-    ], 'Note: Blast has no duration field (workbook quirk)');
+    ]);
 
     container.append(fireSection, poisonSection, blastSection);
 
@@ -1419,24 +1299,19 @@
     return container;
   }
 
-  /* ==========================================================================
-   * UI — RUNE SELECTOR (3 lines × 2 slots = 6 fixed cells)
-   * ======================================================================== */
-
   function createRuneSelector(opts) {
     var runes = opts.runes;
     var noneLabel = opts.noneLabel;
     var prompt = opts.prompt || noneLabel;
     var onChange = opts.onChange;
 
-    // Normalize to exactly 6 cells (pad short arrays from old saved builds)
     var initial = opts.values || [];
     var current = [];
     for (var ci = 0; ci < 6; ci++) {
       current.push(initial[ci] !== undefined ? initial[ci] : noneLabel);
     }
 
-    // Prompt display ↔ "None" sentinel translation (see WeaponSelector).
+    // Prompt ↔ "None" sentinel translation
     function toUI(val) { return (val === noneLabel || val === undefined) ? prompt : val; }
     function fromUI(val) { return val === prompt ? noneLabel : val; }
 
@@ -1485,14 +1360,9 @@
     return container;
   }
 
-  /* ==========================================================================
-   * UI — RESULTS CARD + STAT ROW
-   * ======================================================================== */
-
   function createResultsCard(opts) {
     var card = createEl('div', { class: 'fc-card' });
     var head = createEl('div', { class: 'fc-card-head' });
-    // Text glyph instead of a data-URI image: TemplateStyles blocks url(data:…)
     var iconEl = createEl('span', { class: 'fc-card-icon' }, ['◆']);
     var titleEl = createEl('span', { class: 'fc-card-title' }, [opts.title]);
     head.append(iconEl, titleEl);
@@ -1540,10 +1410,6 @@
     return fragment;
   }
 
-  /* ==========================================================================
-   * UI — RESULTS PANEL
-   * ======================================================================== */
-
   function fmt2(n) {
     if (n === null || n === undefined || !isFinite(n)) { return '∞'; }
     return n.toFixed(2);
@@ -1584,7 +1450,6 @@
     var cardsContainer = createEl('div', { class: 'fc-results-cards' });
     container.append(head, cardsContainer);
 
-    // Core DPS Card
     var coreDpsCard = createResultsCard({
       title: 'Core DPS',
       content: createStatRows([
@@ -1596,7 +1461,6 @@
       ])
     });
 
-    // Stats Card
     var statsCard = createResultsCard({
       title: 'Stats (Capped)',
       content: createStatRows([
@@ -1607,7 +1471,6 @@
       ])
     });
 
-    // DPS Breakdown Card
     var dpsCard = createResultsCard({
       title: 'DPS Breakdown',
       content: createStatRows([
@@ -1620,7 +1483,6 @@
       ])
     });
 
-    // Time to Kill Card
     var ttkCard = createResultsCard({
       title: 'Time to Kill',
       content: createStatRows([
@@ -1629,7 +1491,6 @@
       ])
     });
 
-    // Traits Card (initially empty)
     var traitsCard = createResultsCard({
       title: 'Active Traits',
       content: createStatRows([
@@ -1685,10 +1546,6 @@
     return container;
   }
 
-  /* ==========================================================================
-   * UI — INPUT PANEL
-   * ======================================================================== */
-
   function createInputPanel(opts) {
     var data = opts.data;
     var getBuild = opts.getBuild;
@@ -1698,7 +1555,7 @@
     var noneLabel = data.constants.noneLabel;
     var selectOreLabel = data.constants.selectOreLabel;
 
-    // Contextual "Select X" prompts (display layer; build state keeps the "None" sentinel)
+    // "Select X" prompts — build state keeps "None" sentinel
     var ORE_PROMPT = 'Select Ores';
     var RACE_PROMPT = 'Select Race';
     var BONUS_PROMPT = 'Select Bonus Type';
@@ -1721,7 +1578,6 @@
       onBuildChange(merged);
     }
 
-    /* --- Ore Slots --- */
     var oreSection = createEl('div', { class: 'fc-input-section' });
     oreSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Ore Slots']));
 
@@ -1754,7 +1610,6 @@
       })(i);
     }
 
-    /* --- Weapon --- */
     var weaponSection = createEl('div', { class: 'fc-input-section' });
     weaponSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Weapon']));
 
@@ -1775,7 +1630,6 @@
     });
     weaponSection.appendChild(weaponSelector);
 
-    /* --- Race & Bonus --- */
     var raceSection = createEl('div', { class: 'fc-input-section' });
     raceSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Race & Bonus']));
 
@@ -1805,7 +1659,6 @@
 
     raceSection.append(raceWrapper, bonusWrapper);
 
-    /* --- Armor Stats --- */
     var statSection = createEl('div', { class: 'fc-input-section' });
     statSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Armor Stats']));
 
@@ -1819,7 +1672,6 @@
     });
     statSection.appendChild(statInput);
 
-    /* --- Abilities --- */
     var abilitySection = createEl('div', { class: 'fc-input-section' });
     abilitySection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Abilities']));
 
@@ -1838,7 +1690,6 @@
     });
     abilitySection.appendChild(abilityGrid);
 
-    /* --- Runes --- */
     var runeSection = createEl('div', { class: 'fc-input-section' });
     runeSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Runes']));
 
@@ -1851,7 +1702,6 @@
     });
     runeSection.appendChild(runeSelector);
 
-    /* --- Achievement (single-select, matches workbook C80 validation list) --- */
     var achievementSection = createEl('div', { class: 'fc-input-section' });
     achievementSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Achievement']));
 
@@ -1881,7 +1731,6 @@
       achievementSection
     );
 
-    /* --- Calculate DPS trigger (manual, no auto-recalc) --- */
     var calcBtn = createEl('button', {
       class: 'fc-btn fc-btn--primary fc-calc-btn',
       type: 'button'
@@ -1927,10 +1776,6 @@
     return container;
   }
 
-  /* ==========================================================================
-   * APP — MAIN
-   * ======================================================================== */
-
   var DEFAULT_BUILD = {
     oreSlots: [
       { name: NONE_LABEL, amount: 0 },
@@ -1975,7 +1820,7 @@
       race: build.race,
       bonus_weapon_type: build.bonusType,
       rune_cells: build.runes || [],
-      base_crit_chance: 0, // Base Crit Chance input removed; engine's C20 quirk preserved
+      base_crit_chance: 0,
       base_crit_dmg: 0,
       armor_crit_chance: build.armorCritChance,
       armor_crit_dmg: build.armorCritDmg,
@@ -2007,8 +1852,7 @@
   }
 
   function handleBuildChange(newBuild) {
-    // Inputs only update pending state — results are recomputed when the
-    // "Calculate DPS" button is pressed.
+    // Only update state here; results compute on "Calculate DPS" press
     state.build = newBuild;
   }
 
@@ -2029,7 +1873,6 @@
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(done, failed);
       } else {
-        // Fallback for browsers without the async Clipboard API
         var ta = document.createElement('textarea');
         ta.value = text;
         ta.style.position = 'fixed';
@@ -2121,7 +1964,6 @@
     loadGameData().then(function (gameData) {
       state.gameData = gameData;
 
-      // Build layout: fc-body > fc-left + fc-right
       var body = createEl('div', { class: 'fc-body' });
       var left = createEl('div', { class: 'fc-left' });
       var right = createEl('div', { class: 'fc-right' });
@@ -2142,7 +1984,6 @@
 
       body.append(left, right);
 
-      // Replace the loading placeholder with the calculator
       root.textContent = '';
       root.appendChild(body);
 
