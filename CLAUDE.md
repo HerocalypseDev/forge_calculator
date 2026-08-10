@@ -17,8 +17,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Never hand-type a number that the workbook computes. Stat matrices are derived from formula strings; constants are guarded by `tests/test_golden.py::test_engine_constants_match_source`.
 
 ### Dynamic Plan Tracking & Memory
-- **Plan Storage:** Whenever a new development plan or roadmap is created while in **Plan Mode**, you must automatically add a summary of that plan directly into the `CLAUDE.md` file under a dedicated tracking section.
-- **Progress Updates:** Whenever a specific part, task, or phase of the active plan is completed, committed, and pushed to GitHub, you must immediately update `CLAUDE.md` to mark, check off, or cross out that completed phase so the project memory stays completely up to date.
+- **Plan Storage:** Whenever a new development plan or roadmap is created while in **Plan Mode**, you must add a summary of that plan to `CLAUDE.md` under a dedicated tracking section **immediately when the plan is made** — before any implementation work begins. Do not wait until the plan's phases have been implemented to record it.
+- **Progress Updates:** Each phase is marked done **individually, as soon as that phase is completed and committed** (never batch-marking the whole plan done at the end). Whenever a specific part, task, or phase of the active plan is completed, committed, and pushed to GitHub, immediately update `CLAUDE.md` to tick, check off, or cross out **only that phase**, so the tracking table reflects the true state at every step.
 
 ## Project overview
 
@@ -238,6 +238,18 @@ No linter or formatter is configured.
 | **Test** — `armor-stats-test.js`: DOM-level checks for step/max/min attrs, clamp on commit, percent→decimal transform, no stale decimal inputmode | `Web/mediawiki/armor-stats-test.js` | ✅ Done | (this session) |
 
 **Verification:** `node Web/mediawiki/armor-stats-test.js` → ALL ARMOR-STATS CHECKS PASSED; `verify-engine.js` / `fuzz_verify.js` / `ability-inputs-test.js` / `results-panel-test.js` / `ore-slot-test.js` / `bonus-derive-test.js` all pass; `node --check` clean. Engine untouched.
+
+### MediaWiki Berserk Input — COMPLETED ✅
+**Goal:** Add a manual Berserk input to the MediaWiki calculator. Berserk was engine-supported (`build.berserk`, workbook C53) but hardcoded to 0 in every UI — the only way to get "Total Berserk DPS" was the Minotaur race (+30%, E53). New "Berserk" section between Race and Armor Stats: whole-percent entry (30 = 30%), clamps to the lethality cap (150), transform divides by 100. Engine/formulas untouched — the input feeds the existing `build.berserk` + Minotaur path (C92). MediaWiki-only, same precedent as Abilities/Armor.
+
+| Change | Where | Status | Commit |
+|--------|-------|--------|--------|
+| **Berserk section** — "Berserk" input section (label, whole-percent subtext, number field `id="berserk"`, min 0 / max 150 / step 1, inputmode numeric, debounced `input` + `change` clamp `[0,150]`, non-numeric/empty → 0) | `forge-calculator.common.js` `createInputPanel` (reuses `.fc-stat-input-*` CSS) | ✅ Done | (this session) |
+| **Build state** — `berserk: 0` in `DEFAULT_BUILD`; `setBuild` restores the input value | `forge-calculator.common.js` | ✅ Done | (this session) |
+| **Transform** — `berserk: (Number(build.berserk) || 0) / 100` (whole-percent → decimal for the engine) | `forge-calculator.common.js` `transformBuildForEngine` | ✅ Done | (this session) |
+| **Test** — `berserk-input-test.js`: renders the real input panel, checks attrs + clamp, /100 transform, C92 end-to-end (Minotaur+30% → 8.6·1.6/0.47, manual 30% → 8.6·1.3/0.47, 0+no Minotaur → null, total_dps unchanged), setBuild restore | `Web/mediawiki/berserk-input-test.js` | ✅ Done | (this session) |
+
+**Verification:** `node Web/mediawiki/berserk-input-test.js` → ALL BERSERK-INPUT CHECKS PASSED; `verify-engine.js` / `fuzz_verify.js` / `ability-inputs-test.js` / `results-panel-test.js` / `ore-slot-test.js` / `bonus-derive-test.js` / `armor-stats-test.js` / `no-ore-weapon-test.js` all pass; `node --check` clean. Engine untouched.
 
 ### Web Engine Input Normalization (NaN/∞ TTK fix) — COMPLETED ✅
 **Goal:** The web calculators showed **"∞" in Time taken** when any `abilities.*` or `armor_*` build field reached the engine as `undefined` — `Math.max(ore, undefined)` = NaN in JS → `fire_dps`/`poison_dps` → `total_dps` = NaN → `25000/NaN` = NaN → `fmtTime` renders any non-finite value as "∞". Fixed at the `calculate()` boundary so the engine is **total** for any input shape; valid builds are bit-for-bit unchanged (an absent input cell is 0 in the workbook, so missing → 0 is not an invented mechanic). **Out of scope (by design, left untouched):** slow weapons (`interval ≥ ~1.47s`, 10 of 79) legitimately show "Weapon DPS" below "Weapon Damage" — DPS = per-hit × (1+lethality) × crit_blend × attack_rate, and attack_rate < 1 for slow weapons. Crit chance never lowers DPS (blend is 1.0 at 0%, ≥1.45 at capped crit).
