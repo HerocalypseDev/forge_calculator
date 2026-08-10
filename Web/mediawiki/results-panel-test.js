@@ -1,6 +1,7 @@
 /**
  * Focused test for the MediaWiki results panel DPS Breakdown:
- *  - Renders 7 rows: Weapon / Explosion / Fire / Poison / Smite / Black Hole / Total
+ *  - Renders 9 rows: Weapon / Explosion / Fire / Poison / Smite / Black Hole / Total /
+ *    Total Berserk / Total Moonstone
  *  - "Explosion DPS" maps to result.explosion_dps (the blast-ability proc, C85)
  *  - "Smite DPS" maps to result.smite_dps (Heavenite/Angel/Archangel proc, C88)
  *
@@ -173,8 +174,8 @@ assert(!!dpsCard, 'DPS Breakdown card found');
 
 const labels = (dpsCard.querySelectorAll('.fc-stat-row') || []).map((row) =>
   (row.querySelector('.fc-stat-label') || {}).textContent);
-const expectedLabels = ['Weapon DPS', 'Explosion DPS', 'Fire DPS', 'Poison DPS', 'Smite DPS', 'Black Hole DPS', 'Total DPS'];
-assert(labels.length === 7, `7 rows rendered (got ${labels.length})`);
+const expectedLabels = ['Weapon DPS', 'Explosion DPS', 'Fire DPS', 'Poison DPS', 'Smite DPS', 'Black Hole DPS', 'Total DPS', 'Total Berserk DPS', 'Total Moonstone DPS'];
+assert(labels.length === 9, `9 rows rendered (got ${labels.length})`);
 assert(JSON.stringify(labels) === JSON.stringify(expectedLabels),
   'row labels match: ' + expectedLabels.join(' | '));
 
@@ -184,6 +185,7 @@ const fake = {
   weapon_dps: 300, lethality: 0.3, crit_chance: 0.2, crit_dmg: 0.1, atk_speed: 0.2,
   explosion_dps: 28.28, fire_dps: 11.11, poison_dps: 22.22,
   smite_dps: 33.33, blackhole_dps: 44.44, total_dps: 439.38,
+  berserk: 512.5, moonstone: 600,
   ttk_25k: 56.9, ttk_75k: 170.69, active_traits: null
 };
 panel.updateResults(fake);
@@ -193,8 +195,16 @@ const val = (i) => (rows[i].querySelector('.fc-stat-val') || {}).textContent;
 assert(val(1) === '28.28', `Explosion DPS row shows explosion_dps (got ${val(1)})`);
 assert(val(4) === '33.33', `Smite DPS row shows smite_dps (got ${val(4)})`);
 assert(val(6) === '439.38', `Total DPS row shows total_dps (got ${val(6)})`);
+assert(val(7) === '512.50', `Total Berserk DPS row shows berserk (got ${val(7)})`);
+assert(val(8) === '600.00', `Total Moonstone DPS row shows moonstone (got ${val(8)})`);
 assert(val(1) !== val(4), 'Explosion and Smite rows are distinct components');
 assert(val(3) === '22.22' && val(2) === '11.11', 'Fire/Poison rows map correctly');
+
+// Inactive berserk/moonstone (null) render as "—"
+panel.updateResults({ ...fake, berserk: null, moonstone: null });
+assert(val(7) === '—', `null berserk renders as "—" (got ${val(7)})`);
+assert(val(8) === '—', `null moonstone renders as "—" (got ${val(8)})`);
+panel.updateResults(fake); // restore for subsequent checks
 
 // --- Active Traits: full-width wrapping block (not clipped stat row) ---
 console.log('== Active Traits block ==');

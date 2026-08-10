@@ -1574,7 +1574,9 @@
         { label: 'Poison DPS', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Smite DPS', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Black Hole DPS', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold' }
+        { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold' },
+        { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-dmg' },
+        { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-dmg' }
       ])
     });
 
@@ -1616,7 +1618,7 @@
       }
 
       var dpsRows = dpsCard.querySelectorAll('.fc-stat-row');
-      if (dpsRows.length >= 7) {
+      if (dpsRows.length >= 9) {
         updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
         updateStatRow(dpsRows[1], fmtDps(result.explosion_dps), false);
         updateStatRow(dpsRows[2], fmtDps(result.fire_dps), false);
@@ -1624,6 +1626,8 @@
         updateStatRow(dpsRows[4], fmtDps(result.smite_dps), false);
         updateStatRow(dpsRows[5], fmtDps(result.blackhole_dps), false);
         updateStatRow(dpsRows[6], fmtDps(result.total_dps), false);
+        updateStatRow(dpsRows[7], fmtDps(result.berserk), false);
+        updateStatRow(dpsRows[8], fmtDps(result.moonstone), false);
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
