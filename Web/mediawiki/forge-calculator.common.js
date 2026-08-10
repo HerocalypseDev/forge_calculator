@@ -1754,6 +1754,41 @@
 
     raceSection.appendChild(raceWrapper);
 
+    var berserkSection = createEl('div', { class: 'fc-input-section' });
+    berserkSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Berserk']));
+    berserkSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
+      'Adds to lethality for the Berserk burst. Enter whole percents (30 = 30%). The Minotaur race adds +30% automatically. Leave 0 for no berserk.'
+    ]));
+
+    // Whole-percent entry (30 = 30%); max = the lethality cap (150%), since any
+    // more is capped away by the engine. The build stores percents and
+    // transformBuildForEngine divides by 100.
+    var berserkRow = createEl('div', { class: 'fc-stat-input-row' });
+    var berserkLabel = createEl('label', { class: 'fc-stat-input-label', for: 'berserk' }, ['Berserk']);
+    var berserkInput = createEl('input', {
+      type: 'number',
+      class: 'fc-stat-input-input',
+      id: 'berserk',
+      value: getBuild().berserk !== undefined ? getBuild().berserk : '',
+      min: '0',
+      max: '150',
+      step: 1,
+      placeholder: '0',
+      inputmode: 'numeric'
+    });
+    function commitBerserk() {
+      var v = Math.max(0, Math.min(parseFloat(berserkInput.value) || 0, 150));
+      berserkInput.value = v;
+      patch({ berserk: v });
+    }
+    var handleBerserkChange = debounce(commitBerserk, 150);
+    berserkInput.addEventListener('input', handleBerserkChange);
+    berserkInput.addEventListener('change', commitBerserk);
+    var berserkField = createEl('div', { class: 'fc-stat-input-field' });
+    berserkField.appendChild(berserkInput);
+    berserkRow.append(berserkLabel, berserkField);
+    berserkSection.appendChild(berserkRow);
+
     var statSection = createEl('div', { class: 'fc-input-section' });
     statSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Armor Stats']));
     statSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
@@ -1826,6 +1861,7 @@
       oreSection,
       weaponSection,
       raceSection,
+      berserkSection,
       statSection,
       abilitySection,
       runeSection,
@@ -1854,6 +1890,9 @@
         newBuild.enhancement !== undefined ? newBuild.enhancement : 0
       );
       raceDropdown.setValue(toUI(newBuild.race, RACE_PROMPT));
+      if (berserkInput) {
+        berserkInput.value = newBuild.berserk !== undefined ? newBuild.berserk : 0;
+      }
       statInput.setValues({
         armorLethality: newBuild.armorLethality,
         armorCritChance: newBuild.armorCritChance,
@@ -1899,6 +1938,7 @@
     poisonTime: 0,
     blastDmg: 0,
     blastChance: 0,
+    berserk: 0,
     runes: [NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL],
     achievement: NONE_LABEL
   };
@@ -1946,7 +1986,10 @@
         blast_dmg: (Number(build.blastDmg) || 0) / 100,
         blast_chance: (Number(build.blastChance) || 0) / 100
       },
-      berserk: 0,
+      // Berserk is entered as whole percents (30 = 30%) and adds to lethality
+      // for the berserk burst (workbook C53/E53); Minotaur's +30% is added in
+      // the engine. Divide by 100 like the other percent fields.
+      berserk: (Number(build.berserk) || 0) / 100,
       achievement: build.achievement || NONE_LABEL
     };
   }
