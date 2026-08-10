@@ -1757,7 +1757,7 @@
     var berserkSection = createEl('div', { class: 'fc-input-section' });
     berserkSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Berserk']));
     berserkSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
-      'Adds to lethality for the Berserk burst. Enter whole percents (30 = 30%). The Minotaur race adds +30% automatically. Leave 0 for no berserk.'
+      'Enter percentage as whole number.'
     ]));
 
     // Whole-percent entry (30 = 30%); max = the lethality cap (150%), since any
@@ -1792,7 +1792,7 @@
     var statSection = createEl('div', { class: 'fc-input-section' });
     statSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Armor Stats']));
     statSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
-      'Enter percentages as whole numbers (15 = 15%). Leave 0 for no armor stat.'
+      'Enter percentage as whole number.'
     ]));
 
     var statInput = createStatInput({
@@ -1808,7 +1808,7 @@
     var abilitySection = createEl('div', { class: 'fc-input-section' });
     abilitySection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Abilities (From Runes)']));
     abilitySection.appendChild(createEl('p', { class: 'fc-ability-section-subtext' }, [
-      'Ability stats granted by your equipped runes. Enter percentages as whole numbers (15 = 15%). Leave 0 for no ability.'
+      'Input abilities from Runes. Enter percentage as whole number.'
     ]));
 
     var abilityGrid = createAbilityGrid({

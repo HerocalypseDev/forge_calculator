@@ -275,7 +275,8 @@ setTimeout(() => {
   console.log('== Section header (source) ==');
   assert(SRC.indexOf("'Abilities (From Runes)'") !== -1, "header is 'Abilities (From Runes)'");
   assert(SRC.indexOf('fc-ability-section-subtext') !== -1, 'subtext class present');
-  assert(SRC.indexOf('percentages as whole numbers') !== -1, 'subtext explains whole-number percents');
+  assert(SRC.indexOf('Input abilities from Runes') !== -1, 'subtext mentions abilities from runes');
+  assert(SRC.indexOf('Enter percentage as whole number') !== -1, 'subtext explains whole-number percents');
 
   console.log(failures === 0 ? '\nALL ABILITY-INPUT CHECKS PASSED ✓' : `\n${failures} CHECK(S) FAILED ✗`);
   process.exit(failures === 0 ? 0 : 1);
