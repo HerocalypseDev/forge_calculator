@@ -259,6 +259,42 @@
   white-space: nowrap;
 }
 
+/* Number steppers (− / +) */
+
+.fc-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fc-stepper input {
+  flex: 1;
+  min-width: 0;
+}
+
+.fc-stepper-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #1a1a1a;
+  background: #efeadd;
+  border: 1px solid #c8b898;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.fc-stepper-btn:hover {
+  border-color: #a88840;
+}
+
+.fc-stepper-btn:active {
+  background: #e0d8c0;
+}
+
 /* Weapon selector */
 .fc-weapon-selector {
   display: flex;
@@ -525,6 +561,14 @@
   color: #e65100;
 }
 
+.fc-copyable {
+  cursor: pointer;
+}
+
+.fc-copyable:hover {
+  text-decoration: underline dotted;
+}
+
 /* Active Traits — full-width wrapping block so long trait text is never
    clipped (stat rows shrink the value and cards clip overflow). */
 
@@ -613,6 +657,25 @@
   background: #efeadd;
   border-radius: 4px;
   border: 1px dashed #c8b898;
+}
+
+/* Build validation warnings (above the Calculate button) */
+
+.fc-warnings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.fc-warning {
+  font-size: 12px;
+  color: #6b4a00;
+  background: #fdf6e3;
+  border: 1px solid #e0c060;
+  border-left: 3px solid #d9a520;
+  border-radius: 4px;
+  padding: 8px 10px;
 }
 
 /* Responsive layout */
@@ -749,6 +812,13 @@
   .fc-searchable-input {
     font-size: 12px;
     padding: 6px 8px;
+  }
+
+  /* Stepper buttons smaller */
+  .fc-stepper-btn {
+    width: 24px;
+    height: 26px;
+    font-size: 13px;
   }
 
   /* Results panel */

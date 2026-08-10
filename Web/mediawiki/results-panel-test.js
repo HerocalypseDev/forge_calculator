@@ -39,14 +39,29 @@ function makeEl(tag) {
     nodeType: tag === 'fragment' ? 11 : 1,
     children: [],
     parentNode: null,
-    className: '',
     attributes: {},
     dataset: {},
     style: {},
     id: '',
     _value: '',
     _handlers: {},
-    _text: null
+    _text: null,
+    _classes: new Set()
+  };
+
+  // className and classList share one backing set so direct className writes
+  // (via createEl) and classList mutations stay in sync.
+  Object.defineProperty(el, 'className', {
+    get() { return Array.from(el._classes).join(' '); },
+    set(v) { el._classes = new Set(String(v).split(/\s+/).filter(Boolean)); }
+  });
+  el.classList = {
+    add(...cs) { cs.forEach((c) => el._classes.add(c)); },
+    remove(...cs) { cs.forEach((c) => el._classes.delete(c)); },
+    contains(c) { return el._classes.has(c); },
+    toggle(c, force) {
+      if (force === undefined ? !el._classes.has(c) : force) { el._classes.add(c); } else { el._classes.delete(c); }
+    }
   };
 
   Object.defineProperty(el, 'value', {
@@ -74,13 +89,6 @@ function makeEl(tag) {
   Object.defineProperty(el, 'firstChild', {
     get() { return this.children.length ? this.children[0] : null; }
   });
-
-  el.classList = {
-    _set: new Set(),
-    add(...cs) { cs.forEach((c) => this._set.add(c)); el.className = Array.from(this._set).join(' '); },
-    remove(...cs) { cs.forEach((c) => this._set.delete(c)); el.className = Array.from(this._set).join(' '); },
-    contains(c) { return this._set.has(c); }
-  };
 
   el.setAttribute = function (k, v) {
     this.attributes[k] = String(v);

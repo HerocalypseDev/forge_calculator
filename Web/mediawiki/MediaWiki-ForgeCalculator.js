@@ -1055,7 +1055,11 @@
     amountInput.addEventListener('input', handleAmountChange);
     amountInput.addEventListener('change', commitAmount);
 
-    fields.append(dropdownWrapper, multLabel, amountInput);
+    fields.append(dropdownWrapper, multLabel, createStepper(amountInput, {
+      step: 1,
+      min: 0,
+      commit: commitAmount
+    }));
     container.append(label, fields);
 
     container.setValue = function (name, amt) {
@@ -1169,7 +1173,12 @@
     var handleQualityChange = debounce(commitQuality, 150);
     qualityInput.addEventListener('input', handleQualityChange);
     qualityInput.addEventListener('change', commitQuality);
-    qualityWrapper.append(qualityLabel, qualityInput);
+    qualityWrapper.append(qualityLabel, createStepper(qualityInput, {
+      step: 5,
+      min: 0,
+      max: QUALITY_MAX,
+      commit: commitQuality
+    }));
 
     var enhancementWrapper = createEl('div', { class: 'fc-enhancement-wrapper' });
     var enhancementLabel = createEl('label', { for: 'enhancement' }, ['Enhancement']);
@@ -1202,6 +1211,45 @@
     };
 
     return container;
+  }
+
+  // Wrap a number input with −/+ stepper buttons. `opts` = { step, min, max,
+  // allowZero, commit }. `allowZero` treats 0 as a valid "off" value below min
+  // (ability fields, where 0 = no ability). Each press commits via `commit`,
+  // so the field's own clamping logic is preserved.
+  function createStepper(input, opts) {
+    var wrapper = createEl('div', { class: 'fc-stepper' });
+    var minus = createEl('button', {
+      type: 'button',
+      class: 'fc-stepper-btn',
+      'aria-label': 'Decrease'
+    }, ['−']);
+    var plus = createEl('button', {
+      type: 'button',
+      class: 'fc-stepper-btn',
+      'aria-label': 'Increase'
+    }, ['+']);
+
+    function step(delta) {
+      var raw = parseFloat(input.value);
+      if (isNaN(raw)) { raw = 0; }
+      var candidate = raw + delta * opts.step;
+      if (candidate <= 0 && opts.allowZero) {
+        candidate = 0;
+      } else {
+        if (opts.min !== undefined && candidate < opts.min) { candidate = opts.min; }
+        if (opts.max !== undefined && candidate > opts.max) { candidate = opts.max; }
+      }
+      input.value = candidate;
+      if (opts.commit) { opts.commit(); }
+    }
+
+    minus.addEventListener('click', function (e) { e.preventDefault(); step(-1); });
+    plus.addEventListener('click', function (e) { e.preventDefault(); step(+1); });
+
+    if (input.parentNode) { input.parentNode.replaceChild(wrapper, input); }
+    wrapper.append(input, minus, plus);
+    return wrapper;
   }
 
   function createStatInput(opts) {
@@ -1248,7 +1296,12 @@
         input.addEventListener('change', commit);
 
         var fieldWrapper = createEl('div', { class: 'fc-stat-input-field' });
-        fieldWrapper.appendChild(input);
+        fieldWrapper.appendChild(createStepper(input, {
+          step: 1,
+          min: field.min,
+          max: field.max,
+          commit: commit
+        }));
         row.append(label, fieldWrapper);
         container.appendChild(row);
       })(fields[i]);
@@ -1342,7 +1395,13 @@
           input.addEventListener('blur', commit);
 
           var fieldWrapper = createEl('div', { class: 'fc-ability-field' });
-          fieldWrapper.appendChild(input);
+          fieldWrapper.appendChild(createStepper(input, {
+            step: 1,
+            min: min,
+            max: max,
+            allowZero: true,
+            commit: commit
+          }));
           row.append(label, fieldWrapper);
           section.appendChild(row);
         })(fields[i]);
@@ -1484,6 +1543,16 @@
     var valueClass = ('fc-stat-val ' + (opts.valueClass || '')).trim();
     var valueEl = createEl('span', { class: valueClass }, [opts.value !== undefined ? opts.value : '']);
     if (opts.isCap) { valueEl.style.color = '#cc0000'; }
+
+    // Click a value to copy it to the clipboard.
+    valueEl.classList.add('fc-copyable');
+    valueEl.setAttribute('title', 'Click to copy');
+    valueEl.addEventListener('click', function () {
+      var t = valueEl.textContent.trim();
+      if (!t || t === '—' || t === '∞') { return; }
+      writeClipboard(t, 'Copied: ' + t);
+    });
+
     row.append(labelEl, valueEl);
     return row;
   }
@@ -1640,9 +1709,16 @@
         // Full-width wrapping block so long trait text is never clipped by the
         // stat-row layout (`.fc-stat-val` is flex-shrink:0, cards clip overflow).
         var traitsBlock = createEl('div', { class: 'fc-traits-block' });
+        var traitsValue = createEl('div', { class: 'fc-traits-value' }, [result.active_traits]);
+        traitsValue.classList.add('fc-copyable');
+        traitsValue.setAttribute('title', 'Click to copy');
+        traitsValue.addEventListener('click', function () {
+          var t = traitsValue.textContent.trim();
+          if (t) { writeClipboard(t, 'Copied: ' + t); }
+        });
         traitsBlock.append(
           createEl('div', { class: 'fc-traits-label' }, ['Active Traits']),
-          createEl('div', { class: 'fc-traits-value' }, [result.active_traits])
+          traitsValue
         );
         updateResultsCard(traitsCard, traitsBlock);
       }
@@ -1785,7 +1861,12 @@
     berserkInput.addEventListener('input', handleBerserkChange);
     berserkInput.addEventListener('change', commitBerserk);
     var berserkField = createEl('div', { class: 'fc-stat-input-field' });
-    berserkField.appendChild(berserkInput);
+    berserkField.appendChild(createStepper(berserkInput, {
+      step: 1,
+      min: 0,
+      max: 150,
+      commit: commitBerserk
+    }));
     berserkRow.append(berserkLabel, berserkField);
     berserkSection.appendChild(berserkRow);
 
@@ -1868,6 +1949,9 @@
       achievementSection
     );
 
+    var warningsBox = createEl('div', { class: 'fc-warnings fc-hidden' });
+    container.appendChild(warningsBox);
+
     var calcBtn = createEl('button', {
       class: 'fc-btn fc-btn--primary fc-calc-btn',
       type: 'button'
@@ -1877,6 +1961,20 @@
       if (onCalculate) { onCalculate(); }
     });
     container.appendChild(calcBtn);
+
+    // Live advisory warnings (computed from build state only — no engine call).
+    container.refreshWarnings = function () {
+      var list = computeWarnings(getBuild());
+      empty(warningsBox);
+      if (list.length) {
+        for (var i = 0; i < list.length; i++) {
+          warningsBox.appendChild(createEl('div', { class: 'fc-warning' }, ['⚠ ' + list[i]]));
+        }
+        warningsBox.classList.remove('fc-hidden');
+      } else {
+        warningsBox.classList.add('fc-hidden');
+      }
+    };
 
     container.setBuild = function (newBuild) {
       for (var s = 0; s < 4; s++) {
@@ -1959,6 +2057,36 @@
     return weapon ? weapon.type : '';
   }
 
+  // Advisory warnings shown above the Calculate button. Computed purely from
+  // the UI build (no engine call) so they update live as inputs change.
+  function computeWarnings(build) {
+    var warnings = [];
+    if (!build.weaponName || build.weaponName === NONE_LABEL) {
+      warnings.push('No weapon selected — weapon damage and most DPS will be 0.');
+    }
+    var total = 0;
+    for (var i = 0; i < build.oreSlots.length; i++) {
+      total += Number(build.oreSlots[i].amount) || 0;
+    }
+    if (total === 0) {
+      warnings.push('No ore amounts entered — Average Multiplier is 1.00x and no ore stats or traits apply.');
+    }
+    for (var j = 0; j < build.oreSlots.length; j++) {
+      var slot = build.oreSlots[j];
+      if (!slot.name || slot.name === NONE_LABEL) { continue; }
+      var amt = Number(slot.amount) || 0;
+      if (amt === 0) {
+        warnings.push('Slot ' + (j + 1) + ': ' + slot.name + ' is selected but amount is 0.');
+      } else if (total > 0 && amt / total < SHARE_GATE) {
+        warnings.push('Slot ' + (j + 1) + ': ' + slot.name + ' is below 10% share — it contributes no stats.');
+      }
+    }
+    if (!(Number(build.quality) > 0)) {
+      warnings.push('Quality is 0% — damage is at base (1.0x), not the usual 2x from 100%.');
+    }
+    return warnings;
+  }
+
   function transformBuildForEngine(build) {
     return {
       slots: build.oreSlots.map(function (s) { return { name: s.name, amount: Number(s.amount) || 0 }; }),
@@ -2007,13 +2135,37 @@
   function handleBuildChange(newBuild) {
     // Only update state here; results compute on "Calculate DPS" press
     state.build = newBuild;
+    if (state.inputPanel && state.inputPanel.refreshWarnings) { state.inputPanel.refreshWarnings(); }
   }
 
   function resetBuild() {
     state.build = DEFAULT_BUILD;
     if (state.inputPanel) { state.inputPanel.setBuild(DEFAULT_BUILD); }
+    if (state.inputPanel && state.inputPanel.refreshWarnings) { state.inputPanel.refreshWarnings(); }
     recalculate();
     showToast('Calculator reset');
+  }
+
+  function writeClipboard(text, successMsg) {
+    var done = function () { showToast(successMsg || 'Copied to clipboard'); };
+    var failed = function () { showToast('Failed to copy', true); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, failed);
+      return;
+    }
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      done();
+    } catch (e) {
+      failed();
+    }
+    document.body.removeChild(ta);
   }
 
   function copyResults() {
@@ -2021,25 +2173,7 @@
     try {
       var result = calculate(transformBuildForEngine(state.build), state.gameData);
       var text = formatResultsForClipboard(result, state.build);
-      var done = function () { showToast('Results copied to clipboard'); };
-      var failed = function () { showToast('Failed to copy', true); };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, failed);
-      } else {
-        var ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        try {
-          document.execCommand('copy');
-          done();
-        } catch (e) {
-          failed();
-        }
-        document.body.removeChild(ta);
-      }
+      writeClipboard(text, 'Results copied to clipboard');
     } catch (err) {
       if (mw.log) { mw.log('Forge Calculator: copy failed', err); }
       showToast('Failed to copy', true);
@@ -2142,6 +2276,7 @@
       root.appendChild(body);
 
       recalculate();
+      if (state.inputPanel && state.inputPanel.refreshWarnings) { state.inputPanel.refreshWarnings(); }
 
       if (mw.hook) { mw.hook('forgeCalculator.ready').fire(); }
     }, function (err) {
