@@ -1301,23 +1301,20 @@
     var currentValues = {};
     for (var k in opts.values) { currentValues[k] = opts.values[k]; }
 
-    var container = createEl('div', { class: 'fc-ability-cards-row' });
+    var container = createEl('div', { class: 'fc-ability-grid' });
 
-    function createCard(icon, title, cssClass, fields) {
-      var card = createEl('div', { class: 'fc-ability-card ' + cssClass });
-      var head = createEl('div', { class: 'fc-ability-card-head' });
-      head.appendChild(createEl('span', { class: 'fc-ability-card-icon' }, [icon]));
-      head.appendChild(document.createTextNode(' ' + title));
-      card.appendChild(head);
+    function createSection(title, fields) {
+      var section = createEl('div', { class: 'fc-ability-section' });
+      var sectionTitle = createEl('h4', { class: 'fc-ability-section-title' }, [title]);
+      section.appendChild(sectionTitle);
 
-      var inputsRow = createEl('div', { class: 'fc-ability-card-inputs' });
       for (var i = 0; i < fields.length; i++) {
         (function (field) {
           var range = ABILITY_RANGES[field.key];
           var min = range.min;
           var max = range.max;
           var rangeHint = (range.unit === 'sec') ? (min + '-' + max + 's') : (min + '-' + max + '%');
-          var cell = createEl('div', { class: 'fc-ability-card-cell' });
+          var row = createEl('div', { class: 'fc-ability-row' });
           var label = createEl('label', { class: 'fc-ability-label', for: field.key }, [field.label]);
           var input = createEl('input', {
             type: 'number',
@@ -1344,38 +1341,40 @@
           input.addEventListener('change', commit);
           input.addEventListener('blur', commit);
 
-          cell.append(label, input);
-          inputsRow.appendChild(cell);
+          var fieldWrapper = createEl('div', { class: 'fc-ability-field' });
+          fieldWrapper.appendChild(input);
+          row.append(label, fieldWrapper);
+          section.appendChild(row);
         })(fields[i]);
       }
-      card.appendChild(inputsRow);
-      return card;
+
+      return section;
     }
 
-    var fireCard = createCard('🔥', 'FIRE', 'fc-ability-card--fire', [
-      { key: 'fireDmg', label: 'Damage (%)' },
-      { key: 'fireChance', label: 'Chance (%)' },
-      { key: 'fireTime', label: 'Duration (s)' }
+    var fireSection = createSection('Fire', [
+      { key: 'fireDmg', label: 'Fire DMG' },
+      { key: 'fireChance', label: 'Fire Chance' },
+      { key: 'fireTime', label: 'Fire Time (s)' }
     ]);
 
-    var blastCard = createCard('💥', 'BLAST', 'fc-ability-card--blast', [
-      { key: 'blastDmg', label: 'Damage (%)' },
-      { key: 'blastChance', label: 'Chance (%)' }
+    var poisonSection = createSection('Poison', [
+      { key: 'poisonDmg', label: 'Poison DMG' },
+      { key: 'poisonChance', label: 'Poison Chance' },
+      { key: 'poisonTime', label: 'Poison Time (s)' }
     ]);
 
-    var poisonCard = createCard('☠️', 'POISON', 'fc-ability-card--poison', [
-      { key: 'poisonDmg', label: 'Damage (%)' },
-      { key: 'poisonChance', label: 'Chance (%)' },
-      { key: 'poisonTime', label: 'Duration (s)' }
+    var blastSection = createSection('Blast', [
+      { key: 'blastDmg', label: 'Blast DMG' },
+      { key: 'blastChance', label: 'Blast Chance' }
     ]);
 
-    container.append(fireCard, blastCard, poisonCard);
+    container.append(fireSection, poisonSection, blastSection);
 
     container.setValues = function (values) {
       for (var key in values) { currentValues[key] = values[key]; }
-      var cards = [fireCard, blastCard, poisonCard];
-      for (var i = 0; i < cards.length; i++) {
-        var inputs = cards[i].querySelectorAll('.fc-ability-input');
+      var sections = [fireSection, poisonSection, blastSection];
+      for (var i = 0; i < sections.length; i++) {
+        var inputs = sections[i].querySelectorAll('.fc-ability-input');
         for (var j = 0; j < inputs.length; j++) {
           var inp = inputs[j];
           if (currentValues[inp.id] !== undefined) {
@@ -1683,11 +1682,8 @@
       onBuildChange(merged);
     }
 
-    var oreSection = createEl('div', { class: 'fc-input-section fc-ore-section' });
-    var oreTitle = createEl('h3', { class: 'fc-input-section-title' });
-    oreTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['⛏️']));
-    oreTitle.appendChild(document.createTextNode(' Ore Slots'));
-    oreSection.appendChild(oreTitle);
+    var oreSection = createEl('div', { class: 'fc-input-section' });
+    oreSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Ore Slots']));
 
     var oreNames = data.ores.map(function (o) { return o.name; });
     var oreMultipliers = {};
@@ -1719,10 +1715,7 @@
     }
 
     var weaponSection = createEl('div', { class: 'fc-input-section' });
-    var weaponTitle = createEl('h3', { class: 'fc-input-section-title' });
-    weaponTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['⚔️']));
-    weaponTitle.appendChild(document.createTextNode(' Weapon'));
-    weaponSection.appendChild(weaponTitle);
+    weaponSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Weapon']));
 
     var weaponSelector = createWeaponSelector({
       weaponTypes: data.weapon_types,
@@ -1745,10 +1738,7 @@
     // weapon's type (workbook E44/E47 key off C23 = bonus type, which now
     // always equals the equipped weapon's type), so there is no separate input.
     var raceSection = createEl('div', { class: 'fc-input-section' });
-    var raceTitle = createEl('h3', { class: 'fc-input-section-title' });
-    raceTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['👤']));
-    raceTitle.appendChild(document.createTextNode(' Race'));
-    raceSection.appendChild(raceTitle);
+    raceSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Race']));
 
     var raceWrapper = createEl('div', { class: 'fc-race-wrapper' });
     var raceLabel = createEl('label', { for: 'race-select' }, ['Race']);
@@ -1765,10 +1755,7 @@
     raceSection.appendChild(raceWrapper);
 
     var berserkSection = createEl('div', { class: 'fc-input-section' });
-    var berserkTitle = createEl('h3', { class: 'fc-input-section-title' });
-    berserkTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['💢']));
-    berserkTitle.appendChild(document.createTextNode(' Berserk'));
-    berserkSection.appendChild(berserkTitle);
+    berserkSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Berserk']));
     berserkSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
       'Enter percentage as whole number.'
     ]));
@@ -1803,10 +1790,7 @@
     berserkSection.appendChild(berserkRow);
 
     var statSection = createEl('div', { class: 'fc-input-section' });
-    var statTitle = createEl('h3', { class: 'fc-input-section-title' });
-    statTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['🛡️']));
-    statTitle.appendChild(document.createTextNode(' Armor Stats'));
-    statSection.appendChild(statTitle);
+    statSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Armor Stats']));
     statSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
       'Enter percentage as whole number.'
     ]));
@@ -1822,10 +1806,7 @@
     statSection.appendChild(statInput);
 
     var abilitySection = createEl('div', { class: 'fc-input-section' });
-    var abilityTitle = createEl('h3', { class: 'fc-input-section-title' });
-    abilityTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['🔥']));
-    abilityTitle.appendChild(document.createTextNode(' Abilities (From Runes)'));
-    abilitySection.appendChild(abilityTitle);
+    abilitySection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Abilities (From Runes)']));
     abilitySection.appendChild(createEl('p', { class: 'fc-ability-section-subtext' }, [
       'Input abilities from Runes. Enter percentage as whole number.'
     ]));
@@ -1846,10 +1827,7 @@
     abilitySection.appendChild(abilityGrid);
 
     var runeSection = createEl('div', { class: 'fc-input-section' });
-    var runeTitle = createEl('h3', { class: 'fc-input-section-title' });
-    runeTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['✦']));
-    runeTitle.appendChild(document.createTextNode(' Runes'));
-    runeSection.appendChild(runeTitle);
+    runeSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Runes']));
 
     var runeSelector = createRuneSelector({
       runes: data.runes,
@@ -1861,10 +1839,7 @@
     runeSection.appendChild(runeSelector);
 
     var achievementSection = createEl('div', { class: 'fc-input-section' });
-    var achievementTitle = createEl('h3', { class: 'fc-input-section-title' });
-    achievementTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['🏆']));
-    achievementTitle.appendChild(document.createTextNode(' Achievement'));
-    achievementSection.appendChild(achievementTitle);
+    achievementSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Achievement']));
 
     var achievementWrapper = createEl('div', { class: 'fc-achievement-wrapper' });
     var achievementLabel = createEl('label', { for: 'achievement-select' }, ['Achievement']);
@@ -1882,38 +1857,15 @@
     achievementWrapper.append(achievementLabel, achievementDropdown);
     achievementSection.appendChild(achievementWrapper);
 
-    // Race / Berserk / Achievement group — rendered as a single row with a
-    // shared title. Individual section titles are hidden via CSS.
-    var rbaGroup = createEl('div', { class: 'fc-rba-group' });
-    var rbaGroupTitle = createEl('h3', { class: 'fc-rba-group-title' });
-    rbaGroupTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['👤']));
-    rbaGroupTitle.appendChild(document.createTextNode(' Race '));
-    rbaGroupTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['💢']));
-    rbaGroupTitle.appendChild(document.createTextNode(' Berserk '));
-    rbaGroupTitle.appendChild(createEl('span', { class: 'fc-section-icon' }, ['🏆']));
-    rbaGroupTitle.appendChild(document.createTextNode(' Achievement'));
-    rbaGroup.appendChild(rbaGroupTitle);
-
-    var rbaRow = createEl('div', { class: 'fc-rba-row' });
-    rbaRow.append(raceSection, berserkSection, achievementSection);
-    rbaGroup.appendChild(rbaRow);
-
-    // BUILD INPUTS header — prepended to the panel
-    var buildHeader = createEl('div', { class: 'fc-build-header' });
-    var buildTitle = createEl('h2', { class: 'fc-build-title' }, ['BUILD INPUTS']);
-    var buildSub = createEl('p', { class: 'fc-build-subtitle' }, [
-      'Percent inputs are decimals: 0.30 = 30%'
-    ]);
-    buildHeader.append(buildTitle, buildSub);
-
-    container.append(buildHeader);
     container.append(
-      weaponSection,
       oreSection,
-      rbaGroup,
-      runeSection,
+      weaponSection,
+      raceSection,
+      berserkSection,
       statSection,
-      abilitySection
+      abilitySection,
+      runeSection,
+      achievementSection
     );
 
     var calcBtn = createEl('button', {

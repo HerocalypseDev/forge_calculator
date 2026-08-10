@@ -273,7 +273,7 @@ setTimeout(() => {
 
   // ---------- Source-level checks for section header ----------
   console.log('== Section header (source) ==');
-  assert(SRC.indexOf("Abilities (From Runes)") !== -1, "header is 'Abilities (From Runes)'");
+  assert(SRC.indexOf("'Abilities (From Runes)'") !== -1, "header is 'Abilities (From Runes)'");
   assert(SRC.indexOf('fc-ability-section-subtext') !== -1, 'subtext class present');
   assert(SRC.indexOf('Input abilities from Runes') !== -1, 'subtext mentions abilities from runes');
   assert(SRC.indexOf('Enter percentage as whole number') !== -1, 'subtext explains whole-number percents');
