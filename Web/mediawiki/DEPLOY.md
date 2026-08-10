@@ -15,14 +15,15 @@ TemplateStyles sheet, and the page itself is a transcludable template.
 | `Data-Achievements.json` | `Data:Achievements.json` | Paste raw JSON as the page content |
 | `Template-ForgeCalculator-styles.css` | `Template:ForgeCalculator/styles.css` | Paste raw CSS as the page content (TemplateStyles requires it be a `/styles.css` subpage) |
 | `Template-ForgeCalculator.wikitext` | `Template:ForgeCalculator` | Paste the wikitext verbatim |
-| `forge-calculator.common.js` | `MediaWiki:Common.js` | **Append** the file contents to the end of the existing page |
+| `MediaWiki-ForgeCalculator.js` | `MediaWiki:ForgeCalculator.js` | Paste the file contents as the page content |
+| `forge-calculator.common.js` | `MediaWiki:Common.js` | **Append** the file contents (a single `importScript(...)` line) to the end of the existing page |
 
 ## Prerequisites
 
 - **JsonConfig** extension with a `Data:` namespace configured (Miraheze enables
   this by default) so `Data:*.json` pages are served as JSON.
 - **TemplateStyles** extension (Miraheze default) for the scoped CSS.
-- Interface-editor rights for `MediaWiki:Common.js` (admin/bureaucrat).
+- Interface-editor rights for `MediaWiki:ForgeCalculator.js` and `MediaWiki:Common.js` (admin/bureaucrat).
 
 ## Step-by-step
 
@@ -62,12 +63,26 @@ Create `Template:ForgeCalculator` with the exact contents of
 
 Transclude it on any article with `{{ForgeCalculator}}`.
 
-### 4. Append the JS to MediaWiki:Common.js
+### 4. Upload the calculator JS module
 
-Open `MediaWiki:Common.js` in edit mode and paste the full contents of
-`forge-calculator.common.js` at the end of the page (it is a self-contained IIFE
-with its own `window.FC_CALCULATOR_LOADED` guard, so appending is safe even if
-the page already contains other scripts). Save.
+Create `MediaWiki:ForgeCalculator.js` with the full contents of
+`MediaWiki-ForgeCalculator.js` as the page body. It is a self-contained IIFE
+with its own `window.FC_CALCULATOR_LOADED` guard, so it is safe even if the page
+already contains other code. Save.
+
+### 5. Import it from MediaWiki:Common.js
+
+Open `MediaWiki:Common.js` in edit mode and append the single line
+
+```js
+importScript('MediaWiki:ForgeCalculator.js');
+```
+
+at the end of the page. Save. The calculator script is then fetched and run in
+the same global scope as Common.js (shared `mw`, jQuery, and hooks), so the
+behaviour is identical to inlining it — the split is purely organisational.
+Because the script runs asynchronously, keep it self-contained: it must not call
+functions defined in Common.js.
 
 The module mounts only when it finds an element with `id="fc-root"`, so it is a
 no-op on every page that does not transclude the template.
@@ -116,15 +131,18 @@ On-wiki checklist (after deploying, in a sandbox page or `Special:BlankPage`):
 - Data updates: regenerate `Web/data/*.json` via `python -m scripts.build_data`,
   copy into `Web/mediawiki/Data-*.json`, re-run `fuzz_gen.py` +
   `fuzz_verify.js`, then re-paste the five `Data:` pages.
-- Engine or UI changes: edit `forge-calculator.common.js`, re-run
-  `verify-engine.js` + `fuzz_verify.js`, then re-append to `MediaWiki:Common.js`.
+- Engine or UI changes: edit `MediaWiki-ForgeCalculator.js`, re-run
+  `verify-engine.js` + `fuzz_verify.js`, then re-paste into
+  `MediaWiki:ForgeCalculator.js` (Common.js only holds the `importScript` line and
+  never changes).
 - CSS changes: edit `Template-ForgeCalculator-styles.css`, then re-paste into
   `Template:ForgeCalculator/styles.css`.
 
 ## Source files (read-only references)
 
-- `verify-engine.js` — Node harness that evaluates the real Common.js IIFE in a
-  `vm` sandbox with browser mocks and runs the golden assertions.
+- `verify-engine.js` — Node harness that evaluates the real calculator IIFE
+  (`MediaWiki-ForgeCalculator.js`) in a `vm` sandbox with browser mocks and runs
+  the golden assertions.
 - `fuzz_gen.py` — deterministic random-build generator (Python engine).
 - `fuzz_verify.js` — differential comparator (JS engine vs Python results).
 - `fuzz-cases.json` — generated corpus (250 builds); do not hand-edit.

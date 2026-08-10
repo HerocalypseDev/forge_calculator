@@ -3,7 +3,7 @@ const path = require('path');
 const vm = require('vm');
 
 const HERE = __dirname;
-const SRC = fs.readFileSync(path.join(HERE, 'forge-calculator.common.js'), 'utf8');
+const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
 
 const marker = 'var DATA_TITLES = {';
 const idx = SRC.indexOf(marker);
@@ -29,7 +29,7 @@ const sandbox = {
 sandbox.window = sandbox;
 sandbox.window.mediaWiki = mw;
 vm.createContext(sandbox);
-vm.runInContext(instrumented, sandbox, { filename: 'forge-calculator.common.js' });
+vm.runInContext(instrumented, sandbox, { filename: 'MediaWiki-ForgeCalculator.js' });
 const FC = sandbox.__FC;
 
 function loadJSON(name) {

@@ -262,3 +262,14 @@ No linter or formatter is configured.
 | **Regression tests** — partial build → finite `total_dps` + `ttk > 0`; missing == explicit zeros; `calculate({})`/`calculate({slots:[]})` finite; `base_crit_dmg` omitted → blend 1.45 at capped crit | `engine/normalize.test.mjs` (new) | golden check #11 in `verify-engine.js` | ✅ Done | (this session) |
 
 **Verification:** `node Web/js/engine/normalize.test.mjs` → ALL NORMALIZE CHECKS PASSED; `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED (11 checks); `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16 — unchanged, proving `normalizeBuild` is a no-op for valid builds); `node --check` clean on all modified JS; `python -m pytest tests/` → 80 passed; `python scripts/smoke_gui.py` → SMOKE OK. Python engine unchanged (`Build`/`Abilities` dataclasses already default every numeric field to 0.0).
+
+### MediaWiki Common.js → importScript Split — COMPLETED ✅
+**Goal:** Move the calculator IIFE out of `MediaWiki:Common.js` into its own `MediaWiki:ForgeCalculator.js` page, imported via a single `importScript(...)` line in Common.js. Purely organisational — the imported script runs in the same global scope (shared `mw`, jQuery, hooks), so behaviour is identical. Safe because the IIFE is already self-contained (own `FC_CALCULATOR_LOADED` guard) and bootstraps with a `document.readyState === 'loading'` guard, so it initializes exactly once whether it loads before or after `DOMContentLoaded`.
+
+| Change | Where | Status | Commit |
+|--------|-------|--------|--------|
+| **Module split** — full IIFE moved byte-identical to `MediaWiki-ForgeCalculator.js` (→ wiki page `MediaWiki:ForgeCalculator.js`); `forge-calculator.common.js` (→ `MediaWiki:Common.js`) reduced to a single `importScript('MediaWiki:ForgeCalculator.js');` line | `Web/mediawiki/MediaWiki-ForgeCalculator.js` (new), `Web/mediawiki/forge-calculator.common.js` | ✅ Done | (this session) |
+| **Harness retarget** — 10 consumers (`verify-engine.js`, `fuzz_verify.js`, `zero_dps_repro.js`, all 7 `*-test.js`, `fuzz_gen.py` docstring) now read `MediaWiki-ForgeCalculator.js` | `Web/mediawiki/*.js` | ✅ Done | (this session) |
+| **DEPLOY.md** — artifact map + new steps 4/5 (create `MediaWiki:ForgeCalculator.js`, append the import line to Common.js), maintenance + source-files notes | `Web/mediawiki/DEPLOY.md` | ✅ Done | (this session) |
+
+**Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16); all 7 `*-test.js` + `zero_dps_repro.js` PASSED; `node --check` clean on the new module and the stripped Common.js artifact. Engine byte-identical — display/organisation only.

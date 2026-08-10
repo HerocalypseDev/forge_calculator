@@ -21,7 +21,7 @@ const path = require('path');
 const vm = require('vm');
 
 const HERE = __dirname;
-const SRC = fs.readFileSync(path.join(HERE, 'forge-calculator.common.js'), 'utf8');
+const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
 
 // --- Inject an export hook right before `function recalculate()` — at that
 // point state, deriveBonusType and transformBuildForEngine are all defined.
@@ -55,7 +55,7 @@ const sandbox = {
 sandbox.window = sandbox;
 sandbox.window.mediaWiki = mw;
 vm.createContext(sandbox);
-vm.runInContext(instrumented, sandbox, { filename: 'forge-calculator.common.js' });
+vm.runInContext(instrumented, sandbox, { filename: 'MediaWiki-ForgeCalculator.js' });
 
 const FC = sandbox.__FC;
 if (!FC) { throw new Error('Export hook did not run — extraction failed'); }

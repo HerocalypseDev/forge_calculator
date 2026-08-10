@@ -1,5 +1,5 @@
 """Generate deterministic random builds + Python-engine results for differential
-verification against the JS engine in forge-calculator.common.js.
+verification against the JS engine in MediaWiki-ForgeCalculator.js.
 
 Usage: python fuzz_gen.py  (writes fuzz-cases.json)
 """
