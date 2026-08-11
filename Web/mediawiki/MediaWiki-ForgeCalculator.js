@@ -1055,11 +1055,7 @@
     amountInput.addEventListener('input', handleAmountChange);
     amountInput.addEventListener('change', commitAmount);
 
-    fields.append(dropdownWrapper, multLabel, createStepper(amountInput, {
-      step: 1,
-      min: 0,
-      commit: commitAmount
-    }));
+    fields.append(dropdownWrapper, multLabel, amountInput);
     container.append(label, fields);
 
     container.setValue = function (name, amt) {
@@ -1173,12 +1169,7 @@
     var handleQualityChange = debounce(commitQuality, 150);
     qualityInput.addEventListener('input', handleQualityChange);
     qualityInput.addEventListener('change', commitQuality);
-    qualityWrapper.append(qualityLabel, createStepper(qualityInput, {
-      step: 5,
-      min: 0,
-      max: QUALITY_MAX,
-      commit: commitQuality
-    }));
+    qualityWrapper.append(qualityLabel, qualityInput);
 
     var enhancementWrapper = createEl('div', { class: 'fc-enhancement-wrapper' });
     var enhancementLabel = createEl('label', { for: 'enhancement' }, ['Enhancement']);
@@ -1213,44 +1204,6 @@
     return container;
   }
 
-  // Wrap a number input with −/+ stepper buttons. `opts` = { step, min, max,
-  // allowZero, commit }. `allowZero` treats 0 as a valid "off" value below min
-  // (ability fields, where 0 = no ability). Each press commits via `commit`,
-  // so the field's own clamping logic is preserved.
-  function createStepper(input, opts) {
-    var wrapper = createEl('div', { class: 'fc-stepper' });
-    var minus = createEl('button', {
-      type: 'button',
-      class: 'fc-stepper-btn',
-      'aria-label': 'Decrease'
-    }, ['−']);
-    var plus = createEl('button', {
-      type: 'button',
-      class: 'fc-stepper-btn',
-      'aria-label': 'Increase'
-    }, ['+']);
-
-    function step(delta) {
-      var raw = parseFloat(input.value);
-      if (isNaN(raw)) { raw = 0; }
-      var candidate = raw + delta * opts.step;
-      if (candidate <= 0 && opts.allowZero) {
-        candidate = 0;
-      } else {
-        if (opts.min !== undefined && candidate < opts.min) { candidate = opts.min; }
-        if (opts.max !== undefined && candidate > opts.max) { candidate = opts.max; }
-      }
-      input.value = candidate;
-      if (opts.commit) { opts.commit(); }
-    }
-
-    minus.addEventListener('click', function (e) { e.preventDefault(); step(-1); });
-    plus.addEventListener('click', function (e) { e.preventDefault(); step(+1); });
-
-    if (input.parentNode) { input.parentNode.replaceChild(wrapper, input); }
-    wrapper.append(input, minus, plus);
-    return wrapper;
-  }
 
   function createStatInput(opts) {
     var onChange = opts.onChange;
@@ -1296,13 +1249,7 @@
         input.addEventListener('change', commit);
 
         var fieldWrapper = createEl('div', { class: 'fc-stat-input-field' });
-        fieldWrapper.appendChild(createStepper(input, {
-          step: 1,
-          min: field.min,
-          max: field.max,
-          allowZero: true,
-          commit: commit
-        }));
+        fieldWrapper.appendChild(input);
         row.append(label, fieldWrapper);
         container.appendChild(row);
       })(fields[i]);
@@ -1930,12 +1877,7 @@
     berserkInput.addEventListener('input', handleBerserkChange);
     berserkInput.addEventListener('change', commitBerserk);
     var berserkField = createEl('div', { class: 'fc-stat-input-field' });
-    berserkField.appendChild(createStepper(berserkInput, {
-      step: 1,
-      min: 0,
-      max: 150,
-      commit: commitBerserk
-    }));
+    berserkField.appendChild(berserkInput);
     berserkRow.append(berserkLabel, berserkField);
     berserkSection.appendChild(berserkRow);
     metaWrap.appendChild(berserkSection);

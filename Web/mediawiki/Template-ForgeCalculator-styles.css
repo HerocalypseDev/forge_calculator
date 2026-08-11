@@ -242,8 +242,6 @@
 
 .fc-ore-grid .fc-ore-slot-amount { width: 100%; }
 
-.fc-ore-grid .fc-stepper { min-width: 0; }
-
 /* ── Meta row (race / berserk / achievement — 3 sibling cards) ────── */
 
 .fc-meta-wrap {
@@ -493,37 +491,6 @@
   white-space: nowrap;
 }
 
-/* ── Number steppers ──────────────────────────────────────────────── */
-
-.fc-stepper {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.fc-stepper input { flex: 1; min-width: 0; }
-
-.fc-stepper-btn {
-  flex-shrink: 0;
-  width: 32px;
-  height: 34px;
-  font-size: 15px;
-  font-weight: 600;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  color: #ffffff;
-  background: #1a1a1e;
-  border: 1px solid #2a2a30;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-.fc-stepper-btn:hover {
-  border-color: #ffffff;
-  background: #222228;
-}
-.fc-stepper-btn:active {
-  background: #2a2a30;
-}
-
 /* ── Rune selector ────────────────────────────────────────────────── */
 
 .fc-rune-selector {
@@ -627,7 +594,10 @@
   min-width: 0;
 }
 
-.fc-ability-field input {
+.fc-ore-slot-amount,
+.fc-quality-input,
+.fc-stat-input-input,
+.fc-ability-input {
   width: 100%;
   padding: 6px 8px;
   font-size: 13px;
@@ -638,14 +608,20 @@
   border-radius: 6px;
   text-align: center;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.fc-ability-field input:hover {
+.fc-ore-slot-amount:hover,
+.fc-quality-input:hover,
+.fc-stat-input-input:hover,
+.fc-ability-input:hover {
   border-color: #ffffff;
 }
 
-.fc-ability-field input:focus {
+.fc-ore-slot-amount:focus,
+.fc-quality-input:focus,
+.fc-stat-input-input:focus,
+.fc-ability-input:focus {
   border-color: #ffffff;
   box-shadow: 0 0 0 2px rgba(200, 168, 90, 0.15);
 }
@@ -964,12 +940,6 @@
   .fc-searchable-input {
     font-size: 12px;
     padding: 8px 10px;
-  }
-
-  .fc-stepper-btn {
-    width: 28px;
-    height: 30px;
-    font-size: 13px;
   }
 
   .fc-results-panel { padding: 16px; }
