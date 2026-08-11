@@ -547,18 +547,18 @@
 .fc-ability-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 14px;
 }
 
 .fc-ability-section {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
   background: transparent;
   border: 2px solid #2a2a30;
   border-radius: 8px;
-  padding: 24px;
+  padding: 16px 12px;
 }
 
 .fc-ability-section--fire  { border-color: #2a2a30; }
@@ -568,11 +568,13 @@
 .fc-ability-section-title {
   grid-column: 1 / -1;
   color: #ffffff;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin: 0 0 2px;
+  margin: 0 0 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #2a2a30;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -585,14 +587,15 @@
 .fc-ability-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   margin-bottom: 0;
+  min-width: 0;
 }
 
 .fc-ability-label {
   min-width: 0;
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .fc-ability-field { flex: 1; min-width: 0; }
