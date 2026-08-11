@@ -1,10 +1,10 @@
 /* Forge Calculator — scoped under .fc-calculator, TemplateStyles-safe
  *
- * === CARD AESTHETIC ===
- * Each section is a single clean card container with a brown/gold
- * (#c8a85a) border outline, dark fill, and generous internal spacing.
- * No nesting — no cards inside cards (except ore slots, which are
- * explicitly card-style in the reference image).
+ * === DESIGN ===
+ * Sections sit on dark panels without border outlines. Only the four
+ * ore slots carry the brown/gold (#c8a85a) border accent, matching the
+ * reference image. Small gold accent lines remain on section titles
+ * and validation warnings for cohesion.
  *
  * Values are inlined literals — the TemplateStyles sanitizer strips
  * CSS custom properties (--fc-*) and var(). Do not reintroduce them.
@@ -87,11 +87,10 @@
   font-size: 0.75rem;
 }
 
-/* ── Section card (brown/gold border, dark fill) ──────────────────── */
+/* ── Section card (dark fill, no border) ──────────────────────────── */
 
 .fc-input-section {
   background: #141418;
-  border: 1px solid #c8a85a;
   border-radius: 8px;
   padding: 28px;
 }
@@ -556,15 +555,15 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   min-width: 0;
-  background: #141418;
-  border: 2px solid #c8a85a;
+  background: transparent;
+  border: 2px solid #2a2a30;
   border-radius: 8px;
   padding: 24px;
 }
 
-.fc-ability-section--fire  { border-color: #c8a85a; }
-.fc-ability-section--poison{ border-color: #c8a85a; }
-.fc-ability-section--blast { border-color: #c8a85a; }
+.fc-ability-section--fire  { border-color: #2a2a30; }
+.fc-ability-section--poison{ border-color: #2a2a30; }
+.fc-ability-section--blast { border-color: #2a2a30; }
 
 .fc-ability-section-title {
   grid-column: 1 / -1;
@@ -641,7 +640,6 @@
 
 .fc-results-panel {
   background: #141418;
-  border: 1px solid #c8a85a;
   border-radius: 8px;
   padding: 28px;
 }
@@ -722,12 +720,13 @@
 
 .fc-card-icon {
   display: inline-block;
-  color: #ffffff;
+  color: #c8a85a;
   font-size: 0.75rem;
+  line-height: 1;
   flex-shrink: 0;
 }
 
-.fc-card-title { flex: 1; }
+.fc-card-title { flex: 0 0 auto; }
 
 .fc-card-body { padding: 14px 0; }
 
@@ -984,8 +983,7 @@
 /* ── High contrast ────────────────────────────────────────────────── */
 
 @media (prefers-contrast: high) {
-  .fc-calculator .fc-input-section,
-  .fc-calculator .fc-results-panel {
+  .fc-calculator .fc-ore-grid .fc-ore-slot {
     border-color: #fff;
   }
 }
