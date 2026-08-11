@@ -640,9 +640,6 @@
 
 /* ── Results panel (bare) ─────────────────────────────────────────── */
 
-.fc-results-panel {
-}
-
 .fc-results-head {
   display: flex;
   align-items: center;
@@ -675,9 +672,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-}
-
-.fc-card {
 }
 
 .fc-card--total {
