@@ -1,10 +1,10 @@
 /* Forge Calculator — scoped under .fc-calculator, TemplateStyles-safe
  *
- * === BARE DESIGN ===
- * Sections are separated by large vertical spacing and thin divider
- * lines under headers, NOT by nesting them inside card containers.
- * Inputs keep their own border/background, but section wrappers are
- * transparent — no background, no border, no border-radius, no padding.
+ * === CARD AESTHETIC ===
+ * Each section is a single clean card container with a brown/gold
+ * (#c8a85a) border outline, dark fill, and generous internal spacing.
+ * No nesting — no cards inside cards (except ore slots, which are
+ * explicitly card-style in the reference image).
  *
  * Values are inlined literals — the TemplateStyles sanitizer strips
  * CSS custom properties (--fc-*) and var(). Do not reintroduce them.
@@ -54,7 +54,7 @@
 .fc-left {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 32px;
   min-width: 0;
 }
 
@@ -70,7 +70,7 @@
 .fc-input-panel {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
 }
 
 .fc-panel-header { margin-bottom: 12px; }
@@ -87,10 +87,13 @@
   font-size: 0.75rem;
 }
 
-/* ── Section (bare — no card) ─────────────────────────────────────── */
+/* ── Section card (brown/gold border, dark fill) ──────────────────── */
 
 .fc-input-section {
-  margin-bottom: 32px;
+  background: #141418;
+  border: 1px solid #c8a85a;
+  border-radius: 8px;
+  padding: 28px;
 }
 
 .fc-input-section-title {
@@ -158,19 +161,23 @@
   letter-spacing: 0.04em;
 }
 
-/* ── Ore grid (4-col bare slots) ──────────────────────────────────── */
+/* ── Ore grid (4-col inner cards per Image 1) ─────────────────────── */
 
 .fc-ore-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .fc-ore-grid .fc-ore-slot {
   min-width: 0;
+  background: #1a1a1e;
+  border: 1px solid #c8a85a;
+  border-radius: 6px;
+  padding: 16px;
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 10px;
 }
 
 .fc-ore-grid .fc-ore-slot-label {
@@ -206,20 +213,12 @@
 
 .fc-ore-grid .fc-stepper { min-width: 0; }
 
-/* ── Meta row (race / berserk / achievement — bare) ───────────────── */
+/* ── Meta row (race / berserk / achievement — 3 sibling cards) ────── */
 
 .fc-meta-wrap {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-}
-
-.fc-meta-wrap .fc-input-section {
-  background: none;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  margin-bottom: 0;
+  gap: 24px;
 }
 
 .fc-meta-wrap .fc-input-section-title {
@@ -420,7 +419,7 @@
   min-width: 0;
 }
 
-/* ── Ore slot (bare) ──────────────────────────────────────────────── */
+/* ── Ore slot (standalone, outside grid — list layout) ─────────────── */
 
 .fc-ore-slot {
   display: flex;
@@ -549,7 +548,7 @@
 .fc-ability-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
 .fc-ability-section {
@@ -557,15 +556,15 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   min-width: 0;
-  background: transparent;
-  border: 2px solid #2a2a30;
-  border-radius: 6px;
-  padding: 12px;
+  background: #141418;
+  border: 2px solid #c8a85a;
+  border-radius: 8px;
+  padding: 24px;
 }
 
-.fc-ability-section--fire  { border-color: #ffffff; }
-.fc-ability-section--poison{ border-color: #ffffff; }
-.fc-ability-section--blast { border-color: #ffffff; }
+.fc-ability-section--fire  { border-color: #c8a85a; }
+.fc-ability-section--poison{ border-color: #c8a85a; }
+.fc-ability-section--blast { border-color: #c8a85a; }
 
 .fc-ability-section-title {
   grid-column: 1 / -1;
@@ -638,7 +637,14 @@
   letter-spacing: 0.5px;
 }
 
-/* ── Results panel (bare) ─────────────────────────────────────────── */
+/* ── Results panel (single card, brown/gold border) ───────────────── */
+
+.fc-results-panel {
+  background: #141418;
+  border: 1px solid #c8a85a;
+  border-radius: 8px;
+  padding: 28px;
+}
 
 .fc-results-head {
   display: flex;
@@ -666,7 +672,7 @@
   flex-shrink: 0;
 }
 
-/* ── Results cards (2-col grid, bare) ─────────────────────────────── */
+/* ── Results cards (2-col grid, bare inside) ──────────────────────── */
 
 .fc-results-cards {
   display: grid;
@@ -838,6 +844,7 @@
 @media (max-width: 780px) {
   .fc-calculator { padding: 0 14px; }
 
+  .fc-input-section { padding: 20px; }
   .fc-input-section-title { font-size: 0.8rem; margin-bottom: 10px; padding-bottom: 8px; }
 
   .fc-weapon-selector {
@@ -895,6 +902,7 @@
 @media (max-width: 520px) {
   .fc-calculator { padding: 0 8px; }
 
+  .fc-input-section { padding: 16px; }
   .fc-input-section-title { font-size: 0.75rem; margin-bottom: 8px; padding-bottom: 6px; }
 
   .fc-stat-input-input,
@@ -912,6 +920,7 @@
     font-size: 13px;
   }
 
+  .fc-results-panel { padding: 16px; }
   .fc-results-title { font-size: 0.9rem; }
   .fc-stat-row { font-size: 0.8rem; gap: 10px; }
   .fc-stat-val { font-size: 0.8rem; }
@@ -928,6 +937,7 @@
     position: static;
     max-height: none;
   }
+  .fc-input-section { padding: 14px; }
 }
 
 /* ── Print ────────────────────────────────────────────────────────── */
@@ -943,8 +953,8 @@
   .fc-body { display: block; }
   .fc-left,
   .fc-right { width: 100%; }
-  .fc-results-panel,
-  .fc-card {
+  .fc-input-section,
+  .fc-results-panel {
     break-inside: avoid;
     box-shadow: none;
     border: 1px solid #999;
@@ -974,8 +984,8 @@
 /* ── High contrast ────────────────────────────────────────────────── */
 
 @media (prefers-contrast: high) {
-  .fc-calculator .fc-results-panel,
-  .fc-calculator .fc-card {
+  .fc-calculator .fc-input-section,
+  .fc-calculator .fc-results-panel {
     border-color: #fff;
   }
 }
