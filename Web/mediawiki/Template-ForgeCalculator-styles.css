@@ -541,6 +541,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+  min-width: 0;
   background: #141418;
   border: 2px solid #2a2a30;
   border-radius: 6px;
@@ -576,6 +577,7 @@
 }
 
 .fc-ability-label {
+  min-width: 0;
   color: #8a8a90;
   font-size: 0.75rem;
 }
