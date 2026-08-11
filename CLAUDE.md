@@ -285,3 +285,13 @@ No linter or formatter is configured.
 | **Tests** — `validation-warnings-test.js` (W1–W5 states, live re-render, hidden-when-clean, real panel DOM), `stepper-test.js` (step/clamp per field type, allowZero, no-max ore, non-numeric fallback), `copy-stat-test.js` (click copies, `—`/`∞`/empty skipped, isCap styling, clipboard + fallback paths) | `Web/mediawiki/validation-warnings-test.js`, `stepper-test.js`, `copy-stat-test.js` | ✅ Done | (this session) |
 
 **Verification:** `node --check` clean on all modified JS; all 13 MediaWiki tests PASS (9 existing `*-test.js` + `verify-engine.js` 11 golden checks + `fuzz_verify.js` 250 builds / 8755 fields, worst rel err 5.19e-16 + `zero_dps_repro.js` + 3 new tests). Engine untouched. Deploy per `Web/mediawiki/DEPLOY.md`: update `MediaWiki:ForgeCalculator.js` + `Template:ForgeCalculator/styles.css`, hard-refresh.
+
+### MediaWiki TemplateStyles Sanitizer Fix — COMPLETED ✅
+**Goal:** The dark-theme CSS failed to save on-wiki — the TemplateStyles sanitizer rejected the design-token block (`Unrecognized or unsupported property` for every `--fc-*` at the top of the sheet) and every `var(--fc-*)` value (`Invalid or unsupported value`). The sanitizer on this wiki does **not** support CSS custom properties or `var()`, so the tokens were stripped and the theme silently collapsed to default styling. Fixed by inlining every `var(--fc-*)` to its literal value, removing the custom-property block, and dropping the two `color-scheme` declarations (also unrecognized).
+
+| Change | Where | Status | Commit |
+|--------|-------|--------|--------|
+| **Inline all tokens** — 17 `--fc-*` definitions removed; 104 `var(--fc-*)` usages replaced with literals (`#0a0a0c`, `#141418`, `6px`, `12px`, `14px 16px`, …) via a deterministic script; `color-scheme: dark`/`light` dropped from the root + print blocks | `Web/mediawiki/Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
+| **Docs** — DEPLOY.md notes the sanitizer limitation (don't reintroduce `--fc-*`); dark-mode checklist line updated | `Web/mediawiki/DEPLOY.md` | ✅ Done | (this session) |
+
+**Verification:** CSS has 0 `var()`, 0 `--fc-`, 0 `color-scheme`, balanced braces; `render-preview.js` regenerates `preview.html` clean (0 `var()`); all 11 MediaWiki JS tests PASS (`verify-engine.js` ALL GOLDEN, `fuzz_verify.js` DIFFERENTIAL FUZZ PASSED 250 builds / 8755 fields worst rel err 5.19e-16, all 9 `*-test.js`). JS/engine untouched — CSS-only compatibility fix. **Re-deploy:** re-paste `Template-ForgeCalculator-styles.css` into `Template:ForgeCalculator/styles.css` (no JS changes).

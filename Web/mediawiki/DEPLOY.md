@@ -52,8 +52,12 @@ Expected shapes (validation counts are enforced at runtime by
 
 Create `Template:ForgeCalculator/styles.css` with the full contents of
 `Template-ForgeCalculator-styles.css`. Do not change anything — the CSS is
-already scoped under `.fc-calculator` and uses `--fc-*` custom properties, so it
-cannot leak into other page styles.
+already scoped under `.fc-calculator`, so it cannot leak into other page styles.
+
+> **TemplateStyles sanitizer:** all color/layout values are inlined as literals
+> because the TemplateStyles sanitizer does not support CSS custom properties
+> (`--fc-*`) or `var(...)`. Do not reintroduce them — the sanitizer strips them
+> and the theme silently collapses to default styling.
 
 ### 3. Create the template page
 
@@ -114,7 +118,7 @@ On-wiki checklist (after deploying, in a sandbox page or `Special:BlankPage`):
 | Change quality or enhancement | Results update in real time |
 | Click Copy | Results copied to clipboard (clipboard requires HTTPS — Miraheze provides it) |
 | Narrow window to ≤520px | Layout stacks into a single column |
-| View in dark mode | Text remains readable (`--fc-*` variables adapt) |
+| View in dark mode | Text remains readable (dark palette inlined) |
 
 ## Troubleshooting
 
