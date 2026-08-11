@@ -542,63 +542,81 @@
 
 .fc-stat-input-field { width: 100%; }
 
-/* ── Ability grid (3-col hollow bordered cards) ───────────────────── */
+/* ── Ability grid (3 cards side by side) ──────────────────────────── */
 
 .fc-ability-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .fc-ability-section {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
-  background: transparent;
-  border: 2px solid #2a2a30;
+  background: #141418;
+  border: 1px solid #2a2a30;
   border-radius: 8px;
-  padding: 16px 12px;
+  padding: 18px 16px;
+  gap: 10px;
 }
 
-.fc-ability-section--fire  { border-color: #2a2a30; }
-.fc-ability-section--poison{ border-color: #2a2a30; }
-.fc-ability-section--blast { border-color: #2a2a30; }
-
 .fc-ability-section-title {
-  grid-column: 1 / -1;
   color: #ffffff;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin: 0 0 0;
-  padding-bottom: 6px;
+  margin: 0;
+  padding-bottom: 8px;
   border-bottom: 1px solid #2a2a30;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.fc-ability-section--fire .fc-ability-section-title  { color: #ffffff; }
-.fc-ability-section--poison .fc-ability-section-title{ color: #ffffff; }
-.fc-ability-section--blast .fc-ability-section-title { color: #ffffff; }
-
 .fc-ability-row {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 0;
-  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
 }
 
 .fc-ability-label {
-  min-width: 0;
   color: #ffffff;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.fc-ability-field { flex: 1; min-width: 0; }
+.fc-ability-field {
+  width: 72px;
+  min-width: 0;
+}
+
+.fc-ability-field input {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #ffffff;
+  background: #1a1a1e;
+  border: 1px solid #2a2a30;
+  border-radius: 6px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.fc-ability-field input:hover {
+  border-color: #ffffff;
+}
+
+.fc-ability-field input:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(200, 168, 90, 0.15);
+}
 
 /* ── Buttons ──────────────────────────────────────────────────────── */
 

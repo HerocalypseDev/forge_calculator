@@ -1397,13 +1397,7 @@
           input.addEventListener('blur', commit);
 
           var fieldWrapper = createEl('div', { class: 'fc-ability-field' });
-          fieldWrapper.appendChild(createStepper(input, {
-            step: 1,
-            min: min,
-            max: max,
-            allowZero: true,
-            commit: commit
-          }));
+          fieldWrapper.appendChild(input);
           row.append(label, fieldWrapper);
           section.appendChild(row);
         })(fields[i]);
@@ -1862,7 +1856,7 @@
     }
     oreSection.appendChild(oreGrid);
 
-    var weaponSection = createEl('div', { class: 'fc-input-section' });
+    var weaponSection = createEl('div', { class: 'fc-input-section fc-input-section--flat' });
     weaponSection.appendChild(sectionTitle('Weapon', 'weapon'));
 
     var weaponSelector = createWeaponSelector({
