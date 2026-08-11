@@ -19,7 +19,7 @@
   background: #0a0a0c;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 24px;
 }
 
 .fc-calculator ::selection {
@@ -44,7 +44,7 @@
 .fc-left {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
   min-width: 0;
 }
 
@@ -60,7 +60,7 @@
 .fc-input-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .fc-panel-header { margin-bottom: 8px; }
@@ -83,7 +83,7 @@
   background: #141418;
   border: 1px solid #2a2a30;
   border-radius: 6px;
-  padding: 14px 16px;
+  padding: 18px 20px;
 }
 
 .fc-input-section-title {
@@ -95,8 +95,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #2a2a30;
 }
 
@@ -129,7 +129,7 @@
 .fc-weapon-selector {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 16px;
 }
 
 .fc-weapon-type-wrapper,
@@ -155,7 +155,7 @@
 .fc-ore-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 16px;
 }
 
 .fc-ore-grid .fc-ore-slot {
@@ -201,7 +201,7 @@
 .fc-meta-wrap {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 16px;
 }
 
 .fc-meta-wrap .fc-input-section {
@@ -460,8 +460,8 @@
 
 .fc-stepper-btn {
   flex-shrink: 0;
-  width: 28px;
-  height: 30px;
+  width: 32px;
+  height: 34px;
   font-size: 15px;
   font-weight: 600;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -511,7 +511,7 @@
 .fc-stat-input {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 16px;
 }
 
 .fc-stat-input-row {
@@ -534,7 +534,7 @@
 .fc-ability-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  gap: 16px;
 }
 
 .fc-ability-section {
@@ -629,7 +629,7 @@
   background: #141418;
   border: 1px solid #2a2a30;
   border-radius: 6px;
-  padding: 16px;
+  padding: 20px;
 }
 
 .fc-results-head {
@@ -663,7 +663,7 @@
 .fc-results-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
 .fc-card {
@@ -734,7 +734,7 @@
 .fc-stat-rows {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .fc-stat-row {
@@ -744,7 +744,7 @@
   gap: 12px;
   font-size: 0.85rem;
   line-height: 1.5;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .fc-stat-row:last-child { border-bottom: none; }
