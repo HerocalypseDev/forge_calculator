@@ -1300,6 +1300,7 @@
           step: 1,
           min: field.min,
           max: field.max,
+          allowZero: true,
           commit: commit
         }));
         row.append(label, fieldWrapper);

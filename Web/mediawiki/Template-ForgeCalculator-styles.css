@@ -95,6 +95,38 @@
   padding: 28px;
 }
 
+/* Flat variant — no card bg, thin top separator, gold icon+title */
+.fc-input-section--flat {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+.fc-input-section--flat .fc-input-section-title {
+  color: #c8a85a;
+  border-bottom: none;
+  border-top: 1px solid #3a3020;
+  padding-top: 12px;
+  padding-bottom: 0;
+  margin-bottom: 10px;
+}
+.fc-input-section--flat .fc-section-icon {
+  color: #c8a85a;
+}
+.fc-input-section--flat .fc-searchable-input {
+  border-color: #3a3020;
+}
+.fc-input-section--flat .fc-searchable-input:hover,
+.fc-input-section--flat .fc-searchable-input:focus {
+  border-color: #c8a85a;
+}
+.fc-input-section--flat input[type="number"] {
+  border-color: #3a3020;
+}
+.fc-input-section--flat input[type="number"]:hover,
+.fc-input-section--flat input[type="number"]:focus {
+  border-color: #c8a85a;
+}
+
 .fc-input-section-title {
   color: #ffffff;
   font-size: 0.85rem;
