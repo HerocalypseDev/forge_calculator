@@ -2366,6 +2366,11 @@
   }
 
   function start() {
+    // Tag body so MediaWiki:Common.css can constrain page width on calculator pages
+    if (document.body) {
+      document.body.classList.add('fc-page');
+    }
+
     var root = document.getElementById('fc-root');
     if (!root) { return; }
     init(root);
