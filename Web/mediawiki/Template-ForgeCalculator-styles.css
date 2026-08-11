@@ -35,7 +35,7 @@
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #e0e0e0;
+  color: #ffffff;
   background: #0a0a0c;
   max-width: 1400px;
   margin: 0 auto;
@@ -44,7 +44,7 @@
 
 .fc-calculator ::selection {
   background: #c8a85a;
-  color: #1a1a1a;
+  color: #ffffff;
 }
 
 .fc-calculator :focus {
@@ -93,7 +93,7 @@
   margin-bottom: 4px;
 }
 .fc-panel-subtext {
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 0.75rem;
 }
 
@@ -126,7 +126,7 @@
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  color: #c8a85a;
+  color: #ffffff;
   width: 20px;
   height: 20px;
 }
@@ -138,7 +138,7 @@
 /* ── Subtext ──────────────────────────────────────────────────────── */
 
 .fc-input-section-subtext {
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 0.75rem;
   line-height: 1.5;
   margin-bottom: 12px;
@@ -165,7 +165,7 @@
 .fc-weapon-wrapper label,
 .fc-quality-wrapper label,
 .fc-enhancement-wrapper label {
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -213,7 +213,7 @@
   min-width: auto;
   text-align: center;
   font-size: 0.7rem;
-  color: #c8a85a;
+  color: #ffffff;
 }
 
 .fc-ore-grid .fc-ore-slot-dropdown {
@@ -256,7 +256,7 @@
   gap: 6px;
 }
 .fc-race-wrapper label {
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -270,7 +270,7 @@
   gap: 6px;
 }
 .fc-achievement-wrapper label {
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -290,7 +290,7 @@
   padding: 8px 10px;
   font-size: 13px;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  color: #e0e0e0;
+  color: #ffffff;
   background: #1a1a1e;
   border: 1px solid #2a2a30;
   border-radius: 6px;
@@ -299,16 +299,16 @@
 }
 
 .fc-searchable-input:hover {
-  border-color: #c8a85a;
+  border-color: #ffffff;
 }
 
 .fc-searchable-input:focus {
-  border-color: #c8a85a;
+  border-color: #ffffff;
   box-shadow: 0 0 0 2px rgba(200, 168, 90, 0.15);
 }
 
 .fc-searchable-input[aria-expanded="true"] {
-  border-color: #c8a85a;
+  border-color: #ffffff;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -323,7 +323,7 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 12px;
   transition: background 0.15s ease, color 0.15s ease;
   position: absolute;
@@ -331,10 +331,10 @@
   top: 50%;
   transform: translateY(-50%);
 }
-.fc-searchable-arrow:hover { color: #c8a85a; }
+.fc-searchable-arrow:hover { color: #ffffff; }
 
 .fc-searchable-input[aria-expanded="true"] + .fc-searchable-arrow {
-  color: #c8a85a;
+  color: #ffffff;
 }
 
 .fc-searchable-list {
@@ -358,7 +358,7 @@
 .fc-searchable-item {
   padding: 8px 10px;
   font-size: 13px;
-  color: #e0e0e0;
+  color: #ffffff;
   cursor: pointer;
   transition: background 0.15s ease;
 }
@@ -372,7 +372,7 @@
 .fc-searchable-no-results {
   padding: 12px;
   text-align: center;
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 12px;
 }
 
@@ -387,7 +387,7 @@
   padding: 8px 10px;
   font-size: 13px;
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
-  color: #e0e0e0;
+  color: #ffffff;
   background: #1a1a1e;
   border: 1px solid #2a2a30;
   border-radius: 6px;
@@ -398,7 +398,7 @@
 .fc-ability-input:focus,
 .fc-quality-input:focus,
 .fc-ore-slot-amount:focus {
-  border-color: #c8a85a;
+  border-color: #ffffff;
   box-shadow: 0 0 0 2px rgba(200, 168, 90, 0.15);
   outline: none;
 }
@@ -406,7 +406,7 @@
 .fc-stat-input-input::placeholder,
 .fc-ability-input::placeholder,
 .fc-ore-slot-amount::placeholder {
-  color: #8a8a90;
+  color: #ffffff;
   opacity: 0.6;
 }
 
@@ -430,7 +430,7 @@
 .fc-ability-label {
   min-width: 130px;
   flex-shrink: 0;
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 0.8rem;
 }
 
@@ -457,7 +457,7 @@
   min-width: 48px;
   flex-shrink: 0;
   margin-bottom: 4px;
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -478,7 +478,7 @@
   flex-shrink: 0;
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
   font-size: 12px;
-  color: #c8a85a;
+  color: #ffffff;
   text-align: center;
   white-space: nowrap;
 }
@@ -499,7 +499,7 @@
   font-size: 15px;
   font-weight: 600;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  color: #e0e0e0;
+  color: #ffffff;
   background: #1a1a1e;
   border: 1px solid #2a2a30;
   border-radius: 6px;
@@ -507,7 +507,7 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 .fc-stepper-btn:hover {
-  border-color: #c8a85a;
+  border-color: #ffffff;
   background: #222228;
 }
 .fc-stepper-btn:active {
@@ -533,7 +533,7 @@
   width: 52px;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #8a8a90;
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -558,7 +558,7 @@
 .fc-stat-input-label {
   min-width: auto;
   margin-bottom: 2px;
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 0.75rem;
 }
 
@@ -583,9 +583,9 @@
   padding: 12px;
 }
 
-.fc-ability-section--fire  { border-color: #e07030; }
-.fc-ability-section--poison{ border-color: #40a050; }
-.fc-ability-section--blast { border-color: #c8a85a; }
+.fc-ability-section--fire  { border-color: #ffffff; }
+.fc-ability-section--poison{ border-color: #ffffff; }
+.fc-ability-section--blast { border-color: #ffffff; }
 
 .fc-ability-section-title {
   grid-column: 1 / -1;
@@ -600,9 +600,9 @@
   gap: 6px;
 }
 
-.fc-ability-section--fire .fc-ability-section-title  { color: #e07030; }
-.fc-ability-section--poison .fc-ability-section-title{ color: #40a050; }
-.fc-ability-section--blast .fc-ability-section-title { color: #c8a85a; }
+.fc-ability-section--fire .fc-ability-section-title  { color: #ffffff; }
+.fc-ability-section--poison .fc-ability-section-title{ color: #ffffff; }
+.fc-ability-section--blast .fc-ability-section-title { color: #ffffff; }
 
 .fc-ability-row {
   display: flex;
@@ -613,7 +613,7 @@
 
 .fc-ability-label {
   min-width: 0;
-  color: #8a8a90;
+  color: #ffffff;
   font-size: 0.75rem;
 }
 
@@ -626,7 +626,7 @@
   font-size: 13px;
   font-weight: 500;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  color: #e0e0e0;
+  color: #ffffff;
   background: transparent;
   border: 1px solid #2a2a30;
   border-radius: 6px;
@@ -635,14 +635,14 @@
 }
 
 .fc-btn:hover {
-  border-color: #c8a85a;
+  border-color: #ffffff;
   color: #ffffff;
 }
 
 .fc-btn--primary {
   background: #c8a85a;
-  border-color: #c8a85a;
-  color: #0a0a0c;
+  border-color: #ffffff;
+  color: #ffffff;
   font-weight: 700;
 }
 .fc-btn--primary:hover {
@@ -733,7 +733,7 @@
 .fc-sv-dps-hero {
   font-size: 2.2rem;
   font-weight: 700;
-  color: #c8a85a;
+  color: #ffffff;
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 }
 
@@ -757,7 +757,7 @@
 
 .fc-card-icon {
   display: inline-block;
-  color: #c8a85a;
+  color: #ffffff;
   font-size: 0.75rem;
   flex-shrink: 0;
 }
@@ -785,7 +785,7 @@
 .fc-stat-row:last-child { border-bottom: none; }
 
 .fc-stat-label {
-  color: #8a8a90;
+  color: #ffffff;
   flex-shrink: 0;
 }
 
@@ -806,11 +806,11 @@
 
 /* ── Stat value color accents ─────────────────────────────────────── */
 
-.fc-stat-val.fc-sv-dmg  { color: #6fbf73; }
-.fc-stat-val.fc-sv-mult { color: #c8a85a; }
-.fc-stat-val.fc-sv-rate { color: #6da2f0; }
-.fc-stat-val.fc-sv-pct  { color: #c3a0e8; }
-.fc-stat-val.fc-sv-time { color: #f09a5e; }
+.fc-stat-val.fc-sv-dmg  { color: #ffffff; }
+.fc-stat-val.fc-sv-mult { color: #ffffff; }
+.fc-stat-val.fc-sv-rate { color: #ffffff; }
+.fc-stat-val.fc-sv-pct  { color: #ffffff; }
+.fc-stat-val.fc-sv-time { color: #ffffff; }
 
 /* ── Copyable values ──────────────────────────────────────────────── */
 
@@ -830,7 +830,7 @@
 .fc-traits-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #8a8a90;
+  color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: 8px;
@@ -839,7 +839,7 @@
 .fc-traits-value {
   font-size: 0.85rem;
   line-height: 1.7;
-  color: #e0e0e0;
+  color: #ffffff;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
@@ -856,7 +856,7 @@
 
 .fc-warning {
   font-size: 0.8rem;
-  color: #f0c060;
+  color: #ffffff;
   background: rgba(180, 120, 20, 0.12);
   border: 1px solid rgba(180, 120, 20, 0.3);
   border-left: 3px solid #c8a85a;
@@ -983,7 +983,7 @@
 @media print {
   .fc-calculator {
     background: #fff;
-    color: #000;
+    color: #fff;
     display: block;
     max-width: none;
     padding: 0;
@@ -1003,7 +1003,7 @@
   .fc-stat-val,
   .fc-card-title,
   .fc-input-section-title {
-    color: #000;
+    color: #fff;
   }
 }
 
