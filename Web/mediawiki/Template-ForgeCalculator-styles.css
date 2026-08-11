@@ -1,26 +1,16 @@
 /* Forge Calculator — scoped under .fc-calculator, TemplateStyles-safe
  *
- * === BALANCED SPACING (revision of the 50–100% blanket increase) ===
- * The blanket increase stretched every control and broke the ore grid
- * (4 columns overflowed their container). This revision applies spacing
- * hierarchically instead of mechanically:
+ * === BARE DESIGN ===
+ * Sections are separated by large vertical spacing and thin divider
+ * lines under headers, NOT by nesting them inside card containers.
+ * Inputs keep their own border/background, but section wrappers are
+ * transparent — no background, no border, no border-radius, no padding.
  *
- *   • GENEROUS where it groups — the page shell, the gaps BETWEEN section
- *     cards (.fc-left gap, .fc-input-panel gap), and card padding are the
- *     levers that make the UI feel premium without hurting density.
- *   • TIGHT where it must be dense — inputs, steppers, dropdowns, ore
- *     slots and ability fields stay compact so information density is
- *     preserved and every grid still fits its container.
- *   • HARDENED grids — track sizing uses `minmax(0, 1fr)` + `min-width: 0`
- *     so a dense control (an <input> has an intrinsic min-width) can never
- *     push a grid column out of its parent.
- *
- * Values are inlined literals — the TemplateStyles sanitizer on the wiki
- * strips CSS custom properties (`--fc-*`) and `var()`. Do not reintroduce
- * them. All colors/layouts are otherwise unchanged from the dark theme.
+ * Values are inlined literals — the TemplateStyles sanitizer strips
+ * CSS custom properties (--fc-*) and var(). Do not reintroduce them.
  */
 
-/* ── Design tokens ────────────────────────────────────────────────── */
+/* ── Reset ─────────────────────────────────────────────────────────── */
 
 .fc-calculator,
 .fc-calculator *,
@@ -97,13 +87,10 @@
   font-size: 0.75rem;
 }
 
-/* ── Section cards ────────────────────────────────────────────────── */
+/* ── Section (bare — no card) ─────────────────────────────────────── */
 
 .fc-input-section {
-  background: #141418;
-  border: 1px solid #2a2a30;
-  border-radius: 6px;
-  padding: 22px 24px;
+  margin-bottom: 32px;
 }
 
 .fc-input-section-title {
@@ -171,7 +158,7 @@
   letter-spacing: 0.04em;
 }
 
-/* ── Ore grid (4-col mini cards) ──────────────────────────────────── */
+/* ── Ore grid (4-col bare slots) ──────────────────────────────────── */
 
 .fc-ore-grid {
   display: grid;
@@ -181,17 +168,9 @@
 
 .fc-ore-grid .fc-ore-slot {
   min-width: 0;
-  background: #1a1a1e;
-  border: 1px solid #2a2a30;
-  border-radius: 6px;
-  padding: 10px 12px;
   flex-direction: column;
   align-items: stretch;
   gap: 6px;
-}
-
-.fc-ore-grid .fc-ore-slot:not(:last-child) {
-  border-bottom: 1px solid #2a2a30;
 }
 
 .fc-ore-grid .fc-ore-slot-label {
@@ -227,7 +206,7 @@
 
 .fc-ore-grid .fc-stepper { min-width: 0; }
 
-/* ── Meta row (race / berserk / achievement) ──────────────────────── */
+/* ── Meta row (race / berserk / achievement — bare) ───────────────── */
 
 .fc-meta-wrap {
   display: grid;
@@ -236,10 +215,11 @@
 }
 
 .fc-meta-wrap .fc-input-section {
-  background: #141418;
-  border: 1px solid #2a2a30;
-  border-radius: 6px;
-  padding: 16px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 0;
 }
 
 .fc-meta-wrap .fc-input-section-title {
@@ -440,7 +420,7 @@
   min-width: 0;
 }
 
-/* ── Ore slot ─────────────────────────────────────────────────────── */
+/* ── Ore slot (bare) ──────────────────────────────────────────────── */
 
 .fc-ore-slot {
   display: flex;
@@ -564,7 +544,7 @@
 
 .fc-stat-input-field { width: 100%; }
 
-/* ── Ability grid (3-col colored cards) ───────────────────────────── */
+/* ── Ability grid (3-col hollow bordered cards) ───────────────────── */
 
 .fc-ability-grid {
   display: grid;
@@ -577,7 +557,7 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   min-width: 0;
-  background: #141418;
+  background: transparent;
   border: 2px solid #2a2a30;
   border-radius: 6px;
   padding: 12px;
@@ -658,13 +638,9 @@
   letter-spacing: 0.5px;
 }
 
-/* ── Results panel ────────────────────────────────────────────────── */
+/* ── Results panel (bare) ─────────────────────────────────────────── */
 
 .fc-results-panel {
-  background: #141418;
-  border: 1px solid #2a2a30;
-  border-radius: 6px;
-  padding: 24px;
 }
 
 .fc-results-head {
@@ -693,7 +669,7 @@
   flex-shrink: 0;
 }
 
-/* ── Results cards (2-col grid + hero) ────────────────────────────── */
+/* ── Results cards (2-col grid, bare) ─────────────────────────────── */
 
 .fc-results-cards {
   display: grid;
@@ -702,22 +678,12 @@
 }
 
 .fc-card {
-  background: #141418;
-  border: 1px solid #2a2a30;
-  border-radius: 6px;
-  overflow: hidden;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
-}
-.fc-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  border-color: #3a3a40;
 }
 
 .fc-card--total {
   grid-column: 1 / -1;
 }
 .fc-card--total .fc-card-head {
-  background: transparent;
   border-bottom: none;
 }
 .fc-card--total .fc-card-body {
@@ -745,8 +711,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 10px 0;
   border-bottom: 1px solid #2a2a30;
   font-weight: 600;
   font-size: 13px;
@@ -764,7 +729,7 @@
 
 .fc-card-title { flex: 1; }
 
-.fc-card-body { padding: 14px 16px; }
+.fc-card-body { padding: 14px 0; }
 
 .fc-stat-rows {
   display: flex;
@@ -879,7 +844,6 @@
 @media (max-width: 780px) {
   .fc-calculator { padding: 0 14px; }
 
-  .fc-input-section { padding: 16px 18px; }
   .fc-input-section-title { font-size: 0.8rem; margin-bottom: 10px; padding-bottom: 8px; }
 
   .fc-weapon-selector {
@@ -937,7 +901,6 @@
 @media (max-width: 520px) {
   .fc-calculator { padding: 0 8px; }
 
-  .fc-input-section { padding: 14px; }
   .fc-input-section-title { font-size: 0.75rem; margin-bottom: 8px; padding-bottom: 6px; }
 
   .fc-stat-input-input,
@@ -955,11 +918,7 @@
     font-size: 13px;
   }
 
-  .fc-results-panel { padding: 14px; }
   .fc-results-title { font-size: 0.9rem; }
-  .fc-card { border-radius: 4px; }
-  .fc-card-head { padding: 8px 12px; font-size: 12px; }
-  .fc-card-body { padding: 10px 12px; }
   .fc-stat-row { font-size: 0.8rem; gap: 10px; }
   .fc-stat-val { font-size: 0.8rem; }
   .fc-stat-val.fc-bold { font-size: 0.85rem; }
@@ -975,7 +934,6 @@
     position: static;
     max-height: none;
   }
-  .fc-input-section { padding: 10px 12px; }
 }
 
 /* ── Print ────────────────────────────────────────────────────────── */
@@ -991,7 +949,6 @@
   .fc-body { display: block; }
   .fc-left,
   .fc-right { width: 100%; }
-  .fc-input-section,
   .fc-results-panel,
   .fc-card {
     break-inside: avoid;
@@ -1023,7 +980,6 @@
 /* ── High contrast ────────────────────────────────────────────────── */
 
 @media (prefers-contrast: high) {
-  .fc-calculator .fc-input-section,
   .fc-calculator .fc-results-panel,
   .fc-calculator .fc-card {
     border-color: #fff;
