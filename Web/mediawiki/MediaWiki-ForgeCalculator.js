@@ -1605,11 +1605,6 @@
 
   /* ---------- Section icon helpers ---------- */
 
-  function svgDataUri(path) {
-    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
-    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-  }
-
   var SECTION_ICON_PATHS = {
     weapon:    '<path d="M3 21l9-9"/><path d="M14 6l4-4"/><path d="M11 9l-5 5"/>',
     ore:       '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
@@ -1626,8 +1621,13 @@
 
   function iconImg(name) {
     var wrap = createEl('span', { class: 'fc-section-icon' });
-    var src = SECTION_ICON_PATHS[name] || SECTION_ICON_PATHS.ability;
-    wrap.innerHTML = '<img src="' + svgDataUri(src) + '" width="20" height="20" alt="" aria-hidden="true">';
+    var path = SECTION_ICON_PATHS[name] || SECTION_ICON_PATHS.ability;
+    // Inline SVG (not <img> data-URI) so `stroke="currentColor"` inherits the
+    // CSS `color` of .fc-section-icon — this is what lets each ability card
+    // tint its icon via the --fire/--blast/--poison modifiers.
+    wrap.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ' +
+      'width="20" height="20" aria-hidden="true">' + path + '</svg>';
     return wrap;
   }
 
