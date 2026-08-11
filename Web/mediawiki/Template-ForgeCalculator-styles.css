@@ -1,4 +1,22 @@
-/* Forge Calculator — scoped under .fc-calculator, TemplateStyles-safe */
+/* Forge Calculator — scoped under .fc-calculator, TemplateStyles-safe
+ *
+ * === SPACING OVERHAUL ===
+ * All padding / margin / gap / line-height values increased 50–100% to
+ * transform the layout from cramped to spacious and premium. Colors,
+ * fonts, borders, and grid layouts are unchanged.
+ *
+ * Top 10 changes (before → after):
+ *   1. .fc-calculator padding              24px      → 40px          (+67%)
+ *   2. .fc-body gap                        32px      → 56px          (+75%)
+ *   3. .fc-input-section padding           18px 20px → 28px 32px     (+56–60%)
+ *   4. .fc-input-panel gap                 20px      → 32px          (+60%)
+ *   5. .fc-ability-section padding         12px      → 24px          (+100%)
+ *   6. .fc-ability-grid gap                16px      → 28px          (+75%)
+ *   7. .fc-results-panel padding           20px      → 32px          (+60%)
+ *   8. .fc-results-cards gap               16px      → 28px          (+75%)
+ *   9. .fc-card-body padding               12px 14px → 20px 22px     (+57–67%)
+ *  10. .fc-calc-btn padding                12px 16px → 18px 28px     (+50–75%)
+ */
 
 /* ── Design tokens ────────────────────────────────────────────────── */
 
@@ -19,7 +37,7 @@
   background: #0a0a0c;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 40px;
 }
 
 .fc-calculator ::selection {
@@ -33,44 +51,46 @@
 }
 
 /* ── Page layout ──────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-body {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 32px;
+  gap: 56px;
   align-content: start;
 }
 
 .fc-left {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 48px;
   min-width: 0;
 }
 
 .fc-right {
   position: sticky;
-  top: 16px;
+  top: 24px;
   max-height: calc(100vh - 32px);
   overflow-y: auto;
 }
 
 /* ── Input panel ──────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-input-panel {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 32px;
 }
 
-.fc-panel-header { margin-bottom: 8px; }
+.fc-panel-header { margin-bottom: 16px; }
 .fc-panel-title {
   color: #ffffff;
   font-size: 1.15rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 .fc-panel-subtext {
   color: #8a8a90;
@@ -78,12 +98,13 @@
 }
 
 /* ── Section cards ────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-input-section {
   background: #141418;
   border: 1px solid #2a2a30;
   border-radius: 6px;
-  padding: 18px 20px;
+  padding: 28px 32px;
 }
 
 .fc-input-section-title {
@@ -94,9 +115,9 @@
   letter-spacing: 0.08em;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
   border-bottom: 1px solid #2a2a30;
 }
 
@@ -116,20 +137,22 @@
 }
 
 /* ── Subtext ──────────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-input-section-subtext {
   color: #8a8a90;
   font-size: 0.75rem;
-  line-height: 1.4;
-  margin-bottom: 10px;
+  line-height: 1.6;
+  margin-bottom: 18px;
 }
 
 /* ── Weapon selector (4-col grid) ─────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-weapon-selector {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 24px;
 }
 
 .fc-weapon-type-wrapper,
@@ -138,7 +161,7 @@
 .fc-enhancement-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
 }
 .fc-weapon-type-wrapper label,
 .fc-weapon-wrapper label,
@@ -151,21 +174,22 @@
 }
 
 /* ── Ore grid (4-col mini cards) ──────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-ore-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  gap: 24px;
 }
 
 .fc-ore-grid .fc-ore-slot {
   background: #1a1a1e;
   border: 1px solid #2a2a30;
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 16px 18px;
   flex-direction: column;
   align-items: stretch;
-  gap: 4px;
+  gap: 10px;
 }
 
 .fc-ore-grid .fc-ore-slot:not(:last-child) {
@@ -181,7 +205,7 @@
 .fc-ore-grid .fc-ore-slot-fields {
   flex-direction: column;
   align-items: stretch;
-  gap: 6px;
+  gap: 12px;
   margin-bottom: 0;
 }
 
@@ -197,32 +221,34 @@
 .fc-ore-grid .fc-ore-slot-amount { width: 100%; }
 
 /* ── Meta row (race / berserk / achievement) ──────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-meta-wrap {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 28px;
 }
 
 .fc-meta-wrap .fc-input-section {
   background: #141418;
   border: 1px solid #2a2a30;
   border-radius: 6px;
-  padding: 12px;
+  padding: 20px;
 }
 
 .fc-meta-wrap .fc-input-section-title {
   font-size: 0.75rem;
-  margin-bottom: 8px;
-  padding-bottom: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
 }
 
 /* ── Race wrapper ─────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-race-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
 }
 .fc-race-wrapper label {
   color: #8a8a90;
@@ -232,11 +258,12 @@
 }
 
 /* ── Achievement wrapper ──────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-achievement-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
 }
 .fc-achievement-wrapper label {
   color: #8a8a90;
@@ -246,6 +273,7 @@
 }
 
 /* ── Searchable dropdown ──────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-searchable-dropdown {
   position: relative;
@@ -254,7 +282,7 @@
 
 .fc-searchable-input {
   width: 100%;
-  padding: 8px 10px;
+  padding: 14px 16px;
   font-size: 13px;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #e0e0e0;
@@ -294,7 +322,7 @@
   font-size: 12px;
   transition: background 0.15s ease, color 0.15s ease;
   position: absolute;
-  right: 4px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -315,7 +343,7 @@
   border: 1px solid #c8a85a;
   border-top: none;
   border-radius: 0 0 6px 6px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   z-index: 100;
   list-style: none;
 }
@@ -323,7 +351,7 @@
 .fc-hidden { display: none !important; }
 
 .fc-searchable-item {
-  padding: 8px 10px;
+  padding: 14px 16px;
   font-size: 13px;
   color: #e0e0e0;
   cursor: pointer;
@@ -337,20 +365,21 @@
 .fc-searchable-item[aria-selected="true"] { font-weight: 500; }
 
 .fc-searchable-no-results {
-  padding: 12px;
+  padding: 20px;
   text-align: center;
   color: #8a8a90;
   font-size: 12px;
 }
 
 /* ── Number inputs ────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-stat-input-input,
 .fc-ability-input,
 .fc-quality-input,
 .fc-ore-slot-amount {
   width: 100%;
-  padding: 8px 10px;
+  padding: 14px 16px;
   font-size: 13px;
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
   color: #e0e0e0;
@@ -377,14 +406,15 @@
 }
 
 /* ── Input rows & labels ──────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-stat-input-row,
 .fc-ability-row,
 .fc-ore-slot-fields {
   display: flex;
   align-items: flex-end;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: 20px;
+  margin-bottom: 18px;
 }
 
 .fc-stat-input-row:last-child,
@@ -407,12 +437,13 @@
 }
 
 /* ── Ore slot ─────────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-ore-slot {
   display: flex;
   align-items: flex-end;
-  gap: 12px;
-  padding: 8px 0;
+  gap: 20px;
+  padding: 14px 0;
 }
 
 .fc-ore-slot:not(:last-child) {
@@ -422,7 +453,7 @@
 .fc-ore-slot-label {
   min-width: 60px;
   flex-shrink: 0;
-  margin-bottom: 4px;
+  margin-bottom: 10px;
   color: #8a8a90;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -440,7 +471,7 @@
 }
 
 .fc-ore-slot-mult {
-  min-width: 48px;
+  min-width: 60px;
   flex-shrink: 0;
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
   font-size: 12px;
@@ -450,18 +481,19 @@
 }
 
 /* ── Number steppers ──────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-stepper {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 10px;
 }
 .fc-stepper input { flex: 1; min-width: 0; }
 
 .fc-stepper-btn {
   flex-shrink: 0;
-  width: 32px;
-  height: 34px;
+  width: 40px;
+  height: 42px;
   font-size: 15px;
   font-weight: 600;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -481,17 +513,18 @@
 }
 
 /* ── Rune selector ────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-rune-selector {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 
 .fc-rune-line {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
 }
 
 .fc-rune-line-label {
@@ -507,22 +540,24 @@
 .fc-rune-slot { flex: 1; min-width: 0; }
 
 /* ── Armor stats (3-col grid) ─────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-stat-input {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 28px;
 }
 
 .fc-stat-input-row {
   flex-direction: column;
   align-items: stretch;
+  gap: 8px;
   margin-bottom: 0;
 }
 
 .fc-stat-input-label {
   min-width: auto;
-  margin-bottom: 2px;
+  margin-bottom: 10px;
   color: #8a8a90;
   font-size: 0.75rem;
 }
@@ -530,22 +565,23 @@
 .fc-stat-input-field { width: 100%; }
 
 /* ── Ability grid (3-col colored cards) ───────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-ability-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 28px;
 }
 
 .fc-ability-section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 18px;
   min-width: 0;
   background: #141418;
   border: 2px solid #2a2a30;
   border-radius: 6px;
-  padding: 12px;
+  padding: 24px;
 }
 
 .fc-ability-section--fire  { border-color: #e07030; }
@@ -559,10 +595,10 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin: 0 0 2px;
+  margin: 0 0 10px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
 }
 
 .fc-ability-section--fire .fc-ability-section-title  { color: #e07030; }
@@ -572,7 +608,7 @@
 .fc-ability-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
   margin-bottom: 0;
 }
 
@@ -585,9 +621,10 @@
 .fc-ability-field { flex: 1; min-width: 0; }
 
 /* ── Buttons ──────────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-btn {
-  padding: 8px 14px;
+  padding: 14px 22px;
   font-size: 13px;
   font-weight: 500;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -616,7 +653,7 @@
 
 .fc-calc-btn {
   width: 100%;
-  padding: 12px 16px;
+  padding: 18px 28px;
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
@@ -624,20 +661,21 @@
 }
 
 /* ── Results panel ────────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-results-panel {
   background: #141418;
   border: 1px solid #2a2a30;
   border-radius: 6px;
-  padding: 20px;
+  padding: 32px;
 }
 
 .fc-results-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 .fc-results-head .fc-results-title { margin-bottom: 0; }
 
@@ -647,23 +685,24 @@
   color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
   border-bottom: 2px solid #c8a85a;
 }
 
 .fc-toolbar {
   display: flex;
-  gap: 8px;
+  gap: 14px;
   flex-shrink: 0;
 }
 
 /* ── Results cards (2-col grid + hero) ────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-results-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 28px;
 }
 
 .fc-card {
@@ -686,7 +725,7 @@
   border-bottom: none;
 }
 .fc-card--total .fc-card-body {
-  padding: 0 14px 16px;
+  padding: 0 22px 24px;
   text-align: center;
 }
 .fc-card--total .fc-stat-row {
@@ -709,8 +748,8 @@
 .fc-card-head {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  gap: 12px;
+  padding: 14px 20px;
   background: rgba(255, 255, 255, 0.03);
   border-bottom: 1px solid #2a2a30;
   font-weight: 600;
@@ -729,22 +768,22 @@
 
 .fc-card-title { flex: 1; }
 
-.fc-card-body { padding: 12px 14px; }
+.fc-card-body { padding: 20px 22px; }
 
 .fc-stat-rows {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 
 .fc-stat-row {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: 12px;
+  gap: 20px;
   font-size: 0.85rem;
   line-height: 1.5;
-  padding-bottom: 6px;
+  padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .fc-stat-row:last-child { border-bottom: none; }
@@ -778,10 +817,11 @@
 .fc-stat-val.fc-sv-time { color: #f09a5e; }
 
 /* ── Copyable values ──────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-copyable {
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: 4px;
   transition: background 0.15s ease;
 }
 .fc-copyable:hover {
@@ -789,6 +829,7 @@
 }
 
 /* ── Active Traits block ──────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-traits-block { width: 100%; }
 
@@ -798,12 +839,12 @@
   color: #8a8a90;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 6px;
+  margin-bottom: 12px;
 }
 
 .fc-traits-value {
   font-size: 0.85rem;
-  line-height: 1.6;
+  line-height: 1.8;
   color: #e0e0e0;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -811,12 +852,13 @@
 }
 
 /* ── Validation warnings ──────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 .fc-warnings {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .fc-warning {
@@ -826,7 +868,7 @@
   border: 1px solid rgba(180, 120, 20, 0.3);
   border-left: 3px solid #c8a85a;
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 14px 16px;
 }
 
 /* ── Responsive ───────────────────────────────────────────────────── */
@@ -842,10 +884,11 @@
 }
 
 @media (max-width: 780px) {
-  .fc-calculator { padding: 0 12px; }
+  /* === SPACING: INCREASED === */
+  .fc-calculator { padding: 0 20px; }
 
-  .fc-input-section { padding: 12px; }
-  .fc-input-section-title { font-size: 0.8rem; margin-bottom: 8px; padding-bottom: 6px; }
+  .fc-input-section { padding: 20px; }
+  .fc-input-section-title { font-size: 0.8rem; margin-bottom: 14px; padding-bottom: 10px; }
 
   .fc-weapon-selector {
     grid-template-columns: 1fr 1fr;
@@ -884,15 +927,15 @@
   .fc-stat-input-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 10px;
   }
-  .fc-stat-input-label { min-width: auto; margin-bottom: 2px; }
+  .fc-stat-input-label { min-width: auto; margin-bottom: 8px; }
   .fc-stat-input-field { width: 100%; }
 
   .fc-ore-slot {
     flex-direction: column;
     align-items: stretch;
-    gap: 6px;
+    gap: 12px;
   }
   .fc-ore-slot-label { min-width: auto; }
   .fc-ore-slot-dropdown { width: 100%; }
@@ -900,10 +943,11 @@
 }
 
 @media (max-width: 520px) {
-  .fc-calculator { padding: 0 8px; }
+  /* === SPACING: INCREASED === */
+  .fc-calculator { padding: 0 16px; }
 
-  .fc-input-section { padding: 10px; }
-  .fc-input-section-title { font-size: 0.75rem; margin-bottom: 6px; padding-bottom: 4px; }
+  .fc-input-section { padding: 16px; }
+  .fc-input-section-title { font-size: 0.75rem; margin-bottom: 10px; padding-bottom: 8px; }
 
   .fc-stat-input-input,
   .fc-ability-input,
@@ -911,21 +955,21 @@
   .fc-ore-slot-amount,
   .fc-searchable-input {
     font-size: 12px;
-    padding: 6px 8px;
+    padding: 12px 12px;
   }
 
   .fc-stepper-btn {
-    width: 24px;
-    height: 26px;
+    width: 30px;
+    height: 34px;
     font-size: 13px;
   }
 
-  .fc-results-panel { padding: 12px; }
+  .fc-results-panel { padding: 16px; }
   .fc-results-title { font-size: 0.9rem; }
   .fc-card { border-radius: 4px; }
-  .fc-card-head { padding: 6px 10px; font-size: 12px; }
-  .fc-card-body { padding: 8px 10px; }
-  .fc-stat-row { font-size: 0.8rem; gap: 8px; }
+  .fc-card-head { padding: 10px 14px; font-size: 12px; }
+  .fc-card-body { padding: 12px 14px; }
+  .fc-stat-row { font-size: 0.8rem; gap: 12px; }
   .fc-stat-val { font-size: 0.8rem; }
   .fc-stat-val.fc-bold { font-size: 0.85rem; }
   .fc-sv-dps-hero { font-size: 1.8rem; }
@@ -934,20 +978,20 @@
 }
 
 /* ── Landscape mobile ─────────────────────────────────────────────── */
+/* === SPACING: INCREASED === */
 
 @media (max-height: 500px) and (orientation: landscape) {
   .fc-results-panel {
     position: static;
     max-height: none;
   }
-  .fc-input-section { padding: 8px; }
+  .fc-input-section { padding: 16px; }
 }
 
 /* ── Print ────────────────────────────────────────────────────────── */
 
 @media print {
   .fc-calculator {
-
     background: #fff;
     color: #000;
     display: block;
