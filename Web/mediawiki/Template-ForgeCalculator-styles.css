@@ -37,14 +37,14 @@
 .fc-body {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 24px;
+  gap: 32px;
   align-content: start;
 }
 
 .fc-left {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
   min-width: 0;
 }
 
