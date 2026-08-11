@@ -90,7 +90,6 @@
 /* ── Section card (dark fill, no border) ──────────────────────────── */
 
 .fc-input-section {
-  background: #141418;
   border-radius: 8px;
   padding: 28px;
 }
@@ -553,7 +552,6 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: #141418;
   border: 1px solid #2a2a30;
   border-radius: 8px;
   padding: 18px 16px;
@@ -668,7 +666,6 @@
 /* ── Results panel (single card, brown/gold border) ───────────────── */
 
 .fc-results-panel {
-  background: #141418;
   border-radius: 8px;
   padding: 28px;
 }
