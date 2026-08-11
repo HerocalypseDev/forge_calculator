@@ -295,3 +295,13 @@ No linter or formatter is configured.
 | **Docs** — DEPLOY.md notes the sanitizer limitation (don't reintroduce `--fc-*`); dark-mode checklist line updated | `Web/mediawiki/DEPLOY.md` | ✅ Done | (this session) |
 
 **Verification:** CSS has 0 `var()`, 0 `--fc-`, 0 `color-scheme`, balanced braces; `render-preview.js` regenerates `preview.html` clean (0 `var()`); all 11 MediaWiki JS tests PASS (`verify-engine.js` ALL GOLDEN, `fuzz_verify.js` DIFFERENTIAL FUZZ PASSED 250 builds / 8755 fields worst rel err 5.19e-16, all 9 `*-test.js`). JS/engine untouched — CSS-only compatibility fix. **Re-deploy:** re-paste `Template-ForgeCalculator-styles.css` into `Template:ForgeCalculator/styles.css` (no JS changes).
+
+### MediaWiki Balanced Density Overhaul — COMPLETED ✅
+**Goal:** Revert the overly aggressive blanket spacing increase (50–100%) that broke the calculator layout (ore grid overflow, stretched/disjointed controls) and return to a premium, dense-but-spacious design. Spacing is applied hierarchically: generous where it groups major sections, tight where controls must stay dense, and hardened where grids can overflow.
+
+| Change | Where | Status | Commit |
+|--------|-------|--------|--------|
+| **Balanced spacing** — reverted blanket padding/margin/gap increases; restored baseline for dense controls; applied modest targeted increases only for major section grouping (page shell 28px, body gap 40px, left column gap 40px, input-section padding 22px 24px, results-panel 24px, card-body 14px 16px) | `Template-ForgeCalculator-styles.css` | ✅ Done | 7dfd407 |
+| **Grid hardening** — all grid containers use `repeat(N, minmax(0, 1fr))` + `min-width: 0` on children to prevent intrinsic input widths from pushing tracks past their container; `min-width: 0` on `.fc-searchable-dropdown`, `.fc-ore-slot`, `.fc-stepper` | `Template-ForgeCalculator-styles.css` | ✅ Done | 7dfd407 |
+
+**Verification:** `node Web/mediawiki/render-preview.js` → preview.html regenerates cleanly (48.9 KB); 8/8 target spacing values confirmed in preview DOM; `verify-engine.js` → ALL GOLDEN CHECKS PASSED; `fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED; `results-panel-test.js` → ALL RESULTS-PANEL CHECKS PASSED; CSS has 0 `var()`, 0 `--fc-`, balanced braces. JS/engine untouched — CSS-only fix. **Re-deploy:** re-paste `Template-ForgeCalculator-styles.css` into `Template:ForgeCalculator/styles.css`.
