@@ -249,7 +249,7 @@ console.log('== isCap styling ==');
 
   const rowCap = FC.createStatRow({ label: 'X', value: '150%', isCap: true });
   const valCap = getValueEl(rowCap);
-  assert(valCap && valCap.style.color === '#cc0000', 'isCap -> red color');
+  assert(valCap && valCap.style.color === '#ff5555', 'isCap -> red color');
 }
 
 // ---------- writeClipboard: primary path (navigator.clipboard) ----------

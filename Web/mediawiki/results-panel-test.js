@@ -231,6 +231,39 @@ assert(!!traitsValue, 'traits value element rendered');
 assert(traitsValue.textContent === longTraits, 'full trait text preserved (no truncation)');
 assert(!traitsCard.querySelector('.fc-stat-row'), 'traits use the wrapping block, not a stat row');
 
+// --- Total DPS hero card + modifier classes (dark-theme layout) ---
+console.log('== Hero card + card classes ==');
+const totalCard = panel.querySelectorAll('.fc-card').find((c) =>
+  (c.querySelector('.fc-card-title') || {}).textContent === 'Total DPS');
+assert(!!totalCard, 'Total DPS hero card found');
+assert(totalCard.classList.contains('fc-card--total'), 'hero card has fc-card--total modifier');
+
+const byTitle = (t) => panel.querySelectorAll('.fc-card').find((c) =>
+  (c.querySelector('.fc-card-title') || {}).textContent === t);
+const cardClasses = [
+  ['Core DPS', 'fc-card--core'],
+  ['Stats (Capped)', 'fc-card--stats'],
+  ['DPS Breakdown', 'fc-card--dps'],
+  ['Time to Kill', 'fc-card--ttk'],
+  ['Active Traits', 'fc-card--traits']
+];
+cardClasses.forEach(([title, cls]) =>
+  assert((byTitle(title) || {}).classList && byTitle(title).classList.contains(cls),
+    `${title} card has ${cls} modifier`));
+
+// Hero card renders total_dps in the large-value row
+const heroVal = totalCard.querySelector('.fc-stat-val');
+assert(heroVal && heroVal.classList.contains('fc-sv-dps-hero'), 'hero value uses fc-sv-dps-hero class');
+assert(heroVal && heroVal.textContent === '439.38', `hero card shows total_dps (got ${heroVal && heroVal.textContent})`);
+
+// Append order matches the reference layout: hero, dps, stats, traits, core, ttk
+const cardsContainer = panel.querySelector('.fc-results-cards');
+const order = (cardsContainer.children || []).map((c) =>
+  (c.querySelector('.fc-card-title') || {}).textContent);
+assert(JSON.stringify(order) === JSON.stringify(
+  ['Total DPS', 'DPS Breakdown', 'Stats (Capped)', 'Active Traits', 'Core DPS', 'Time to Kill']),
+  'cards appended in reference order: ' + order.join(' | '));
+
 // Source-level guard: clipboard uses explosion_dps + smite_dps (no stale "Blast DPS")
 console.log('== Clipboard (source) ==');
 assert(SRC.indexOf("'Explosion DPS: ' + result.explosion_dps") !== -1, 'clipboard has Explosion DPS');

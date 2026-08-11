@@ -1358,7 +1358,9 @@
 
     function createSection(title, fields) {
       var section = createEl('div', { class: 'fc-ability-section' });
-      var sectionTitle = createEl('h4', { class: 'fc-ability-section-title' }, [title]);
+      var sectionTitle = createEl('h4', { class: 'fc-ability-section-title' });
+      sectionTitle.appendChild(iconImg(title.toLowerCase()));
+      sectionTitle.appendChild(document.createTextNode(title));
       section.appendChild(sectionTitle);
 
       for (var i = 0; i < fields.length; i++) {
@@ -1426,6 +1428,10 @@
       { key: 'blastDmg', label: 'Blast DMG' },
       { key: 'blastChance', label: 'Blast Chance' }
     ]);
+
+    fireSection.classList.add('fc-ability-section--fire');
+    poisonSection.classList.add('fc-ability-section--poison');
+    blastSection.classList.add('fc-ability-section--blast');
 
     container.append(fireSection, poisonSection, blastSection);
 
@@ -1542,7 +1548,7 @@
     var labelEl = createEl('span', { class: 'fc-stat-label' }, [opts.label]);
     var valueClass = ('fc-stat-val ' + (opts.valueClass || '')).trim();
     var valueEl = createEl('span', { class: valueClass }, [opts.value !== undefined ? opts.value : '']);
-    if (opts.isCap) { valueEl.style.color = '#cc0000'; }
+    if (opts.isCap) { valueEl.style.color = '#ff5555'; }
 
     // Click a value to copy it to the clipboard.
     valueEl.classList.add('fc-copyable');
@@ -1561,7 +1567,7 @@
     var valueEl = row.querySelector('.fc-stat-val');
     if (valueEl) {
       valueEl.textContent = value;
-      valueEl.style.color = isCap ? '#cc0000' : '';
+      valueEl.style.color = isCap ? '#ff5555' : '';
     }
   }
 
@@ -1596,6 +1602,43 @@
     var secs = Math.round(n % 60);
     return mins + 'm ' + secs + 's';
   }
+
+  /* ---------- Section icon helpers ---------- */
+
+  function svgDataUri(path) {
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  }
+
+  var SECTION_ICON_PATHS = {
+    weapon:    '<path d="M3 21l9-9"/><path d="M14 6l4-4"/><path d="M11 9l-5 5"/>',
+    ore:       '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+    race:      '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    berserk:   '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+    achievement: '<circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>',
+    rune:      '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>',
+    armor:     '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    ability:   '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    fire:      '<path d="M12 22c4.4 0 7-2.8 7-6.5 0-3-2.5-5-3.5-7.5C14 4.5 13 2 13 2s-1.5 3-2 4c-1 2-3 4.5-3 7C8 19 9 22 12 22z"/>',
+    blast:     '<path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>',
+    poison:    '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>'
+  };
+
+  function iconImg(name) {
+    var wrap = createEl('span', { class: 'fc-section-icon' });
+    var src = SECTION_ICON_PATHS[name] || SECTION_ICON_PATHS.ability;
+    wrap.innerHTML = '<img src="' + svgDataUri(src) + '" width="20" height="20" alt="" aria-hidden="true">';
+    return wrap;
+  }
+
+  function sectionTitle(title, iconName) {
+    var h3 = createEl('h3', { class: 'fc-input-section-title' });
+    h3.appendChild(iconImg(iconName));
+    h3.appendChild(document.createTextNode(title));
+    return h3;
+  }
+
+  /* ---------- Results panel ---------- */
 
   function createResultsPanel(handlers) {
     var container = createEl('div', { class: 'fc-results-panel' });
@@ -1664,10 +1707,30 @@
       ])
     });
 
-    cardsContainer.append(coreDpsCard, statsCard, dpsCard, ttkCard, traitsCard);
+    var totalDpsCard = createResultsCard({
+      title: 'Total DPS',
+      content: createStatRows([
+        { label: '', value: '0', valueClass: 'fc-sv-dps-hero' }
+      ])
+    });
+
+    // Modifier classes drive the results grid placement + hero styling.
+    totalDpsCard.classList.add('fc-card--total');
+    coreDpsCard.classList.add('fc-card--core');
+    statsCard.classList.add('fc-card--stats');
+    dpsCard.classList.add('fc-card--dps');
+    ttkCard.classList.add('fc-card--ttk');
+    traitsCard.classList.add('fc-card--traits');
+
+    cardsContainer.append(totalDpsCard, dpsCard, statsCard, traitsCard, coreDpsCard, ttkCard);
 
     container.updateResults = function (result) {
       if (!result) { return; }
+
+      var totalRows = totalDpsCard.querySelectorAll('.fc-stat-row');
+      if (totalRows.length >= 1) {
+        updateStatRow(totalRows[0], fmtDps(result.total_dps), false);
+      }
 
       var coreRows = coreDpsCard.querySelectorAll('.fc-stat-row');
       if (coreRows.length >= 5) {
@@ -1750,6 +1813,13 @@
 
     var container = createEl('div', { class: 'fc-input-panel' });
 
+    var panelHeader = createEl('div', { class: 'fc-panel-header' });
+    panelHeader.appendChild(createEl('h2', { class: 'fc-panel-title' }, ['Build Inputs']));
+    panelHeader.appendChild(createEl('p', { class: 'fc-panel-subtext' }, [
+      'Percent inputs are whole numbers (15 = 15%).'
+    ]));
+    container.appendChild(panelHeader);
+
     function patch(partial) {
       var merged = {};
       var base = getBuild();
@@ -1759,7 +1829,7 @@
     }
 
     var oreSection = createEl('div', { class: 'fc-input-section' });
-    oreSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Ore Slots']));
+    oreSection.appendChild(sectionTitle('Ore Slots', 'ore'));
 
     var oreNames = data.ores.map(function (o) { return o.name; });
     var oreMultipliers = {};
@@ -1767,6 +1837,7 @@
       oreMultipliers[data.ores[j].name] = data.ores[j].multiplier;
     }
     var oreSlots = [];
+    var oreGrid = createEl('div', { class: 'fc-ore-grid' });
     for (var i = 0; i < 4; i++) {
       (function (idx) {
         var slotBuild = getBuild().oreSlots[idx] || { name: noneLabel, amount: 0 };
@@ -1786,12 +1857,13 @@
           }
         });
         oreSlots.push(slot);
-        oreSection.appendChild(slot);
+        oreGrid.appendChild(slot);
       })(i);
     }
+    oreSection.appendChild(oreGrid);
 
     var weaponSection = createEl('div', { class: 'fc-input-section' });
-    weaponSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Weapon']));
+    weaponSection.appendChild(sectionTitle('Weapon', 'weapon'));
 
     var weaponSelector = createWeaponSelector({
       weaponTypes: data.weapon_types,
@@ -1813,8 +1885,9 @@
     // The race/class weapon-type bonus is auto-detected from the selected
     // weapon's type (workbook E44/E47 key off C23 = bonus type, which now
     // always equals the equipped weapon's type), so there is no separate input.
+    var metaWrap = createEl('div', { class: 'fc-meta-wrap' });
     var raceSection = createEl('div', { class: 'fc-input-section' });
-    raceSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Race']));
+    raceSection.appendChild(sectionTitle('Race', 'race'));
 
     var raceWrapper = createEl('div', { class: 'fc-race-wrapper' });
     var raceLabel = createEl('label', { for: 'race-select' }, ['Race']);
@@ -1829,9 +1902,10 @@
     raceWrapper.append(raceLabel, raceDropdown);
 
     raceSection.appendChild(raceWrapper);
+    metaWrap.appendChild(raceSection);
 
     var berserkSection = createEl('div', { class: 'fc-input-section' });
-    berserkSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Berserk']));
+    berserkSection.appendChild(sectionTitle('Berserk', 'berserk'));
     berserkSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
       'Enter percentage as whole number.'
     ]));
@@ -1869,9 +1943,10 @@
     }));
     berserkRow.append(berserkLabel, berserkField);
     berserkSection.appendChild(berserkRow);
+    metaWrap.appendChild(berserkSection);
 
     var statSection = createEl('div', { class: 'fc-input-section' });
-    statSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Armor Stats']));
+    statSection.appendChild(sectionTitle('Armor Stats', 'armor'));
     statSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
       'Enter percentage as whole number.'
     ]));
@@ -1887,8 +1962,8 @@
     statSection.appendChild(statInput);
 
     var abilitySection = createEl('div', { class: 'fc-input-section' });
-    abilitySection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Abilities (From Runes)']));
-    abilitySection.appendChild(createEl('p', { class: 'fc-ability-section-subtext' }, [
+    abilitySection.appendChild(sectionTitle('Abilities (From Runes)', 'ability'));
+    abilitySection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
       'Input abilities from Runes. Enter percentage as whole number.'
     ]));
 
@@ -1908,7 +1983,7 @@
     abilitySection.appendChild(abilityGrid);
 
     var runeSection = createEl('div', { class: 'fc-input-section' });
-    runeSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Runes']));
+    runeSection.appendChild(sectionTitle('Runes', 'rune'));
 
     var runeSelector = createRuneSelector({
       runes: data.runes,
@@ -1920,7 +1995,7 @@
     runeSection.appendChild(runeSelector);
 
     var achievementSection = createEl('div', { class: 'fc-input-section' });
-    achievementSection.appendChild(createEl('h3', { class: 'fc-input-section-title' }, ['Achievement']));
+    achievementSection.appendChild(sectionTitle('Achievement', 'achievement'));
 
     var achievementWrapper = createEl('div', { class: 'fc-achievement-wrapper' });
     var achievementLabel = createEl('label', { for: 'achievement-select' }, ['Achievement']);
@@ -1937,16 +2012,15 @@
     });
     achievementWrapper.append(achievementLabel, achievementDropdown);
     achievementSection.appendChild(achievementWrapper);
+    metaWrap.appendChild(achievementSection);
 
     container.append(
-      oreSection,
       weaponSection,
-      raceSection,
-      berserkSection,
-      statSection,
-      abilitySection,
+      oreSection,
+      metaWrap,
       runeSection,
-      achievementSection
+      statSection,
+      abilitySection
     );
 
     var warningsBox = createEl('div', { class: 'fc-warnings fc-hidden' });
