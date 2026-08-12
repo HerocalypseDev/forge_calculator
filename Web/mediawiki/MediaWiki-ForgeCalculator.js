@@ -2317,6 +2317,10 @@
       });
       right.appendChild(state.resultsPanel);
 
+      // Results-panel buttons also register section icons (Reset / Calculate DPS);
+      // resolve them now that all placeholders are in place.
+      loadSectionIcons();
+
       body.append(left, right);
 
       root.textContent = '';
