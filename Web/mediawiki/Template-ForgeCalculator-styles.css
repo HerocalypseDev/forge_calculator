@@ -764,13 +764,27 @@
   background: #a08840;
 }
 
-.fc-calc-btn {
-  width: 100%;
-  padding: 14px 22px;
-  font-size: 14px;
-  font-weight: 600;
+/* Calculate DPS (toolbar) — yellow button, white text */
+.fc-btn--calc {
+  background: #e8b53a;
+  border-color: #e8b53a;
+  color: #ffffff;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.fc-btn--calc:hover {
+  background: #d4a12c;
+  border-color: #d4a12c;
+}
+
+/* Shared icon-in-button style (button icons sit in the same box as section icons) */
+.fc-btn .fc-section-icon {
+  width: 20px;
+  height: 20px;
 }
 
 /* ── Results panel (single card, brown/gold border) ───────────────── */

@@ -1570,7 +1570,9 @@
     ability:     'ForgeCalculator-ability.png',
     fire:        'ForgeCalculator-fire.png',
     blast:       'ForgeCalculator-blast.png',
-    poison:      'ForgeCalculator-poison.png'
+    poison:      'ForgeCalculator-poison.png',
+    reset:       'ForgeCalculator-reset.png',
+    calc:        'ForgeCalculator-calc.png'
   };
 
   var ICON_PLACEHOLDERS = [];
@@ -1630,11 +1632,13 @@
     var head = createEl('div', { class: 'fc-results-head' });
     var title = createEl('h2', { class: 'fc-results-title' }, ['Results']);
     var toolbar = createEl('div', { class: 'fc-toolbar' });
-    var copyBtn = createEl('button', { class: 'fc-btn fc-btn--primary', type: 'button' }, ['Copy Results']);
-    var resetBtn = createEl('button', { class: 'fc-btn', type: 'button' }, ['Reset']);
-    copyBtn.addEventListener('click', function (e) { e.preventDefault(); handlers.onCopy(); });
+    var resetBtn = createEl('button', { class: 'fc-btn fc-btn--primary', type: 'button' },
+      [iconImg('reset', 'Reset'), 'Reset']);
+    var calcBtn = createEl('button', { class: 'fc-btn fc-btn--calc', type: 'button' },
+      [iconImg('calc', 'Calculate DPS'), 'Calculate DPS']);
     resetBtn.addEventListener('click', function (e) { e.preventDefault(); handlers.onReset(); });
-    toolbar.append(copyBtn, resetBtn);
+    calcBtn.addEventListener('click', function (e) { e.preventDefault(); handlers.onCalculate(); });
+    toolbar.append(resetBtn, calcBtn);
     head.append(title, toolbar);
 
     var cardsContainer = createEl('div', { class: 'fc-results-cards' });
@@ -2000,16 +2004,6 @@
     var warningsBox = createEl('div', { class: 'fc-warnings fc-hidden' });
     container.appendChild(warningsBox);
 
-    var calcBtn = createEl('button', {
-      class: 'fc-btn fc-btn--primary fc-calc-btn',
-      type: 'button'
-    }, ['Calculate DPS']);
-    calcBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      if (onCalculate) { onCalculate(); }
-    });
-    container.appendChild(calcBtn);
-
     // Live advisory warnings (computed from build state only — no engine call).
     container.refreshWarnings = function () {
       var list = computeWarnings(getBuild());
@@ -2318,7 +2312,8 @@
 
       state.resultsPanel = createResultsPanel({
         onCopy: copyResults,
-        onReset: resetBuild
+        onReset: resetBuild,
+        onCalculate: recalculate
       });
       right.appendChild(state.resultsPanel);
 
