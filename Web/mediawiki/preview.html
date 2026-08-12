@@ -608,15 +608,18 @@
 
 .fc-ability-section {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
   min-width: 0;
   border: 2px solid #2a2a30;
-  border-radius: 8px;
-  padding: 16px 14px;
-  gap: 12px;
+  border-radius: 0;
+  padding: 14px 12px;
+  gap: 10px;
 }
 
 .fc-ability-section-title {
+  flex-basis: 100%;
   color: #ffffff;
   font-size: 0.82rem;
   font-weight: 700;
@@ -650,22 +653,24 @@
 }
 
 .fc-ability-row {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
 }
 
 .fc-ability-label {
   color: #ffffff;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.68rem;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.15;
 }
 
 .fc-ability-field {
-  width: 100%;
+  width: 44px;
   min-width: 0;
 }
 
@@ -688,7 +693,8 @@
 /* Abilities inputs: dark fill inside the accent cards */
 .fc-ability-input {
   width: 100%;
-  padding: 6px 8px;
+  box-sizing: border-box;
+  padding: 6px 4px;
   font-size: 13px;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #ffffff;
