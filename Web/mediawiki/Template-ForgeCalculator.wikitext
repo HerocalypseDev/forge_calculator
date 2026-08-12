@@ -1,5 +1,12 @@
 <noinclude>{{Short description|Interactive DPS calculator for the forge/weapon system}}
 </noinclude><templatestyles src="Template:ForgeCalculator/styles.css" />
+<templatestyles src="Template:Article Header/styles.css" />
+{{Article Header
+|title=The Forge Calculator
+|image=Gradient Locations.webp
+|description=Your description text here.
+|section=MAJOR REGIONS AND LOCATIONS
+}}
 <div class="fc-calculator" id="fc-root">
   <noscript><div class="fc-loading" style="padding: 1.5rem; color: #4a4a3a;">The Forge Calculator requires JavaScript. Please enable JavaScript and reload the page.</div></noscript>
   <div class="fc-loading" style="padding: 1.5rem; color: #4a4a3a;">Loading Forge Calculator…</div>
