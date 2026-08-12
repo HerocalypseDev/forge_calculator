@@ -231,7 +231,7 @@
 .fc-ore-grid .fc-ore-slot {
   min-width: 0;
   background: #0F0F0F;
-  border: 2px solid #231D16;
+  border: 3px solid #231D16;
   border-radius: 4px;
   padding: 28px 20px;
   flex-direction: column;
@@ -343,7 +343,7 @@
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #ffffff;
   background: #0F0F0F;
-  border: 2px solid #231D16;
+  border: 3px solid #231D16;
   border-radius: 6px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   outline: none;
@@ -440,7 +440,7 @@
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
   color: #ffffff;
   background: #0F0F0F;
-  border: 2px solid #231D16;
+  border: 3px solid #231D16;
   border-radius: 6px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -624,7 +624,7 @@
   flex-wrap: wrap;
   align-items: flex-start;
   min-width: 0;
-  border: 2px solid #231D16;
+  border: 3px solid #231D16;
   border-radius: 8px;
   padding: 14px 12px;
   gap: 10px;
@@ -696,7 +696,7 @@
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #ffffff;
   background: #0F0F0F;
-  border: 2px solid #231D16;
+  border: 3px solid #231D16;
   border-radius: 6px;
   text-align: center;
   outline: none;
@@ -712,7 +712,7 @@
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #ffffff;
   background: #0F0F0F;
-  border: 2px solid #231D16;
+  border: 3px solid #231D16;
   border-radius: 6px;
   text-align: center;
   outline: none;
@@ -814,8 +814,8 @@
   grid-template-areas:
     "total total"
     "dps   stats"
-    "core  ttk"
-    "traits .";
+    "dps   ttk"
+    "core  traits";
   align-items: start;
   gap: 20px;
 }
@@ -823,7 +823,7 @@
 /* Each result section gets its own bordered card (#0F0F0F fill, #231D16 edge) */
 .fc-card {
   background: #0F0F0F;
-  border: 2px solid #231D16;
+  border: 3px solid #231D16;
   border-radius: 8px;
   padding: 16px 18px;
 }
@@ -895,10 +895,7 @@
   gap: 14px;
   font-size: 0.85rem;
   line-height: 1.5;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-.fc-stat-row:last-child { border-bottom: none; }
 
 .fc-stat-label {
   color: #ffffff;
