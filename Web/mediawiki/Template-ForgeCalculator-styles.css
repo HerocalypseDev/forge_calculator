@@ -778,6 +778,8 @@
   border: 1px solid #231D16;
   color: #ffffff;
   font-weight: 600;
+  font-size: 16px;
+  padding: 12px 28px;
 }
 .fc-btn--reset:hover {
   border-color: #c8a85a;
@@ -790,11 +792,12 @@
   border-color: #e8b53a;
   color: #ffffff;
   font-weight: 700;
+  font-size: 16px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 .fc-btn--calc:hover {
   background: #d4a12c;
@@ -803,8 +806,8 @@
 
 /* Shared icon-in-button style (button icons sit in the same box as section icons) */
 .fc-btn .fc-section-icon {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
 }
 
 /* ── Results panel (single card, brown/gold border) ───────────────── */
