@@ -208,6 +208,14 @@
   letter-spacing: 0.04em;
 }
 
+/* Constrain the two short numeric/level fields so they don't stretch full-width */
+.fc-quality-wrapper .fc-quality-input {
+  width: 50%;
+}
+.fc-enhancement-wrapper .fc-searchable-input {
+  width: 60%;
+}
+
 /* ── Ore grid (4-col inner cards per Image 1) ─────────────────────── */
 
 .fc-ore-grid {
@@ -220,8 +228,8 @@
 
 .fc-ore-grid .fc-ore-slot {
   min-width: 0;
-  background: #1a1a1e;
-  border: 1px solid #c8a85a;
+  background: #0F0F0F;
+  border: 2px solid #231D16;
   border-radius: 4px;
   padding: 18px 14px;
   flex-direction: column;
@@ -317,8 +325,8 @@
   font-size: 13px;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #ffffff;
-  background: #1a1a1e;
-  border: 1px solid #231D16;
+  background: #0F0F0F;
+  border: 2px solid #231D16;
   border-radius: 6px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   outline: none;
@@ -413,8 +421,8 @@
   font-size: 13px;
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
   color: #ffffff;
-  background: #1a1a1e;
-  border: 1px solid #231D16;
+  background: #0F0F0F;
+  border: 2px solid #231D16;
   border-radius: 6px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -632,8 +640,8 @@
   font-size: 13px;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #ffffff;
-  background: #1a1a1e;
-  border: 1px solid #231D16;
+  background: #0F0F0F;
+  border: 2px solid #231D16;
   border-radius: 6px;
   text-align: center;
   outline: none;
@@ -742,12 +750,20 @@
   flex-shrink: 0;
 }
 
-/* ── Results cards (2-col grid, bare inside) ──────────────────────── */
+/* ── Results cards (2-col grid, each section its own card) ────────── */
 
 .fc-results-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+
+/* Each result section gets its own bordered card (#0F0F0F fill, #231D16 edge) */
+.fc-card {
+  background: #0F0F0F;
+  border: 2px solid #231D16;
+  border-radius: 8px;
+  padding: 16px 18px;
 }
 
 .fc-card--total {
