@@ -109,12 +109,18 @@ Upload **11 PNG icons** to the wiki with these exact filenames:
 | Blast | `ForgeCalculator-blast.png` | Blast ability card |
 | Poison | `ForgeCalculator-poison.png` | Poison ability card |
 
-The JS builds each `<img>` src from the wiki's own path
-(`Special:Redirect/file/<name>`), so no URL or hash path needs to be written
-down — just use the exact filename above. The 20px display size is set by
-`width`/`height` attributes; upload any source resolution and the browser scales
-it down. If a file is missing, its section falls back to the `ability` icon; if
-you rename any file, update `SECTION_ICON_URLS` in `MediaWiki-ForgeCalculator.js`.
+The JS references each icon as standard `[[File:...]]` wikitext — the same
+image-link convention the wiki's templates use — and resolves the placeholders
+with one batched `mw.Api().parse()` call:
+`[[File:<name>|frameless|link=File:<name>|alt=<section>]]`. The server renders
+the `<img>` (via `Special:FilePath`) and the anchor to the file page, exactly
+as if the image were written in a template. So no URL or hash path needs to be
+written down — just use the exact filename above. The 20px display size is set
+by `.fc-section-icon` in the stylesheet; upload any source resolution and the
+browser scales it down. If a file is missing, its section falls back to the
+`ability` icon; if you rename any file, update `SECTION_ICON_FILES` in
+`MediaWiki-ForgeCalculator.js`. Icons appear a moment after load (one API parse
+per page load).
 
 ## Verification
 

@@ -1,14 +1,17 @@
 /**
- * Dev-only preview generator (NOT deployed to the wiki).
+ * Focused test for the MediaWiki section icons.
  *
- * Runs the real MediaWiki-ForgeCalculator.js in a Node vm with a DOM mock,
- * renders the input + results panels with a realistic sample build, and
- * serializes the DOM tree to a static preview.html that links the real
- * Template-ForgeCalculator-styles.css. Open preview.html in a browser to
- * eyeball the dark theme without deploying.
+ * Guards the regression where icons were hand-built as raw <img src> tags.
+ * On this wiki images are referenced as [[File:...]] wikitext (the same
+ * convention the templates use), so the JS must:
+ *  - NOT construct <img src=".../Special:Redirect/file/..."> directly
+ *  - collect .fc-section-icon placeholders while the input panel renders
+ *  - resolve them in one batched mw.Api().parse() call whose wikitext is
+ *    [[File:<file>|frameless|link=File:<file>|alt=<title>]]
+ *  - inject the parsed <a><img></a> markup (Special:FilePath src + alt) into
+ *    each placeholder once the parse resolves
  *
- * Run: node Web/mediawiki/render-preview.js
- * Then:  open Web/mediawiki/preview.html
+ * Run: node Web/mediawiki/icon-test.js
  */
 'use strict';
 
@@ -25,21 +28,10 @@ const idx = SRC.indexOf(marker);
 if (idx < 0) { throw new Error('DATA LOADING marker not found'); }
 const blockStart = SRC.lastIndexOf('\n', idx) + 1;
 const instrumented = SRC.slice(0, blockStart) +
-  '  var __fc = { createInputPanel: createInputPanel, createResultsPanel: createResultsPanel,\n' +
-  '    buildGameData: buildGameData, calculate: calculate, transformBuildForEngine: transformBuildForEngine,\n' +
-  '    recalculate: recalculate };\n' +
-  '  Object.defineProperty(__fc, "state", { get: function () { return state; } });\n' +
-  '  Object.defineProperty(__fc, "DEFAULT_BUILD", { get: function () { return DEFAULT_BUILD; } });\n' +
-  '  globalThis.__FC = __fc;\n' +
+  '  globalThis.__FC = { createInputPanel: createInputPanel, buildGameData: buildGameData };\n' +
   SRC.slice(blockStart);
 
-// --- DOM mock with serialization ---
-const VOID_TAGS = new Set(['input', 'img', 'br', 'hr', 'link', 'meta', 'source']);
-
-function esc(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
+// --- DOM mock (same shape render-preview.js uses; add innerHTML) ---
 function makeEl(tag) {
   const el = {
     tagName: tag,
@@ -152,40 +144,32 @@ function makeEl(tag) {
   return el;
 }
 
+function esc(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function serialize(node) {
   if (!node) { return ''; }
   if (node.nodeType === 3) { return esc(node._text); }
-
+  if (node._raw !== null) { return node._raw; }
   const tag = node.tagName;
   const parts = [tag];
   if (node.id) { parts.push(`id="${esc(node.id)}"`); }
   if (node._classes && node._classes.size) { parts.push(`class="${esc(Array.from(node._classes).join(' '))}"`); }
   for (const k of Object.keys(node.attributes)) {
     if (k === 'id') { continue; }
-    parts.push(`${k}="${esc(node.attributes[k])}"`); // includes value=, min, max, step, placeholder, title, inputmode
+    parts.push(`${k}="${esc(node.attributes[k])}"`);
   }
-  // style (set directly via el.style.x = ...)
-  const styleKeys = Object.keys(node.style).filter((k) => node.style[k] !== undefined && node.style[k] !== '');
-  if (styleKeys.length) {
-    parts.push(`style="${styleKeys.map((k) => `${k}: ${node.style[k]}`).join('; ')}"`);
-  }
-
   const open = `<${parts.join(' ')}>`;
-  if (VOID_TAGS.has(tag)) { return open; }
-  // innerHTML-set nodes (the [[File:...]] icon placeholders) carry their parsed
-  // markup in _raw; use it as the INNER content so the element wrapper (e.g.
-  // <span class="fc-section-icon">) is preserved.
-  const inner = node._raw !== null ? node._raw : (node.children || []).map(serialize).join('');
+  const inner = (node.children || []).map(serialize).join('');
   return `${open}${inner}</${tag}>`;
 }
 
-// --- Sandbox ---
-
-// Mock the server-side parser for [[File:...]] so preview.html still shows the
-// section icons: each [[File:X|frameless|link=File:X|alt=Y]] line becomes the
-// <p><a><img></a></p> markup the real wiki's parser would emit.
+// --- Api mock: records the wikitext, returns the parser's canonical HTML ---
+let parsedWikitext = null;
 function ApiMock() {}
 ApiMock.prototype.parse = function (wikitext) {
+  parsedWikitext = wikitext;
   const lines = String(wikitext).split('\n\n').filter(Boolean);
   const paras = lines.map((line) => {
     const fileM = line.match(/File:([^|\]]+)/);
@@ -208,11 +192,7 @@ const sandbox = {
   console: console,
   setTimeout: setTimeout,
   clearTimeout: clearTimeout,
-  requestAnimationFrame: (fn) => fn(),
   window: null,
-  navigator: {
-    clipboard: { writeText: () => Promise.resolve() }
-  },
   document: {
     readyState: 'complete',
     getElementById: () => null,
@@ -222,7 +202,6 @@ const sandbox = {
     createDocumentFragment: () => makeEl('fragment')
   }
 };
-sandbox.document.body = makeEl('body');
 sandbox.window = sandbox;
 sandbox.window.mediaWiki = mw;
 
@@ -230,9 +209,17 @@ vm.createContext(sandbox);
 vm.runInContext(instrumented, sandbox, { filename: 'MediaWiki-ForgeCalculator.js' });
 
 const FC = sandbox.__FC;
-if (!FC) { throw new Error('Export hook did not run'); }
+if (!FC) { throw new Error('Export hook did not run — extraction failed'); }
 
-// --- Load data + build gameData via the ACTUAL buildGameData ---
+let failures = 0;
+function assert(cond, label) {
+  if (!cond) {
+    failures++;
+    console.log(`  FAIL ${label}`);
+  }
+  return cond;
+}
+
 function loadJSON(name) {
   return JSON.parse(fs.readFileSync(path.join(HERE, name), 'utf8'));
 }
@@ -244,85 +231,76 @@ const game = FC.buildGameData({
   achievements: loadJSON('Data-Achievements.json')
 });
 
-async function render() {
-  // --- Replicate init(): wire state, render panels ---
-  const state = FC.state;
-  state.gameData = game;
+// Expected icon -> alt per section (in render order: Ore, Weapon, Race,
+// Berserk, Armor Stats, Abilities, Runes, Achievement, then Fire/Poison/Blast).
+const EXPECTED = [
+  ['ForgeCalculator-ore.png', 'Ore Slots'],
+  ['ForgeCalculator-weapon.png', 'Weapon'],
+  ['ForgeCalculator-race.png', 'Race'],
+  ['ForgeCalculator-berserk.png', 'Berserk'],
+  ['ForgeCalculator-armor.png', 'Armor Stats'],
+  ['ForgeCalculator-ability.png', 'Abilities (From Runes)'],
+  ['ForgeCalculator-rune.png', 'Runes'],
+  ['ForgeCalculator-achievement.png', 'Achievement'],
+  ['ForgeCalculator-fire.png', 'Fire'],
+  ['ForgeCalculator-poison.png', 'Poison'],
+  ['ForgeCalculator-blast.png', 'Blast']
+];
 
-  const root = makeEl('div');
-  root.className = 'fc-calculator';
+(async function () {
+  // --- Source-level: no raw <img>/Special:Redirect builder may survive ---
+  console.log('== source guard ==');
+  assert(SRC.indexOf('Special:Redirect') === -1, 'source contains no Special:Redirect');
+  assert(SRC.indexOf('SECTION_ICON_URLS') === -1, 'source contains no SECTION_ICON_URLS');
+  assert(SRC.indexOf("createEl('img'") === -1, 'source builds no <img> via createEl');
 
-  const body = makeEl('div');
-  body.className = 'fc-body';
-  root.appendChild(body);
-
-  const left = makeEl('div');
-  left.className = 'fc-left';
-  body.appendChild(left);
-
-  const right = makeEl('div');
-  right.className = 'fc-right';
-  body.appendChild(right);
-
-  state.inputPanel = FC.createInputPanel({
+  // --- Render the input panel ---
+  const build = { oreSlots: [{ name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }] };
+  const panel = FC.createInputPanel({
     data: game,
-    getBuild: () => state.build,
-    onBuildChange: (b) => { state.build = b; },
-    onCalculate: FC.recalculate
-  });
-  left.appendChild(state.inputPanel);
-
-  state.resultsPanel = FC.createResultsPanel({ onCopy: () => {}, onReset: () => {} });
-  right.appendChild(state.resultsPanel);
-
-  // --- Sample build (UI shape, whole percents for armor/ability/berserk) ---
-  state.build = Object.assign({}, FC.DEFAULT_BUILD, {
-    oreSlots: [
-      { name: 'Wolfarite', amount: 30 },
-      { name: 'Gargantuan', amount: 30 },
-      { name: 'Galaxite', amount: 20 },
-      { name: 'Malachite', amount: 20 }
-    ],
-    weaponType: 'Gauntlet',
-    weaponName: 'Ironhand',
-    quality: 100,
-    enhancement: 5,
-    race: 'Felynx',
-    armorLethality: 20,
-    armorCritChance: 15,
-    armorCritDmg: 50,
-    fireDmg: 15, fireChance: 30, fireTime: 2,
-    poisonDmg: 5, poisonChance: 25, poisonTime: 3,
-    blastDmg: 25, blastChance: 10,
-    berserk: 30,
-    runes: ['Crit Chance +15%', 'Crit DMG +15%', 'Crit Chance +15%', 'Crit DMG +15%', 'Crit Chance +15%', 'Crit DMG +15%'],
-    achievement: 'Damage Boost +20%'
+    getBuild: () => build,
+    onBuildChange: (b) => Object.assign(build, b),
+    onCalculate: () => {}
   });
 
-  FC.recalculate();
-  if (state.inputPanel && state.inputPanel.refreshWarnings) { state.inputPanel.refreshWarnings(); }
+  console.log('== placeholders ==');
+  const icons = panel.querySelectorAll('.fc-section-icon');
+  assert(icons.length === 11, `11 section-icon placeholders (got ${icons.length})`);
+  for (let i = 0; i < icons.length; i++) {
+    assert(icons[i].children.length === 0, `placeholder #${i} is empty before parse (no raw <img>)`);
+  }
 
-  // Let the batched [[File:...]] API parse resolve and fill the section-icon
-  // placeholders before serializing.
+  // Let the mw.loader.using(...).then(...) chain run: loadSectionIcons sends the
+  // batched parse, then fills each placeholder. A macrotask flush covers both.
   await new Promise((r) => setTimeout(r, 0));
 
-  // --- Emit preview.html ---
-  const css = fs.readFileSync(path.join(HERE, 'Template-ForgeCalculator-styles.css'), 'utf8');
-  const html =
-    '<!DOCTYPE html>\n' +
-    '<html lang="en">\n<head>\n' +
-    '<meta charset="utf-8">\n' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
-    '<title>Forge Calculator — Dark Theme Preview</title>\n' +
-    '<style>\n' + css + '\n</style>\n' +
-    '</head>\n<body style="background:#0a0a0c; padding:24px;">\n' +
-    serialize(root) +
-    '\n</body>\n</html>\n';
+  console.log('== wikitext convention ==');
+  assert(typeof parsedWikitext === 'string' && parsedWikitext.length > 0, 'loadSectionIcons sent a batched api.parse() call');
+  const lines = parsedWikitext.split('\n\n').filter(Boolean);
+  assert(lines.length === 11, `parse batch has 11 [[File:...]] lines (got ${lines.length})`);
+  assert(parsedWikitext.indexOf('<img') === -1, 'parse input is wikitext, not HTML');
+  assert(parsedWikitext.indexOf('Special:Redirect') === -1, 'parse input uses no Special:Redirect');
+  assert(parsedWikitext.indexOf('[[File:ForgeCalculator-weapon.png|frameless|link=File:ForgeCalculator-weapon.png|alt=Weapon]]') !== -1,
+    'weapon icon uses [[File:...|frameless|link=File:...|alt=Weapon]]');
+  const allConventional = EXPECTED.every(([file, alt]) =>
+    parsedWikitext.indexOf(`[[File:${file}|frameless|link=File:${file}|alt=${alt}]]`) !== -1);
+  assert(allConventional, 'every icon follows [[File:<f>|frameless|link=File:<f>|alt=<t>]]');
 
-  const out = path.join(HERE, 'preview.html');
-  fs.writeFileSync(out, html, 'utf8');
-  console.log('Wrote ' + out + ' (' + (html.length / 1024).toFixed(1) + ' KB)');
-  console.log('Open it in a browser to preview the dark theme.');
-}
+  // --- The parse has resolved — check every placeholder is filled ---
+  // (order-independent: panel DOM order differs from placeholder-creation order)
+  console.log('== parsed injection ==');
+  const filled = icons.map((el) => el.innerHTML);
+  assert(filled.every((h) => h !== ''), 'all 11 placeholders were filled by the parse');
+  for (let i = 0; i < EXPECTED.length; i++) {
+    const [file, alt] = EXPECTED[i];
+    const hits = filled.filter((h) =>
+      h.indexOf(`src="/w/Special:FilePath/${file}"`) !== -1 && h.indexOf(`alt="${alt}"`) !== -1);
+    assert(hits.length === 1, `exactly one icon resolves [[File:${file}]] -> Special:FilePath + alt="${alt}"`);
+    const html = hits[0] || '';
+    assert(html.indexOf('<a ') !== -1 && html.indexOf('</a>') !== -1, `${file} wrapped in an <a> link to the file page`);
+    assert(html.indexOf(`href="/w/File:${file}"`) !== -1, `${file} links to File:${file}`);
+  }
 
-render();
+  console.log(failures === 0 ? '\nALL ICON CHECKS PASSED' : `\n${failures} FAILURES`);
+  process.exitCode = failures === 0 ? 0 : 1;
+})();

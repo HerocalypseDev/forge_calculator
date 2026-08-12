@@ -1307,7 +1307,7 @@
     function createSection(title, fields) {
       var section = createEl('div', { class: 'fc-ability-section' });
       var sectionTitle = createEl('h4', { class: 'fc-ability-section-title' });
-      sectionTitle.appendChild(iconImg(title.toLowerCase()));
+      sectionTitle.appendChild(iconImg(title.toLowerCase(), title));
       sectionTitle.appendChild(document.createTextNode(title));
       section.appendChild(sectionTitle);
 
@@ -1547,11 +1547,16 @@
 
   /* ---------- Section icon helpers ---------- */
 
-  // Custom PNG icons, uploaded to the wiki. Each value is the uploaded file's
-  // name; the src is built from the wiki's own path so it works on any host:
-  // <wgScriptPath>/Special:Redirect/file/<Filename>  →  the uploaded file.
+  // Section icons are the wiki's own uploaded PNGs, referenced as standard
+  // [[File:...]] wikitext — the same image-link convention the wiki's templates
+  // use (e.g. [[File:{{{image}}}|frameless|link=File:{{{image}}}|alt={{{name}}}]]).
+  // The JS can't paste wikitext into the page, so it collects placeholder spans
+  // while the input panel renders, then resolves them in one batched
+  // mw.Api().parse() call: the server parses each [[File:...]] into the exact
+  // <a><img></a> markup it produces anywhere on the wiki (Special:FilePath src,
+  // alt text, link to the file page). No raw <img src> is hand-built.
   // Upload all 11 PNGs with these exact names (or edit the map to match).
-  var SECTION_ICON_URLS = {
+  var SECTION_ICON_FILES = {
     weapon:      'ForgeCalculator-weapon.png',
     ore:         'ForgeCalculator-ore.png',
     race:        'ForgeCalculator-race.png',
@@ -1565,19 +1570,51 @@
     poison:      'ForgeCalculator-poison.png'
   };
 
-  function iconImg(name) {
+  var ICON_PLACEHOLDERS = [];
+
+  function iconImg(name, alt) {
     var wrap = createEl('span', { class: 'fc-section-icon' });
-    var file = SECTION_ICON_URLS[name] || SECTION_ICON_URLS.ability;
-    var base = mw.config.get('wgScriptPath') || '/w';
-    var img = createEl('img', { src: base + '/Special:Redirect/file/' + file, alt: '', width: '20', height: '20' });
-    img.setAttribute('draggable', 'false');
-    wrap.appendChild(img);
+    var file = SECTION_ICON_FILES[name] || SECTION_ICON_FILES.ability;
+    ICON_PLACEHOLDERS.push({ wrap: wrap, file: file, alt: alt || name });
     return wrap;
+  }
+
+  // Split the batched parse output (one <p> per [[File:...]] line) back into
+  // individual <a><img></a> fragments. Each image is self-contained in its
+  // paragraph, so extracting the paragraph bodies is safe.
+  function splitIconHtml(html) {
+    var blocks = String(html || '').match(/<p>[\s\S]*?<\/p>/g);
+    if (!blocks) { return []; }
+    return blocks.map(function (b) {
+      return b.replace(/^<p>/, '').replace(/<\/p>\s*$/, '');
+    });
+  }
+
+  function loadSectionIcons() {
+    var pending = ICON_PLACEHOLDERS.slice();
+    if (!pending.length) { return; }
+    if (!mw.loader || typeof mw.loader.using !== 'function') { return; }
+    mw.loader.using('mediawiki.api').then(function () {
+      if (!mw.Api) { return; }
+      var api = new mw.Api();
+      if (!api || typeof api.parse !== 'function') { return; }
+      var text = pending.map(function (p) {
+        return '[[File:' + p.file + '|frameless|link=File:' + p.file + '|alt=' + p.alt + ']]';
+      }).join('\n\n');
+      api.parse(text).then(function (html) {
+        var blocks = splitIconHtml(html);
+        for (var i = 0; i < pending.length && i < blocks.length; i++) {
+          pending[i].wrap.innerHTML = blocks[i];
+        }
+      }, function () {
+        // Icons are decorative — an empty placeholder is fine.
+      });
+    });
   }
 
   function sectionTitle(title, iconName) {
     var h3 = createEl('h3', { class: 'fc-input-section-title' });
-    h3.appendChild(iconImg(iconName));
+    h3.appendChild(iconImg(iconName, title));
     h3.appendChild(document.createTextNode(title));
     return h3;
   }
@@ -2022,6 +2059,10 @@
       runeSelector.setValues(newBuild.runes || []);
       achievementDropdown.setValue(toUI(newBuild.achievement, ACHIEVEMENT_PROMPT));
     };
+
+    // All section-icon placeholders are now registered — resolve them through
+    // the wiki's [[File:...]] pipeline (one batched API parse).
+    loadSectionIcons();
 
     return container;
   }
