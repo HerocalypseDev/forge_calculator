@@ -91,6 +91,31 @@ functions defined in Common.js.
 The module mounts only when it finds an element with `id="fc-root"`, so it is a
 no-op on every page that does not transclude the template.
 
+### 6. Upload the section-icon PNGs
+
+Upload **11 PNG icons** to the wiki with these exact filenames:
+
+| Icon | Filename | Used in |
+|------|----------|---------|
+| Weapon | `ForgeCalculator-weapon.png` | Weapon section |
+| Ore | `ForgeCalculator-ore.png` | Ore Slots section |
+| Race | `ForgeCalculator-race.png` | Race section |
+| Berserk | `ForgeCalculator-berserk.png` | Berserk section |
+| Achievement | `ForgeCalculator-achievement.png` | Achievement section |
+| Rune | `ForgeCalculator-rune.png` | Runes section |
+| Armor | `ForgeCalculator-armor.png` | Armor Stats section |
+| Ability | `ForgeCalculator-ability.png` | Abilities (fallback icon) |
+| Fire | `ForgeCalculator-fire.png` | Fire ability card |
+| Blast | `ForgeCalculator-blast.png` | Blast ability card |
+| Poison | `ForgeCalculator-poison.png` | Poison ability card |
+
+The JS builds each `<img>` src from the wiki's own path
+(`Special:Redirect/file/<name>`), so no URL or hash path needs to be written
+down — just use the exact filename above. The 20px display size is set by
+`width`/`height` attributes; upload any source resolution and the browser scales
+it down. If a file is missing, its section falls back to the `ability` icon; if
+you rename any file, update `SECTION_ICON_URLS` in `MediaWiki-ForgeCalculator.js`.
+
 ## Verification
 
 Run this locally before deploying (from `Web/mediawiki/`, with the Python
