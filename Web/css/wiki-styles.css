@@ -84,7 +84,7 @@ a:hover {
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: 100vh;
-  max-width: 1400px;
+  max-width: 1960px;
   margin: 0 auto;
   padding: 0 16px;
 }
@@ -119,7 +119,7 @@ a:hover {
 /* Body - two column layout */
 .ep-body {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr 530px;
   gap: 24px;
   align-content: start;
 }
