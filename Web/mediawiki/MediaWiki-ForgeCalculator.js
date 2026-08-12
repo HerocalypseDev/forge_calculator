@@ -1887,9 +1887,6 @@
 
     var berserkSection = createEl('div', { class: 'fc-input-section' });
     berserkSection.appendChild(sectionTitle('Berserk', 'berserk'));
-    berserkSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
-      'Enter percentage as whole number.'
-    ]));
 
     // Whole-percent entry (30 = 30%); max = the lethality cap (150%), since any
     // more is capped away by the engine. The build stores percents and
