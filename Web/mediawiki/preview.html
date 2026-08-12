@@ -186,12 +186,14 @@
 
 /* Larger icons for Berserk / Rune / Armor section headers.
    Size the box to the image (auto width) so no empty padding sits between
-   the glyph and the section title text. */
+   the glyph and the section title text. Kept modest so the taller icon
+   doesn't push the section title (and its content) below sibling sections
+   that use the default 28px icon. */
 .fc-section-icon--berserk,
 .fc-section-icon--rune,
 .fc-section-icon--armor {
   width: auto;
-  height: 66px;
+  height: 40px;
 }
 
 /* ── Subtext ──────────────────────────────────────────────────────── */
