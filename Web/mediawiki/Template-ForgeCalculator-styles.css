@@ -171,6 +171,14 @@
   display: block;
 }
 
+/* Larger icons for Berserk / Rune / Armor section headers */
+.fc-section-icon--berserk,
+.fc-section-icon--rune,
+.fc-section-icon--armor {
+  width: 38px;
+  height: 38px;
+}
+
 /* ── Subtext ──────────────────────────────────────────────────────── */
 
 .fc-input-section-subtext {

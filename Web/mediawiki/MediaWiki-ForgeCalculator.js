@@ -1578,7 +1578,7 @@
   var ICON_PLACEHOLDERS = [];
 
   function iconImg(name, alt) {
-    var wrap = createEl('span', { class: 'fc-section-icon' });
+    var wrap = createEl('span', { class: 'fc-section-icon fc-section-icon--' + name });
     var file = SECTION_ICON_FILES[name] || SECTION_ICON_FILES.ability;
     ICON_PLACEHOLDERS.push({ wrap: wrap, file: file, alt: alt || name });
     return wrap;
