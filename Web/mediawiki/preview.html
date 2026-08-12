@@ -601,7 +601,7 @@
 
 .fc-ability-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 3fr 2fr 3fr;
   gap: 12px;
   width: 100%;
 }
@@ -623,41 +623,37 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0;
-  padding-bottom: 8px;
-  border-bottom: 2px solid #2a2a30;
+  padding-bottom: 4px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-/* Per-type accent borders + titles matching the reference image */
+/* Per-type accent borders + title color matching the reference image */
 .fc-ability-section--fire {
   border-color: #e07b3a;
 }
 .fc-ability-section--fire .fc-ability-section-title {
-  border-bottom-color: #e07b3a;
   color: #e07b3a;
 }
 .fc-ability-section--blast {
   border-color: #a06bd6;
 }
 .fc-ability-section--blast .fc-ability-section-title {
-  border-bottom-color: #a06bd6;
   color: #a06bd6;
 }
 .fc-ability-section--poison {
   border-color: #4caf6a;
 }
 .fc-ability-section--poison .fc-ability-section-title {
-  border-bottom-color: #4caf6a;
   color: #4caf6a;
 }
 
 .fc-ability-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
 }
 
 .fc-ability-label {
@@ -669,7 +665,7 @@
 }
 
 .fc-ability-field {
-  width: 72px;
+  width: 100%;
   min-width: 0;
 }
 
