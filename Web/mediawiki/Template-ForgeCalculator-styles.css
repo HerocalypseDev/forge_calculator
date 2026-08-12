@@ -110,6 +110,12 @@
   border-radius: 0;
   padding: 0;
 }
+
+/* Weapon-category flat section: push content right so it aligns with the
+   padded (28px) sibling sections like the ore grid. */
+.fc-input-section--flat.fc-input-section {
+  padding-left: 28px;
+}
 .fc-input-section--flat .fc-input-section-title {
   color: #ffffff;
   border-bottom: none;
