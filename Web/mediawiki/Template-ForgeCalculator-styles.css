@@ -772,6 +772,18 @@
   background: #a08840;
 }
 
+/* Reset button — dark fill with the standard container border */
+.fc-btn--reset {
+  background: #0F0F0F;
+  border: 1px solid #231D16;
+  color: #ffffff;
+  font-weight: 600;
+}
+.fc-btn--reset:hover {
+  border-color: #c8a85a;
+  color: #ffffff;
+}
+
 /* Calculate DPS (toolbar) — yellow button, white text */
 .fc-btn--calc {
   background: #e8b53a;

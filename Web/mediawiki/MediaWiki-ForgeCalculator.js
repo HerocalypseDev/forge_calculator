@@ -1632,7 +1632,7 @@
     var head = createEl('div', { class: 'fc-results-head' });
     var title = createEl('h2', { class: 'fc-results-title' }, ['Results']);
     var toolbar = createEl('div', { class: 'fc-toolbar' });
-    var resetBtn = createEl('button', { class: 'fc-btn fc-btn--primary', type: 'button' },
+    var resetBtn = createEl('button', { class: 'fc-btn fc-btn--reset', type: 'button' },
       [iconImg('reset', 'Reset'), 'Reset']);
     var calcBtn = createEl('button', { class: 'fc-btn fc-btn--calc', type: 'button' },
       [iconImg('calc', 'Calculate DPS'), 'Calculate DPS']);
