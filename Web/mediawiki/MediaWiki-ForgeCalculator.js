@@ -1355,20 +1355,20 @@
     }
 
     var fireSection = createSection('Fire', [
-      { key: 'fireDmg', label: 'Fire DMG' },
-      { key: 'fireChance', label: 'Fire Chance' },
-      { key: 'fireTime', label: 'Fire Time (s)' }
+      { key: 'fireDmg', label: 'Damage' },
+      { key: 'fireChance', label: 'Chance' },
+      { key: 'fireTime', label: 'Duration' }
     ]);
 
     var poisonSection = createSection('Poison', [
-      { key: 'poisonDmg', label: 'Poison DMG' },
-      { key: 'poisonChance', label: 'Poison Chance' },
-      { key: 'poisonTime', label: 'Poison Time (s)' }
+      { key: 'poisonDmg', label: 'Damage' },
+      { key: 'poisonChance', label: 'Chance' },
+      { key: 'poisonTime', label: 'Duration' }
     ]);
 
     var blastSection = createSection('Blast', [
-      { key: 'blastDmg', label: 'Blast DMG' },
-      { key: 'blastChance', label: 'Blast Chance' }
+      { key: 'blastDmg', label: 'Damage' },
+      { key: 'blastChance', label: 'Chance' }
     ]);
 
     fireSection.classList.add('fc-ability-section--fire');
@@ -1464,9 +1464,12 @@
   function createResultsCard(opts) {
     var card = createEl('div', { class: 'fc-card' });
     var head = createEl('div', { class: 'fc-card-head' });
-    var iconEl = createEl('span', { class: 'fc-card-icon' }, ['◆']);
+    if (!opts.hideIcon) {
+      var iconEl = createEl('span', { class: 'fc-card-icon' }, ['◆']);
+      head.appendChild(iconEl);
+    }
     var titleEl = createEl('span', { class: 'fc-card-title' }, [opts.title]);
-    head.append(iconEl, titleEl);
+    head.append(titleEl);
 
     var body = createEl('div', { class: 'fc-card-body' });
     var rowsContainer = createEl('div', { class: 'fc-stat-rows' });
@@ -1690,6 +1693,7 @@
 
     var totalDpsCard = createResultsCard({
       title: 'Total DPS',
+      hideIcon: true,
       content: createStatRows([
         { label: '', value: '0', valueClass: 'fc-sv-dps-hero' }
       ])

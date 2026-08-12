@@ -111,7 +111,7 @@
   padding: 0;
 }
 .fc-input-section--flat .fc-input-section-title {
-  color: #c8a85a;
+  color: #ffffff;
   border-bottom: none;
   border-top: 1px solid #231D16;
   padding-top: 12px;
@@ -257,7 +257,8 @@
 .fc-ore-grid .fc-ore-slot-mult {
   min-width: auto;
   text-align: center;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 800;
   color: #ffffff;
 }
 
@@ -290,7 +291,8 @@
 }
 
 .fc-meta-wrap .fc-input-section-title {
-  font-size: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 800;
   margin-bottom: 10px;
   padding-bottom: 8px;
 }
@@ -304,7 +306,8 @@
 }
 .fc-race-wrapper label {
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -318,7 +321,8 @@
 }
 .fc-achievement-wrapper label {
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -335,7 +339,7 @@
   width: 100%;
   min-width: 0;
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: 15px;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #ffffff;
   background: #0F0F0F;
@@ -562,8 +566,8 @@
 .fc-rune-line-label {
   flex-shrink: 0;
   width: 52px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: #ffffff;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -596,7 +600,8 @@
   min-width: auto;
   margin-bottom: 2px;
   color: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .fc-stat-input-field { width: 100%; }
@@ -670,7 +675,8 @@
 
 .fc-ability-label {
   color: #ffffff;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 600;
   text-align: center;
   white-space: normal;
   line-height: 1.15;
@@ -805,6 +811,12 @@
 .fc-results-cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "total total"
+    "dps   stats"
+    "core  ttk"
+    ".     traits";
+  align-items: start;
   gap: 20px;
 }
 
@@ -817,31 +829,33 @@
 }
 
 .fc-card--total {
-  grid-column: 1 / -1;
+  grid-area: total;
 }
 .fc-card--total .fc-card-head {
   border-bottom: none;
 }
 .fc-card--total .fc-card-body {
   padding: 0 18px 20px;
-  text-align: center;
+  text-align: left;
 }
 .fc-card--total .fc-stat-row {
-  justify-content: center;
+  justify-content: flex-start;
 }
 .fc-card--total .fc-stat-label {
   display: none;
 }
 .fc-sv-dps-hero {
-  font-size: 2.2rem;
+  font-size: 3.3rem;
   font-weight: 700;
   color: #ffffff;
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 }
 
-.fc-card--traits {
-  grid-column: 1 / -1;
-}
+.fc-card--dps    { grid-area: dps; }
+.fc-card--stats  { grid-area: stats; }
+.fc-card--core   { grid-area: core; }
+.fc-card--ttk    { grid-area: ttk; }
+.fc-card--traits { grid-area: traits; }
 
 .fc-card-head {
   display: flex;
