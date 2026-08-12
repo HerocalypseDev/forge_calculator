@@ -257,7 +257,7 @@
 .fc-ore-grid .fc-ore-slot-mult {
   min-width: auto;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 800;
   color: #ffffff;
 }
@@ -624,8 +624,8 @@
   flex-wrap: wrap;
   align-items: flex-start;
   min-width: 0;
-  border: 2px solid #2a2a30;
-  border-radius: 0;
+  border: 2px solid #231D16;
+  border-radius: 8px;
   padding: 14px 12px;
   gap: 10px;
 }
@@ -683,7 +683,7 @@
 }
 
 .fc-ability-field {
-  width: 110px;
+  width: 88px;
   min-width: 0;
 }
 
@@ -691,7 +691,7 @@
 .fc-quality-input,
 .fc-stat-input-input {
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px 10px;
   font-size: 13px;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #ffffff;
@@ -712,7 +712,7 @@
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   color: #ffffff;
   background: #0F0F0F;
-  border: 1px solid #2a2a30;
+  border: 2px solid #231D16;
   border-radius: 6px;
   text-align: center;
   outline: none;
@@ -815,7 +815,7 @@
     "total total"
     "dps   stats"
     "core  ttk"
-    ".     traits";
+    "traits .";
   align-items: start;
   gap: 20px;
 }
