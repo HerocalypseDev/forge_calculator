@@ -149,8 +149,8 @@
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
 }
 /* Icons are rendered via [[File:...]] wikitext, so the parser wraps the img in
    an <a> linking to the file page — pin that link to the icon box too. */
