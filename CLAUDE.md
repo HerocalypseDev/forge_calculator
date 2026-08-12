@@ -274,34 +274,4 @@ No linter or formatter is configured.
 
 **Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16); all 7 `*-test.js` + `zero_dps_repro.js` PASSED; `node --check` clean on the new module and the stripped Common.js artifact. Engine byte-identical — display/organisation only.
 
-### MediaWiki QOL: Validation Warnings + Number Steppers + Copy Single Stat — COMPLETED ✅
-**Goal:** Three UI-only quality-of-life features for the MediaWiki Forge Calculator, all self-contained in the JS module + TemplateStyles + tests. No engine/formula changes (the "Zero invented mechanics" rule). **Plan file:** `.claude/plans/enchanted-tinkering-sundae.md`.
 
-| Change | Where | Status | Commit |
-|--------|-------|--------|--------|
-| **Validation warnings** — `computeWarnings(build)` (W1 no weapon, W2 no ore amounts, W3 ore-with-0-amount, W4 ore share <10% gate, W5 quality 0) computed purely from build state (no engine call) so it updates live; `div.fc-warnings` box above the Calculate button, `container.refreshWarnings()` wired into `handleBuildChange`/`resetBuild`/`init` | `MediaWiki-ForgeCalculator.js` + `.fc-warnings`/`.fc-warning` in `Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
-| **Number steppers** — `createStepper(input, opts)` wraps every numeric input (Quality step 5, 4× ore amount, Berserk, 3× armor stats, 8× ability inputs) with −/+ buttons that step by `step`, clamp to `[min,max]`, treat 0 as "off" via `allowZero` (ability fields), and commit through each field's existing commit function | `MediaWiki-ForgeCalculator.js` + `.fc-stepper`/`.fc-stepper-btn` (+ responsive shrink) in `Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
-| **Copy single stat** — `writeClipboard(text, successMsg)` extracted from `copyResults`; every `.fc-stat-val` (and the Active Traits value) gets `fc-copyable` + "Click to copy" title + click handler that skips `''`/`—`/`∞` and copies otherwise | `MediaWiki-ForgeCalculator.js` + `.fc-copyable` in `Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
-| **Tests** — `validation-warnings-test.js` (W1–W5 states, live re-render, hidden-when-clean, real panel DOM), `stepper-test.js` (step/clamp per field type, allowZero, no-max ore, non-numeric fallback), `copy-stat-test.js` (click copies, `—`/`∞`/empty skipped, isCap styling, clipboard + fallback paths) | `Web/mediawiki/validation-warnings-test.js`, `stepper-test.js`, `copy-stat-test.js` | ✅ Done | (this session) |
-
-**Verification:** `node --check` clean on all modified JS; all 13 MediaWiki tests PASS (9 existing `*-test.js` + `verify-engine.js` 11 golden checks + `fuzz_verify.js` 250 builds / 8755 fields, worst rel err 5.19e-16 + `zero_dps_repro.js` + 3 new tests). Engine untouched. Deploy per `Web/mediawiki/DEPLOY.md`: update `MediaWiki:ForgeCalculator.js` + `Template:ForgeCalculator/styles.css`, hard-refresh.
-
-### MediaWiki TemplateStyles Sanitizer Fix — COMPLETED ✅
-**Goal:** The dark-theme CSS failed to save on-wiki — the TemplateStyles sanitizer rejected the design-token block (`Unrecognized or unsupported property` for every `--fc-*` at the top of the sheet) and every `var(--fc-*)` value (`Invalid or unsupported value`). The sanitizer on this wiki does **not** support CSS custom properties or `var()`, so the tokens were stripped and the theme silently collapsed to default styling. Fixed by inlining every `var(--fc-*)` to its literal value, removing the custom-property block, and dropping the two `color-scheme` declarations (also unrecognized).
-
-| Change | Where | Status | Commit |
-|--------|-------|--------|--------|
-| **Inline all tokens** — 17 `--fc-*` definitions removed; 104 `var(--fc-*)` usages replaced with literals (`#0a0a0c`, `#141418`, `6px`, `12px`, `14px 16px`, …) via a deterministic script; `color-scheme: dark`/`light` dropped from the root + print blocks | `Web/mediawiki/Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
-| **Docs** — DEPLOY.md notes the sanitizer limitation (don't reintroduce `--fc-*`); dark-mode checklist line updated | `Web/mediawiki/DEPLOY.md` | ✅ Done | (this session) |
-
-**Verification:** CSS has 0 `var()`, 0 `--fc-`, 0 `color-scheme`, balanced braces; `render-preview.js` regenerates `preview.html` clean (0 `var()`); all 11 MediaWiki JS tests PASS (`verify-engine.js` ALL GOLDEN, `fuzz_verify.js` DIFFERENTIAL FUZZ PASSED 250 builds / 8755 fields worst rel err 5.19e-16, all 9 `*-test.js`). JS/engine untouched — CSS-only compatibility fix. **Re-deploy:** re-paste `Template-ForgeCalculator-styles.css` into `Template:ForgeCalculator/styles.css` (no JS changes).
-
-### MediaWiki Balanced Density Overhaul — COMPLETED ✅
-**Goal:** Revert the overly aggressive blanket spacing increase (50–100%) that broke the calculator layout (ore grid overflow, stretched/disjointed controls) and return to a premium, dense-but-spacious design. Spacing is applied hierarchically: generous where it groups major sections, tight where controls must stay dense, and hardened where grids can overflow.
-
-| Change | Where | Status | Commit |
-|--------|-------|--------|--------|
-| **Balanced spacing** — reverted blanket padding/margin/gap increases; restored baseline for dense controls; applied modest targeted increases only for major section grouping (page shell 28px, body gap 40px, left column gap 40px, input-section padding 22px 24px, results-panel 24px, card-body 14px 16px) | `Template-ForgeCalculator-styles.css` | ✅ Done | 7dfd407 |
-| **Grid hardening** — all grid containers use `repeat(N, minmax(0, 1fr))` + `min-width: 0` on children to prevent intrinsic input widths from pushing tracks past their container; `min-width: 0` on `.fc-searchable-dropdown`, `.fc-ore-slot`, `.fc-stepper` | `Template-ForgeCalculator-styles.css` | ✅ Done | 7dfd407 |
-
-**Verification:** `node Web/mediawiki/render-preview.js` → preview.html regenerates cleanly (48.9 KB); 8/8 target spacing values confirmed in preview DOM; `verify-engine.js` → ALL GOLDEN CHECKS PASSED; `fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED; `results-panel-test.js` → ALL RESULTS-PANEL CHECKS PASSED; CSS has 0 `var()`, 0 `--fc-`, balanced braces. JS/engine untouched — CSS-only fix. **Re-deploy:** re-paste `Template-ForgeCalculator-styles.css` into `Template:ForgeCalculator/styles.css`.

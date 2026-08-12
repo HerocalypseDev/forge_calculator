@@ -178,8 +178,12 @@
 
 .fc-weapon-selector {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 0.9fr 0.9fr 0.55fr 0.55fr;
   gap: 16px;
+}
+
+.fc-quality-wrapper .fc-quality-input {
+  max-width: 90px;
 }
 
 .fc-weapon-type-wrapper,
