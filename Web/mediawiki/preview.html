@@ -179,16 +179,18 @@
   height: 100%;
 }
 .fc-section-icon img {
-  width: 100%;
+  width: auto;
   height: 100%;
   display: block;
 }
 
-/* Larger icons for Berserk / Rune / Armor section headers */
+/* Larger icons for Berserk / Rune / Armor section headers.
+   Size the box to the image (auto width) so no empty padding sits between
+   the glyph and the section title text. */
 .fc-section-icon--berserk,
 .fc-section-icon--rune,
 .fc-section-icon--armor {
-  width: 50px;
+  width: auto;
   height: 50px;
 }
 
@@ -263,7 +265,7 @@
 .fc-ore-grid .fc-ore-slot-label {
   min-width: auto;
   text-align: center;
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   margin-bottom: 2px;
 }
 
@@ -586,7 +588,7 @@
 
 .fc-rune-line-label {
   flex-shrink: 0;
-  width: 52px;
+  width: 62px;
   font-size: 0.95rem;
   font-weight: 700;
   color: #ffffff;
