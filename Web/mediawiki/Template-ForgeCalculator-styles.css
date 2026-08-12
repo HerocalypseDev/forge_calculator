@@ -27,8 +27,11 @@
   line-height: 1.5;
   color: #ffffff;
   background: #0a0a0c;
+  width: 100vw;
   max-width: 1400px;
-  margin: 0 auto;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
   padding: 28px;
 }
 
@@ -140,19 +143,19 @@
   border-bottom: 1px solid #2a2a30;
 }
 
-/* ── Section icons (inline SVG) ──────────────────────────────────── */
+/* ── Section icons (wiki PNGs) ─────────────────────────────────── */
 
 .fc-section-icon {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  color: #ffffff;
   width: 20px;
   height: 20px;
 }
-.fc-section-icon svg {
+.fc-section-icon img {
   width: 100%;
   height: 100%;
+  display: block;
 }
 
 /* ── Subtext ──────────────────────────────────────────────────────── */
