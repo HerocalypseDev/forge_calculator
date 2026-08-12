@@ -1599,7 +1599,7 @@
       var api = new mw.Api();
       if (!api || typeof api.parse !== 'function') { return; }
       var text = pending.map(function (p) {
-        return '[[File:' + p.file + '|frameless|link=File:' + p.file + '|alt=' + p.alt + ']]';
+        return '[[File:' + p.file + '|frameless|link=File:' + p.file + '|alt=' + p.alt + '|24px]]';
       }).join('\n\n');
       api.parse(text).then(function (html) {
         var blocks = splitIconHtml(html);
