@@ -1375,7 +1375,7 @@
     poisonSection.classList.add('fc-ability-section--poison');
     blastSection.classList.add('fc-ability-section--blast');
 
-    container.append(fireSection, poisonSection, blastSection);
+    container.append(fireSection, blastSection, poisonSection);
 
     container.setValues = function (values) {
       for (var key in values) { currentValues[key] = values[key]; }
@@ -1920,9 +1920,6 @@
 
     var statSection = createEl('div', { class: 'fc-input-section' });
     statSection.appendChild(sectionTitle('Armor Stats', 'armor'));
-    statSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
-      'Enter percentage as whole number.'
-    ]));
 
     var statInput = createStatInput({
       values: {
