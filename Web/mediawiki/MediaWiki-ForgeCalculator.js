@@ -1,4 +1,3 @@
-// Forge Calculator for MediaWiki — see Web/mediawiki/DEPLOY.md for setup
 (function (mw) {
   'use strict';
 
@@ -13,7 +12,6 @@
   var NONE_LABEL = 'None';
   var SELECT_ORE = 'Select Ore';
 
-  // Share scaling gate and ramp
   var SHARE_GATE = 0.10;
   var RAMP_TOP = 0.30;
   var RAMP_SPAN = RAMP_TOP - SHARE_GATE;
@@ -71,8 +69,8 @@
   var CORE_STATS = ['lethality', 'crit_chance', 'crit_dmg', 'atk_speed'];
 
   var EXPECTED_COUNTS = {
-    ores: 140,
-    weapons: 79,
+    ores: 147,
+    weapons: 81,
     races: 16,
     runes: 47,
     achievements: 16
@@ -99,17 +97,24 @@
   }
 
   function avgOrePower(slots, game) {
-    var powers = slots.map(function (s) { return slotPower(s, game); });
+    var powers = [];
+    var amounts = [];
+    for (var i = 0; i < slots.length; i++) {
+      var slot = slots[i];
+      if (slot.name === 'Fichilliumorite') { continue; }
+      powers.push(slotPower(slot, game));
+      amounts.push(slot.amount);
+    }
     var total = 0;
-    for (var i = 0; i < slots.length; i++) { total += slots[i].amount; }
+    for (var j = 0; j < amounts.length; j++) { total += amounts[j]; }
     if (total !== 0) {
       var weighted = 0;
-      for (var j = 0; j < slots.length; j++) { weighted += slots[j].amount * powers[j]; }
+      for (var k = 0; k < powers.length; k++) { weighted += amounts[k] * powers[k]; }
       return weighted / total;
     }
     if (powers.length) {
       var sum = 0;
-      for (var k = 0; k < powers.length; k++) { sum += powers[k]; }
+      for (var m = 0; m < powers.length; m++) { sum += powers[m]; }
       return sum / powers.length;
     }
     return 0.0;
@@ -300,8 +305,16 @@
     return 0.0;
   }
 
-  function procComponents(build, shares, game) {
+  function procComponents(build, shares, game, atkSpeedTotal) {
     var fireTerms = slotVals(build.slots, shares, game, 'fire_duration');
+
+    var smite_dmg_ore = slotSum(build.slots, shares, game, 'smite_dmg');
+    var smite_dmg_bonus = 0.0;
+    if (build.race === 'Archangel') {
+      smite_dmg_bonus = (1.5 + atkSpeedTotal * 1.5);
+    } else if (RACE_SMITE_DMG[build.race] !== undefined) {
+      smite_dmg_bonus = RACE_SMITE_DMG[build.race];
+    }
 
     return {
       moon: slotSum(build.slots, shares, game, 'moon'),
@@ -316,10 +329,12 @@
       poison_dmg: slotSum(build.slots, shares, game, 'poison_dmg') + build.abilities.poison_dmg,
       poison_chance: Math.max(slotMax(build.slots, shares, game, 'poison_chance'), build.abilities.poison_chance),
       poison_duration: duration([firstSlotVal(build.slots, shares, game, 'Malachite', 'poison_duration')], 0, build.abilities.poison_time, 2),
-      smite_dmg: slotSum(build.slots, shares, game, 'smite_dmg') + (RACE_SMITE_DMG[build.race] !== undefined ? RACE_SMITE_DMG[build.race] : 0.0),
+      smite_dmg: smite_dmg_ore + smite_dmg_bonus,
       smite_chance: Math.max(slotMax(build.slots, shares, game, 'smite_chance'), RACE_SMITE_CHANCE[build.race] !== undefined ? RACE_SMITE_CHANCE[build.race] : 0.0),
       blackhole_dmg: slotSum(build.slots, shares, game, 'blackhole_dmg'),
-      blackhole_chance: blackholeChance(build.slots, game)
+      blackhole_chance: blackholeChance(build.slots, game),
+      lightning_dmg: slotSum(build.slots, shares, game, 'lightning_dmg'),
+      lightning_chance: Math.max(slotMax(build.slots, shares, game, 'lightning_chance'), build.abilities.lightning_chance !== undefined ? build.abilities.lightning_chance : 0.0)
     };
   }
 
@@ -389,7 +404,8 @@
         fire_time: num(b.abilities && b.abilities.fire_time),
         poison_dmg: num(b.abilities && b.abilities.poison_dmg),
         poison_chance: num(b.abilities && b.abilities.poison_chance),
-        poison_time: num(b.abilities && b.abilities.poison_time)
+        poison_time: num(b.abilities && b.abilities.poison_time),
+        lightning_chance: num(b.abilities && b.abilities.lightning_chance)
       },
       berserk: num(b.berserk),
       achievement: typeof b.achievement === 'string' ? b.achievement : ''
@@ -416,7 +432,7 @@
       build.base_crit_dmg + totals.crit_dmg
     );
 
-    var procs = procComponents(build, shares, game);
+    var procs = procComponents(build, shares, game, totals.atk_speed);
 
     var weapon_dps = forged * (1 + totals.lethality) * blend * atkRate;
     var explosion_dps = unforged * procs.explosion_dmg * procs.explosion_chance * atkRate;
@@ -428,14 +444,15 @@
       : 0.0;
     var smite_dps = unforged * atkRate * procs.smite_dmg * Math.min(procs.smite_chance, 1);
     var blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * atkRate;
-    var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps;
+    var lightning_dps = unforged * procs.lightning_dmg * procs.lightning_chance * atkRate;
+    var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps;
 
     var berserkLevel = build.berserk + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0);
     var berserk = null;
     if (berserkLevel !== 0) {
       var lethBoosted = Math.min(totals.lethality + berserkLevel, CAPS.lethality);
-      berserk = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps
-        + forged * (1 + lethBoosted) * blend * atkRate;
+      var weaponBerserkDps = forged * (1 + lethBoosted) * blend * atkRate;
+      berserk = (explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps + weaponBerserkDps) * (1 + berserkLevel);
     }
 
     var moonstone = procs.moon !== 0 ? weapon_dps * (1 + procs.moon) : null;
@@ -446,7 +463,8 @@
       + forged * procs.fire_dmg
       + forged * procs.poison_dmg
       + procs.smite_dmg * forged
-      + procs.blackhole_dmg * forged;
+      + procs.blackhole_dmg * forged
+      + forged * procs.lightning_dmg * procs.lightning_chance * atkRate;
 
     var ttk_25k = total_dps > 0 ? 25000 / total_dps : null;
     var ttk_75k = total_dps > 0 ? 75000 / total_dps : null;
@@ -475,12 +493,15 @@
       smite_chance: procs.smite_chance,
       blackhole_dmg: procs.blackhole_dmg,
       blackhole_chance: procs.blackhole_chance,
+      lightning_dmg: procs.lightning_dmg,
+      lightning_chance: procs.lightning_chance,
       weapon_dps: weapon_dps,
       explosion_dps: explosion_dps,
       fire_dps: fire_dps,
       poison_dps: poison_dps,
       smite_dps: smite_dps,
       blackhole_dps: blackhole_dps,
+      lightning_dps: lightning_dps,
       total_dps: total_dps,
       berserk: berserk,
       moonstone: moonstone,
@@ -595,7 +616,7 @@
         name: raw.name,
         multiplier: raw.multiplier,
         equipment: raw.equipment != null ? raw.equipment : null,
-        // Preserved quirk: "eapon" substring check
+        // Preserved quirk: weapon ores marked by "eapon" substring in equipment
         is_weapon: raw.equipment != null && String(raw.equipment).toLowerCase().indexOf('eapon') !== -1,
         trait10: raw.trait10 != null ? raw.trait10 : null,
         trait30: raw.trait30 != null ? raw.trait30 : null,
@@ -1018,7 +1039,7 @@
         var parsed = fromUI(newName);
         if (parsed !== currentName) {
           // Ore changed or removed — reset the amount to 0.
-          currentName = parsed;
+        currentName = parsed;
           currentAmount = 0;
           amountInput.value = 0;
         }
@@ -1674,6 +1695,7 @@
         { label: 'Poison DPS', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Smite DPS', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Black Hole DPS', value: '0', valueClass: 'fc-sv-dmg' },
+        { label: 'Lightning DPS', value: '0', valueClass: 'fc-sv-dmg' },
         { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold' },
         { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-dmg' },
         { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-dmg' }
@@ -1739,16 +1761,17 @@
       }
 
       var dpsRows = dpsCard.querySelectorAll('.fc-stat-row');
-      if (dpsRows.length >= 9) {
+      if (dpsRows.length >= 10) {
         updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
         updateStatRow(dpsRows[1], fmtDps(result.explosion_dps), false);
         updateStatRow(dpsRows[2], fmtDps(result.fire_dps), false);
         updateStatRow(dpsRows[3], fmtDps(result.poison_dps), false);
         updateStatRow(dpsRows[4], fmtDps(result.smite_dps), false);
         updateStatRow(dpsRows[5], fmtDps(result.blackhole_dps), false);
-        updateStatRow(dpsRows[6], fmtDps(result.total_dps), false);
-        updateStatRow(dpsRows[7], fmtDps(result.berserk), false);
-        updateStatRow(dpsRows[8], fmtDps(result.moonstone), false);
+        updateStatRow(dpsRows[6], fmtDps(result.lightning_dps), false);
+        updateStatRow(dpsRows[7], fmtDps(result.total_dps), false);
+        updateStatRow(dpsRows[8], fmtDps(result.berserk), false);
+        updateStatRow(dpsRows[9], fmtDps(result.moonstone), false);
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
@@ -2255,6 +2278,7 @@
       'Poison DPS: ' + result.poison_dps.toFixed(2),
       'Smite DPS: ' + result.smite_dps.toFixed(2),
       'Black Hole DPS: ' + result.blackhole_dps.toFixed(2),
+      'Lightning DPS: ' + result.lightning_dps.toFixed(2),
       'Total DPS: ' + result.total_dps.toFixed(2),
       '',
       '--- Time to Kill ---',

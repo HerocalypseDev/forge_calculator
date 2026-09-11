@@ -1,5 +1,5 @@
 {
-  "source": "_Weapon!C2:E80 (+ DPS C12/C23 validation lists)",
+  "source": "_Weapon!C2:E81",
   "types": [
     "Dagger",
     "Straight Sword",
@@ -30,13 +30,13 @@
       "name": "Falchion Knife",
       "type": "Dagger",
       "interval": 0.47,
-      "damage": 4.3
+      "damage": 4.45
     },
     {
       "name": "Gladius Dagger",
       "type": "Dagger",
       "interval": 0.47,
-      "damage": 4.3
+      "damage": 4.6
     },
     {
       "name": "Hook",
@@ -81,6 +81,12 @@
       "damage": 4.73
     },
     {
+      "name": "Tanto",
+      "type": "Dagger",
+      "interval": 0.47,
+      "damage": 4.73
+    },
+    {
       "name": "Falchion",
       "type": "Straight Sword",
       "interval": 0.7,
@@ -90,12 +96,12 @@
       "name": "Gladius",
       "type": "Straight Sword",
       "interval": 0.74,
-      "damage": 7.88
+      "damage": 8.0
     },
     {
       "name": "Cutlass",
       "type": "Straight Sword",
-      "interval": 0.48,
+      "interval": 0.78,
       "damage": 9.375
     },
     {
@@ -114,7 +120,7 @@
       "name": "Hell Slayer",
       "type": "Straight Sword",
       "interval": 0.7,
-      "damage": 10.125
+      "damage": 11.125
     },
     {
       "name": "Candy Cane",
@@ -156,43 +162,43 @@
       "name": "Mace",
       "type": "Mace",
       "interval": 1.17,
-      "damage": 6.0
+      "damage": 7.0
     },
     {
       "name": "Spiked Mace",
       "type": "Mace",
       "interval": 1.17,
-      "damage": 6.3
+      "damage": 7.3
     },
     {
       "name": "Winged Mace",
       "type": "Mace",
       "interval": 1.17,
-      "damage": 6.6
+      "damage": 7.6
     },
     {
       "name": "Hammerhead Mace",
       "type": "Mace",
       "interval": 1.17,
-      "damage": 6.9
+      "damage": 7.9
     },
     {
       "name": "Grave Maker",
       "type": "Mace",
       "interval": 1.17,
-      "damage": 7.8
+      "damage": 8.8
     },
     {
       "name": "Kanabo",
       "type": "Mace",
       "interval": 1.3,
-      "damage": 7.2
+      "damage": 8.2
     },
     {
       "name": "Tetsubo",
       "type": "Mace",
       "interval": 1.11,
-      "damage": 6.72
+      "damage": 7.72
     },
     {
       "name": "Ironhand",
@@ -330,7 +336,7 @@
       "name": "Trident",
       "type": "Spear",
       "interval": 0.73,
-      "damage": 7.5
+      "damage": 8.25
     },
     {
       "name": "Angelic Spear",
@@ -360,7 +366,7 @@
       "name": "Shakujo",
       "type": "Spear",
       "interval": 0.73,
-      "damage": 7.5
+      "damage": 8.25
     },
     {
       "name": "Sodegarami",
@@ -408,7 +414,7 @@
       "name": "Reaper Scythe",
       "type": "Great Axe",
       "interval": 1.54,
-      "damage": 14.25
+      "damage": 17.0
     },
     {
       "name": "Executioner's Greataxe",
@@ -462,7 +468,7 @@
       "name": "Excalibur",
       "type": "Colossal Sword",
       "interval": 1.4,
-      "damage": 26.0
+      "damage": 30.0
     },
     {
       "name": "Colossal Terrorblade",
