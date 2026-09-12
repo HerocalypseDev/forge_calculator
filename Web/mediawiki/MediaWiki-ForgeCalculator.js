@@ -1564,6 +1564,9 @@
 
 
 
+  // UI validation ranges for the rune ability inputs (game rune ranges, not
+  // formula constants). Lightning mirrors the ore ramps the sheet uses for
+  // Kitsunite/Marblite: damage to 80%, chance to 60%, cooldown 0.3-5s.
   var ABILITY_RANGES = {
     fireDmg: { min: 1, max: 22, unit: 'pct' },
     fireChance: { min: 1, max: 50, unit: 'pct' },
@@ -1571,6 +1574,9 @@
     poisonDmg: { min: 1, max: 7, unit: 'pct' },
     poisonChance: { min: 1, max: 35, unit: 'pct' },
     poisonTime: { min: 1, max: 6, unit: 'sec' },
+    lightningDmg: { min: 1, max: 80, unit: 'pct' },
+    lightningChance: { min: 1, max: 60, unit: 'pct' },
+    lightningCooldown: { min: 0.3, max: 5, unit: 'sec' },
     blastDmg: { min: 1, max: 40, unit: 'pct' },
     blastChance: { min: 1, max: 20, unit: 'pct' }
   };
@@ -1602,6 +1608,9 @@
         (function (field) {
           var range = ABILITY_RANGES[field.key];
           var rangeHint = (range.unit === 'sec') ? (range.min + '-' + range.max + 's') : (range.min + '-' + range.max + '%');
+          // Fractional bounds (the lightning cooldown starts at 0.3s) need a
+          // matching step, or the spinner can only reach whole numbers.
+          var step = (range.min % 1 !== 0 || range.max % 1 !== 0) ? '0.1' : '1';
           var row = createEl('div', { class: 'fc-ability-row' });
           var label = createEl('label', { class: 'fc-ability-label', for: field.key }, [field.label]);
           var input = createEl('input', {
@@ -1609,7 +1618,7 @@
             class: 'fc-ability-input',
             id: field.key,
             value: currentValues[field.key] !== undefined ? currentValues[field.key] : '',
-            step: '1',
+            step: step,
             placeholder: rangeHint,
             title: field.label + ' (from runes). Typical range: ' + rangeHint + '. 0 = no ability.',
             inputmode: 'decimal'
@@ -1649,6 +1658,12 @@
       { key: 'poisonTime', label: 'Duration' }
     ]);
 
+    var lightningSection = createSection('Lightning', [
+      { key: 'lightningDmg', label: 'Damage' },
+      { key: 'lightningChance', label: 'Chance' },
+      { key: 'lightningCooldown', label: 'Cooldown' }
+    ]);
+
     var blastSection = createSection('Blast', [
       { key: 'blastDmg', label: 'Damage' },
       { key: 'blastChance', label: 'Chance' }
@@ -1656,13 +1671,14 @@
 
     fireSection.classList.add('fc-ability-section--fire');
     poisonSection.classList.add('fc-ability-section--poison');
+    lightningSection.classList.add('fc-ability-section--lightning');
     blastSection.classList.add('fc-ability-section--blast');
 
-    container.append(fireSection, blastSection, poisonSection);
+    container.append(fireSection, blastSection, poisonSection, lightningSection);
 
     container.setValues = function (values) {
       for (var key in values) { currentValues[key] = values[key]; }
-      var sections = [fireSection, poisonSection, blastSection];
+      var sections = [fireSection, poisonSection, lightningSection, blastSection];
       for (var i = 0; i < sections.length; i++) {
         var inputs = sections[i].querySelectorAll('.fc-ability-input');
         for (var j = 0; j < inputs.length; j++) {
@@ -2235,6 +2251,9 @@
         poisonDmg: getBuild().poisonDmg,
         poisonChance: getBuild().poisonChance,
         poisonTime: getBuild().poisonTime,
+        lightningDmg: getBuild().lightningDmg,
+        lightningChance: getBuild().lightningChance,
+        lightningCooldown: getBuild().lightningCooldown,
         blastDmg: getBuild().blastDmg,
         blastChance: getBuild().blastChance
       },
@@ -2327,6 +2346,9 @@
         poisonDmg: newBuild.poisonDmg,
         poisonChance: newBuild.poisonChance,
         poisonTime: newBuild.poisonTime,
+        lightningDmg: newBuild.lightningDmg,
+        lightningChance: newBuild.lightningChance,
+        lightningCooldown: newBuild.lightningCooldown,
         blastDmg: newBuild.blastDmg,
         blastChance: newBuild.blastChance
       });
@@ -2362,6 +2384,9 @@
     poisonDmg: 0,
     poisonChance: 0,
     poisonTime: 0,
+    lightningDmg: 0,
+    lightningChance: 0,
+    lightningCooldown: 0,
     blastDmg: 0,
     blastChance: 0,
     berserk: 0,
@@ -2439,6 +2464,9 @@
         poison_dmg: (Number(build.poisonDmg) || 0) / 100,
         poison_chance: (Number(build.poisonChance) || 0) / 100,
         poison_time: Number(build.poisonTime) || 0,
+        lightning_dmg: (Number(build.lightningDmg) || 0) / 100,
+        lightning_chance: (Number(build.lightningChance) || 0) / 100,
+        lightning_cooldown: Number(build.lightningCooldown) || 0,
         blast_dmg: (Number(build.blastDmg) || 0) / 100,
         blast_chance: (Number(build.blastChance) || 0) / 100
       },
