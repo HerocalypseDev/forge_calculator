@@ -47,7 +47,14 @@ export function createAbilityGrid({ values, onChange }) {
     { key: 'blastChance', label: 'Blast Chance', placeholder: '0', min: 0, step: '0.01', max: 1, tooltip: 'Blast proc chance (decimal)' },
   ], 'Note: Blast has no duration field (workbook quirk)');
 
-  container.append(fireSection, poisonSection, blastSection);
+  // Lightning section (no time)
+  const lightningSection = createSection('Lightning', [
+    { key: 'lightningDmg', label: 'Lightning DMG', placeholder: '0', min: 0, step: '0.01', tooltip: 'Lightning damage multiplier (decimal)' },
+    { key: 'lightningChance', label: 'Lightning Chance', placeholder: '0', min: 0, step: '0.01', max: 1, tooltip: 'Lightning proc chance (decimal, e.g., 0.25 = 25%)' },
+    { key: 'lightningCooldown', label: 'Lightning Cooldown (s)', placeholder: '0', min: 0, step: '0.01', tooltip: 'Minimum seconds between lightning procs' },
+  ]);
+
+  container.append(fireSection, poisonSection, blastSection, lightningSection);
 
   function createSection(title, fields, note = '') {
     const section = createEl('div', { class: CLASS_SECTION });
@@ -99,7 +106,7 @@ export function createAbilityGrid({ values, onChange }) {
 
   container.setValues = (values) => {
     Object.assign(currentValues, values);
-    for (const section of [fireSection, poisonSection, blastSection]) {
+    for (const section of [fireSection, poisonSection, blastSection, lightningSection]) {
       const inputs = section.querySelectorAll(`.${CLASS_INPUT}`);
       inputs.forEach(input => {
         const key = input.id;

@@ -90,6 +90,19 @@ function slotSum(slots, shares, game, stat) {
 }
 
 /**
+ * Min value for a stat across slots (or 0 if no slots)
+ * @param {OreSlot[]} slots
+ * @param {number[]} shares
+ * @param {GameData} game
+ * @param {string} stat
+ * @returns {number}
+ */
+function slotMin(slots, shares, game, stat) {
+  const vals = slotVals(slots, shares, game, stat);
+  return vals.length ? Math.min(...vals) : 0.0;
+}
+
+/**
  * Value of the FIRST slot holding `name` (C68 XLOOKUP; 0 when absent)
  * @param {OreSlot[]} slots
  * @param {number[]} shares
@@ -136,6 +149,9 @@ export function procComponents(build, shares, game) {
     smite_dmg: slotSum(build.slots, shares, game, 'smite_dmg') + (RACE_SMITE_DMG[build.race] ?? 0.0),
     smite_chance: Math.max(slotMax(build.slots, shares, game, 'smite_chance'), RACE_SMITE_CHANCE[build.race] ?? 0.0),
     blackhole_dmg: slotSum(build.slots, shares, game, 'blackhole_dmg'),
-    blackhole_chance: blackholeChance(build.slots, game)
+    blackhole_chance: blackholeChance(build.slots, game),
+    lightning_dmg: slotSum(build.slots, shares, game, 'lightning_dmg'),
+    lightning_chance: Math.max(slotMax(build.slots, shares, game, 'lightning_chance'), build.abilities.lightning_chance),
+    lightning_cooldown: slotMin(build.slots, shares, game, 'lightning_cooldown')
   };
 }

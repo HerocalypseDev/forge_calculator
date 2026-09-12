@@ -113,6 +113,9 @@
  * @property {number} smite_chance
  * @property {number} blackhole_dmg
  * @property {number} blackhole_chance
+ * @property {number} lightning_dmg
+ * @property {number} lightning_chance
+ * @property {number} lightning_dps
  * @property {number} weapon_dps
  * @property {number} explosion_dps
  * @property {number} fire_dps

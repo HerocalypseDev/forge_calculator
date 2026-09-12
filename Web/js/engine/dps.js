@@ -47,14 +47,20 @@ export function calculate(build, game) {
     : 0.0;
   const smite_dps = unforged * atkRate * procs.smite_dmg * Math.min(procs.smite_chance, 1);
   const blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * atkRate;
-  const total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps;
+  const lightningProcCap = procs.lightning_cooldown > 0
+    ? Math.min(atkRate, 1.0 / procs.lightning_cooldown)
+    : atkRate;
+  const lightning_dps = atkRate
+    ? unforged * procs.lightning_dmg * procs.lightning_chance * lightningProcCap
+    : 0.0;
+  const total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps;
 
   // C92 Berserk: E53 = C53 + Minotaur 30%
   const berserkLevel = build.berserk + (RACE_BERSERK[build.race] ?? 0.0);
   let berserk = null;
   if (berserkLevel !== 0) {
     const lethBoosted = Math.min(totals.lethality + berserkLevel, CAPS.lethality);
-    berserk = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps
+    berserk = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
       + forged * (1 + lethBoosted) * blend * atkRate;
   }
 
@@ -67,6 +73,7 @@ export function calculate(build, game) {
     + forged * procs.explosion_dmg * atkRate
     + forged * procs.fire_dmg
     + forged * procs.poison_dmg
+    + forged * procs.lightning_dmg * procs.lightning_chance * atkRate
     + procs.smite_dmg * forged
     + procs.blackhole_dmg * forged;
 

@@ -56,12 +56,19 @@ export function slotPower(slot, game) {
  * @returns {number}
  */
 export function avgOrePower(slots, game) {
-  const powers = slots.map(s => slotPower(s, game));
-  const total = slots.reduce((sum, s) => sum + s.amount, 0);
+  // Filter out Fichilliumorite slots to match workbook/MediaWiki behavior
+  const nonFichSlots = slots.filter(s => s.name !== 'Fichilliumorite');
+  const powers = nonFichSlots.map(s => slotPower(s, game));
+  const total = nonFichSlots.reduce((sum, s) => sum + s.amount, 0);
   if (total !== 0) {
-    return slots.reduce((sum, s, i) => sum + s.amount * powers[i], 0) / total;
+    return nonFichSlots.reduce((sum, s, i) => sum + s.amount * powers[i], 0) / total;
   }
-  return powers.length ? powers.reduce((a, b) => a + b, 0) / powers.length : 0.0;
+  // Fall back to simple average of non-Fichilliumorite multipliers
+  if (nonFichSlots.length > 0) {
+    return nonFichSlots.reduce((a, b) => a + b, 0) / nonFichSlots.length;
+  }
+  // Absolute fallback: 1.0
+  return 1.0;
 }
 
 /**

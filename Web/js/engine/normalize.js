@@ -59,7 +59,10 @@ export function normalizeBuild(build) {
       fire_time: num(b.abilities?.fire_time),
       poison_dmg: num(b.abilities?.poison_dmg),
       poison_chance: num(b.abilities?.poison_chance),
-      poison_time: num(b.abilities?.poison_time)
+      poison_time: num(b.abilities?.poison_time),
+      lightning_dmg: num(b.abilities?.lightning_dmg),
+      lightning_chance: num(b.abilities?.lightning_chance),
+      lightning_cooldown: num(b.abilities?.lightning_cooldown)
     },
     berserk: num(b.berserk),
     achievement: typeof b.achievement === 'string' ? b.achievement : ''
