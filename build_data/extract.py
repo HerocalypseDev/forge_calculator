@@ -19,12 +19,24 @@ from openpyxl import load_workbook
 from openpyxl.utils.cell import coordinate_to_tuple, range_boundaries
 
 from forge_calculator.parse import parse_ore_power, parse_trait
-from .formula_parser import STAT_CELLS, parse_stat_matrix
+from .formula_parser import LEGACY_STAT_CELLS, STAT_CELLS, parse_stat_matrix
 
 DPS_SHEET = "DPS Calculator"
 WEAPON_SHEET = "_Weapon"
 CRAFTER_SHEET = "_OptionsCrafter"
 OPTIONS_SHEET = "_Options"
+
+# Sheet ranges, as laid out in reall.xlsx.
+WEAPON_ROWS = (2, 81)          # _Weapon!B2:E81   (row 1 is the header)
+CRAFTER_ROWS = (56, 202)       # _OptionsCrafter!A56:F202
+#                              # (53 banner, 54 header, 55 the "Select Ore" sentinel)
+ACHIEVEMENT_CELL = "C85"       # DPS Calculator achievement selector
+
+# The ore attack-speed ramp was deleted from the DPS sheet between new.xlsx and
+# reall.xlsx (reall's C48 is a bare input).  The maintainer's call is that this
+# was a sheet regression, so the stat is still sourced -- from the prior
+# workbook, so it stays parsed rather than hand-typed.
+LEGACY_WORKBOOK = "new.xlsx"
 
 
 # --- small helpers ---
@@ -66,14 +78,46 @@ def _eval_excel_string_concat(s):
     return "".join(parts)
 
 
-def _validation_list(ws, target):
-    """Return the parsed item list of an inline data-validation covering target."""
+_RANGE_REF = re.compile(r"^(?:'?([^'!]+)'?!)?\$?([A-Z]{1,3})\$?(\d+):\$?([A-Z]{1,3})\$?(\d+)$")
+
+
+def _validation_list(ws, target, wb_v=None):
+    """Return the item list of a data-validation covering ``target``.
+
+    Handles both spellings the workbook uses: an inline quoted list
+    (``"a,b,c"``) and a range reference (``$F$12:$F$21``).  Resolving a range
+    needs the cached-value workbook, so ``wb_v`` must be supplied for those.
+    """
     f1 = _find_validation(ws, target)
     if not f1:
         return None
+    ref = _RANGE_REF.match(f1.strip().lstrip("="))
+    if ref and wb_v is not None:
+        sheet_name, c1, r1, c2, r2 = ref.groups()
+        src = wb_v[sheet_name] if sheet_name else wb_v[ws.title]
+        min_col, min_row, max_col, max_row = range_boundaries(f"{c1}{r1}:{c2}{r2}")
+        items = []
+        for row in src.iter_rows(
+            min_row=min_row, max_row=max_row, min_col=min_col, max_col=max_col
+        ):
+            for cell in row:
+                val = (str(cell.value).strip() if cell.value is not None else "")
+                if val and val not in items:
+                    items.append(val)
+        return items or None
     text = _eval_excel_string_concat(f1)
     items = [p.strip() for p in text.split(",") if p.strip()]
     return items or None
+
+
+def _formula_text(ws_f, coord):
+    """Formula string for ``coord``, unwrapping openpyxl's ArrayFormula.
+
+    Cells entered as dynamic-array formulas (C69's XLOOKUP/BYROW/LAMBDA) come
+    back as an ``ArrayFormula`` object whose ``.text`` holds the source.
+    """
+    val = ws_f[coord].value
+    return getattr(val, "text", val) or ""
 
 
 def _cell_text(ws_v, ws_f, coord):
@@ -94,10 +138,10 @@ def _cell_text(ws_v, ws_f, coord):
 
 
 def extract_weapons(ws_v):
-    """_Weapon!B2:E80 -> (weapons, types)."""
+    """_Weapon!B2:E81 -> (weapons, types)."""
     weapons = []
     types_ordered = []
-    for row in ws_v.iter_rows(min_row=2, max_row=80):
+    for row in ws_v.iter_rows(min_row=WEAPON_ROWS[0], max_row=WEAPON_ROWS[1]):
         wtype, name, interval, damage = row[1].value, row[2].value, row[3].value, row[4].value
         name = (name or "").strip()
         if not name:
@@ -116,9 +160,9 @@ def extract_weapons(ws_v):
 
 
 def extract_ores(ws_v):
-    """_OptionsCrafter!A56:F195 -> ore records (skips the A55 spacer)."""
+    """_OptionsCrafter!A56:F202 -> ore records (banner, header and sentinel skipped)."""
     ores = []
-    for row in ws_v.iter_rows(min_row=56, max_row=195):
+    for row in ws_v.iter_rows(min_row=CRAFTER_ROWS[0], max_row=CRAFTER_ROWS[1]):
         name = (row[0].value or "").strip()
         if not name:
             continue
@@ -197,8 +241,8 @@ def extract_runes(ws_v):
 
 
 def extract_achievements(ws_f):
-    """C80 data-validation list -> the 16 achievement-selector options."""
-    names = _validation_list(ws_f[DPS_SHEET], "C80") or []
+    """Achievement-selector data-validation list -> the selector options."""
+    names = _validation_list(ws_f[DPS_SHEET], ACHIEVEMENT_CELL) or []
     achievements = []
     for name in names:
         parsed = parse_trait(name)
@@ -220,6 +264,21 @@ def _signature(formulas):
 # --- main entry ---
 
 
+def _legacy_matrix(workbook_path):
+    """Parse the stats that only exist in the prior workbook (ore atk speed).
+
+    Returns ``{}`` when the legacy workbook is absent, so a checkout without it
+    still builds (minus ore attack speed).
+    """
+    legacy = Path(workbook_path).parent / LEGACY_WORKBOOK
+    if not legacy.exists():
+        return {}
+    wb = load_workbook(legacy, data_only=False)
+    dps = wb[DPS_SHEET]
+    formulas = {cell: _formula_text(dps, cell) for cell in LEGACY_STAT_CELLS}
+    return parse_stat_matrix(formulas, LEGACY_STAT_CELLS)
+
+
 def extract(workbook_path, out_dir, source_name=None):
     wb_f = load_workbook(workbook_path, data_only=False)
     wb_v = load_workbook(workbook_path, data_only=True)
@@ -234,12 +293,18 @@ def extract(workbook_path, out_dir, source_name=None):
     formulas = {}
     dps = wb_f[DPS_SHEET]
     for cell in STAT_CELLS:
-        formulas[cell] = dps[cell].value or ""
+        formulas[cell] = _formula_text(dps, cell)
     matrix = parse_stat_matrix(formulas)
 
+    # ore attack speed survives only in the prior workbook -- merge it in without
+    # letting it shadow anything the current workbook defines
+    for ore_name, stats in _legacy_matrix(workbook_path).items():
+        for stat, entry in stats.items():
+            matrix.setdefault(ore_name, {}).setdefault(stat, entry)
+
     # weapon-type validation lists (C12 / C23) -- preserved verbatim
-    types_from_c12 = _validation_list(dps, "C12")
-    race_bonus_types = _validation_list(dps, "C23")
+    types_from_c12 = _validation_list(dps, "C12", wb_v)
+    race_bonus_types = _validation_list(dps, "C23", wb_v)
     if not types_from_c12:
         types_from_c12 = derived_types
     if not race_bonus_types:
@@ -257,7 +322,7 @@ def extract(workbook_path, out_dir, source_name=None):
     (out / "weapons.json").write_text(
         json.dumps(
             {
-                "source": f"{WEAPON_SHEET}!C2:E80 (+ DPS C12/C23 validation lists)",
+                "source": f"{WEAPON_SHEET}!C2:E81 (+ DPS C12/C23 validation lists)",
                 "types": types_from_c12,
                 "race_bonus_types": race_bonus_types,
                 "weapons": weapons,
@@ -270,7 +335,9 @@ def extract(workbook_path, out_dir, source_name=None):
     (out / "ores.json").write_text(
         json.dumps(
             {
-                "source": f"{CRAFTER_SHEET}!A56:F195 + formulas C44..C75",
+                "source": f"{CRAFTER_SHEET}!A56:F202 + DPS stat formulas "
+                f"({min(STAT_CELLS)}..{max(STAT_CELLS)}) "
+                f"+ {LEGACY_WORKBOOK} C48 (ore atk speed)",
                 "select_ore": "Select Ore",
                 "formula_only_ores": formula_only,
                 "ores": ores,
@@ -307,7 +374,7 @@ def extract(workbook_path, out_dir, source_name=None):
     (out / "achievements.json").write_text(
         json.dumps(
             {
-                "source": "DPS Calculator C80 data-validation list",
+                "source": f"DPS Calculator {ACHIEVEMENT_CELL} data-validation list",
                 "achievements": achievements,
             },
             indent=2,

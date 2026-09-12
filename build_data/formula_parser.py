@@ -1,15 +1,27 @@
 """Extracts each ore's ``(base, max, divisor)`` from the workbook formulas.
 
-Those stats live only in the ~17 formula cells C44..C75, every one built from
-the same share-scaling expression per slot -- ``IF(share<0.1, 0,
-(base+(max-base)*MIN((share-0.1)/0.2, 1))/divisor)`` -- chained with ``IFS``
-and combined by SUM/MAX.  This walks the formula strings and pulls the triple
-out per ore; nothing is hand-typed, so the matrix is exactly what the formulas
-encode.
+Those stats live only in the ~18 stat cells of the ``DPS Calculator`` sheet,
+every one built from the same share-scaling expression per slot -- ``IF(share<0.1,
+0, (base+(max-base)*MIN((share-0.1)/0.2, 1))/divisor)`` -- combined per slot by
+``IFS`` / nested ``IF`` / ``OR`` groups and aggregated with SUM/MAX/MIN.  This
+walks the formula strings and pulls the triple out per ore; nothing is
+hand-typed, so the matrix is exactly what the formulas encode.
+
+The sheet uses four interchangeable spellings of the ramp, all handled here:
+
+* ``(base+(max-base)*MIN(...))/100``  -- most percent stats
+* ``(base+delta*MIN(...))/100``      -- C73 smite chance
+* ``(base+(max-base)*MIN(...))``     -- C64 fire duration (divisor 1)
+* ``base+delta*MIN(...)``            -- E80 lightning cooldown (no parens)
+
+Two per-ore modifiers are also captured when present:
+
+* ``gated`` -- False when the ``IF(share<0.1, 0, ...)`` guard is absent, so the
+  ore pays out below the usual 10% share (Kitsunite smite damage).
+* ``floor`` / ``ceiling`` -- from a ``MAX(f, MIN(c, ramp))`` clamp (same cell).
 
 Source-agnostic: it takes a ``{cell: formula}`` dict, so it can be fed from the
-workbook (authoritative) or either ``all_formulas*.txt`` dump (cross-check)
-and tested against both.
+workbook (authoritative) or a formula dump (cross-check).
 """
 
 from __future__ import annotations
@@ -21,31 +33,43 @@ __all__ = [
     "load_formulas_from_txt",
     "parse_stat_matrix",
     "STAT_CELLS",
+    "LEGACY_STAT_CELLS",
 ]
 
 
 # cell -> stat name.  This is the ONLY hardcoded table in the build; the values
-# themselves are always parsed from the formulas.
+# themselves are always parsed from the formulas.  Addresses are reall.xlsx.
 STAT_CELLS = {
-    "C44": "lethality",
-    "C45": "crit_chance",
-    "C46": "crit_dmg",
-    "C47": "atk_speed",
-    "C52": "moon",
-    "C57": "explosion_dmg",
-    "C58": "explosion_chance",
-    "C61": "fire_dmg",
-    "C62": "fire_chance",
-    "C63": "fire_duration",
-    "C66": "poison_dmg",
-    "C67": "poison_chance",
-    "C68": "poison_duration",
-    "C71": "smite_dmg",
-    "C72": "smite_chance",
-    "C75": "blackhole_dmg",
+    "C45": "lethality",
+    "C46": "crit_chance",
+    "C47": "crit_dmg",
+    "C53": "moon",
+    "C58": "explosion_dmg",
+    "C59": "explosion_chance",
+    "C62": "fire_dmg",
+    "C63": "fire_chance",
+    "C64": "fire_duration",
+    "C67": "poison_dmg",
+    "C68": "poison_chance",
+    "C69": "poison_duration",
+    "C72": "smite_dmg",
+    "C73": "smite_chance",
+    "C76": "blackhole_dmg",
+    "C80": "lightning_dmg",
+    "E80": "lightning_cooldown",
+    "C81": "lightning_chance",
 }
-# C76 (black-hole proc chance) is the constant IF(COUNTIF(...)>=0.1,0.3,0) and
+
+# C77 (black-hole proc chance) is the constant IF(COUNTIF(...)>=0.1,0.3,0) and
 # is handled directly in the engine, not in the matrix.
+
+# Ore attack speed: the C48 ramp existed in new.xlsx but was replaced by a bare
+# input cell in reall.xlsx.  Per the maintainer's call that deletion was a sheet
+# regression, so the stat is still sourced -- from the prior workbook, never
+# hand-typed.  See reference/new.xlsx.
+LEGACY_STAT_CELLS = {
+    "C48": "atk_speed",
+}
 
 
 _CELL_HEADER = re.compile(r"^\s*([A-Z]{1,3}[0-9]+):\s*$")
@@ -54,10 +78,10 @@ _CELL_HEADER = re.compile(r"^\s*([A-Z]{1,3}[0-9]+):\s*$")
 def load_formulas_from_txt(path):
     """Load ``{cell: formula}`` from a formula-dump text file.
 
-    Handles the format of ``all_formulas.txt`` / ``all_formulas_reference (1).txt``:
-    a cell header line (``  C58:``), then one or more indented formula lines
-    (multi-line formulas are rejoined with a single space), terminated by a
-    blank line.  Sheet banners (``SHEET: ...``) are skipped.
+    Handles the format of the ``all_formulas*.txt`` dumps: a cell header line
+    (``  C58:``), then one or more indented formula lines (multi-line formulas
+    are rejoined with a single space), terminated by a blank line.  Sheet
+    banners (``SHEET: ...``) are skipped.
     """
     formulas = {}
     current = None
@@ -89,114 +113,101 @@ def load_formulas_from_txt(path):
 
 def _normalize(s):
     """Collapse whitespace runs to single spaces (keeps string literals intact)."""
-    return re.sub(r"\s+", " ", s).strip()
+    return re.sub(r"\s+", " ", str(s)).strip()
 
 
-def _split_top_level(s):
-    """Split ``s`` on top-level commas (paren-depth 0), honoring quoted strings."""
-    parts = []
-    buf = []
-    depth = 0
-    in_str = False
-    i = 0
-    while i < len(s):
-        c = s[i]
-        if in_str:
-            buf.append(c)
-            if c == '"':
-                in_str = False
-        elif c == '"':
-            in_str = True
-            buf.append(c)
-        elif c == "(":
-            depth += 1
-            buf.append(c)
-        elif c == ")":
-            depth -= 1
-            buf.append(c)
-        elif c == "," and depth == 0:
-            parts.append("".join(buf).strip())
-            buf = []
-        else:
-            buf.append(c)
-        i += 1
-    if buf:
-        parts.append("".join(buf).strip())
-    return parts
+# A single slot test, e.g.  C6="Kitsunite"
+_ORE_TEST = re.compile(r'C[0-9]+\s*=\s*"([^"]+)"')
 
+# An OR(...) group of slot tests sharing one payload, e.g.
+#   OR(C6="Gargantuan",C6="Fireite")
+_OR_GROUP = re.compile(r'OR\(\s*(?:C[0-9]+\s*=\s*"[^"]+"\s*,?\s*)+\)')
 
-def _find_ifs_bodies(s):
-    """Return the argument-list bodies of every ``IFS(...)`` call in ``s``."""
-    bodies = []
-    i = 0
-    while True:
-        j = s.find("IFS(", i)
-        if j < 0:
-            break
-        k = j + 4
-        depth = 0
-        in_str = False
-        while k < len(s):
-            c = s[k]
-            if in_str:
-                if c == '"':
-                    in_str = False
-            elif c == '"':
-                in_str = True
-            elif c == "(":
-                depth += 1
-            elif c == ")":
-                if depth == 0:
-                    break
-                depth -= 1
-            k += 1
-        bodies.append(s[j + 4:k])
-        i = k + 1
-    return bodies
-
-
-_ORE_IN_COND = re.compile(r'C[0-9]+="([^"]+)"')
-
-# The shared scaling expression:  (base + (max-base)*MIN((Dn/SUM($D$6:$D$9)-0.1)/0.2,1)) [/100]
-_SCALE = re.compile(
-    r"\(\s*(?P<base>\d+(?:\.\d+)?)\s*\+\s*\(\s*(?P<max>\d+(?:\.\d+)?)"
-    r"\s*-\s*(?P=base)\s*\)\s*\*\s*MIN\s*\(\s*\(\s*D[0-9]+\s*/\s*SUM"
-    r"\(\$D\$6:\$D\$9\)\s*-\s*0\.1\s*\)\s*/\s*0\.2\s*,\s*1\s*\)\s*\)"
-    r"\s*(?P<div>/100)?"
+# The shared ramp.  ``share`` is either ``Dn/SUM($D$6:$D$9)`` (reall.xlsx),
+# ``Dn/SUM($D$6:$D$10)`` (new.xlsx had a 5th slot row) or ``row/SUM(...)``
+# inside a BYROW/LAMBDA.  Growth is written either as ``(max-base)`` or as a
+# bare ``delta``; the trailing ``/100`` marks a percent stat.
+_RAMP = re.compile(
+    r"(?P<base>-?\d+(?:\.\d+)?)\s*\+\s*"
+    r"(?:"
+    r"\(\s*(?P<max>-?\d+(?:\.\d+)?)\s*-\s*(?P<base2>-?\d+(?:\.\d+)?)\s*\)"
+    r"|"
+    r"(?P<delta>-?\d+(?:\.\d+)?)"
+    r")"
+    r"\s*\*\s*MIN\s*\(\s*\(\s*(?:D[0-9]+|row)\s*/\s*SUM\(\$D\$6:\$D\$(?:9|10)\)"
+    r"\s*-\s*0\.1\s*\)\s*/\s*0\.2\s*,\s*1\s*\)"
 )
 
-# C68-style: XLOOKUP("Ore", $C$6:$C$9, BYROW($D$6:$D$9, LAMBDA(row, IF(SUM=0,0,
-# IF(row/SUM<0.1,0, base+delta*MIN((row/SUM-0.1)/0.2,1)))))...).  The scale is a
-# base+delta literal instead of (base+(max-base)*...), so max = base + delta.
-_XLOOKUP_SCALE = re.compile(
-    r'XLOOKUP\(\s*"([^"]+)"\s*,\s*\$C\$6:\$C\$9\s*,\s*BYROW\(\s*\$D\$6:\$D\$9\s*,\s*'
-    r"LAMBDA\(\s*row\s*,\s*"
-    r"IF\(\s*SUM\(\$D\$6:\$D\$9\)\s*=\s*0\s*,\s*0\s*,\s*"
-    r"IF\(\s*row\s*/\s*SUM\(\$D\$6:\$D\$9\)\s*<\s*0\.1\s*,\s*0\s*,\s*"
-    r"(?P<base>\d+(?:\.\d+)?)\s*\+\s*(?P<delta>\d+(?:\.\d+)?)\s*\*\s*MIN\s*\("
-    r"\s*\(\s*row\s*/\s*SUM\(\$D\$6:\$D\$9\)\s*-\s*0\.1\s*\)\s*/\s*0\.2\s*,\s*1\s*\)"
-    r"(?P<div>/100)?",
-    re.S,
-)
+# ``IF(share<0.1, <miss>, ...)`` -- the 10% share gate.  The miss value is 0 for
+# every stat except lightning cooldown (E80), which uses 99 as its "no lightning"
+# sentinel; either way the ore contributes nothing below 10% share.
+_GATE = re.compile(r"<\s*0\.1\s*,\s*\d+(?:\.\d+)?\s*,")
+
+# ``MAX(floor, MIN(ceiling, ramp))`` -- Kitsunite's smite clamp.
+_CLAMP = re.compile(r"MAX\(\s*(?P<floor>\d+(?:\.\d+)?)\s*,\s*MIN\(\s*(?P<ceil>\d+(?:\.\d+)?)\s*,")
+
+# C69-style: XLOOKUP("Ore", $C$6:$C$9, BYROW($D$6:$D$9, LAMBDA(row, ...)))
+_XLOOKUP_NAME = re.compile(r'XLOOKUP\(\s*"([^"]+)"')
 
 
-def _extract_scale(value):
-    """Return ``{base, max, divisor}`` from a scaling expression, or ``None``."""
-    m = _SCALE.search(_normalize(value))
+def _divisor_after(text, end):
+    """100 if a ``/100`` follows the ramp (allowing the closing paren), else 1."""
+    return 100 if re.match(r"\s*\)?\s*/\s*100", text[end:end + 12]) else 1
+
+
+def _entry_from_payload(payload):
+    """Return ``{base, max, divisor[, gated, floor, ceiling]}`` or ``None``."""
+    m = _RAMP.search(payload)
     if not m:
         return None
-    return {
-        "base": float(m.group("base")),
-        "max": float(m.group("max")),
-        "divisor": 100 if m.group("div") else 1,
+    base = float(m.group("base"))
+    if m.group("max") is not None:
+        top = float(m.group("max"))
+    else:
+        top = base + float(m.group("delta"))
+    entry = {
+        "base": base,
+        "max": top,
+        "divisor": _divisor_after(payload, m.end()),
     }
+    head = payload[:m.start()]
+    if not _GATE.search(head):
+        entry["gated"] = False
+    clamp = _CLAMP.search(head)
+    if clamp:
+        entry["floor"] = float(clamp.group("floor"))
+        entry["ceiling"] = float(clamp.group("ceil"))
+    return entry
+
+
+def _name_groups(s):
+    """Ordered ``(names, payload_start)`` for every slot test in the formula.
+
+    ``OR(...)`` groups yield all their names against one payload; every other
+    slot test yields a single name.  Payloads run up to the next group.
+    """
+    groups = []
+    spans = []
+    for g in _OR_GROUP.finditer(s):
+        groups.append((_ORE_TEST.findall(g.group(0)), g.start(), g.end()))
+        spans.append((g.start(), g.end()))
+    for t in _ORE_TEST.finditer(s):
+        if any(lo <= t.start() < hi for lo, hi in spans):
+            continue  # already covered by an OR group
+        groups.append(([t.group(1)], t.start(), t.end()))
+    groups.sort(key=lambda g: g[1])
+    out = []
+    for idx, (names, _start, end) in enumerate(groups):
+        stop = groups[idx + 1][1] if idx + 1 < len(groups) else len(s)
+        out.append((names, end, stop))
+    return out
 
 
 def parse_stat_matrix(formulas, stat_cells=None):
-    """Derive ``{ore: {stat: {base, max, divisor}}}`` from formula strings.
+    """Derive ``{ore: {stat: {base, max, divisor, ...}}}`` from formula strings.
 
     ``formulas`` is ``{cell: formula_text}`` (load from the workbook with
-    ``data_only=False`` or from the txt dumps).  ``stat_cells`` defaults to
+    ``data_only=False``, or from a txt dump).  ``stat_cells`` defaults to
     ``STAT_CELLS``.
     """
     stat_cells = stat_cells or STAT_CELLS
@@ -206,22 +217,26 @@ def parse_stat_matrix(formulas, stat_cells=None):
         if not raw:
             continue
         s = _normalize(raw)
-        for body in _find_ifs_bodies(s):
-            args = _split_top_level(body)
-            for cond, value in zip(args[0::2], args[1::2]):
-                ores = _ORE_IN_COND.findall(cond)
-                if not ores:
-                    continue  # the TRUE,0 default pair
-                entry = _extract_scale(value)
-                if entry is None:
-                    continue
-                for ore in ores:
-                    matrix.setdefault(ore, {})[stat] = dict(entry)
-        for m in _XLOOKUP_SCALE.finditer(s):
-            base = float(m.group("base"))
-            matrix.setdefault(m.group(1), {})[stat] = {
-                "base": base,
-                "max": base + float(m.group("delta")),
-                "divisor": 100 if m.group("div") else 1,
-            }
+
+        for names, start, stop in _name_groups(s):
+            entry = _entry_from_payload(s[start:stop])
+            if entry is None:
+                continue
+            for ore in names:
+                prev = matrix.setdefault(ore, {}).get(stat)
+                if prev is not None and prev != entry:
+                    raise ValueError(
+                        f"{cell} ({stat}): conflicting ranges for {ore!r}: "
+                        f"{prev} vs {entry}"
+                    )
+                matrix[ore][stat] = dict(entry)
+
+        # XLOOKUP form (poison duration): the ore name is the lookup key and the
+        # ramp lives in the BYROW/LAMBDA body that follows it.
+        for m in _XLOOKUP_NAME.finditer(s):
+            entry = _entry_from_payload(s[m.end():])
+            if entry is None:
+                continue
+            matrix.setdefault(m.group(1), {})[stat] = dict(entry)
+
     return matrix

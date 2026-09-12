@@ -1,13 +1,11 @@
 {
-  "source": "_OptionsCrafter!A56:F195 + formulas C44..C75",
+  "source": "_OptionsCrafter!A56:F202 + DPS stat formulas (C45..E80) + new.xlsx C48 (ore atk speed)",
   "select_ore": "Select Ore",
-  "formula_only_ores": [
-    "Tigers Eye"
-  ],
+  "formula_only_ores": [],
   "ores": [
     {
       "name": "Graphite",
-      "equipment": "Armour",
+      "equipment": "Armor",
       "multiplier": 2.33,
       "trait10": null,
       "trait30": null,
@@ -16,7 +14,7 @@
     },
     {
       "name": "Aetherit",
-      "equipment": "Armour",
+      "equipment": "Armor",
       "multiplier": 2.55,
       "trait10": null,
       "trait30": null,
@@ -80,7 +78,7 @@
     },
     {
       "name": "Frogite",
-      "equipment": "Armour",
+      "equipment": "Armor",
       "multiplier": 6.2,
       "trait10": null,
       "trait30": null,
@@ -89,7 +87,7 @@
     },
     {
       "name": "Mosasaursit",
-      "equipment": "Armour",
+      "equipment": "Armor",
       "multiplier": 7.5,
       "trait10": null,
       "trait30": null,
@@ -127,7 +125,7 @@
     },
     {
       "name": "Velchire",
-      "equipment": "Armour",
+      "equipment": "Armor",
       "multiplier": 4.7,
       "trait10": null,
       "trait30": null,
@@ -136,7 +134,7 @@
     },
     {
       "name": "Sanctis",
-      "equipment": "Armour",
+      "equipment": "Armor",
       "multiplier": 5.0,
       "trait10": null,
       "trait30": null,
@@ -232,7 +230,7 @@
     },
     {
       "name": "Etherealite",
-      "equipment": "Armour",
+      "equipment": "Armor",
       "multiplier": 8.5,
       "trait10": null,
       "trait30": null,
@@ -241,7 +239,7 @@
     },
     {
       "name": "Duranite",
-      "equipment": "Armour",
+      "equipment": "Armor",
       "multiplier": 9.0,
       "trait10": null,
       "trait30": null,
@@ -268,7 +266,7 @@
     },
     {
       "name": "Heart of the Island",
-      "equipment": "Armour",
+      "equipment": "Armor",
       "multiplier": 13.0,
       "trait10": null,
       "trait30": null,
@@ -457,6 +455,11 @@
       "trait30": "7.5% Attack Speed | +5% Lethality | +5% Swiftness | -10% Vitality",
       "comments": "All effects stack with all similar effects",
       "stats": {
+        "lethality": {
+          "base": 0.5,
+          "max": 5.0,
+          "divisor": 100
+        },
         "atk_speed": {
           "base": 0.75,
           "max": 7.5,
@@ -1313,7 +1316,7 @@
     },
     {
       "name": "Yang",
-      "equipment": "Weapon",
+      "equipment": "Weapons",
       "multiplier": 13.0,
       "trait10": "+4% Critical Chance | +1.8% Critical Damage",
       "trait30": "+40% Critical Chance | +18% Critical Damage",
@@ -1438,12 +1441,28 @@
     },
     {
       "name": "Marblite",
-      "equipment": null,
+      "equipment": "Weapons",
       "multiplier": 18.0,
-      "trait10": null,
-      "trait30": null,
+      "trait10": "4% chance to deal 6% weapon damage Has cooldown of 0.5s",
+      "trait30": "40% chance to deal 60% weapon damage Has cooldown of 5s",
       "comments": null,
-      "stats": {}
+      "stats": {
+        "lightning_dmg": {
+          "base": 6.0,
+          "max": 60.0,
+          "divisor": 100
+        },
+        "lightning_cooldown": {
+          "base": 0.5,
+          "max": 5.0,
+          "divisor": 1
+        },
+        "lightning_chance": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        }
+      }
     },
     {
       "name": "Matter",
@@ -1483,7 +1502,7 @@
     },
     {
       "name": "Wolfarite",
-      "equipment": "Weapon",
+      "equipment": "Weapons",
       "multiplier": 15.48,
       "trait10": "+0.8% Attack Speed | +1.5% Lethality | +0.6% Swiftness | -0.8% Vitality",
       "trait30": "+8% Attack Speed | +15% Lethality | +6% Swiftness | -8% Vitality",
@@ -1503,7 +1522,7 @@
     },
     {
       "name": "Supermassive Black Hole",
-      "equipment": "Weapon",
+      "equipment": "Weapons",
       "multiplier": 18.0,
       "trait10": "4.5% Chance for 6.5% weapon damage AOE Explosion | Deals 5% of weapon damage as fire per second for 0.5s (4.5% chance)",
       "trait30": "45% Chance for 65% weapon damage AOE Explosion | Deals 50% of weapon damage as fire per second for 5s (45% chance)",
@@ -1580,6 +1599,150 @@
           "divisor": 100
         }
       }
+    },
+    {
+      "name": "Fierce Jade",
+      "equipment": "Weapons",
+      "multiplier": 17.0,
+      "trait10": "+3.5% Physical Damage and +3.5% Movement Speed for 1 second when HP drops below 35% | +3.5% Critical Chance | +2% Critical Damage | +2% Lethality",
+      "trait30": "+35% Physical Damage and +35% Movement Speed for 10 seconds when HP drops below 35% | +35% Critical Chance | +20% Critical Damage | +20% Lethality",
+      "comments": null,
+      "stats": {
+        "lethality": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "crit_chance": {
+          "base": 3.5,
+          "max": 35.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "atk_speed": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Aether Lotus",
+      "equipment": "Armor",
+      "multiplier": 18.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Zephyte",
+      "equipment": "Armor",
+      "multiplier": 18.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Vanegos",
+      "equipment": "Weapons",
+      "multiplier": 19.5,
+      "trait10": "+4% Lethality",
+      "trait30": "+40% Lethality",
+      "comments": null,
+      "stats": {
+        "lethality": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Vooite",
+      "equipment": "Armor",
+      "multiplier": 21.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Kitsunite",
+      "equipment": "Weapons",
+      "multiplier": 27.5,
+      "trait10": "6% chance to deal 8% weapon damage up to 5 enemies 0.3s cooldown| +5% of weapon damage done as smite, 5% chance on hit | Deals 4% of weapon damage as fire per second for 0.5s (5% chance) | 4% Chance for 7% weapon damage AOE Explosion",
+      "trait30": "60% chance to deal 80% weapon damage up to 5 enemies 3s cooldown| +50% of weapon damage done as smite, 50% chance on hit | Deals 40% of weapon damage as fire per second for 5s (50% chance) | 40% Chance for 70% weapon damage AOE Explosion",
+      "comments": null,
+      "stats": {
+        "explosion_dmg": {
+          "base": 7.0,
+          "max": 70.0,
+          "divisor": 100
+        },
+        "explosion_chance": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        },
+        "fire_dmg": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        },
+        "fire_chance": {
+          "base": 5.0,
+          "max": 50.0,
+          "divisor": 100
+        },
+        "fire_duration": {
+          "base": 0.5,
+          "max": 5.0,
+          "divisor": 1
+        },
+        "smite_dmg": {
+          "base": 2.5,
+          "max": 50.0,
+          "divisor": 100,
+          "gated": false,
+          "floor": 0.05,
+          "ceiling": 0.5
+        },
+        "smite_chance": {
+          "base": 5.0,
+          "max": 50.0,
+          "divisor": 100
+        },
+        "lightning_dmg": {
+          "base": 8.0,
+          "max": 80.0,
+          "divisor": 100
+        },
+        "lightning_cooldown": {
+          "base": 0.3,
+          "max": 3.0,
+          "divisor": 1
+        },
+        "lightning_chance": {
+          "base": 6.0,
+          "max": 60.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Fichilliumorite",
+      "equipment": null,
+      "multiplier": 1.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
     }
   ]
 }

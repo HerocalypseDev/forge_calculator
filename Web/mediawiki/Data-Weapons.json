@@ -1,5 +1,5 @@
 {
-  "source": "_Weapon!C2:E81",
+  "source": "_Weapon!C2:E81 (+ DPS C12/C23 validation lists)",
   "types": [
     "Dagger",
     "Straight Sword",
@@ -83,8 +83,8 @@
     {
       "name": "Tanto",
       "type": "Dagger",
-      "interval": 0.47,
-      "damage": 4.73
+      "interval": 0.39,
+      "damage": 4.95
     },
     {
       "name": "Falchion",

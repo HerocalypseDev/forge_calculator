@@ -39,11 +39,25 @@ vm.runInContext(instrumented, sandbox, { filename: 'MediaWiki-ForgeCalculator.js
 const FC = sandbox.__FC;
 
 const loadJSON = (n) => JSON.parse(fs.readFileSync(path.join(HERE, n), 'utf8'));
-// FC_ORES=<path> swaps in a corrected ore catalog, to separate data drift from
+// FC_ORES=<path> swaps in a different ore catalog, to separate data drift from
 // genuine formula bugs.
 const ORES = process.env.FC_ORES
   ? JSON.parse(fs.readFileSync(process.env.FC_ORES, 'utf8'))
   : loadJSON('Data-Ores.json');
+
+// reall.xlsx deleted the ore attack-speed ramp (its C48 is a bare input), but the
+// maintainer's call was that this was a sheet regression, so the engine keeps
+// deriving atk_speed from ores (sourced from new.xlsx C48).  That is a deliberate,
+// permanent deviation: any build holding Fierce Jade / Tiger's Eye / Wolfarite /
+// Yeti Heart gets a higher E48 than this workbook computes, which cascades into
+// every DPS cell.  Strip it here so this harness measures FORMULA fidelity
+// against the cached values rather than re-reporting that known deviation.
+// FC_KEEP_ATK_SPEED=1 leaves it in, to see the size of the divergence.
+if (!process.env.FC_KEEP_ATK_SPEED) {
+  for (const ore of (ORES.ores || ORES)) {
+    if (ore.stats) { delete ore.stats.atk_speed; }
+  }
+}
 const game = FC.buildGameData({
   ores: ORES,
   weapons: loadJSON('Data-Weapons.json'),
