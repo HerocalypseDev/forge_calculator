@@ -14,8 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - When a workbook cell reference genuinely needs recording, put it in a **name**
   (`blackholeRateFloor`) rather than a comment, or document it in `CLAUDE.md` under the
   domain-model / quirks sections.
-- Python files are not exempt from the spirit of this, but the rule as stated is about
-  code comments; existing Python docstrings may stay.
+- This applies to every language in the repo, Python included — no `#` comments either.
+  Existing Python docstrings may stay where they are, but don't add new ones.
 
 ### MediaWiki only (hard requirement)
 - **The only calculator that is still maintained is the MediaWiki one.** Confine all
