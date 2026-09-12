@@ -1,0 +1,181 @@
+/**
+ * Aggregate-formula check for the MediaWiki engine vs reall.xlsx.
+ *
+ * C97/C98/C101 are defined purely in terms of other cells, so this transcribes
+ * each workbook formula literally over the engine's OWN component values and
+ * compares it to what the engine returns for that cell. Any gap is a formula
+ * bug in the aggregate, independent of the ore data. Dev-only audit harness.
+ */
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const HERE = __dirname;
+const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
+const marker = 'var DATA_TITLES = {';
+const blockStart = SRC.lastIndexOf('\n', SRC.indexOf(marker)) + 1;
+const instrumented = SRC.slice(0, blockStart) +
+  '  globalThis.__FC = { calculate: calculate, buildGameData: buildGameData };\n' +
+  SRC.slice(blockStart);
+
+const mw = {
+  config: { get: () => '/w' }, loader: { using: () => Promise.resolve() },
+  log: () => {}, Api: function () {}, hook: () => ({ fire: () => {} })
+};
+const sandbox = {
+  console: console, setTimeout: setTimeout, clearTimeout: clearTimeout, window: null,
+  document: { readyState: 'complete', getElementById: () => null, addEventListener: () => {} }
+};
+sandbox.window = sandbox;
+sandbox.window.mediaWiki = mw;
+vm.createContext(sandbox);
+vm.runInContext(instrumented, sandbox, { filename: 'MediaWiki-ForgeCalculator.js' });
+const FC = sandbox.__FC;
+
+const loadJSON = (n) => JSON.parse(fs.readFileSync(path.join(HERE, n), 'utf8'));
+const ORES = process.env.FC_ORES
+  ? JSON.parse(fs.readFileSync(process.env.FC_ORES, 'utf8'))
+  : loadJSON('Data-Ores.json');
+const game = FC.buildGameData({
+  ores: ORES, weapons: loadJSON('Data-Weapons.json'), races: loadJSON('Data-Races.json'),
+  runes: loadJSON('Data-Runes.json'), achievements: loadJSON('Data-Achievements.json')
+});
+
+function mk(over) {
+  return Object.assign({
+    slots: [
+      { name: 'Fierce Jade', amount: 15 }, { name: 'Kitsunite', amount: 20 },
+      { name: 'Galaxite', amount: 15 }, { name: 'Select Ore', amount: 0 }
+    ],
+    weapon_name: 'Hook Blade', quality: 100, forge_level: 9,
+    race: 'Archangel', bonus_weapon_type: 'Dagger',
+    rune_cells: ['None', 'None', 'None', 'None', 'None', 'None'],
+    base_crit_chance: 0, base_crit_dmg: 1.45,
+    armor_crit_chance: 0.7, armor_crit_dmg: 0.4, armor_lethality: 0.8, base_lethality: 0,
+    abilities: {
+      fire_dmg: 0, fire_chance: 0, fire_time: 0, poison_dmg: 0, poison_chance: 0,
+      poison_time: 0, lightning_dmg: 0, lightning_chance: 0, lightning_cooldown: 0,
+      blast_dmg: 0, blast_chance: 0
+    },
+    berserk: 0, achievement: 'Attack Speed +20%'
+  }, over);
+}
+
+const rows = [];
+function check(label, workbook, engine) {
+  const ok = Math.abs(workbook - engine) <= 1e-6 * Math.max(1, Math.abs(workbook));
+  rows.push([label, workbook, engine, ok]);
+}
+
+// ---------------- C97  TOTAL BERSERK DPS ----------------
+// =((E19 * (1 + C54)) * E21) + SUM(C90:C94) + E94
+// E19*E21 is exactly C89 (physical hit DPS), so the workbook reduces to
+//   C89*(1+C54) + explosion + fire + poison + smite + blackhole + lightning
+{
+  const C54 = 0.30;                       // manual Berserk input, 30%
+  const r = FC.calculate(mk({ berserk: C54 }), game);
+  const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
+                  r.blackhole_dps + r.lightning_dps;
+  const workbook = r.weapon_dps * (1 + C54) + procSum;
+  check('C97  berserk DPS (C54=30%)', workbook, r.berserk);
+}
+
+// Minotaur: workbook C97 still uses bare C54 (E54 = C54 + Minotaur 30% feeds the
+// *display* cell, not C97), so a Minotaur with C54=0 gets no berserk multiplier.
+{
+  const r = FC.calculate(mk({ race: 'Minotaur', bonus_weapon_type: 'Dagger', berserk: 0 }), game);
+  const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
+                  r.blackhole_dps + r.lightning_dps;
+  const workbook = r.weapon_dps * (1 + 0) + procSum;   // C54 = 0
+  check('C97  berserk DPS (Minotaur, C54=0)', workbook,
+        r.berserk === null ? workbook : r.berserk);
+}
+
+// ---------------- C98  TOTAL MOON STONE DPS ----------------
+// =IF(C53=0, C96, (C89 * (1 + C53)) + C90 + C91 + C92 + C93 + C94 + E94)
+{
+  const r = FC.calculate(mk({
+    slots: [
+      { name: 'Moon Stone', amount: 20 }, { name: 'Kitsunite', amount: 20 },
+      { name: 'Galaxite', amount: 10 }, { name: 'Select Ore', amount: 0 }
+    ]
+  }), game);
+  const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
+                  r.blackhole_dps + r.lightning_dps;
+  const workbook = r.moon === 0
+    ? r.total_dps
+    : r.weapon_dps * (1 + r.moon) + procSum;
+  check('C98  moon stone DPS', workbook, r.moonstone === null ? r.total_dps : r.moonstone);
+}
+
+// ---------------- C101 Max Burst DPS ----------------
+// =C18*(1+E45)*(C21+E47)*E21 + C18*C58*E21 + C18*C62 + C18*C67
+//   + C72*C18 + C76*C18 + C80
+// Note the final term is a bare +C80 (lightning DMG %), NOT scaled by C18/E21.
+{
+  const r = FC.calculate(mk(), game);
+  const C18 = r.forged_damage, E21 = r.attack_rate;
+  const workbook =
+    C18 * (1 + r.lethality) * (1.45 + r.crit_dmg) * E21 +
+    C18 * r.explosion_dmg * E21 +
+    C18 * r.fire_dmg +
+    C18 * r.poison_dmg +
+    r.smite_dmg * C18 +
+    r.blackhole_dmg * C18 +
+    r.lightning_dmg;
+  check('C101 max burst DPS', workbook, r.max_dps);
+}
+
+// ---------------- C59  Explosion proc chance ----------------
+// =SUM(IFS(slot1), IFS(slot2), IFS(slot3), IFS(slot4), D37)  -- additive
+// Two explosion ores at >=30% share each should ADD, not collapse to the max.
+{
+  const r = FC.calculate(mk({
+    slots: [
+      { name: 'Magmaite', amount: 25 },   // explosion_chance 2 -> 20
+      { name: 'Meteorite', amount: 25 },  // explosion_chance 2.5 -> 25
+      { name: 'Select Ore', amount: 0 }, { name: 'Select Ore', amount: 0 }
+    ]
+  }), game);
+  const magma = ORES_stat('Magmaite', 'explosion_chance');
+  const meteor = ORES_stat('Meteorite', 'explosion_chance');
+  check('C59  explosion chance (2 ores, additive)', magma + meteor, r.explosion_chance);
+}
+
+function ORES_stat(name, stat) {
+  const list = ORES.ores || ORES;
+  const o = list.find((x) => x.name === name);
+  const rng = o && o.stats && o.stats[stat];
+  if (!rng) { return 0; }
+  return rng.max / (rng.divisor || 100);   // both ores at 50% share -> fully ramped
+}
+
+// ---------------- C73  Smite chance: ores MAX, then race ADDED ----------------
+// =MAX(slot1..slot4) + IFS(C22="Angel",0.5, C22="Archangel",0.33, TRUE,0)
+{
+  const r = FC.calculate(mk({
+    slots: [
+      { name: 'Heavenite', amount: 30 },  // smite_chance 4 -> 40
+      { name: 'Select Ore', amount: 0 }, { name: 'Select Ore', amount: 0 },
+      { name: 'Select Ore', amount: 0 }
+    ],
+    race: 'Archangel'
+  }), game);
+  check('C73  smite chance (Heavenite + Archangel)',
+        ORES_stat('Heavenite', 'smite_chance') + 0.33, r.smite_chance);
+}
+
+console.log('cell / formula                          workbook         engine    status');
+console.log('-'.repeat(78));
+let fails = 0;
+for (const [label, w, e, ok] of rows) {
+  if (!ok) { fails++; }
+  console.log(label.padEnd(38), w.toFixed(6).padStart(14),
+    Number(e).toFixed(6).padStart(14), ok ? '  ok' : '  <-- MISMATCH');
+}
+console.log('-'.repeat(78));
+console.log(fails === 0 ? 'AGGREGATES MATCH reall.xlsx'
+  : fails + ' of ' + rows.length + ' aggregate formulas diverge');
+process.exit(fails ? 1 : 0);
