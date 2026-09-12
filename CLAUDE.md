@@ -4,6 +4,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Permanent rules
 
+### No comments in code (hard requirement)
+- **Never write comments.** No `//`, no `/* */`, no JSDoc, no docstring-style block
+  headers — in any code you write or edit. This applies to new files as well as edits
+  to existing ones.
+- Do not reintroduce comments that have been stripped, and do not add one to explain a
+  tricky line. Make the code self-explanatory instead: name things clearly, pull a
+  confusing expression into a well-named variable or helper.
+- When a workbook cell reference genuinely needs recording, put it in a **name**
+  (`blackholeRateFloor`) rather than a comment, or document it in `CLAUDE.md` under the
+  domain-model / quirks sections.
+- Python files are not exempt from the spirit of this, but the rule as stated is about
+  code comments; existing Python docstrings may stay.
+
+### MediaWiki only (hard requirement)
+- **The only calculator that is still maintained is the MediaWiki one.** Confine all
+  changes to `Web/mediawiki/` and its data files.
+- The standalone web app (`Web/js/`, `Web/css/`, `Web/index.html`) and the
+  Python/Tkinter desktop app (`forge_calculator/gui/`, `scripts/smoke_gui.py`) are
+  **retired**. Do not add features to them, port fixes into them, or update them to
+  track the workbook.
+- `forge_calculator/engine.py`, `forge_calculator/data.py` and `tests/` are **still in
+  scope** — they are the tested reference the MediaWiki engine is verified against
+  (`fuzz_verify.js` diffs JS against the Python engine), not part of the desktop app.
+  Keep them correct.
+- `build_data/` and `scripts/build_data.py` stay in scope: they generate the data the
+  MediaWiki calculator ships.
+- If a change would require touching a retired file, say so and stop rather than
+  editing it.
+
 ### Automated GitHub sync
 - **Core directive:** Always execute this workflow automatically. Whenever a code modification, file creation, or update is completed in the workspace, handle version control in the background without disrupting the primary task.
 - **Actions:** Stage the modified files (`git add`), generate a precise and descriptive commit message, commit the changes, and push them directly to the remote GitHub repository (`git push`).
@@ -47,12 +76,29 @@ to its own row. The engines use `fire_time`, i.e. the `E34` reading.
 
 ## Project overview
 
-`forge_calculator` is a Python/Tkinter desktop app that reproduces "LittleTimmy's DPS Calculator", an Excel workbook computing DPS for a game's forge/weapon system. The engine, data, and GUI are complete:
+`forge_calculator` reproduces "LittleTimmy's DPS Calculator", an Excel workbook
+computing DPS for a game's forge/weapon system. **The shipping product is the MediaWiki
+calculator**; see the "MediaWiki only" rule above.
 
-- **Engine** (`forge_calculator/engine.py`) — pure, headless, fully tested. `calculate(build, game)` → every workbook cell (E10…E101).
-- **Data** (`forge_calculator/data.py`, `data/*.json`) — committed JSON is the runtime source of truth; counts validated against the workbook (147 ores / 80 weapons / 16 races / 47 runes / 16 achievements).
-- **GUI** (`forge_calculator/gui/`) — ttk.Notebook: interactive Calculator tab + browse-only Ores/Races/Weapons/Achievements/Runes tabs.
-- **Build** (`build_data/`, `scripts/build_data.py`) — openpyxl extraction → JSON. Dev-only; never imported at runtime.
+Maintained:
+- **MediaWiki calculator** (`Web/mediawiki/`) — `MediaWiki-ForgeCalculator.js` is the
+  whole app as one IIFE (engine + data loader + UI), deployed as `MediaWiki:ForgeCalculator.js`
+  and imported from `MediaWiki:Common.js`. Styles in `Template-ForgeCalculator-styles.css`,
+  data in `Data-*.json`. Deploy steps in `Web/mediawiki/DEPLOY.md`.
+- **Reference engine** (`forge_calculator/engine.py`) — pure, headless, fully tested.
+  `calculate(build, game)` → every workbook cell (E10…E101). Not part of any shipped UI:
+  it exists so `fuzz_verify.js` can differentially verify the MediaWiki engine against it.
+- **Data** (`forge_calculator/data.py`, `data/*.json`) — committed JSON is the source of
+  truth; counts validated against the workbook (147 ores / 80 weapons / 16 races /
+  47 runes / 16 achievements). Copied to `Web/data/` and `Web/mediawiki/Data-*.json`.
+- **Build** (`build_data/`, `scripts/build_data.py`) — openpyxl extraction → JSON.
+  Dev-only; never imported at runtime.
+
+Retired — do not maintain:
+- **Standalone web app** (`Web/js/`, `Web/css/`, `Web/index.html`). Its engine modules
+  still carry the parity harnesses, so leave them runnable, but add nothing.
+- **Python/Tkinter desktop app** (`forge_calculator/gui/`, `forge_calculator/app.py`,
+  `scripts/smoke_gui.py`).
 
 Workbook sheets:
 - **DPS Calculator** — the main calculation sheet (cells C6–E101).
@@ -90,32 +136,45 @@ Workbook sheets:
 ## Commands
 
 ```bash
-python -m forge_calculator            # run the app (stdlib-only)
 python -m pytest tests/               # 82 tests (engine/golden/parser/data)
-python scripts/smoke_gui.py           # real-GUI smoke: Golden-1 labels + all tabs
 pip install -e .[build]               # dev: add openpyxl
 python -m scripts.build_data          # regenerate data/*.json from reall.xlsx
 ```
 
-Workbook verification (dev-only; all three engines replay the workbook's own
-saved build and diff against its cached values):
+After a data rebuild, copy `data/*.json` to `Web/data/` and to
+`Web/mediawiki/Data-*.json` (capitalised names) — the MediaWiki calculator ships those.
+
+Workbook verification — the engines replay the workbook's own saved build and diff
+against its cached values:
 
 ```bash
-python scripts/reall_parity.py                        # Python engine   -> 37 cells
 node Web/mediawiki/reall-golden.js                    # MediaWiki IIFE  -> 37 cells
-node Web/js/engine/reall-golden.test.mjs              # standalone ESM  -> 37 cells
 node Web/mediawiki/reall-aggregates.js                # C97/C98/C101/C59/C73
-python scripts/audit_reall.py reference/reall.xlsx data/ores.json
 node Web/mediawiki/verify-engine.js                   # goldens vs tests/test_golden.py
 node Web/mediawiki/fuzz_verify.js                     # 250 builds JS <-> Python
 python Web/mediawiki/fuzz_gen.py                      # regenerate fuzz-cases.json
+python scripts/reall_parity.py                        # reference engine -> 37 cells
+python scripts/audit_reall.py reference/reall.xlsx data/ores.json
 ```
 
-After changing any engine, rerun `fuzz_gen.py` *then* `fuzz_verify.js` — the
-cases file stores Python results, so a stale one compares against the old engine.
+Every MediaWiki UI change should also keep the focused tests green:
+
+```bash
+node Web/mediawiki/ability-inputs-test.js   node Web/mediawiki/results-panel-test.js
+node Web/mediawiki/ore-slot-test.js         node Web/mediawiki/bonus-derive-test.js
+node Web/mediawiki/armor-stats-test.js      node Web/mediawiki/berserk-input-test.js
+node Web/mediawiki/no-ore-weapon-test.js
+```
+
+After changing either engine, rerun `fuzz_gen.py` *then* `fuzz_verify.js` — the
+cases file stores reference-engine results, so a stale one compares against the old engine.
 
 A rebuild is only trustworthy if `audit_reall.py` comes back with just the four
 intended ore `atk_speed` rows (approved deviation 1).
+
+Retired, kept only as parity harnesses: `node Web/js/engine/reall-golden.test.mjs`,
+`node Web/js/engine/normalize.test.mjs`. `scripts/smoke_gui.py` drives the retired
+desktop GUI and no longer needs to pass for a MediaWiki change.
 
 No linter or formatter is configured.
 
