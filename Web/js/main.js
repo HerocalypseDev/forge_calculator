@@ -1,7 +1,3 @@
-/** Main Application Entry Point
- * Initializes data, UI, and wiring
- * @module main
- */
 
 import { loadGameData } from './data/loader.js';
 import { createAppLayout } from './components/AppLayout.js';
@@ -9,7 +5,6 @@ import { createInputPanel } from './components/InputPanel.js';
 import { createResultsPanel } from './components/ResultsPanel.js';
 import { calculate } from './engine/index.js';
 
-// Default build state
 const DEFAULT_BUILD = {
   oreSlots: [
     { name: 'None', amount: 0 },
@@ -37,7 +32,6 @@ const DEFAULT_BUILD = {
   achievements: []
 };
 
-// LocalStorage key
 const STORAGE_KEY = 'forge-calculator-build';
 
 let gameData = null;
@@ -45,19 +39,13 @@ let currentBuild = { ...DEFAULT_BUILD };
 let inputPanel = null;
 let resultsPanel = null;
 
-/**
- * Initialize the application
- */
 async function init() {
   try {
-    // Load game data
     gameData = await loadGameData();
 
-    // Create layout
     const { root, left, right } = createAppLayout();
     document.body.appendChild(root);
 
-    // Create panels
     inputPanel = createInputPanel({
       data: gameData,
       build: currentBuild,
@@ -69,13 +57,10 @@ async function init() {
     resultsPanel = createResultsPanel();
     right.appendChild(resultsPanel);
 
-    // Load saved build from localStorage
     loadBuildFromStorage();
 
-    // Initial calculation
     recalculate();
 
-    // Setup global handlers
     setupGlobalHandlers();
 
     console.log('Forge Calculator initialized');
@@ -85,35 +70,17 @@ async function init() {
   }
 }
 
-/**
- * Handle build changes from input panel
- * @param {Object} newBuild
- */
 function handleBuildChange(newBuild) {
-  // Inputs only update pending state — results are recomputed when the
-  // "Calculate DPS" button is pressed.
   currentBuild = { ...newBuild };
   saveBuildToStorage();
 }
 
-/**
- * Auto-detect the race/class weapon-type bonus from the selected weapon's type
- * (workbook E44/E47 check C23 = bonus type, which now always equals the
- * equipped weapon's type). Empty when no weapon is selected.
- * @param {Object} build - Build in InputPanel format
- * @returns {string}
- */
 function deriveBonusType(build) {
   if (!gameData || !build.weaponName || build.weaponName === gameData.constants.noneLabel) return '';
   const weapon = gameData._weapon_index.get(build.weaponName);
   return weapon ? weapon.type : '';
 }
 
-/**
- * Transform build from InputPanel format (camelCase) to Engine format (snake_case)
- * @param {Object} build - Build in InputPanel format
- * @returns {Object} Build in Engine format
- */
 function transformBuildForEngine(build) {
   return {
     slots: build.oreSlots.map(s => ({ name: s.name, amount: Number(s.amount) || 0 })),
@@ -124,11 +91,11 @@ function transformBuildForEngine(build) {
     bonus_weapon_type: deriveBonusType(build),
     rune_cells: build.runes || [],
     base_crit_chance: 0,
-    base_crit_dmg: 1.45, // workbook C21 base crit damage (145% crits before bonuses)
+    base_crit_dmg: 1.45,
     armor_crit_chance: Number(build.armorCritChance) || 0,
     armor_crit_dmg: Number(build.armorCritDmg) || 0,
     armor_lethality: Number(build.armorLethality) || 0,
-    base_lethality: 0, // Not in InputPanel
+    base_lethality: 0,
     abilities: {
       fire_dmg: Number(build.fireDmg) || 0,
       fire_chance: Number(build.fireChance) || 0,
@@ -139,14 +106,11 @@ function transformBuildForEngine(build) {
       blast_dmg: Number(build.blastDmg) || 0,
       blast_chance: Number(build.blastChance) || 0
     },
-    berserk: 0, // Not in InputPanel
-    achievement: (build.achievements || []).join(', ') // Engine expects string
+    berserk: 0,
+    achievement: (build.achievements || []).join(', ')
   };
 }
 
-/**
- * Perform calculation and update results
- */
 function recalculate() {
   if (!gameData) return;
 
@@ -160,9 +124,6 @@ function recalculate() {
   }
 }
 
-/**
- * Save current build to localStorage
- */
 function saveBuildToStorage() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(currentBuild));
@@ -171,26 +132,19 @@ function saveBuildToStorage() {
   }
 }
 
-/**
- * Load build from localStorage
- */
 function loadBuildFromStorage() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Merge with defaults to ensure all fields exist
       currentBuild = { ...DEFAULT_BUILD, ...parsed };
-      // Ensure oreSlots is an array of 4 objects
       if (!Array.isArray(currentBuild.oreSlots) || currentBuild.oreSlots.length !== 4) {
         currentBuild.oreSlots = DEFAULT_BUILD.oreSlots;
       }
-      // Normalize runes to 6 fixed cells (pad old variable-length arrays)
       if (!Array.isArray(currentBuild.runes) || currentBuild.runes.length !== 6) {
         const old = Array.isArray(currentBuild.runes) ? currentBuild.runes : [];
         currentBuild.runes = Array.from({ length: 6 }, (_, i) => old[i] ?? 'None');
       }
-      // Update UI
       if (inputPanel && inputPanel.updateFromBuild) {
         inputPanel.updateFromBuild(currentBuild);
       }
@@ -201,9 +155,6 @@ function loadBuildFromStorage() {
   }
 }
 
-/**
- * Reset to default build
- */
 function resetBuild() {
   currentBuild = { ...DEFAULT_BUILD };
   saveBuildToStorage();
@@ -213,9 +164,6 @@ function resetBuild() {
   recalculate();
 }
 
-/**
- * Copy results to clipboard
- */
 function copyResults() {
   if (!gameData) return;
 
@@ -234,12 +182,6 @@ function copyResults() {
   }
 }
 
-/**
- * Format results for clipboard
- * @param {Object} result
- * @param {Object} build
- * @returns {string}
- */
 function formatResultsForClipboard(result, build) {
   const lines = [
     '=== Forge Calculator Results ===',
@@ -291,11 +233,6 @@ function formatResultsForClipboard(result, build) {
   return lines.join('\n');
 }
 
-/**
- * Show a toast notification
- * @param {string} message
- * @param {boolean} isError
- */
 function showToast(message, isError = false) {
   const toast = document.createElement('div');
   toast.textContent = message;
@@ -320,18 +257,12 @@ function showToast(message, isError = false) {
   }, 2500);
 }
 
-/**
- * Setup global event handlers (keyboard shortcuts, etc.)
- */
 function setupGlobalHandlers() {
-  // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
-    // Ctrl/Cmd + R = Reset (prevent default browser reload)
     if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
       e.preventDefault();
       resetBuild();
     }
-    // Ctrl/Cmd + C = Copy results (when not in input)
     if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
       const active = document.activeElement;
       if (!(active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable))) {
@@ -339,7 +270,6 @@ function setupGlobalHandlers() {
         copyResults();
       }
     }
-    // Escape = Clear search in any dropdown
     if (e.key === 'Escape') {
       document.querySelectorAll('.ep-searchable-input').forEach(input => {
         input.value = '';
@@ -349,14 +279,10 @@ function setupGlobalHandlers() {
     }
   });
 
-  // Reset button (if we add one to UI)
-  // Could add a button in the future
 }
 
-// Export for potential external use
 export { init, recalculate, resetBuild, copyResults };
 
-// Auto-initialize on DOM ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {

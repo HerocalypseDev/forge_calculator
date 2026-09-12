@@ -1,17 +1,3 @@
-/**
- * reall.xlsx parity check for the standalone ESM engine.
- *
- * The Node twin of Web/mediawiki/reall-golden.js: runs the workbook's own saved
- * default build through calculate() and diffs every cell against the workbook's
- * cached values.
- *
- *   node Web/js/engine/reall-golden.test.mjs
- *
- * Two maintainer-approved deviations are accounted for rather than reported:
- * ore atk_speed is stripped here (reall.xlsx deleted that ramp, but the engine
- * still derives it from new.xlsx C48), and C101's lightning term is restated as
- * a scaled proc instead of the sheet's bare "+C80".
- */
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -49,38 +35,35 @@ game._ore_index = new Map(game.ores.map(o => [o.name, o]));
 game._weapon_index = new Map(game.weapons.map(w => [w.name, w]));
 game._race_index = new Map(game.races.map(r => [r.name, r]));
 
-// The workbook's saved default build (DPS Calculator, reall.xlsx).
 const build = {
   slots: [
-    { name: 'Fierce Jade', amount: 15 },   // C6/D6
-    { name: 'Kitsunite', amount: 20 },     // C7/D7
-    { name: 'Galaxite', amount: 15 },      // C8/D8
-    { name: 'Select Ore', amount: 0 }      // C9/D9
+    { name: 'Fierce Jade', amount: 15 },
+    { name: 'Kitsunite', amount: 20 },
+    { name: 'Galaxite', amount: 15 },
+    { name: 'Select Ore', amount: 0 }
   ],
-  weapon_name: 'Hook Blade',               // D12
-  quality: 100,                            // E12
-  forge_level: 9,                          // C13
-  race: 'Archangel',                       // C22
-  bonus_weapon_type: 'Dagger',             // C23
+  weapon_name: 'Hook Blade',
+  quality: 100,
+  forge_level: 9,
+  race: 'Archangel',
+  bonus_weapon_type: 'Dagger',
   rune_cells: ['None', 'None', 'None', 'None', 'None', 'None'],
-  base_crit_chance: 0,                     // C20
-  base_crit_dmg: 1.45,                     // C21
-  armor_crit_chance: 0.7,                  // C42
-  armor_crit_dmg: 0.4,                     // C43
-  armor_lethality: 0.8,                    // C44
-  base_lethality: 0,                       // A45 (empty)
-  abilities: {                             // rows 34-37, all zero
+  base_crit_chance: 0,
+  base_crit_dmg: 1.45,
+  armor_crit_chance: 0.7,
+  armor_crit_dmg: 0.4,
+  armor_lethality: 0.8,
+  base_lethality: 0,
+  abilities: {
     fire_dmg: 0, fire_chance: 0, fire_time: 0,
     poison_dmg: 0, poison_chance: 0, poison_time: 0,
     lightning_dmg: 0, lightning_chance: 0, lightning_cooldown: 0,
     blast_dmg: 0, blast_chance: 0
   },
-  berserk: 0,                              // C54
-  achievement: 'Attack Speed +20%'         // C85
+  berserk: 0,
+  achievement: 'Attack Speed +20%'
 };
 
-// C101's final term is a bare "+C80" in the sheet -- the raw lightning
-// PERCENTAGE, not damage. Restated here as a scaled proc per the maintainer's call.
 const C101 = 10346.10962 - 0.8 + 584.1 * 0.8 * 0.6 * 2.692307692;
 
 const expected = [

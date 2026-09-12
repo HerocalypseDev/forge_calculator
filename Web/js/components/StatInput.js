@@ -1,7 +1,3 @@
-/** Stat Input Component
- * Input fields for armor stats and base values
- * @module components/StatInput
- */
 
 import { createEl } from '../utils/dom.js';
 import { debounce, on } from '../utils/events.js';
@@ -12,13 +8,6 @@ const CLASS_LABEL = 'ep-stat-input-label';
 const CLASS_FIELD = 'ep-stat-input-field';
 const CLASS_INPUT = 'ep-stat-input-input';
 
-/**
- * Create a group of stat inputs
- * @param {Object} options
- * @param {Object} options.values - Current values {armorLethality, armorCritChance, armorCritDmg}
- * @param {Function} options.onChange - Callback (values) => void
- * @returns {HTMLElement}
- */
 export function createStatInput({ values, onChange }) {
   const currentValues = { ...values };
 

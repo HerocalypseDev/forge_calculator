@@ -29,9 +29,6 @@
     'Dragonborn': 0.12
   };
 
-  // E45 class lethality. The sheet writes the Felynx test with the SINGULAR
-  // "Gauntlet", which its own C23 dropdown never offers; both spellings are
-  // registered so the bonus is reachable (approved deviation).
   var CLASS_LETHALITY = {
     'Felynx,Gauntlet': 0.20,
     'Felynx,Gauntlets': 0.20,
@@ -44,9 +41,6 @@
     'Archangel': 0.20
   };
 
-  // E48 class atk speed. The sheet writes the Felynx test with the PLURAL
-  // "Gauntlets"; both spellings are registered so the bonus survives the
-  // weapon-type derivation, which yields the singular.
   var CLASS_ATK_SPEED = {
     'Goblin,Dagger': 0.10,
     'Golem,Colossal Sword': 0.15,
@@ -59,7 +53,6 @@
   var RACE_FIRE_CHANCE = { 'Dragonborn': 0.40 };
   var RACE_FIRE_TIME = { 'Dragonborn': 3 };
 
-  // C72/C73 smite bonuses. Archangel's DAMAGE addend is not flat -- see smiteRaceDmg.
   var RACE_SMITE_DMG = { 'Angel': 0.30 };
   var RACE_SMITE_CHANCE = { 'Angel': 0.50, 'Archangel': 0.33 };
 
@@ -85,10 +78,6 @@
     achievements: 16
   };
 
-  // IF(share<0.1, 0, (base+(max-base)*MIN((share-0.1)/0.2,1))/divisor), plus the
-  // two optional modifiers some cells wrap around the ramp: rng.gated === false
-  // drops the 10% guard (Kitsunite smite damage), and floor/ceiling apply that
-  // cell's MAX(f, MIN(c, ramp)) after the divisor.
   function shareScaling(base, max, share, divisor, rng) {
     if (divisor === undefined) { divisor = 100; }
     var gated = !(rng && rng.gated === false);
@@ -117,9 +106,6 @@
     return (ore && typeof ore.multiplier === 'number') ? ore.multiplier : 1.0;
   }
 
-  // E10 -- the weighted average ore power. Fichilliumorite drops out of BOTH the
-  // numerator and the denominator (SUMPRODUCT with a <>"Fichilliumorite" mask over
-  // SUMIFS), so it is filler that never dilutes the average.
   function avgOrePower(slots, game) {
     var powers = [];
     var amounts = [];
@@ -573,18 +559,11 @@
     return 0.0;
   }
 
-  // C72's race addends: Angel is flat 30%, Archangel instead scales with attack
-  // speed -- IF(C22="Archangel", MIN(FLOOR(E21,1)*0.5, 1.5), 0), i.e. half a point
-  // per WHOLE attack per second (a step, not a ramp), capped at 150%. Below
-  // 1 hit/sec an Archangel gets nothing.
   function smiteRaceDmg(race, atkRate) {
     if (race === 'Archangel') { return Math.min(Math.floor(atkRate) * 0.5, 1.5); }
     return RACE_SMITE_DMG[race] !== undefined ? RACE_SMITE_DMG[race] : 0.0;
   }
 
-  // E80 -- the shortest lightning cooldown, or 0 when there is none. The sheet
-  // uses 99 as a "no lightning here" sentinel per slot and for an empty E36, then
-  // maps a surviving 99 back to 0; omitting the absent terms is equivalent.
   function lightningCooldown(oreTerms, abilityCooldown) {
     var terms = oreTerms.slice();
     if (abilityCooldown) { terms.push(abilityCooldown); }
@@ -594,10 +573,6 @@
     return m;
   }
 
-  // C53-C81. Note which cells aggregate across slots and which take the best
-  // slot: the explosion pair (C58/C59) SUMS -- C59 is written
-  // SUM(slot1..slot4, D37) -- while fire, poison, smite and lightning chance all
-  // take a MAX. For smite, the race addend is ADDED on top, not maxed against.
   function procComponents(build, shares, game, atkRate) {
     var fireTerms = slotVals(build.slots, shares, game, 'fire_duration');
 
@@ -708,23 +683,15 @@
       ? unforged * procs.poison_dmg * Math.min(1, procs.poison_chance * atkRate * Math.min(procs.poison_duration, 5))
       : 0.0;
     var smite_dps = unforged * atkRate * procs.smite_dmg * Math.min(procs.smite_chance, 1);
-    // E77 floors the rate term at 1 -- MAX(1,E21), not MIN
     var blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * Math.max(1, atkRate);
-    // E81 -- procs are capped by the cooldown: MIN(E21, 1/E80)
     var lightningProcCap = procs.lightning_cooldown > 0 ? Math.min(atkRate, 1.0 / procs.lightning_cooldown) : atkRate;
     var lightning_dps = atkRate ? unforged * procs.lightning_dmg * procs.lightning_chance * lightningProcCap : 0.0;
     var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps;
     var proc_total = total_dps - weapon_dps;
 
-    // C97 -- ((E19 * (1 + C54)) * E21) + SUM(C90:C94) + E94. E19*E21 is exactly
-    // C89, so berserk is one clean multiplier on the physical hit: it does NOT
-    // boost lethality, the lethality cap never applies to it, and ore phys_dmg
-    // traits (display-only, "when HP < 35%") are not part of E54 either.
     var berserkLevel = build.berserk + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0);
     var berserk = berserkLevel !== 0 ? weapon_dps * (1 + berserkLevel) + proc_total : null;
 
-    // C98 -- IF(C53=0, C96, (C89 * (1 + C53)) + C90..C94 + E94): the moon bonus
-    // lifts the physical hit, then every proc is added back on top.
     var moonstone = procs.moon !== 0 ? weapon_dps * (1 + procs.moon) + proc_total : null;
 
     var min_dps = forged * (1 + totals.lethality) * atkRate;
@@ -1308,9 +1275,6 @@
       onChange: function (newName) {
         var parsed = fromUI(newName);
         if (parsed !== currentName) {
-          // Ore changed or removed — reset the amount to 0.
-          // Re-selecting the same ore keeps the typed amount, and setValue()
-          // does not route through here, so state restores keep theirs too.
           currentName = parsed;
           currentAmount = 0;
           amountInput.value = 0;
@@ -1566,9 +1530,6 @@
 
 
 
-  // UI validation ranges for the rune ability inputs (game rune ranges, not
-  // formula constants). Lightning mirrors the ore ramps the sheet uses for
-  // Kitsunite/Marblite: damage to 80%, chance to 60%, cooldown 0.3-5s.
   var ABILITY_RANGES = {
     fireDmg: { min: 1, max: 22, unit: 'pct' },
     fireChance: { min: 1, max: 50, unit: 'pct' },
@@ -1585,10 +1546,6 @@
 
 
 
-  // Ability inputs are entered as whole percentages (15 = 15%), or seconds for
-  // the time/cooldown fields. 0, empty and non-numeric all mean "no ability" and
-  // stay 0; any other value is clamped into the field's valid range so a typo
-  // cannot push a rune ability outside what the game can roll.
   function clampAbilityValue(raw, min, max) {
     if (raw === '' || raw === undefined || raw === null) { return 0; }
     var s = String(raw).trim().replace(/%$/, '').trim();
@@ -1618,8 +1575,6 @@
         (function (field) {
           var range = ABILITY_RANGES[field.key];
           var rangeHint = (range.unit === 'sec') ? (range.min + '-' + range.max + 's') : (range.min + '-' + range.max + '%');
-          // Fractional bounds (the lightning cooldown starts at 0.3s) need a
-          // matching step, or the spinner can only reach whole numbers.
           var step = (range.min % 1 !== 0 || range.max % 1 !== 0) ? '0.1' : '1';
           var row = createEl('div', { class: 'fc-ability-row' });
           var label = createEl('label', { class: 'fc-ability-label', for: field.key }, [field.label]);

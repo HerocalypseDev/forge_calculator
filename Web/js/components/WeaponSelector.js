@@ -1,7 +1,3 @@
-/** Weapon Selector Component
- * Weapon type filter + weapon dropdown
- * @module components/WeaponSelector
- */
 
 import { createEl } from '../utils/dom.js';
 import { createSearchableDropdown } from './SearchableDropdown.js';
@@ -15,28 +11,9 @@ const CLASS_ENHANCEMENT = 'ep-enhancement-input';
 
 const QUALITY_MAX = 100;
 
-// Prompt display ↔ "None" sentinel translation. The UI shows a contextual
-// "Select X" prompt when a slot is empty, while the build state keeps the
-// engine's "None" sentinel.
 const toUI = (val, sentinel, prompt) => (val === sentinel || val === undefined ? prompt : val);
 const fromUI = (val, sentinel, prompt) => (val === prompt ? sentinel : val);
 
-/**
- * Create weapon selector component
- * @param {Object} options
- * @param {string[]} options.weaponTypes - Available weapon types
- * @param {Weapon[]} options.weapons - All weapons
- * @param {string} options.noneLabel - "None" sentinel label
- * @param {string} [options.weaponTypePrompt] - "Select Weapon Type" placeholder
- * @param {string} [options.weaponPrompt] - "Select Weapon" placeholder
- * @param {string} [options.enhancementPrompt] - "Select Enhancement" placeholder
- * @param {string} options.weaponType - Current weapon type
- * @param {string} options.weaponName - Current weapon name
- * @param {number} options.quality - Current quality (default 100)
- * @param {number} options.enhancement - Current enhancement level (0-9)
- * @param {Function} options.onChange - Callback (weaponType, weaponName, quality, enhancement) => void
- * @returns {HTMLElement}
- */
 export function createWeaponSelector({
   weaponTypes, weapons, noneLabel,
   weaponTypePrompt = noneLabel, weaponPrompt = noneLabel, enhancementPrompt = noneLabel,
@@ -49,7 +26,6 @@ export function createWeaponSelector({
 
   const container = createEl('div', { class: CLASS_WEAPON });
 
-  // Weapon Type dropdown
   const typeWrapper = createEl('div', { class: CLASS_TYPE_WRAPPER });
   const typeLabel = createEl('label', { for: 'weapon-type' }, ['Weapon Type']);
   const typeOptions = [weaponTypePrompt, 'All Types', ...weaponTypes];
@@ -60,7 +36,6 @@ export function createWeaponSelector({
     id: 'weapon-type',
     onChange: (newType) => {
       currentType = fromUI(newType, noneLabel, weaponTypePrompt);
-      // Filter weapons based on type
       let filteredWeapons;
       if (currentType === noneLabel || currentType === 'All Types') {
         filteredWeapons = weapons;
@@ -69,7 +44,6 @@ export function createWeaponSelector({
       }
       const weaponNames = filteredWeapons.map(w => w.name);
       weaponDropdown.updateOptions([weaponPrompt, ...weaponNames]);
-      // Reset weapon selection if current weapon not in filtered list
       if (!weaponNames.includes(currentWeapon)) {
         currentWeapon = noneLabel;
         weaponDropdown.setValue(weaponPrompt);
@@ -79,10 +53,8 @@ export function createWeaponSelector({
   });
   typeWrapper.append(typeLabel, typeDropdown);
 
-  // Weapon dropdown
   const weaponWrapper = createEl('div', { class: CLASS_WEAPON_WRAPPER });
   const weaponLabel = createEl('label', { for: 'weapon-name' }, ['Weapon']);
-  // Initial weapon list based on current type
   let initialWeapons;
   if (currentType === noneLabel || currentType === 'All Types') {
     initialWeapons = weapons;
@@ -102,7 +74,6 @@ export function createWeaponSelector({
   });
   weaponWrapper.append(weaponLabel, weaponDropdown);
 
-  // Quality input
   const qualityWrapper = createEl('div', { class: 'ep-quality-wrapper' });
   const qualityLabel = createEl('label', { for: 'quality' }, ['Quality']);
   const qualityInput = createEl('input', {
@@ -126,7 +97,6 @@ export function createWeaponSelector({
   on(qualityInput, 'change', commitQuality);
   qualityWrapper.append(qualityLabel, qualityInput);
 
-  // Enhancement dropdown (replaces "Forge Level")
   const enhancementWrapper = createEl('div', { class: 'ep-enhancement-wrapper' });
   const enhancementLabel = createEl('label', { for: 'enhancement' }, ['Enhancement']);
   const enhancementOptions = [enhancementPrompt, ...Array.from({ length: 10 }, (_, i) => String(i))];
@@ -144,7 +114,6 @@ export function createWeaponSelector({
 
   container.append(typeWrapper, weaponWrapper, qualityWrapper, enhancementWrapper);
 
-  // Expose methods
   container.setValues = (type, name, qual, enh) => {
     currentType = type;
     currentWeapon = name;

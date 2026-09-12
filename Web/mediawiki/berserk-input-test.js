@@ -1,18 +1,3 @@
-/**
- * Focused test for the Berserk input (MediaWiki):
- *  - Berserk field uses whole-percent entry (30 = 30%), step=1, max = lethality
- *    cap (150), min 0
- *  - Commit clamps into [0, 150]; non-numeric/empty -> 0
- *  - transformBuildForEngine divides berserk by 100 (decimal for the engine)
- *  - Engine end-to-end: build.berserk feeds the berserk burst (C92), Minotaur
- *    race adds +30% on top (E53), and 0 + no Minotaur -> null (renders "—")
- *
- * Run: node Web/mediawiki/berserk-input-test.js
- *
- * Strategy: render the real input panel in a Node DOM mock, drive the berserk
- * number input, then run calculate(transformBuildForEngine(build)) — the exact
- * path the Calculate DPS button uses.
- */
 'use strict';
 
 const fs = require('fs');
@@ -35,7 +20,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  };\n' +
   SRC.slice(blockStart);
 
-// --- DOM mock (createEl + events + querySelector) ---
 function makeEl(tag) {
   const el = {
     tagName: tag,
@@ -204,7 +188,6 @@ function approx(actual, expected, label, eps) {
   return ok;
 }
 
-// --- Render the real input panel with a stub build ---
 let build = {
   oreSlots: [
     { name: 'None', amount: 0 },
@@ -234,7 +217,6 @@ const inputPanel = FC.createInputPanel({
   onCalculate: null
 });
 
-// Find the berserk input by id within the rendered panel tree
 let berserkInput = null;
 const findId = (n) => {
   if (berserkInput) { return; }
@@ -295,28 +277,22 @@ function uiBuild(overrides) {
   }, overrides);
 }
 {
-  // Minotaur race (+30%) + 30% input -> berserk_level 0.60.
-  // Dagger Q100: base = 4.3 * 2 = 8.6, atk rate 1/0.47, blend 1.0 (no crit).
-  // berserk = 8.6 * (1 + 0.60) / 0.47 = 29.2766...
   const r = FC.calculate(FC.transformBuildForEngine(
     uiBuild({ race: 'Minotaur', berserk: 30 })
   ), game);
   approx(r.berserk, 8.6 * 1.6 / 0.47, 'Minotaur + 30% berserk DPS');
   assert(r.berserk !== null && r.berserk > r.weapon_dps, 'berserk > weapon DPS (lethality boosted)');
 
-  // No Minotaur, 30% input -> berserk_level 0.30 -> 8.6 * 1.3 / 0.47
   const r2 = FC.calculate(FC.transformBuildForEngine(
     uiBuild({ race: 'None', berserk: 30 })
   ), game);
   approx(r2.berserk, 8.6 * 1.3 / 0.47, 'manual 30% berserk DPS (no Minotaur)');
 
-  // Zero input, no Minotaur -> null (results row renders "—")
   const r3 = FC.calculate(FC.transformBuildForEngine(
     uiBuild({ race: 'None', berserk: 0 })
   ), game);
   assert(r3.berserk === null, 'berserk 0 + no Minotaur -> null');
 
-  // Berserk must NOT change the normal total DPS (it is a separate burst row)
   const plain = FC.calculate(FC.transformBuildForEngine(uiBuild({ race: 'None', berserk: 0 })), game);
   const berserked = FC.calculate(FC.transformBuildForEngine(uiBuild({ race: 'None', berserk: 30 })), game);
   assert(plain.total_dps === berserked.total_dps, 'normal total_dps unchanged by berserk input');

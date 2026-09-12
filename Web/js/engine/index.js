@@ -1,6 +1,3 @@
-/** Engine barrel export
- * @module engine
- */
 
 export * from './constants.js';
 export * from './formulas.js';

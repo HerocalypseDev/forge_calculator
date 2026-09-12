@@ -1,15 +1,3 @@
-/**
- * Dev-only preview generator (NOT deployed to the wiki).
- *
- * Runs the real MediaWiki-ForgeCalculator.js in a Node vm with a DOM mock,
- * renders the input + results panels with a realistic sample build, and
- * serializes the DOM tree to a static preview.html that links the real
- * Template-ForgeCalculator-styles.css. Open preview.html in a browser to
- * eyeball the dark theme without deploying.
- *
- * Run: node Web/mediawiki/render-preview.js
- * Then:  open Web/mediawiki/preview.html
- */
 'use strict';
 
 const fs = require('fs');
@@ -19,7 +7,6 @@ const vm = require('vm');
 const HERE = __dirname;
 const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
 
-// --- Inject an export hook right before the DATA LOADING section ---
 const marker = 'var DATA_TITLES = {';
 const idx = SRC.indexOf(marker);
 if (idx < 0) { throw new Error('DATA LOADING marker not found'); }
@@ -33,7 +20,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  globalThis.__FC = __fc;\n' +
   SRC.slice(blockStart);
 
-// --- DOM mock with serialization ---
 const VOID_TAGS = new Set(['input', 'img', 'br', 'hr', 'link', 'meta', 'source']);
 
 function esc(s) {
@@ -162,9 +148,8 @@ function serialize(node) {
   if (node._classes && node._classes.size) { parts.push(`class="${esc(Array.from(node._classes).join(' '))}"`); }
   for (const k of Object.keys(node.attributes)) {
     if (k === 'id') { continue; }
-    parts.push(`${k}="${esc(node.attributes[k])}"`); // includes value=, min, max, step, placeholder, title, inputmode
+    parts.push(`${k}="${esc(node.attributes[k])}"`);
   }
-  // style (set directly via el.style.x = ...)
   const styleKeys = Object.keys(node.style).filter((k) => node.style[k] !== undefined && node.style[k] !== '');
   if (styleKeys.length) {
     parts.push(`style="${styleKeys.map((k) => `${k}: ${node.style[k]}`).join('; ')}"`);
@@ -172,18 +157,11 @@ function serialize(node) {
 
   const open = `<${parts.join(' ')}>`;
   if (VOID_TAGS.has(tag)) { return open; }
-  // innerHTML-set nodes (the [[File:...]] icon placeholders) carry their parsed
-  // markup in _raw; use it as the INNER content so the element wrapper (e.g.
-  // <span class="fc-section-icon">) is preserved.
   const inner = node._raw !== null ? node._raw : (node.children || []).map(serialize).join('');
   return `${open}${inner}</${tag}>`;
 }
 
-// --- Sandbox ---
 
-// Mock the server-side parser for [[File:...]] so preview.html still shows the
-// section icons: each [[File:X|frameless|link=File:X|alt=Y]] line becomes the
-// <p><a><img></a></p> markup the real wiki's parser would emit.
 function ApiMock() {}
 ApiMock.prototype.parse = function (wikitext) {
   const lines = String(wikitext).split('\n\n').filter(Boolean);
@@ -232,7 +210,6 @@ vm.runInContext(instrumented, sandbox, { filename: 'MediaWiki-ForgeCalculator.js
 const FC = sandbox.__FC;
 if (!FC) { throw new Error('Export hook did not run'); }
 
-// --- Load data + build gameData via the ACTUAL buildGameData ---
 function loadJSON(name) {
   return JSON.parse(fs.readFileSync(path.join(HERE, name), 'utf8'));
 }
@@ -245,7 +222,6 @@ const game = FC.buildGameData({
 });
 
 async function render() {
-  // --- Replicate init(): wire state, render panels ---
   const state = FC.state;
   state.gameData = game;
 
@@ -275,7 +251,6 @@ async function render() {
   state.resultsPanel = FC.createResultsPanel({ onCopy: () => {}, onReset: () => {} });
   right.appendChild(state.resultsPanel);
 
-  // --- Sample build (UI shape, whole percents for armor/ability/berserk) ---
   state.build = Object.assign({}, FC.DEFAULT_BUILD, {
     oreSlots: [
       { name: 'Wolfarite', amount: 30 },
@@ -302,11 +277,8 @@ async function render() {
   FC.recalculate();
   if (state.inputPanel && state.inputPanel.refreshWarnings) { state.inputPanel.refreshWarnings(); }
 
-  // Let the batched [[File:...]] API parse resolve and fill the section-icon
-  // placeholders before serializing.
   await new Promise((r) => setTimeout(r, 0));
 
-  // --- Emit preview.html ---
   const css = fs.readFileSync(path.join(HERE, 'Template-ForgeCalculator-styles.css'), 'utf8');
   const html =
     '<!DOCTYPE html>\n' +

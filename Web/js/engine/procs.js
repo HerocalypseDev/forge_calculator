@@ -1,6 +1,3 @@
-/** Proc components (C52-C76) - ported from forge_calculator/engine.py
- * @module engine/procs
- */
 
 import {
   SHARE_GATE,
@@ -12,43 +9,18 @@ import {
 } from './constants.js';
 import { scaleRange, belowGate } from './formulas.js';
 
-/**
- * Duration calculation (C63/C68): MAX(MAX(ore, race, ability) - N, 0)
- * No ore gate, so an ability time alone counts.
- * @param {number[]} oreTerms
- * @param {number} raceTime
- * @param {number} abilityTime
- * @param {number} minus
- * @returns {number}
- */
 function duration(oreTerms, raceTime, abilityTime, minus) {
   const top = Math.max(...oreTerms, raceTime ?? 0, abilityTime ?? 0);
   return Math.max(top - minus, 0.0);
 }
 
-/**
- * Black hole chance (C76)
- * IF(COUNTIF(C6:C9, "Galaxite") / COUNTA(C6:C9) >= 0.1, 0.3, 0)
- * COUNTA counts "Select Ore" as non-blank, so any Galaxite slot triggers it
- * @param {OreSlot[]} slots
- * @param {GameData} game
- * @returns {number}
- */
 function blackholeChance(slots, game) {
   const galaxite = slots.filter(s => s.name === 'Galaxite').length;
-  const nonblank = slots.filter(s => s.name).length; // "Select Ore" counts
+  const nonblank = slots.filter(s => s.name).length;
   if (nonblank === 0) return 0.0;
   return galaxite / nonblank >= 0.1 ? 0.3 : 0.0;
 }
 
-/**
- * Get all scaled values for a stat across slots
- * @param {OreSlot[]} slots
- * @param {number[]} shares
- * @param {GameData} game
- * @param {string} stat
- * @returns {number[]}
- */
 function slotVals(slots, shares, game, stat) {
   const vals = [];
   for (let i = 0; i < slots.length; i++) {
@@ -65,40 +37,15 @@ function slotVals(slots, shares, game, stat) {
   return vals;
 }
 
-/**
- * Max value for a stat across slots
- * @param {OreSlot[]} slots
- * @param {number[]} shares
- * @param {GameData} game
- * @param {string} stat
- * @returns {number}
- */
 function slotMax(slots, shares, game, stat) {
   const vals = slotVals(slots, shares, game, stat);
   return vals.length ? Math.max(...vals) : 0.0;
 }
 
-/**
- * Sum of values for a stat across slots
- * @param {OreSlot[]} slots
- * @param {number[]} shares
- * @param {GameData} game
- * @param {string} stat
- * @returns {number}
- */
 function slotSum(slots, shares, game, stat) {
   return slotVals(slots, shares, game, stat).reduce((a, b) => a + b, 0.0);
 }
 
-/**
- * Value of the FIRST slot holding `name` (C69 XLOOKUP; 0 when absent)
- * @param {OreSlot[]} slots
- * @param {number[]} shares
- * @param {GameData} game
- * @param {string} name
- * @param {string} stat
- * @returns {number}
- */
 function firstSlotVal(slots, shares, game, name, stat) {
   for (let i = 0; i < slots.length; i++) {
     if (slots[i].name !== name) continue;
@@ -110,48 +57,17 @@ function firstSlotVal(slots, shares, game, name, stat) {
   return 0.0;
 }
 
-/**
- * C72's race addends: Angel is flat 30%, Archangel instead scales with attack
- * speed -- IF(C22="Archangel", MIN(FLOOR(E21,1)*0.5, 1.5), 0), i.e. half a point
- * per WHOLE attack per second (a step, not a ramp), capped at 150%. Below
- * 1 hit/sec an Archangel gets nothing.
- * @param {string} race
- * @param {number} atkRate
- * @returns {number}
- */
 function smiteRaceDmg(race, atkRate) {
   if (race === 'Archangel') return Math.min(Math.floor(atkRate) * 0.5, 1.5);
   return RACE_SMITE_DMG[race] ?? 0.0;
 }
 
-/**
- * E80 -- the shortest lightning cooldown, or 0 when there is none.
- * The sheet uses 99 as a "no lightning here" sentinel per slot and for an empty
- * E36, then maps a surviving 99 back to 0; omitting absent terms is equivalent.
- * @param {number[]} oreTerms
- * @param {number} abilityCooldown
- * @returns {number}
- */
 function lightningCooldown(oreTerms, abilityCooldown) {
   const terms = oreTerms.slice();
   if (abilityCooldown) terms.push(abilityCooldown);
   return terms.length ? Math.min(...terms) : 0.0;
 }
 
-/**
- * All proc components (C53-C81)
- * These feed DPS rows C90-C94/E94, which scale on UNFORGED A18.
- *
- * Note which cells aggregate across slots and which take the best slot: the
- * explosion pair (C58/C59) SUMS -- C59 is written SUM(slot1..slot4, D37) --
- * while fire, poison, smite and lightning chance all take a MAX. For smite,
- * the race addend is ADDED on top rather than maxed against.
- * @param {Build} build
- * @param {number[]} shares
- * @param {GameData} game
- * @param {number} [atkRate=0] E21, needed only by the Archangel smite addend
- * @returns {Object}
- */
 export function procComponents(build, shares, game, atkRate = 0) {
   const fireTerms = slotVals(build.slots, shares, game, 'fire_duration');
 

@@ -1,19 +1,3 @@
-/**
- * Focused test for the auto-derived race/class weapon-type bonus:
- *  - The "Select Bonus Type" dropdown is gone from the UI (source-level)
- *  - transformBuildForEngine maps the selected weapon to its `type` as the
- *    engine's bonus_weapon_type (no weapon selected -> '')
- *  - The engine's class-bonus tables (workbook E44 lethality / E47 atk speed)
- *    are reachable with those derived weapon types, end to end through the
- *    real transform + calculate pipeline
- *
- * Run: node Web/mediawiki/bonus-derive-test.js
- *
- * Strategy: same as fuzz_verify.js — evaluate the real Common.js source in a
- * Node vm, inject an export hook after the state/transform definitions (right
- * before `function recalculate`), load the real Data: JSON pages, then assert
- * on live engine output.
- */
 'use strict';
 
 const fs = require('fs');
@@ -23,8 +7,6 @@ const vm = require('vm');
 const HERE = __dirname;
 const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
 
-// --- Inject an export hook right before `function recalculate()` — at that
-// point state, deriveBonusType and transformBuildForEngine are all defined.
 const marker = 'function recalculate() {';
 const idx = SRC.indexOf(marker);
 if (idx < 0) { throw new Error('recalculate marker not found'); }
@@ -38,7 +20,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  };\n' +
   SRC.slice(blockStart);
 
-// --- Minimal sandbox (no DOM rendering needed) ---
 const mw = {
   config: { get: () => '/w' },
   loader: { using: () => Promise.resolve() },
@@ -81,7 +62,6 @@ function assert(cond, label) {
   return cond;
 }
 
-// --- UI-format build fixture ---
 function uiBuild(overrides) {
   return Object.assign({
     oreSlots: [
@@ -102,7 +82,6 @@ function uiBuild(overrides) {
   }, overrides);
 }
 
-// --- 1. Transform derives bonus type from the weapon ---
 console.log('== transformBuildForEngine derives bonus type ==');
 let eng = FC.transformBuildForEngine(uiBuild({ weaponName: 'Ironhand' }));
 assert(eng.bonus_weapon_type === 'Gauntlet', 'Ironhand -> Gauntlet');
@@ -115,28 +94,20 @@ assert(eng.bonus_weapon_type === '', 'no weapon -> empty bonus type');
 eng = FC.transformBuildForEngine(uiBuild({ weaponName: 'Not A Real Weapon' }));
 assert(eng.bonus_weapon_type === '', 'unknown weapon -> empty bonus type');
 
-// --- 2. Engine class bonuses reachable with derived types (workbook E44/E47) ---
 console.log('== Engine class bonuses (race + derived weapon type) ==');
 function calcLeth(build) { return FC.calculate(build, game).lethality; }
 function calcAtk(build) { return FC.calculate(build, game).atk_speed; }
 
-// Baseline: no race -> 0 / 0
 const base = FC.transformBuildForEngine(uiBuild({ race: 'None', weaponName: 'None' }));
 assert(calcLeth(base) === 0 && calcAtk(base) === 0, 'baseline has no class bonuses');
 
-// E45 lethality: Felynx+Gauntlet, Vampire+Straight Sword
 assert(calcLeth(FC.transformBuildForEngine(uiBuild({ race: 'Felynx', weaponName: 'Ironhand' }))) === 0.2,
   'Felynx + Gauntlet -> +20% lethality (E45)');
 assert(calcLeth(FC.transformBuildForEngine(uiBuild({ race: 'Vampire', weaponName: 'Falchion' }))) === 0.1,
   'Vampire + Straight Sword -> +10% lethality (E45)');
-// Felynx + Gauntlet now gets BOTH bonuses. The sheet splits the spellings --
-// E45 tests the singular "Gauntlet", E48 the plural "Gauntlets", and C23's own
-// dropdown only offers the plural, so E45's branch can never fire there. Per the
-// maintainer's call the two spellings name one weapon type and both apply.
 assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Felynx', weaponName: 'Ironhand' }))) === 0.2,
   'Felynx + Gauntlet -> +20% attack speed (E48, both spellings registered)');
 
-// E48 atk speed: Goblin+Dagger, Golem+Colossal Sword, Golem+Great Axe
 assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Goblin', weaponName: 'Dagger' }))) === 0.1,
   'Goblin + Dagger -> +10% atk speed (E48)');
 assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Great Sword' }))) === 0.15,
@@ -144,7 +115,6 @@ assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: '
 assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Double Battle Axe' }))) === 0.15,
   'Golem + Great Axe -> +15% atk speed (E47)');
 
-// --- 3. Source-level: bonus dropdown gone, derive logic present ---
 console.log('== Source checks ==');
 assert(SRC.indexOf('Select Bonus Type') === -1, 'no "Select Bonus Type" prompt remains');
 assert(SRC.indexOf('bonus-type-select') === -1, 'no bonus-type dropdown id remains');

@@ -43,8 +43,6 @@ const game = FC.buildGameData({
   achievements: loadJSON('Data-Achievements.json')
 });
 
-// The build provided by the user
-// 2 ores (amount 20 each), demon race, weapon ironhand, 100% armor crit chance
 const build = {
   slots: [
     { name: 'Stone', amount: 20 },
@@ -59,8 +57,8 @@ const build = {
   bonus_weapon_type: 'Gauntlet',
   rune_cells: ['None', 'None', 'None', 'None', 'None', 'None'],
   base_crit_chance: 0,
-  base_crit_dmg: 1.45, // workbook C21 base crit damage (UI transform now sends this)
-  armor_crit_chance: 1.0, // 100%
+  base_crit_dmg: 1.45,
+  armor_crit_chance: 1.0,
   armor_crit_dmg: 0,
   armor_lethality: 0,
   base_lethality: 0,

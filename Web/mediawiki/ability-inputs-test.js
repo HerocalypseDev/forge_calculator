@@ -1,16 +1,3 @@
-/**
- * Focused tests for the MediaWiki ability inputs (Fire / Poison / Lightning / Blast):
- *  - clampAbilityValue: 0/empty = "no ability"; non-zero clamps into [min,max]
- *  - createAbilityGrid: min/max/step/placeholder/title attributes + clamping
- *    on change / blur / (debounced) input
- *  - transformBuildForEngine: whole-percent UI values -> decimal engine values
- *
- * Run: node Web/mediawiki/ability-inputs-test.js
- *
- * Strategy: same as verify-engine.js — evaluate the real Common.js source in a
- * Node vm with a minimal DOM mock, inject exports before the DATA LOADING
- * section, then assert directly on the injected functions.
- */
 'use strict';
 
 const fs = require('fs');
@@ -20,7 +7,6 @@ const vm = require('vm');
 const HERE = __dirname;
 const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
 
-// --- Inject an export hook right before the DATA LOADING section ---
 const marker = 'var DATA_TITLES = {';
 const idx = SRC.indexOf(marker);
 if (idx < 0) { throw new Error('DATA LOADING marker not found'); }
@@ -29,7 +15,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  globalThis.__FC = { clampAbilityValue: clampAbilityValue, transformBuildForEngine: transformBuildForEngine, createAbilityGrid: createAbilityGrid };\n' +
   SRC.slice(blockStart);
 
-// --- Minimal DOM mock ---
 function makeEl(tag) {
   const el = {
     tagName: tag,
@@ -94,7 +79,6 @@ function makeEl(tag) {
   return el;
 }
 
-// --- Sandbox ---
 const mw = {
   config: { get: () => '/w' },
   loader: { using: () => Promise.resolve() },
@@ -133,7 +117,6 @@ function assert(cond, label) {
   return cond;
 }
 
-// ---------- clampAbilityValue ----------
 console.log('== clampAbilityValue ==');
 assert(FC.clampAbilityValue('', 1, 22) === 0, 'empty -> 0 (no ability)');
 assert(FC.clampAbilityValue('0', 1, 22) === 0, 'zero -> 0 (no ability)');
@@ -149,7 +132,6 @@ assert(FC.clampAbilityValue('abc', 1, 22) === 0, 'non-numeric -> 0');
 assert(FC.clampAbilityValue('5', 1, 3) === 3, 'time above max -> max');
 assert(FC.clampAbilityValue('2', 1, 6) === 2, 'time in-range stays');
 
-// ---------- transformBuildForEngine ----------
 console.log('== transformBuildForEngine ==');
 function uiBuild(overrides) {
   return Object.assign({
@@ -196,7 +178,6 @@ function uiBuild(overrides) {
   assert(allZero, 'default build -> all ability values 0');
 }
 
-// ---------- createAbilityGrid (DOM) ----------
 console.log('== createAbilityGrid ==');
 let lastValues = null;
 const grid = FC.createAbilityGrid({
@@ -215,7 +196,6 @@ assert(inputs.length === 11, '11 ability inputs rendered');
 const byId = {};
 inputs.forEach((inp) => { byId[inp.id] = inp; });
 
-// Expected attributes per field: {min, max, placeholder, titleContains}
 const expected = {
   fireDmg: { min: '1', max: '22', placeholder: '1-22%', title: 'Range: 1-22%' },
   fireChance: { min: '1', max: '50', placeholder: '1-50%', title: 'Range: 1-50%' },
@@ -225,7 +205,6 @@ const expected = {
   poisonTime: { min: '1', max: '6', placeholder: '1-6s', title: 'Range: 1-6s' },
   lightningDmg: { min: '1', max: '80', placeholder: '1-80%', title: 'Range: 1-80%' },
   lightningChance: { min: '1', max: '60', placeholder: '1-60%', title: 'Range: 1-60%' },
-  // fractional bounds -> a 0.1 step, so the spinner can reach 0.3s
   lightningCooldown: { min: '0.3', max: '5', placeholder: '0.3-5s', title: 'Range: 0.3-5s', step: '0.1' },
   blastDmg: { min: '1', max: '40', placeholder: '1-40%', title: 'Range: 1-40%' },
   blastChance: { min: '1', max: '20', placeholder: '1-20%', title: 'Range: 1-20%' }
@@ -242,7 +221,6 @@ Object.keys(expected).forEach((key) => {
   assert(inp && (inp.getAttribute('title') || '').indexOf('0 = no ability') !== -1, `${key} title mentions 0 = no ability`);
 });
 
-// change event clamps (no debounce on 'change')
 byId.fireDmg.value = '30';
 byId.fireDmg.dispatchEvent({ type: 'change' });
 assert(lastValues.fireDmg === 22, 'change: fireDmg 30 -> clamped 22');
@@ -256,7 +234,6 @@ byId.fireTime.value = '9';
 byId.fireTime.dispatchEvent({ type: 'change' });
 assert(lastValues.fireTime === 3, 'change: fireTime 9 -> max 3');
 
-// blur event clamps
 byId.poisonDmg.value = '0';
 byId.poisonDmg.dispatchEvent({ type: 'blur' });
 assert(lastValues.poisonDmg === 0, 'blur: poisonDmg 0 stays 0 (no ability)');
@@ -265,7 +242,6 @@ byId.poisonChance.value = '60';
 byId.poisonChance.dispatchEvent({ type: 'blur' });
 assert(lastValues.poisonChance === 35, 'blur: poisonChance 60 -> max 35');
 
-// lightning clamps too, including the fractional cooldown floor
 byId.lightningDmg.value = '120';
 byId.lightningDmg.dispatchEvent({ type: 'change' });
 assert(lastValues.lightningDmg === 80, 'change: lightningDmg 120 -> max 80');
@@ -278,24 +254,20 @@ byId.lightningCooldown.value = '2.5';
 byId.lightningCooldown.dispatchEvent({ type: 'blur' });
 assert(lastValues.lightningCooldown === 2.5, 'blur: fractional cooldown preserved');
 
-// empty clears to 0
 byId.blastDmg.value = '';
 byId.blastDmg.dispatchEvent({ type: 'change' });
 assert(lastValues.blastDmg === 0, 'change: empty -> 0');
 
-// debounced input event clamps after the debounce window
 byId.fireDmg.value = '5';
 byId.fireDmg.dispatchEvent({ type: 'input' });
 setTimeout(() => {
   assert(lastValues.fireDmg === 5, 'input: fireDmg 5 commits after debounce');
 
-  // setValues / getValues round-trip (percent space)
   grid.setValues({ fireDmg: 15 });
   assert(byId.fireDmg.value === '15', 'setValues: fireDmg 15 displays');
   const vals = grid.getValues();
   assert(vals.fireDmg === 15 && vals.fireChance === 1 && vals.fireTime === 3, 'getValues reflects last committed values');
 
-  // ---------- Source-level checks for section header ----------
   console.log('== Section header (source) ==');
   assert(SRC.indexOf("'Abilities (From Runes)'") !== -1, "header is 'Abilities (From Runes)'");
   assert(SRC.indexOf('fc-input-section-subtext') !== -1, 'subtext class present');

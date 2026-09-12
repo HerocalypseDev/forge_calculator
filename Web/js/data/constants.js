@@ -1,8 +1,4 @@
-/** Data module constants
- * @module data/constants
- */
 
-/** Expected counts from the source workbook */
 export const EXPECTED_COUNTS = {
   ores: 147,
   weapons: 80,
@@ -11,6 +7,5 @@ export const EXPECTED_COUNTS = {
   achievements: 16
 };
 
-/** Default placeholder values */
 export const SELECT_ORE = 'Select Ore';
 export const NONE_LABEL = 'None';

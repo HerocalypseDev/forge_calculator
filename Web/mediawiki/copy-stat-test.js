@@ -1,17 +1,3 @@
-/**
- * Focused tests for the MediaWiki copy-single-stat feature:
- *  - Clicking a stat value copies it to the clipboard via writeClipboard
- *  - Empty / '—' / '∞' values are NOT copied (silent skip)
- *  - The value element has class 'fc-copyable' and title 'Click to copy'
- *  - The traits value also supports click-to-copy
- *  - writeClipboard fallback: navigator.clipboard unavailable → textarea + execCommand
- *
- * Run: node Web/mediawiki/copy-stat-test.js
- *
- * Strategy: same as ore-slot-test.js — evaluate the real Common.js source in a
- * Node vm with a minimal DOM mock, export createStatRow and writeClipboard, then
- * assert on DOM structure + clipboard side-effects.
- */
 'use strict';
 
 const fs = require('fs');
@@ -21,7 +7,6 @@ const vm = require('vm');
 const HERE = __dirname;
 const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
 
-// --- Inject an export hook right before the DATA LOADING section ---
 const marker = 'var DATA_TITLES = {';
 const idx = SRC.indexOf(marker);
 if (idx < 0) { throw new Error('DATA LOADING marker not found'); }
@@ -30,7 +15,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  globalThis.__FC = { createStatRow: createStatRow, writeClipboard: writeClipboard };\n' +
   SRC.slice(blockStart);
 
-// --- DOM mock ---
 function makeEl(tag) {
   const el = {
     tagName: tag,
@@ -126,7 +110,6 @@ function makeEl(tag) {
   return el;
 }
 
-// --- Sandbox ---
 let lastClipboard = null;
 let toastMessage = null;
 const mw = { config: { get: () => '/w' }, log: () => {}, Api: function () {}, hook: () => ({ fire: () => {} }) };
@@ -157,18 +140,11 @@ sandbox.document.body = makeEl('body');
 sandbox.window = sandbox;
 sandbox.window.mediaWiki = mw;
 
-// Stub showToast so it doesn't need real DOM (requestAnimationFrame/timers)
-const origShowToast = null; // will be patched after VM loads
+const origShowToast = null;
 
 vm.createContext(sandbox);
 vm.runInContext(instrumented, sandbox, { filename: 'MediaWiki-ForgeCalculator.js' });
 
-// Patch showToast in the IIFE to avoid needing requestAnimationFrame + timer DOM
-// Actually showToast is module-scope and not exported. writeClipboard calls showToast
-// which calls document.body.appendChild + requestAnimationFrame + setTimeout.
-// Since we have a mock body + requestAnimationFrame + setTimeout, this will work.
-// But the toast uses `toast.remove()` which needs the mock's remove method. Let's add it.
-// The mock already has remove on elements (via el.remove = ...). Good.
 
 const FC = sandbox.__FC;
 if (!FC) { throw new Error('Export hook did not run — extraction failed'); }
@@ -188,13 +164,11 @@ function resetClipboard() {
   sandbox.document.body.children = [];
 }
 
-// --- Helper: get copyable value from a stat row ---
 function getValueEl(row) {
   const vals = row.querySelectorAll('.fc-copyable');
   return vals.length ? vals[0] : null;
 }
 
-// ---------- createStatRow: structure + click ----------
 console.log('== createStatRow ==');
 {
   resetClipboard();
@@ -207,12 +181,10 @@ console.log('== createStatRow ==');
   assert(valueEl && valueEl.textContent.trim() === '420.69', 'value text is 420.69');
   assert(valueEl && valueEl.getAttribute('title') === 'Click to copy', 'title attribute set');
 
-  // Click to copy
   valueEl.dispatchEvent({ type: 'click' });
   assert(lastClipboard === '420.69', 'click copies value to clipboard');
 }
 
-// ---------- createStatRow: skipped values ----------
 console.log('== Skipped values ==');
 function assertSkipped(value) {
   resetClipboard();
@@ -226,7 +198,6 @@ assertSkipped('—');
 assertSkipped('∞');
 assertSkipped('');
 
-// ---------- createStatRow: various good values ----------
 console.log('== Various copyable values ==');
 function assertCopies(value, expected) {
   resetClipboard();
@@ -240,7 +211,6 @@ assertCopies('150.50%', '150.50%');
 assertCopies('1.45', '1.45');
 assertCopies('Felynx', 'Felynx');
 
-// ---------- createStatRow: isCap styling ----------
 console.log('== isCap styling ==');
 {
   const rowNormal = FC.createStatRow({ label: 'X', value: '1.00' });
@@ -252,36 +222,26 @@ console.log('== isCap styling ==');
   assert(valCap && valCap.style.color === '#ff5555', 'isCap -> red color');
 }
 
-// ---------- writeClipboard: primary path (navigator.clipboard) ----------
 console.log('== writeClipboard ==');
 {
   resetClipboard();
-  // Navigator.clipboard.writeText is set up in the sandbox
   FC.writeClipboard('hello world', 'Success');
   assert(lastClipboard === 'hello world', 'writeClipboard uses navigator.clipboard');
 }
 
-// ---------- writeClipboard: fallback (no clipboard API) ----------
 console.log('== writeClipboard fallback ==');
 {
   resetClipboard();
-  // Temporarily remove navigator.clipboard.writeText
   const saved = sandbox.navigator.clipboard.writeText;
   sandbox.navigator.clipboard.writeText = undefined;
-  // writeClipboard checks navigator.clipboard && navigator.clipboard.writeText
-  // With writeText undefined, it falls back to textarea + execCommand
-  // execCommand is not in the mock, so it will throw → caught → showToast('Failed to copy', true)
-  // But we just want to verify it tried the fallback path (no crash)
   try {
     FC.writeClipboard('fallback text', 'Copied!');
   } catch (e) {
-    // Expected: execCommand is not available in mock
   }
   sandbox.navigator.clipboard.writeText = saved;
   assert(true, 'writeClipboard fallback path does not crash');
 }
 
-// ---------- Source-level checks ----------
 console.log('== Source wiring ==');
 assert(SRC.indexOf("valueEl.classList.add('fc-copyable')") !== -1, 'stat rows get fc-copyable class');
 assert(SRC.indexOf("valueEl.setAttribute('title', 'Click to copy')") !== -1, 'stat rows get title');

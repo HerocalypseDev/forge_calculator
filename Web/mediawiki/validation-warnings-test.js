@@ -1,19 +1,3 @@
-/**
- * Focused tests for the MediaWiki build-validation warnings:
- *  - W1: no weapon selected
- *  - W2: all ore amounts 0
- *  - W3: per-slot ore picked but amount 0
- *  - W4: per-slot ore share < 10% gate
- *  - W5: quality 0
- *  - DOM: warnings box hidden when clean, shown with one div per warning,
- *    re-renders live via refreshWarnings()
- *
- * Run: node Web/mediawiki/validation-warnings-test.js
- *
- * Strategy: same as ore-slot-test.js — evaluate the real Common.js source in a
- * Node vm with a minimal DOM mock, inject exports before the DATA LOADING
- * section, then assert directly on computeWarnings and a real rendered panel.
- */
 'use strict';
 
 const fs = require('fs');
@@ -23,7 +7,6 @@ const vm = require('vm');
 const HERE = __dirname;
 const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
 
-// --- Inject an export hook right before the DATA LOADING section ---
 const marker = 'var DATA_TITLES = {';
 const idx = SRC.indexOf(marker);
 if (idx < 0) { throw new Error('DATA LOADING marker not found'); }
@@ -32,7 +15,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  globalThis.__FC = { computeWarnings: computeWarnings, createInputPanel: createInputPanel };\n' +
   SRC.slice(blockStart);
 
-// --- DOM mock ---
 function makeEl(tag) {
   const el = {
     tagName: tag,
@@ -137,7 +119,6 @@ function makeEl(tag) {
   return el;
 }
 
-// --- Sandbox ---
 const mw = {
   config: { get: () => '/w' },
   loader: { using: () => Promise.resolve() },
@@ -179,7 +160,6 @@ function assert(cond, label) {
   return cond;
 }
 
-// ---------- computeWarnings: pure W1–W5 logic ----------
 console.log('== computeWarnings ==');
 
 function build(overrides) {
@@ -199,7 +179,6 @@ const W1 = 'No weapon selected — weapon damage and most DPS will be 0.';
 const W2 = 'No ore amounts entered — Average Multiplier is 1.00x and no ore stats or traits apply.';
 const W5 = 'Quality is 0% — damage is at base (1.0x), not the usual 2x from 100%.';
 
-// W1 + W2 (default empty build, quality 100)
 {
   const w = FC.computeWarnings(build());
   assert(w.length === 2, 'default build -> exactly W1 + W2');
@@ -207,7 +186,6 @@ const W5 = 'Quality is 0% — damage is at base (1.0x), not the usual 2x from 10
   assert(w[1] === W2, 'W2 exact message');
 }
 
-// Clean build -> no warnings
 {
   const w = FC.computeWarnings(build({
     weaponName: 'Dagger',
@@ -222,7 +200,6 @@ const W5 = 'Quality is 0% — damage is at base (1.0x), not the usual 2x from 10
   assert(w.length === 0, 'clean build -> no warnings');
 }
 
-// W1 only (weapon missing, but ores + quality present)
 {
   const w = FC.computeWarnings(build({
     oreSlots: [{ name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }],
@@ -231,7 +208,6 @@ const W5 = 'Quality is 0% — damage is at base (1.0x), not the usual 2x from 10
   assert(w.length === 1 && w[0] === W1, 'no weapon only -> W1');
 }
 
-// W5 only (weapon + ores, quality 0)
 {
   const w = FC.computeWarnings(build({
     weaponName: 'Dagger',
@@ -241,7 +217,6 @@ const W5 = 'Quality is 0% — damage is at base (1.0x), not the usual 2x from 10
   assert(w.length === 1 && w[0] === W5, 'quality 0 only -> W5');
 }
 
-// W3: ore selected but amount 0 (takes precedence over W4)
 {
   const w = FC.computeWarnings(build({
     weaponName: 'Dagger',
@@ -257,7 +232,6 @@ const W5 = 'Quality is 0% — damage is at base (1.0x), not the usual 2x from 10
   assert(w[0] === 'Slot 2: Stone is selected but amount is 0.', 'W3 exact message (slot 2)');
 }
 
-// W4: ore share below the 10% gate
 {
   const w = FC.computeWarnings(build({
     weaponName: 'Dagger',
@@ -273,14 +247,12 @@ const W5 = 'Quality is 0% — damage is at base (1.0x), not the usual 2x from 10
   assert(w[0] === 'Slot 2: Stone is below 10% share — it contributes no stats.', 'W4 exact message (slot 2)');
 }
 
-// W1 + W2 + W5 together
 {
   const w = FC.computeWarnings(build({ quality: 0 }));
   assert(w.length === 3, 'empty + quality 0 -> W1 + W2 + W5');
   assert(w[2] === W5, 'W5 last');
 }
 
-// Multi-slot W3s (all slots have a picked ore with amount 0)
 {
   const w = FC.computeWarnings(build({
     weaponName: 'Dagger',
@@ -296,7 +268,6 @@ const W5 = 'Quality is 0% — damage is at base (1.0x), not the usual 2x from 10
   assert(w[1] === 'Slot 3: Fireite is selected but amount is 0.', 'W3 fires on slot 3');
 }
 
-// Exact 10% share is NOT a warning (gate is strictly below)
 {
   const w = FC.computeWarnings(build({
     weaponName: 'Dagger',
@@ -311,7 +282,6 @@ const W5 = 'Quality is 0% — damage is at base (1.0x), not the usual 2x from 10
   assert(w.length === 0, 'exactly 10% share -> no warning');
 }
 
-// ---------- DOM: real panel, refreshWarnings ----------
 console.log('== DOM panel ==');
 const data = {
   constants: { noneLabel: 'None', selectOreLabel: 'Select Ore' },
@@ -339,7 +309,6 @@ function warningsHidden() {
   return box.classList.contains('fc-hidden');
 }
 
-// Default empty build -> W1 + W2 shown, box visible
 panel.refreshWarnings();
 {
   const texts = warningTexts();
@@ -349,7 +318,6 @@ panel.refreshWarnings();
   assert(!warningsHidden(), 'warnings box visible when warnings exist');
 }
 
-// Clean build -> box hidden
 liveBuild = build({
   weaponName: 'Dagger',
   oreSlots: [
@@ -366,7 +334,6 @@ panel.refreshWarnings();
   assert(warningsHidden(), 'warnings box hidden when clean');
 }
 
-// Live update: change build -> warnings re-render in place
 liveBuild = build({
   oreSlots: [
     { name: 'Wolfarite', amount: 30 },
@@ -385,7 +352,6 @@ panel.refreshWarnings();
   assert(texts[1] === '⚠ ' + 'Slot 2: Stone is selected but amount is 0.', 'W3 re-rendered');
 }
 
-// Quality 0 warning appears live
 liveBuild = build({ weaponName: 'Dagger', quality: 0 });
 panel.refreshWarnings();
 {
@@ -393,7 +359,6 @@ panel.refreshWarnings();
   assert(warningTexts()[1] === '⚠ ' + W5, 'W5 rendered');
 }
 
-// ---------- Source-level wiring checks ----------
 console.log('== Source wiring ==');
 assert(SRC.indexOf('state.inputPanel.refreshWarnings()') !== -1, 'handleBuildChange calls refreshWarnings (live update)');
 assert(SRC.indexOf('fc-warnings fc-hidden') !== -1, 'warnings box starts hidden');

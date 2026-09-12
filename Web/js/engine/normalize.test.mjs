@@ -1,8 +1,3 @@
-/** Regression test: normalizeBuild guards calculate() against missing build fields
- * Missing ability/armor/rune fields must resolve to 0 (not NaN), and
- * base_crit_dmg must default to workbook C21 = 1.45 — never ∞ TTK.
- * Run: node --input-type=module Web/js/engine/normalize.test.mjs
- */
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,7 +11,6 @@ function loadJSON(name) {
   return JSON.parse(fs.readFileSync(path.join(DATA, name), 'utf8'));
 }
 
-/** Replicate loader.js buildIndexes + data shaping (no fetch needed under node) */
 function buildGame() {
   const rawOres = loadJSON('ores.json');
   const rawWeapons = loadJSON('weapons.json');
@@ -79,8 +73,6 @@ function check(cond, msg) {
 
 console.log('== normalizeBuild regression checks ==');
 
-// A real build with abilities, armor fields, rune_cells, achievement and
-// base_crit_dmg ALL OMITTED — the shape that used to produce NaN / ∞ TTK.
 const partial = {
   slots: [
     { name: 'Stone', amount: 20 },
@@ -95,7 +87,6 @@ const partial = {
   bonus_weapon_type: 'Gauntlet'
 };
 
-// 1. Partial build -> every output finite
 const r = calculate(partial, game);
 check(Number.isFinite(r.total_dps), 'partial build: total_dps finite');
 check(Number.isFinite(r.ttk_25k), 'partial build: ttk_25k finite');
@@ -108,7 +99,6 @@ check(Number.isFinite(r.crit_dmg), 'partial build: crit_dmg finite');
 check(Number.isFinite(r.attack_rate), 'partial build: attack_rate finite');
 check(r.ttk_25k > 0, 'partial build: ttk_25k > 0');
 
-// 2. Missing fields == explicit zeros (absent input cell is 0 in the workbook)
 const zeroed = calculate({
   ...partial,
   rune_cells: ['None', 'None', 'None', 'None', 'None', 'None'],
@@ -127,13 +117,11 @@ const zeroed = calculate({
 }, game);
 check(r.total_dps === zeroed.total_dps, 'missing fields == explicit zeros (same total_dps)');
 
-// 3. Empty / slotless builds never throw, never NaN
 const empty = calculate({}, game);
 check(Number.isFinite(empty.total_dps) && empty.ttk_25k > 0, 'calculate({}) finite with positive TTK');
 const slotless = calculate({ slots: [] }, game);
 check(Number.isFinite(slotless.total_dps) && slotless.ttk_25k > 0, 'calculate({slots:[]}) finite with positive TTK');
 
-// 4. base_crit_dmg defaults to 1.45 when omitted -> blend 1.45 at capped crit
 const capped = calculate({
   slots: [
     { name: 'Stone', amount: 20 },

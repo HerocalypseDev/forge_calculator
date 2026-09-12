@@ -1,18 +1,3 @@
-/**
- * Focused test for the MediaWiki section icons.
- *
- * Guards the regression where icons were hand-built as raw <img src> tags.
- * On this wiki images are referenced as [[File:...]] wikitext (the same
- * convention the templates use), so the JS must:
- *  - NOT construct <img src=".../Special:Redirect/file/..."> directly
- *  - collect .fc-section-icon placeholders while the input panel renders
- *  - resolve them in one batched mw.Api().parse() call whose wikitext is
- *    [[File:<file>|frameless|link=File:<file>|alt=<title>]]
- *  - inject the parsed <a><img></a> markup (Special:FilePath src + alt) into
- *    each placeholder once the parse resolves
- *
- * Run: node Web/mediawiki/icon-test.js
- */
 'use strict';
 
 const fs = require('fs');
@@ -22,7 +7,6 @@ const vm = require('vm');
 const HERE = __dirname;
 const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
 
-// --- Inject an export hook right before the DATA LOADING section ---
 const marker = 'var DATA_TITLES = {';
 const idx = SRC.indexOf(marker);
 if (idx < 0) { throw new Error('DATA LOADING marker not found'); }
@@ -31,7 +15,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  globalThis.__FC = { createInputPanel: createInputPanel, buildGameData: buildGameData };\n' +
   SRC.slice(blockStart);
 
-// --- DOM mock (same shape render-preview.js uses; add innerHTML) ---
 function makeEl(tag) {
   const el = {
     tagName: tag,
@@ -165,7 +148,6 @@ function serialize(node) {
   return `${open}${inner}</${tag}>`;
 }
 
-// --- Api mock: records the wikitext, returns the parser's canonical HTML ---
 let parsedWikitext = null;
 function ApiMock() {}
 ApiMock.prototype.parse = function (wikitext) {
@@ -231,8 +213,6 @@ const game = FC.buildGameData({
   achievements: loadJSON('Data-Achievements.json')
 });
 
-// Expected icon -> alt per section (in render order: Ore, Weapon, Race,
-// Berserk, Armor Stats, Abilities, Runes, Achievement, then Fire/Poison/Blast).
 const EXPECTED = [
   ['ForgeCalculator-ore.png', 'Ore Slots'],
   ['ForgeCalculator-weapon.png', 'Weapon'],
@@ -248,13 +228,11 @@ const EXPECTED = [
 ];
 
 (async function () {
-  // --- Source-level: no raw <img>/Special:Redirect builder may survive ---
   console.log('== source guard ==');
   assert(SRC.indexOf('Special:Redirect') === -1, 'source contains no Special:Redirect');
   assert(SRC.indexOf('SECTION_ICON_URLS') === -1, 'source contains no SECTION_ICON_URLS');
   assert(SRC.indexOf("createEl('img'") === -1, 'source builds no <img> via createEl');
 
-  // --- Render the input panel ---
   const build = { oreSlots: [{ name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }] };
   const panel = FC.createInputPanel({
     data: game,
@@ -270,8 +248,6 @@ const EXPECTED = [
     assert(icons[i].children.length === 0, `placeholder #${i} is empty before parse (no raw <img>)`);
   }
 
-  // Let the mw.loader.using(...).then(...) chain run: loadSectionIcons sends the
-  // batched parse, then fills each placeholder. A macrotask flush covers both.
   await new Promise((r) => setTimeout(r, 0));
 
   console.log('== wikitext convention ==');
@@ -286,8 +262,6 @@ const EXPECTED = [
     parsedWikitext.indexOf(`[[File:${file}|frameless|link=File:${file}|alt=${alt}]]`) !== -1);
   assert(allConventional, 'every icon follows [[File:<f>|frameless|link=File:<f>|alt=<t>]]');
 
-  // --- The parse has resolved — check every placeholder is filled ---
-  // (order-independent: panel DOM order differs from placeholder-creation order)
   console.log('== parsed injection ==');
   const filled = icons.map((el) => el.innerHTML);
   assert(filled.every((h) => h !== ''), 'all 11 placeholders were filled by the parse');

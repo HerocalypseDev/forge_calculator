@@ -1,18 +1,3 @@
-/**
- * Focused test for whole-percent armor stats entry:
- *  - Armor Stats inputs use step=1 (whole percents), not decimals (step 0.01)
- *  - max attribute = stat cap (lethality 150, crit chance/dmg 100)
- *  - Commit clamps into [0, max]; non-numeric/empty -> 0
- *  - transformBuildForEngine divides the 3 armor pct fields by 100
- *  - Armor Stats section has a whole-percent subtext
- *
- * Run: node Web/mediawiki/armor-stats-test.js
- *
- * Strategy: same as the other component tests — evaluate the real Common.js
- * source in a Node vm with a DOM mock, inject an export of createStatInput +
- * transformBuildForEngine before the DATA LOADING section, then drive the
- * rendered inputs.
- */
 'use strict';
 
 const fs = require('fs');
@@ -30,7 +15,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  globalThis.__FC = { createStatInput: createStatInput, transformBuildForEngine: transformBuildForEngine };\n' +
   SRC.slice(blockStart);
 
-// --- DOM mock (createEl + events + querySelectorAll) ---
 function makeEl(tag) {
   const el = {
     tagName: tag,
@@ -159,7 +143,6 @@ function assert(cond, label) {
   return cond;
 }
 
-// --- Render the stat input group ---
 const calls = [];
 const stat = FC.createStatInput({
   values: { armorLethality: 0, armorCritChance: 0, armorCritDmg: 0 },
@@ -173,7 +156,6 @@ const byId = {};
 for (const el of inputs) { byId[el.id] = el; }
 assert(byId.armorLethality && byId.armorCritChance && byId.armorCritDmg, 'inputs have expected ids');
 
-// --- 1. Whole-percent attributes ---
 console.log('== Input attributes ==');
 assert(byId.armorLethality.getAttribute('step') === '1', 'lethality step=1 (whole percent)');
 assert(byId.armorCritChance.getAttribute('step') === '1', 'crit chance step=1');
@@ -183,7 +165,6 @@ assert(byId.armorCritChance.getAttribute('max') === '100', 'crit chance max=100 
 assert(byId.armorCritDmg.getAttribute('max') === '100', 'crit dmg max=100 (cap)');
 assert(byId.armorCritChance.getAttribute('min') === '0', 'crit chance min=0');
 
-// --- 2. Commit clamping ---
 console.log('== Commit clamping ==');
 function commit(el, value) {
   el.value = value;
@@ -202,7 +183,6 @@ assert(stat.getValues().armorCritChance === 0, 'non-numeric -> 0');
 assert(byId.armorCritChance.value === '0', 'input snaps to 0');
 assert(calls[calls.length - 1].armorCritChance === 0, 'onChange emitted with clamped value');
 
-// --- 3. transformBuildForEngine divides by 100 ---
 console.log('== transformBuildForEngine ==');
 function uiBuild(overrides) {
   return Object.assign({
@@ -221,7 +201,6 @@ function uiBuild(overrides) {
   assert(eng.armor_crit_dmg === 0.5, 'crit dmg 50% -> 0.5');
 }
 
-// --- 4. Source-level guards ---
 console.log('== Source checks ==');
 assert(SRC.indexOf('/ 100') !== -1 && SRC.indexOf('armorCritChance') !== -1, 'transform divides armor percents by 100');
 assert(SRC.indexOf('fc-input-section-subtext') !== -1, 'Armor Stats whole-percent subtext present');

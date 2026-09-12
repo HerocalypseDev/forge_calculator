@@ -115,7 +115,7 @@ Workbook sheets:
 - **Ore power** `E10` — weighted average of the slot multipliers, with **Fichilliumorite excluded from both halves** of the division, so it is filler that never dilutes.
 - **Weapon DPS** `C89` = `C18 × (1+E45) × crit_blend × E21`; the seven proc rows (`C90`–`C94`, `E94`) scale on **unforged A18**; **Total** `C96` = sum; TTK `E96/E97` = 25k/75k ÷ total; `C100` min, `C101` max-burst (procs on **forged C18**).
 - **Aggregation differs per proc.** Explosion (`C58`/`C59`) **sums** across the four slots — `C59` is literally `SUM(slot1..slot4, D37)` — while fire, poison, smite and lightning **chance** take a `MAX`. Smite adds its race bonus *on top of* the slot max rather than maxing against it.
-- **Berserk** `C97` = `C89 × (1+E54)` + the six proc rows: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
+- **Berserk** `C97` = `C89 × (1+E54)` + the six proc rows: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. `E54` is the manual `C54` input plus Minotaur only — ore `phys_dmg` traits are **display-only** ("when HP < 35%") and must not feed it. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
 - **Lightning** (`C80`/`E80`/`C81`, DPS `E81`): damage sums, chance maxes, and the cooldown is the `MIN` across slots — the sheet uses `99` as its "no lightning" sentinel and maps a surviving 99 back to 0. Procs are rate-capped by `MIN(E21, 1/E80)`.
 
 ## Preserved workbook quirks (do not "fix")
@@ -132,6 +132,29 @@ Workbook sheets:
 - "Damage Boost" achievement feeds lethality (`E45`).
 - Forge level 9 = 1.5× (breaks the 0.05 step pattern); level outside 0–9 → 1.0.
 - Percent inputs store **decimals** (0.30 = 30%); ability time cells are plain seconds.
+- `rng.gated === false` on a `StatRange` means "no 10% share guard" and exists solely for
+  Kitsunite smite damage; `floor`/`ceiling` carry that cell's `MAX(0.05, MIN(0.5, ramp))`.
+
+## UI invariants (MediaWiki)
+
+Not workbook formulas — behaviour the tests lock down, recorded here because the code
+carries no comments.
+
+- **Ability clamp ranges** (`ABILITY_RANGES`) are **game rune ranges, not formula
+  constants**, so they are exempt from "zero invented mechanics" — the same precedent as
+  the Quality cap. Lightning's mirror the Kitsunite/Marblite *ore* ramps: damage to 80%,
+  chance to 60%, cooldown 0.3–5s.
+- The lightning cooldown field uses a **fractional `step` (0.1)** because its lower bound
+  is 0.3s; with `step=1` the spinner could never reach it. Any field with a fractional
+  bound gets the same treatment.
+- `clampAbilityValue` treats `0`, empty and non-numeric alike as **"no ability" → 0**;
+  anything else is clamped into range. Clamping is silent, with the range shown in the
+  field's placeholder and tooltip.
+- **`setValue` deliberately does not fire `onChange`.** That is why a state restore or
+  Reset keeps a slot's typed amount, while actually changing the ore in the dropdown
+  zeroes it (`createOreSlot`). Changing this breaks `ore-slot-test.js`.
+- Ore `atk_speed` is **not** reachable from the MediaWiki UI — there is no attack-speed
+  input, so it only ever arrives from ores, runes, race and achievements.
 
 ## Commands
 

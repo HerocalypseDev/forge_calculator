@@ -1,11 +1,3 @@
-/**
- * Aggregate-formula check for the MediaWiki engine vs reall.xlsx.
- *
- * C97/C98/C101 are defined purely in terms of other cells, so this transcribes
- * each workbook formula literally over the engine's OWN component values and
- * compares it to what the engine returns for that cell. Any gap is a formula
- * bug in the aggregate, independent of the ore data. Dev-only audit harness.
- */
 'use strict';
 
 const fs = require('fs');
@@ -69,12 +61,8 @@ function check(label, workbook, engine) {
   rows.push([label, workbook, engine, ok]);
 }
 
-// ---------------- C97  TOTAL BERSERK DPS ----------------
-// =((E19 * (1 + C54)) * E21) + SUM(C90:C94) + E94
-// E19*E21 is exactly C89 (physical hit DPS), so the workbook reduces to
-//   C89*(1+C54) + explosion + fire + poison + smite + blackhole + lightning
 {
-  const C54 = 0.30;                       // manual Berserk input, 30%
+  const C54 = 0.30;
   const r = FC.calculate(mk({ berserk: C54 }), game);
   const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
                   r.blackhole_dps + r.lightning_dps;
@@ -82,11 +70,6 @@ function check(label, workbook, engine) {
   check('C97  berserk DPS (C54=30%)', workbook, r.berserk);
 }
 
-// Minotaur: C97 literally references the bare C54, so the sheet gives a Minotaur
-// no berserk multiplier at all -- E54 (= C54 + 30%) only feeds the display cell.
-// The maintainer's call is that this is an oversight and the race bonus should
-// count, so the expectation uses E54 semantics (matching engine.py's long-standing
-// behaviour).
 {
   const MINOTAUR = 0.30;
   const r = FC.calculate(mk({ race: 'Minotaur', bonus_weapon_type: 'Dagger', berserk: 0 }), game);
@@ -97,8 +80,6 @@ function check(label, workbook, engine) {
         r.berserk === null ? expected : r.berserk);
 }
 
-// ---------------- C98  TOTAL MOON STONE DPS ----------------
-// =IF(C53=0, C96, (C89 * (1 + C53)) + C90 + C91 + C92 + C93 + C94 + E94)
 {
   const r = FC.calculate(mk({
     slots: [
@@ -114,12 +95,6 @@ function check(label, workbook, engine) {
   check('C98  moon stone DPS', workbook, r.moonstone === null ? r.total_dps : r.moonstone);
 }
 
-// ---------------- C101 Max Burst DPS ----------------
-// =C18*(1+E45)*(C21+E47)*E21 + C18*C58*E21 + C18*C62 + C18*C67
-//   + C72*C18 + C76*C18 + C80
-// The sheet's final term is a bare +C80 -- the raw lightning PERCENTAGE, not
-// damage.  Per the maintainer's call that is an authoring slip, so the lightning
-// term is scaled like the other procs here.
 {
   const r = FC.calculate(mk(), game);
   const C18 = r.forged_damage, E21 = r.attack_rate;
@@ -134,14 +109,11 @@ function check(label, workbook, engine) {
   check('C101 max burst DPS', expected, r.max_dps);
 }
 
-// ---------------- C59  Explosion proc chance ----------------
-// =SUM(IFS(slot1), IFS(slot2), IFS(slot3), IFS(slot4), D37)  -- additive
-// Two explosion ores at >=30% share each should ADD, not collapse to the max.
 {
   const r = FC.calculate(mk({
     slots: [
-      { name: 'Magmaite', amount: 25 },   // explosion_chance 2 -> 20
-      { name: 'Meteorite', amount: 25 },  // explosion_chance 2.5 -> 25
+      { name: 'Magmaite', amount: 25 },
+      { name: 'Meteorite', amount: 25 },
       { name: 'Select Ore', amount: 0 }, { name: 'Select Ore', amount: 0 }
     ]
   }), game);
@@ -155,15 +127,13 @@ function ORES_stat(name, stat) {
   const o = list.find((x) => x.name === name);
   const rng = o && o.stats && o.stats[stat];
   if (!rng) { return 0; }
-  return rng.max / (rng.divisor || 100);   // both ores at 50% share -> fully ramped
+  return rng.max / (rng.divisor || 100);
 }
 
-// ---------------- C73  Smite chance: ores MAX, then race ADDED ----------------
-// =MAX(slot1..slot4) + IFS(C22="Angel",0.5, C22="Archangel",0.33, TRUE,0)
 {
   const r = FC.calculate(mk({
     slots: [
-      { name: 'Heavenite', amount: 30 },  // smite_chance 4 -> 40
+      { name: 'Heavenite', amount: 30 },
       { name: 'Select Ore', amount: 0 }, { name: 'Select Ore', amount: 0 },
       { name: 'Select Ore', amount: 0 }
     ],

@@ -1,7 +1,3 @@
-/** Input Panel Component
- * Left panel containing all input sections
- * @module components/InputPanel
- */
 
 import { createEl } from '../utils/dom.js';
 import { createOreSlot } from './OreSlot.js';
@@ -16,19 +12,9 @@ const CLASS_SECTION = 'ep-input-section';
 const CLASS_SECTION_TITLE = 'ep-input-section-title';
 const CLASS_RACE_WRAPPER = 'ep-race-wrapper';
 
-/**
- * Create the full input panel
- * @param {Object} options
- * @param {Object} options.data - Loaded game data
- * @param {Object} options.build - Current build state
- * @param {Function} options.onBuildChange - Callback (build) => void
- * @param {Function} options.onCalculate - Callback () => void triggered by Calculate DPS button
- * @returns {HTMLElement}
- */
 export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   const container = createEl('div', { class: CLASS_PANEL });
 
-  // Ore Slots Section
   const oreSection = createEl('div', { class: CLASS_SECTION });
   const oreTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Ore Slots']);
   oreSection.appendChild(oreTitle);
@@ -37,7 +23,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   const selectOreLabel = data.constants.selectOreLabel;
   const noneLabel = data.constants.noneLabel;
 
-  // Contextual "Select X" prompts (display layer; build state keeps the "None" sentinel)
   const ORE_PROMPT = 'Select Ores';
   const RACE_PROMPT = 'Select Race';
   const WEAPON_TYPE_PROMPT = 'Select Weapon Type';
@@ -73,7 +58,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
     oreSection.appendChild(slot);
   }
 
-  // Weapon Section
   const weaponSection = createEl('div', { class: CLASS_SECTION });
   const weaponTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Weapon']);
   weaponSection.appendChild(weaponTitle);
@@ -95,9 +79,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   });
   weaponSection.appendChild(weaponSelector);
 
-  // Race Section — the race/class weapon-type bonus is auto-detected from the
-  // selected weapon's type (workbook E44/E47 key off the bonus type, which now
-  // always equals the equipped weapon's type), so there is no separate input.
   const raceSection = createEl('div', { class: CLASS_SECTION });
   const raceTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Race']);
   raceSection.appendChild(raceTitle);
@@ -118,7 +99,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
 
   raceSection.appendChild(raceWrapper);
 
-  // Armor Stats Section
   const statSection = createEl('div', { class: CLASS_SECTION });
   const statTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Armor Stats']);
   statSection.appendChild(statTitle);
@@ -135,7 +115,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   });
   statSection.appendChild(statInput);
 
-  // Abilities Section
   const abilitySection = createEl('div', { class: CLASS_SECTION });
   const abilityTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Abilities']);
   abilitySection.appendChild(abilityTitle);
@@ -157,7 +136,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   });
   abilitySection.appendChild(abilityGrid);
 
-  // Runes Section
   const runeSection = createEl('div', { class: CLASS_SECTION });
   const runeTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Runes']);
   runeSection.appendChild(runeTitle);
@@ -173,7 +151,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   });
   runeSection.appendChild(runeSelector);
 
-  // Achievements Section (checkboxes)
   const achievementSection = createEl('div', { class: CLASS_SECTION });
   const achievementTitle = createEl('h3', { class: CLASS_SECTION_TITLE }, ['Achievements']);
   achievementSection.appendChild(achievementTitle);
@@ -203,7 +180,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
   }
   achievementSection.appendChild(achievementsContainer);
 
-  // Calculate DPS trigger (manual, no auto-recalc)
   const calcBtn = createEl('button', {
     type: 'button',
     class: 'ep-btn ep-btn--primary ep-calc-btn'
@@ -213,7 +189,6 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
     if (onCalculate) { onCalculate(); }
   });
 
-  // Append all sections
   container.append(
     oreSection,
     weaponSection,
@@ -225,28 +200,22 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
     calcBtn
   );
 
-  // Expose methods
   container.updateFromBuild = (newBuild) => {
-    // Update ore slots
     for (let i = 0; i < 4; i++) {
       oreSlots[i].setValue(newBuild.oreSlots[i]?.name || noneLabel, newBuild.oreSlots[i]?.amount || 0);
     }
-    // Update weapon selector
     weaponSelector.setValues(
       newBuild.weaponType || noneLabel,
       newBuild.weaponName || noneLabel,
       newBuild.quality ?? 100,
       newBuild.enhancement ?? 0
     );
-    // Update race
     raceDropdown.setValue(toUI(newBuild.race, RACE_PROMPT));
-    // Update stat inputs
     statInput.setValues({
       armorLethality: newBuild.armorLethality,
       armorCritChance: newBuild.armorCritChance,
       armorCritDmg: newBuild.armorCritDmg
     });
-    // Update abilities
     abilityGrid.setValues({
       fireDmg: newBuild.fireDmg,
       fireChance: newBuild.fireChance,
@@ -257,9 +226,7 @@ export function createInputPanel({ data, build, onBuildChange, onCalculate }) {
       blastDmg: newBuild.blastDmg,
       blastChance: newBuild.blastChance
     });
-    // Update runes
     runeSelector.setValues(newBuild.runes || []);
-    // Update achievements
     const newAchievements = newBuild.achievements || [];
     const checkboxes = achievementsContainer.querySelectorAll('.ep-achievement-input');
     checkboxes.forEach(cb => {

@@ -1,17 +1,3 @@
-/**
- * Focused test: with a weapon selected and NO ores, DPS must be computed from
- * the weapon's own base damage (avg ore power = 1.0), not zeroed out.
- *
- *  - Dagger (damage 4.3, interval 0.47), quality 100, all 4 ore slots empty
- *  - base damage = 4.3 * 1.0 * (1 + 100/100) = 8.6
- *  - weapon DPS = 8.6 * 1.0 (lethality) * 1.45 (crit blend) * (1/0.47) = 18.30
- *
- * Strategy: render the REAL input panel + results panel in a Node DOM mock,
- * drive the weapon dropdown to select Dagger (ores stay empty), then run the
- * same path as the Calculate DPS button: calculate(transformBuildForEngine(build)).
- *
- * Run: node Web/mediawiki/no-ore-weapon-test.js
- */
 'use strict';
 
 const fs = require('fs');
@@ -35,7 +21,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  };\n' +
   SRC.slice(blockStart);
 
-// --- DOM mock (createEl + events + querySelectorAll) ---
 function makeEl(tag) {
   const el = {
     tagName: tag,
@@ -204,7 +189,6 @@ function approx(a, b, label, eps) {
   return ok;
 }
 
-// --- Render the real input panel + results panel ---
 let build = {
   oreSlots: [
     { name: 'None', amount: 0 },
@@ -230,11 +214,10 @@ const inputPanel = FC.createInputPanel({
   data: game,
   getBuild: () => build,
   onBuildChange: (nb) => { build = nb; },
-  onCalculate: null // wired below
+  onCalculate: null
 });
 const resultsPanel = FC.createResultsPanel({ onCopy: () => {}, onReset: () => {} });
 
-// Replicate the real init wiring: onCalculate -> recalculate
 recalc = function () {
   const result = FC.calculate(FC.transformBuildForEngine(build), game);
   resultsPanel.updateResults(result);
@@ -249,7 +232,6 @@ console.log('== Initial state (no weapon, no ores) ==');
 
 console.log('== Select Dagger via the real weapon dropdown ==');
 {
-  // Find the weapon input by id within the rendered input panel tree
   let weaponInput = null;
   const findId = (n) => {
     if (weaponInput) { return; }
@@ -263,9 +245,6 @@ console.log('== Select Dagger via the real weapon dropdown ==');
   const items = weaponInput.parentNode.querySelectorAll('.fc-searchable-item');
   assert(items.length > 0, 'weapon list rendered after focus (got ' + items.length + ' items)');
 
-  // Click the item whose data-value is "Dagger". The click handler lives on the
-  // list container (real browser bubbling); the mock has no bubbling, so
-  // dispatch on the container with the item as event target.
   let clicked = null;
   for (const it of items) {
     if (it.dataset.value === 'Dagger') {
@@ -284,19 +263,15 @@ console.log('== Calculate with weapon + empty ores ==');
 {
   const r = recalc();
 
-  // Dagger: damage 4.3, interval 0.47, quality 100 -> base = 4.3*1*(1+1) = 8.6
   approx(r.avg_power, 1.0, 'avg ore power = 1.0 with no ores');
   approx(r.unforged_damage, 8.6, 'base damage from weapon: 4.3 * 2.0');
   approx(r.forged_damage, 8.6, 'forged == unforged at forge level 0');
   approx(r.attack_rate, 1 / 0.47, 'attack rate from Dagger interval');
-  // No crit chance, so the crit blend is 1.0: weapon DPS = base * 1 * (1/0.47)
   approx(r.weapon_dps, 8.6 / 0.47, 'weapon DPS = base * crit blend(1.0) * attack rate');
   approx(r.total_dps, 8.6 / 0.47, 'total == weapon DPS (no procs)');
   assert(r.ttk_25k !== null && r.ttk_25k > 0, 'finite, positive TTK (not infinity)');
 
-  // Results panel display
   const dpsRows = resultsPanel.querySelectorAll('.fc-stat-row');
-  // dpsCard is the 3rd card: 7 rows starting at a known offset; find "Total DPS"
   let totalRow = null;
   let baseRow = null;
   const walk = (n) => {

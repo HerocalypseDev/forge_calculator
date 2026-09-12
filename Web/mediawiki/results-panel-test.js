@@ -1,20 +1,3 @@
-/**
- * Focused test for the MediaWiki results panel DPS Breakdown:
- *  - Renders 10 rows: Weapon / Explosion / Fire / Poison / Smite / Black Hole /
- *    Lightning / Total /
- *    Total Berserk / Total Moonstone
- *  - "Explosion DPS" maps to result.explosion_dps (the blast-ability proc, C85)
- *  - "Smite DPS" maps to result.smite_dps (Heavenite/Angel/Archangel proc, C88)
- *
- * This guards the regression where "Blast DPS" showed smite_dps and the real
- * blast (explosion) DPS was hidden even though it feeds total_dps.
- *
- * Run: node Web/mediawiki/results-panel-test.js
- *
- * Strategy: same as verify-engine.js — evaluate the real Common.js source in a
- * Node vm with a DOM mock, inject an export of createResultsPanel before the
- * DATA LOADING section, then render and assert on the live DOM.
- */
 'use strict';
 
 const fs = require('fs');
@@ -24,7 +7,6 @@ const vm = require('vm');
 const HERE = __dirname;
 const SRC = fs.readFileSync(path.join(HERE, 'MediaWiki-ForgeCalculator.js'), 'utf8');
 
-// --- Inject an export hook right before the DATA LOADING section ---
 const marker = 'var DATA_TITLES = {';
 const idx = SRC.indexOf(marker);
 if (idx < 0) { throw new Error('DATA LOADING marker not found'); }
@@ -33,7 +15,6 @@ const instrumented = SRC.slice(0, blockStart) +
   '  globalThis.__FC = { createResultsPanel: createResultsPanel };\n' +
   SRC.slice(blockStart);
 
-// --- DOM mock (createEl + createStatRows need createDocumentFragment) ---
 function makeEl(tag) {
   const el = {
     tagName: tag,
@@ -50,8 +31,6 @@ function makeEl(tag) {
     _classes: new Set()
   };
 
-  // className and classList share one backing set so direct className writes
-  // (via createEl) and classList mutations stay in sync.
   Object.defineProperty(el, 'className', {
     get() { return Array.from(el._classes).join(' '); },
     set(v) { el._classes = new Set(String(v).split(/\s+/).filter(Boolean)); }
@@ -71,8 +50,6 @@ function makeEl(tag) {
     configurable: true
   });
 
-  // textContent: like a real DOM — getter concatenates child text, setter
-  // replaces all children with a single text node.
   Object.defineProperty(el, 'textContent', {
     get() {
       const collect = (n) => {
@@ -135,7 +112,6 @@ function makeEl(tag) {
   return el;
 }
 
-// --- Sandbox ---
 const mw = {
   config: { get: () => '/w' },
   loader: { using: () => Promise.resolve() },
@@ -175,7 +151,6 @@ function assert(cond, label) {
   return cond;
 }
 
-// --- Render the panel ---
 const panel = FC.createResultsPanel({ onCopy: () => {}, onReset: () => {} });
 const dpsCard = panel.querySelectorAll('.fc-card').find((c) =>
   (c.querySelector('.fc-card-title') || {}).textContent === 'DPS Breakdown');
@@ -188,7 +163,6 @@ assert(labels.length === 10, `10 rows rendered (got ${labels.length})`);
 assert(JSON.stringify(labels) === JSON.stringify(expectedLabels),
   'row labels match: ' + expectedLabels.join(' | '));
 
-// --- Fake result with distinguishable per-proc values ---
 const fake = {
   unforged_damage: 100, avg_power: 2, forged_damage: 200, attack_rate: 1.5,
   weapon_dps: 300, lethality: 0.3, crit_chance: 0.2, crit_dmg: 0.1, atk_speed: 0.2,
@@ -210,13 +184,11 @@ assert(val(9) === '600.00', `Total Moonstone DPS row shows moonstone (got ${val(
 assert(val(1) !== val(4), 'Explosion and Smite rows are distinct components');
 assert(val(3) === '22.22' && val(2) === '11.11', 'Fire/Poison rows map correctly');
 
-// Inactive berserk/moonstone (null) render as "—"
 panel.updateResults({ ...fake, berserk: null, moonstone: null });
 assert(val(8) === '—', `null berserk renders as "—" (got ${val(8)})`);
 assert(val(9) === '—', `null moonstone renders as "—" (got ${val(9)})`);
-panel.updateResults(fake); // restore for subsequent checks
+panel.updateResults(fake);
 
-// --- Active Traits: full-width wrapping block (not clipped stat row) ---
 console.log('== Active Traits block ==');
 const longTraits = 'Cinder Blade — Fire Damage | Shadow Essence — Lethality + Critical Damage | ' +
   'A very long trait description that should wrap onto multiple lines instead of being clipped';
@@ -233,7 +205,6 @@ assert(!!traitsValue, 'traits value element rendered');
 assert(traitsValue.textContent === longTraits, 'full trait text preserved (no truncation)');
 assert(!traitsCard.querySelector('.fc-stat-row'), 'traits use the wrapping block, not a stat row');
 
-// --- Total DPS hero card + modifier classes (dark-theme layout) ---
 console.log('== Hero card + card classes ==');
 const totalCard = panel.querySelectorAll('.fc-card').find((c) =>
   (c.querySelector('.fc-card-title') || {}).textContent === 'Total DPS');
@@ -253,14 +224,11 @@ cardClasses.forEach(([title, cls]) =>
   assert((byTitle(title) || {}).classList && byTitle(title).classList.contains(cls),
     `${title} card has ${cls} modifier`));
 
-// Hero card renders total_dps as its single, unlabelled value row. The sizing
-// comes from the .fc-card--total modifier (asserted above), not a value class.
 const heroRows = totalCard.querySelectorAll('.fc-stat-row');
 const heroVal = totalCard.querySelector('.fc-stat-val');
 assert(heroRows.length === 1, `hero card has exactly one row (got ${heroRows.length})`);
 assert(heroVal && heroVal.textContent === '494.93', `hero card shows total_dps (got ${heroVal && heroVal.textContent})`);
 
-// Append order matches the reference layout: hero, dps, stats, traits, core, ttk
 const cardsContainer = panel.querySelector('.fc-results-cards');
 const order = (cardsContainer.children || []).map((c) =>
   (c.querySelector('.fc-card-title') || {}).textContent);
@@ -268,7 +236,6 @@ assert(JSON.stringify(order) === JSON.stringify(
   ['Total DPS', 'DPS Breakdown', 'Stats (Capped)', 'Active Traits', 'Core DPS', 'Time to Kill']),
   'cards appended in reference order: ' + order.join(' | '));
 
-// Source-level guard: clipboard uses explosion_dps + smite_dps (no stale "Blast DPS")
 console.log('== Clipboard (source) ==');
 assert(SRC.indexOf("'Explosion DPS: ' + result.explosion_dps") !== -1, 'clipboard has Explosion DPS');
 assert(SRC.indexOf("'Smite DPS: ' + result.smite_dps") !== -1, 'clipboard has Smite DPS');

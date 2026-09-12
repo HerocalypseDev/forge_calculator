@@ -1,7 +1,3 @@
-/** Results Panel Component
- * Right panel showing calculated results
- * @module components/ResultsPanel
- */
 
 import { createEl } from '../utils/dom.js';
 import { createResultsCard, updateResultsCard } from './ResultsCard.js';
@@ -12,10 +8,6 @@ const CLASS_PANEL = 'ep-results-panel';
 const CLASS_TITLE = 'ep-results-title';
 const CLASS_CARDS_CONTAINER = 'ep-results-cards';
 
-/**
- * Create the results panel
- * @returns {HTMLElement}
- */
 export function createResultsPanel() {
   const container = createEl('div', { class: CLASS_PANEL });
 
@@ -25,7 +17,6 @@ export function createResultsPanel() {
   const cardsContainer = createEl('div', { class: CLASS_CARDS_CONTAINER });
   container.appendChild(cardsContainer);
 
-  // Core DPS Card
   const coreDpsCard = createResultsCard({
     title: 'Core DPS',
     content: createStatRows([
@@ -37,7 +28,6 @@ export function createResultsPanel() {
     ])
   });
 
-  // Stats Card
   const statsCard = createResultsCard({
     title: 'Stats (Capped)',
     content: createStatRows([
@@ -48,7 +38,6 @@ export function createResultsPanel() {
     ])
   });
 
-  // DPS Breakdown Card
   const dpsCard = createResultsCard({
     title: 'DPS Breakdown',
     content: createStatRows([
@@ -64,7 +53,6 @@ export function createResultsPanel() {
     ])
   });
 
-  // Time to Kill Card
   const ttkCard = createResultsCard({
     title: 'Time to Kill',
     content: createStatRows([
@@ -73,7 +61,6 @@ export function createResultsPanel() {
     ])
   });
 
-  // Traits Card (initially empty)
   const traitsCard = createResultsCard({
     title: 'Active Traits',
     content: createStatRows([
@@ -89,7 +76,6 @@ export function createResultsPanel() {
     traitsCard
   );
 
-  // Store references for updates
   const cards = {
     coreDps: coreDpsCard,
     stats: statsCard,
@@ -101,7 +87,6 @@ export function createResultsPanel() {
   container.updateResults = (result) => {
     if (!result) return;
 
-    // Core DPS
     const coreRows = coreDpsCard.querySelectorAll('.ep-stat-row');
     if (coreRows.length >= 5) {
       updateStatRow(coreRows[0], fmtDps(result.unforged_damage), false);
@@ -111,7 +96,6 @@ export function createResultsPanel() {
       updateStatRow(coreRows[4], fmtDps(result.weapon_dps), false);
     }
 
-    // Stats (with cap highlighting)
     const statRows = statsCard.querySelectorAll('.ep-stat-row');
     if (statRows.length >= 4) {
       updateStatRow(statRows[0], pctFmt(result.lethality), result.lethality >= 1.5);
@@ -120,7 +104,6 @@ export function createResultsPanel() {
       updateStatRow(statRows[3], pctFmt(result.atk_speed), result.atk_speed >= 1.5);
     }
 
-    // DPS Breakdown
     const dpsRows = dpsCard.querySelectorAll('.ep-stat-row');
     if (dpsRows.length >= 9) {
       updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
@@ -134,15 +117,12 @@ export function createResultsPanel() {
       updateStatRow(dpsRows[8], fmtDps(result.moonstone), false);
     }
 
-    // TTK
     const ttkRows = ttkCard.querySelectorAll('.ep-stat-row');
     if (ttkRows.length >= 2) {
       updateStatRow(ttkRows[0], fmtTime(result.ttk_25k), false);
       updateStatRow(ttkRows[1], fmtTime(result.ttk_75k), false);
     }
 
-    // Traits — full-width wrapping block so long trait text is never clipped
-    // by the stat-row layout (`.ep-stat-val` is flex-shrink:0, cards clip overflow).
     const traitsBlock = createEl('div', { class: 'ep-traits-block' });
     if (result.active_traits && result.active_traits.length > 0) {
       const traitsText = result.active_traits.map(t => `${t.name}: ${t.power}%`).join('; ');

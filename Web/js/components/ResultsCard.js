@@ -1,7 +1,3 @@
-/** Results Card Component
- * ep-card wrapper for stat rows
- * @module components/ResultsCard
- */
 
 import { createEl } from '../utils/dom.js';
 
@@ -12,14 +8,6 @@ const CLASS_TITLE = 'ep-card-title';
 const CLASS_BODY = 'ep-card-body';
 const CLASS_ROWS = 'ep-stat-rows';
 
-/**
- * Create a results card
- * @param {Object} options
- * @param {string} options.title - Card title
- * @param {HTMLElement|DocumentFragment} options.content - Stat rows content
- * @param {string} [options.icon] - Custom icon (default: diamond)
- * @returns {HTMLElement}
- */
 export function createResultsCard({ title, content, icon }) {
   const card = createEl('div', { class: CLASS_CARD });
 
@@ -37,11 +25,6 @@ export function createResultsCard({ title, content, icon }) {
   return card;
 }
 
-/**
- * Update card content
- * @param {HTMLElement} card
- * @param {HTMLElement|DocumentFragment} content
- */
 export function updateResultsCard(card, content) {
   const rowsContainer = card.querySelector(`.${CLASS_ROWS}`);
   if (rowsContainer) {
@@ -50,11 +33,6 @@ export function updateResultsCard(card, content) {
   }
 }
 
-/**
- * Create a full-width card for active traits
- * @param {string} text
- * @returns {HTMLElement}
- */
 export function createTraitsCard(text) {
   const card = createEl('div', { class: CLASS_CARD });
   const head = createEl('div', { class: CLASS_HEAD });

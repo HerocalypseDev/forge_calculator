@@ -1,13 +1,6 @@
-/** Data loader implementation - fetches and indexes all JSON files
- * @module data/loader
- */
 
 import { EXPECTED_COUNTS, SELECT_ORE, NONE_LABEL } from './constants.js';
 
-/**
- * @param {string} path
- * @returns {Promise<Object>}
- */
 async function fetchJson(path) {
   const response = await fetch(path);
   if (!response.ok) {
@@ -16,10 +9,6 @@ async function fetchJson(path) {
   return response.json();
 }
 
-/**
- * @param {Ore[]} rawOres
- * @returns {Ore[]}
- */
 function buildOres(rawOres) {
   return rawOres.map(raw => ({
     name: raw.name,
@@ -32,10 +21,6 @@ function buildOres(rawOres) {
   }));
 }
 
-/**
- * @param {Weapon[]} rawWeapons
- * @returns {Weapon[]}
- */
 function buildWeapons(rawWeapons) {
   return rawWeapons.map(raw => ({
     name: raw.name,
@@ -45,10 +30,6 @@ function buildWeapons(rawWeapons) {
   }));
 }
 
-/**
- * @param {Race[]} rawRaces
- * @returns {Race[]}
- */
 function buildRaces(rawRaces) {
   return rawRaces.map(raw => ({
     name: raw.name,
@@ -57,10 +38,6 @@ function buildRaces(rawRaces) {
   }));
 }
 
-/**
- * @param {Rune[]} rawRunes
- * @returns {Rune[]}
- */
 function buildRunes(rawRunes) {
   return rawRunes.map(raw => ({
     name: raw.name,
@@ -69,10 +46,6 @@ function buildRunes(rawRunes) {
   }));
 }
 
-/**
- * @param {Achievement[]} rawAchievements
- * @returns {Achievement[]}
- */
 function buildAchievements(rawAchievements) {
   return rawAchievements.map(raw => ({
     name: raw.name,
@@ -81,10 +54,6 @@ function buildAchievements(rawAchievements) {
   }));
 }
 
-/**
- * Validate loaded data against expected counts
- * @param {GameData} data
- */
 function validateData(data) {
   const counts = {
     ores: data.ores.length,
@@ -105,7 +74,6 @@ function validateData(data) {
     console.warn('Data count drift detected:', drift);
   }
 
-  // Check for duplicate ore names
   const oreNames = data.ores.map(o => o.name);
   const dupes = oreNames.filter((name, i) => oreNames.indexOf(name) !== i);
   if (dupes.length > 0) {
@@ -120,20 +88,12 @@ function validateData(data) {
   }
 }
 
-/**
- * Build index maps for fast lookups
- * @param {GameData} data
- */
 function buildIndexes(data) {
   data._ore_index = new Map(data.ores.map(o => [o.name, o]));
   data._weapon_index = new Map(data.weapons.map(w => [w.name, w]));
   data._race_index = new Map(data.races.map(r => [r.name, r]));
 }
 
-/**
- * Load and process all game data
- * @returns {Promise<GameData>}
- */
 export async function loadGameData() {
   const basePath = '../data';
 
@@ -151,7 +111,7 @@ export async function loadGameData() {
   const runes = buildRunes(rawRunes.runes);
   const achievements = buildAchievements(rawAchievements.achievements);
 
-  const data = /** @type {GameData} */ ({
+  const data = ({
     ores,
     weapons,
     races,

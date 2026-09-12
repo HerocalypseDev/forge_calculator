@@ -1,10 +1,4 @@
-/* ==========================================================================
-   Calculator Styles - Component-specific styling
-   ========================================================================== */
 
-/* ==========================================================================
-   Input Panel & Sections
-   ========================================================================== */
 
 .ep-input-panel {
   display: flex;
@@ -31,11 +25,7 @@
   letter-spacing: 0.5px;
 }
 
-/* ==========================================================================
-   Form Controls
-   ========================================================================== */
 
-/* Labels */
 .ep-input-section label,
 .ep-weapon-selector label,
 .ep-ore-slot-label,
@@ -53,7 +43,6 @@
   letter-spacing: 0.3px;
 }
 
-/* Inputs */
 .ep-stat-input-input,
 .ep-ability-input,
 .ep-quality-input,
@@ -85,7 +74,6 @@
   opacity: 0.5;
 }
 
-/* Input rows */
 .ep-stat-input-row,
 .ep-ability-row,
 .ep-ore-slot-fields {
@@ -112,7 +100,6 @@
   min-width: 0;
 }
 
-/* Ore slot specific */
 .ep-ore-slot {
   display: flex;
   align-items: flex-end;
@@ -150,7 +137,6 @@
   white-space: nowrap;
 }
 
-/* Weapon selector */
 .ep-weapon-selector {
   display: flex;
   flex-direction: column;
@@ -173,7 +159,6 @@
   min-width: auto;
 }
 
-/* Race wrapper */
 .ep-race-wrapper {
   display: flex;
   flex-direction: column;
@@ -185,7 +170,6 @@
   margin-bottom: 0;
 }
 
-/* Achievements */
 .ep-achievements-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -214,9 +198,6 @@
   flex-shrink: 0;
 }
 
-/* ==========================================================================
-   Searchable Dropdown
-   ========================================================================== */
 
 .ep-searchable-dropdown {
   position: relative;
@@ -321,9 +302,6 @@
   font-size: 12px;
 }
 
-/* ==========================================================================
-   Results Panel
-   ========================================================================== */
 
 .ep-results-panel {
   background: var(--ep-card-bg);
@@ -348,7 +326,6 @@
   gap: 12px;
 }
 
-/* Cards */
 .ep-card {
   background: var(--ep-bg);
   border: 1px solid var(--ep-card-border);
@@ -446,8 +423,6 @@
   color: #e65100;
 }
 
-/* Active Traits — full-width wrapping block so long trait text is never
-   clipped (stat rows shrink the value and cards clip overflow). */
 
 .ep-traits-block {
   display: block;
@@ -471,9 +446,6 @@
   word-break: break-word;
 }
 
-/* ==========================================================================
-   Rune Selector Grid (3 lines × 2 slots)
-   ========================================================================== */
 
 .ep-rune-selector {
   display: flex;
@@ -502,9 +474,6 @@
   min-width: 0;
 }
 
-/* ==========================================================================
-   Tooltip
-   ========================================================================== */
 
 .ep-tooltip {
   font-family: var(--ep-font);
@@ -516,9 +485,6 @@
   color: var(--ep-text);
 }
 
-/* ==========================================================================
-   Ability Grid Notes
-   ========================================================================== */
 
 .ep-ability-note {
   font-size: 11px;
@@ -531,13 +497,7 @@
   border: 1px dashed var(--ep-border);
 }
 
-/* ==========================================================================
-   Toast (for copy feedback)
-   ========================================================================== */
 
-/* ==========================================================================
-   Calculate DPS Button
-   ========================================================================== */
 
 .ep-btn {
   font-family: inherit;
@@ -566,11 +526,7 @@
   letter-spacing: 0.5px;
 }
 
-/* Toast styles are injected inline in main.js */
 
-/* ==========================================================================
-   Scrollbar Styling
-   ========================================================================== */
 
 ::-webkit-scrollbar {
   width: 8px;
@@ -590,7 +546,6 @@
   background: var(--ep-border-dark);
 }
 
-/* Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--ep-border) var(--ep-bg);

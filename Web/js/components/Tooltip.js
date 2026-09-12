@@ -1,16 +1,9 @@
-/** Tooltip Component
- * Hover tooltip with delay and positioning
- * @module components/Tooltip
- */
 
 let tooltipEl = null;
 let hideTimeout = null;
 let showTimeout = null;
 let currentTarget = null;
 
-/**
- * Initialize tooltip element
- */
 function ensureTooltip() {
   if (!tooltipEl) {
     tooltipEl = document.createElement('div');
@@ -36,11 +29,6 @@ function ensureTooltip() {
   return tooltipEl;
 }
 
-/**
- * Show tooltip for an element
- * @param {HTMLElement} target
- * @param {string} text
- */
 export function showTooltip(target, text) {
   if (!target || !text) return;
 
@@ -57,9 +45,6 @@ export function showTooltip(target, text) {
   }, 350);
 }
 
-/**
- * Hide tooltip
- */
 export function hideTooltip() {
   clearTimeout(showTimeout);
   clearTimeout(hideTimeout);
@@ -70,28 +55,20 @@ export function hideTooltip() {
   currentTarget = null;
 }
 
-/**
- * Position tooltip near target
- * @param {HTMLElement} target
- * @param {HTMLElement} tooltip
- */
 function positionTooltip(target, tooltip) {
   const rect = target.getBoundingClientRect();
   const tooltipRect = tooltip.getBoundingClientRect();
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
-  // Default: below target, centered
   let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
   let top = rect.bottom + 8;
 
-  // Flip horizontally if off-screen
   if (left < 8) left = 8;
   if (left + tooltipRect.width > viewportWidth - 8) {
     left = viewportWidth - tooltipRect.width - 8;
   }
 
-  // Flip vertically if off-screen
   if (top + tooltipRect.height > viewportHeight - 8) {
     top = rect.top - tooltipRect.height - 8;
   }
@@ -100,11 +77,6 @@ function positionTooltip(target, tooltip) {
   tooltip.style.top = `${top}px`;
 }
 
-/**
- * Attach tooltip to an element
- * @param {HTMLElement} el
- * @param {string} text
- */
 export function attachTooltip(el, text) {
   if (!el || !text) return;
 
@@ -118,14 +90,9 @@ export function attachTooltip(el, text) {
   el.addEventListener('focus', handleFocus);
   el.addEventListener('blur', handleBlur);
 
-  // Store handlers for cleanup
   el._tooltipHandlers = { handleMouseEnter, handleMouseLeave, handleFocus, handleBlur };
 }
 
-/**
- * Remove tooltip from element
- * @param {HTMLElement} el
- */
 export function detachTooltip(el) {
   if (!el || !el._tooltipHandlers) return;
 

@@ -1,39 +1,17 @@
-/** Input normalization - guards calculate() against missing/invalid build fields
- * @module engine/normalize
- */
 
-const DEFAULT_BASE_CRIT_DMG = 1.45; // workbook C21 (145% crits before bonuses)
+const DEFAULT_BASE_CRIT_DMG = 1.45;
 
-/**
- * Coerce a value to a finite number; 0 for null/undefined/non-finite.
- * An absent input cell is 0 in the workbook, so missing = 0.
- * @param {*} v
- * @returns {number}
- */
 export function num(v) {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
 
-/**
- * Base crit damage defaults to workbook C21 (1.45) when missing/invalid,
- * not 0 - a missing cell is the workbook's base, not "no crits".
- * @param {*} v
- * @returns {number}
- */
 function baseCritDmg(v) {
   if (v === null || v === undefined || v === '') return DEFAULT_BASE_CRIT_DMG;
   const n = Number(v);
   return Number.isFinite(n) ? n : DEFAULT_BASE_CRIT_DMG;
 }
 
-/**
- * Normalize a build to a total, well-formed shape.
- * Identity for valid builds (numbers pass through unchanged); missing or
- * invalid fields become their workbook-default values.
- * @param {Build|Object} build
- * @returns {Build}
- */
 export function normalizeBuild(build) {
   const b = build ?? {};
   const slots = Array.isArray(b.slots) ? b.slots : [];
