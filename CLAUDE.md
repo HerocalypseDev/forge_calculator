@@ -11,9 +11,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Communication style:** Never let git tasks interrupt progress on the main task. Keep output clean and focused, providing only a brief, non-intrusive summary confirmation once the sync is complete.
 
 ### Zero invented mechanics (hard requirement)
-- Every formula, stat, and rule is ported **verbatim** from the three sources:
-  - `new.xlsx` — authoritative workbook (openpyxl, build-time only)
+- Every formula, stat, and rule is ported **verbatim** from the source workbook:
+  - `reference/reall.xlsx` — authoritative workbook (openpyxl, build-time only)
+  - `reference/new.xlsx` — the prior workbook, kept *only* because the ore
+    attack-speed ramp (its `C48`) was deleted from reall.xlsx and that deletion
+    was judged a sheet regression. `LEGACY_STAT_CELLS` reads it so the stat is
+    still parsed rather than hand-typed.
 - Never hand-type a number that the workbook computes. Stat matrices are derived from formula strings; constants are guarded by `tests/test_golden.py::test_engine_constants_match_source`.
+- **Verify against the workbook, not against the old data.** `scripts/audit_reall.py`
+  diffs every per-ore range in `data/ores.json` against the sheet, and the three
+  parity harnesses replay the workbook's own saved build through each engine.
+  Commit `e512c81` hand-edited the JSON instead of rebuilding it, which silently
+  broke 7 ore multipliers and most of Kitsunite for three commits.
+
+### Approved deviations from reall.xlsx
+These four are deliberate and signed off; do not "correct" them back to the sheet.
+1. **Ore attack speed is kept** (sourced from `new.xlsx` C48). reall.xlsx replaced
+   the ramp with a bare `C48` input cell.
+2. **Minotaur reaches Berserk DPS.** `C97` references the bare `C54`, so the sheet
+   gives Minotaur no berserk multiplier; the engines use `E54` (`C54` + 30%).
+3. **Max Burst scales its lightning term.** `C101` ends with a bare `+C80` — the raw
+   lightning *percentage*. The engines use `C18*C80*C81*E21`, like every other proc.
+4. **Felynx + a Gauntlet weapon gets BOTH class bonuses.** `E45` tests the singular
+   `Gauntlet` and `E48` the plural `Gauntlets`, and the `C23` dropdown only offers
+   the plural — so the `E45` branch can never fire in the sheet. Both spellings are
+   registered in `CLASS_LETHALITY` and `CLASS_ATK_SPEED`.
+
+Still open in the sheet (reported, not worked around): **`C64` reads `C37`**, the
+Blast row's DMG cell, instead of `E34` (Fire's own Time). Every other ability wires
+to its own row. The engines use `fire_time`, i.e. the `E34` reading.
 
 ### Dynamic Plan Tracking & Memory
 - **Plan Storage:** Whenever a new development plan or roadmap is created while in **Plan Mode**, you must add a summary of that plan to `CLAUDE.md` under a dedicated tracking section **immediately when the plan is made** — before any implementation work begins. Do not wait until the plan's phases have been implemented to record it.
@@ -23,15 +49,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `forge_calculator` is a Python/Tkinter desktop app that reproduces "LittleTimmy's DPS Calculator", an Excel workbook computing DPS for a game's forge/weapon system. The engine, data, and GUI are complete:
 
-- **Engine** (`forge_calculator/engine.py`) — pure, headless, fully tested. `calculate(build, game)` → every workbook cell (E10…E92).
-- **Data** (`forge_calculator/data.py`, `data/*.json`) — committed JSON is the runtime source of truth; counts validated against the workbook (140 ores / 79 weapons / 16 races / 47 runes / 16 achievements).
+- **Engine** (`forge_calculator/engine.py`) — pure, headless, fully tested. `calculate(build, game)` → every workbook cell (E10…E101).
+- **Data** (`forge_calculator/data.py`, `data/*.json`) — committed JSON is the runtime source of truth; counts validated against the workbook (147 ores / 80 weapons / 16 races / 47 runes / 16 achievements).
 - **GUI** (`forge_calculator/gui/`) — ttk.Notebook: interactive Calculator tab + browse-only Ores/Races/Weapons/Achievements/Runes tabs.
 - **Build** (`build_data/`, `scripts/build_data.py`) — openpyxl extraction → JSON. Dev-only; never imported at runtime.
 
 Workbook sheets:
-- **DPS Calculator** (99 formulas) — the main calculation sheet (cells C6–E96).
-- **_Weapon** — weapon lookup (`C2:E80`, types `C12`, race-bonus types `C23`).
-- **_OptionsCrafter** — ore catalog (`A56:F195`) + stat formulas (C44–C76).
+- **DPS Calculator** — the main calculation sheet (cells C6–E101).
+- **_Weapon** — weapon lookup (`C2:E81`, types `C12` via `F12:F21`, race-bonus types `C23`).
+- **_OptionsCrafter** — ore catalog (`A56:F202`; `A55` is the Select Ore sentinel).
 - **_Options** — races matrix + rune pool (`A1:A48`).
 - **IGNORE REF CALC** — ignore.
 
@@ -39,18 +65,25 @@ Workbook sheets:
 
 - **4 forge slots** (`C6:C9` ore, `D6:D9` weight). An ore contributes a stat only when its share ≥10%; value ramps `base → max` as share goes 10% → 30% (`(base + (max-base)*MIN((share-0.1)/0.2, 1))/divisor`; `divisor` 100 for percents, 1 for durations). Below 10% → 0.
 - **Weapon** (`D12` key, quality `E12`, forge `C13`): forged damage `C18` = base × ore power × `FORGE_MULT[level]` × `(1+quality/100)`; unforged `A18` is the same without the forge term.
-- **Stats** (E44–E47): lethality / crit chance / crit dmg / atk speed totals from ores + runes + race/class combos + armor/base inputs, each capped (1.5 / 1.0 / 1.0 / 1.5).
-- **Weapon DPS** `C84` = `C18 × (1+E44) × crit_blend × E21`; procs (C85–C89) scale on **unforged A18**; **Total** `C91` = sum; TTK `E91/E92` = 25k/75k ÷ total; `C95` min, `C96` max-burst (procs on **forged C18**).
+- **Stats** (E45–E48): lethality / crit chance / crit dmg / atk speed totals from ores + runes + race/class combos + armor/base inputs, each capped (1.5 / 1.0 / 1.0 / 1.5).
+- **Ore power** `E10` — weighted average of the slot multipliers, with **Fichilliumorite excluded from both halves** of the division, so it is filler that never dilutes.
+- **Weapon DPS** `C89` = `C18 × (1+E45) × crit_blend × E21`; the seven proc rows (`C90`–`C94`, `E94`) scale on **unforged A18**; **Total** `C96` = sum; TTK `E96/E97` = 25k/75k ÷ total; `C100` min, `C101` max-burst (procs on **forged C18**).
+- **Aggregation differs per proc.** Explosion (`C58`/`C59`) **sums** across the four slots — `C59` is literally `SUM(slot1..slot4, D37)` — while fire, poison, smite and lightning **chance** take a `MAX`. Smite adds its race bonus *on top of* the slot max rather than maxing against it.
+- **Berserk** `C97` = `C89 × (1+E54)` + the six proc rows: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
+- **Lightning** (`C80`/`E80`/`C81`, DPS `E81`): damage sums, chance maxes, and the cooldown is the `MIN` across slots — the sheet uses `99` as its "no lightning" sentinel and maps a surviving 99 back to 0. Procs are rate-capped by `MIN(E21, 1/E80)`.
 
 ## Preserved workbook quirks (do not "fix")
 
-- `Gauntlet` (singular, E44) vs `Gauntlets` (plural, E47/C23); `Tigers Eye` (formula-only) vs `Tiger's Eye` (catalog).
-- Armor stats feed E44/E45/E46 via **C41/C42/C43** (E41–E43 are dead cells).
-- Fire/poison duration offsets `-1` / `-2`. The outer `MAX(ore)=0` gate was removed (user workbook edit): a fire/poison ability time alone now counts, even without a matching ore and for fire without Dragonborn. Poison duration takes only the **first** Malachite slot (C68 XLOOKUP), not the max.
-- `C76` (black hole chance) = 0.3 when `COUNTIF("Galaxite")/COUNTA(slots) ≥ 0.1`; COUNTA counts "Select Ore" as non-blank, so **any** Galaxite slot triggers it.
-- Cross-wired ability inputs: Fire DMG=C34 / Chance=C35 / Time=C36, Poison=D34/D35/D36, Blast=E34/E35 (no time).
-- C20 (base crit chance) enters **only** the crit blend, not E45.
-- "Damage Boost" achievement feeds lethality (E44).
+- `Gauntlet` (singular, `E45`) vs `Gauntlets` (plural, `E48`/`C23`) — see approved deviation 4. `Tigers Eye` (no apostrophe) is **gone**: reall.xlsx spells it consistently, so the one ore now carries both lethality and the preserved attack speed.
+- Armor stats feed `E45`/`E46`/`E47` via **C44/C42/C43** (`E42`–`E44` are dead cells).
+- Fire/poison duration offsets `-1` / `-2`. The outer `MAX(ore)=0` gate was removed (user workbook edit): a fire/poison ability time alone now counts, even without a matching ore and for fire without Dragonborn. Poison duration takes only the **first** Malachite slot (`C69` XLOOKUP), not the max.
+- `C77` (black hole chance) = 0.3 when `COUNTIF("Galaxite")/COUNTA(slots) ≥ 0.1`; COUNTA counts "Select Ore" as non-blank, so **any** Galaxite slot triggers it.
+- Black-hole DPS `E77` **floors** its rate term: `MAX(1,E21)`, not `MIN`.
+- Archangel smite damage steps with attack speed: `MIN(FLOOR(E21,1)*0.5, 1.5)` — half a point per *whole* attack/sec, and nothing at all below 1 hit/sec. Angel's is a flat 30%.
+- Kitsunite's smite damage is the one ramp with **no 10% share gate**, clamped instead by `MAX(0.05, MIN(0.5, ramp))`. Carried as `gated`/`floor`/`ceiling` on its `StatRange`.
+- Ability inputs are **one row per ability**: Fire 34, Poison 35, Lightning 36, Blast 37, with DMG/Chance/Time in columns C/D/E (Blast has no time). The old transposed layout is gone.
+- C20 (base crit chance) enters **only** the crit blend, not `E45`.
+- "Damage Boost" achievement feeds lethality (`E45`).
 - Forge level 9 = 1.5× (breaks the 0.05 step pattern); level outside 0–9 → 1.0.
 - Percent inputs store **decimals** (0.30 = 30%); ability time cells are plain seconds.
 
@@ -58,15 +91,65 @@ Workbook sheets:
 
 ```bash
 python -m forge_calculator            # run the app (stdlib-only)
-python -m pytest tests/               # 79 tests (engine/golden/parser/data)
+python -m pytest tests/               # 82 tests (engine/golden/parser/data)
 python scripts/smoke_gui.py           # real-GUI smoke: Golden-1 labels + all tabs
 pip install -e .[build]               # dev: add openpyxl
-python -m scripts.build_data "<xlsx>" # regenerate data/*.json
+python -m scripts.build_data          # regenerate data/*.json from reall.xlsx
 ```
+
+Workbook verification (dev-only; all three engines replay the workbook's own
+saved build and diff against its cached values):
+
+```bash
+python scripts/reall_parity.py                        # Python engine   -> 37 cells
+node Web/mediawiki/reall-golden.js                    # MediaWiki IIFE  -> 37 cells
+node Web/js/engine/reall-golden.test.mjs              # standalone ESM  -> 37 cells
+node Web/mediawiki/reall-aggregates.js                # C97/C98/C101/C59/C73
+python scripts/audit_reall.py reference/reall.xlsx data/ores.json
+node Web/mediawiki/verify-engine.js                   # goldens vs tests/test_golden.py
+node Web/mediawiki/fuzz_verify.js                     # 250 builds JS <-> Python
+python Web/mediawiki/fuzz_gen.py                      # regenerate fuzz-cases.json
+```
+
+After changing any engine, rerun `fuzz_gen.py` *then* `fuzz_verify.js` — the
+cases file stores Python results, so a stale one compares against the old engine.
+
+A rebuild is only trustworthy if `audit_reall.py` comes back with just the four
+intended ore `atk_speed` rows (approved deviation 1).
 
 No linter or formatter is configured.
 
 ## Development Plan Tracking
+
+### reall.xlsx Realignment — COMPLETED ✅
+**Goal:** `reference/reall.xlsx` replaced `new.xlsx` as the authoritative workbook. An
+audit found the MediaWiki engine wrong on **27 of 37 cells** for the workbook's own
+default build (Total DPS 4,631 vs 9,790 — 47% of correct). Two independent causes:
+`Data-*.json` had been hand-edited rather than rebuilt (commit `e512c81`), and the JS
+engines carried seven genuine formula bugs. Full findings in
+`forge_calculator/REALL_FORMULA_AUDIT.md`.
+
+| Phase | Work | Status | Commit |
+|-------|------|--------|--------|
+| 0 | **Audit** — formula-by-formula diff vs the workbook's cached values; added `reall-golden.js`, `reall-aggregates.js`, `audit_reall.py` | ✅ Done | bea8525 |
+| 1 | **Data rebuild** — extractor retargeted to the new layout (ore catalog `A56:F202`, weapons `2..81`, achievements `C85`, `C12` validation now a range ref); parser rewritten for the four ramp spellings + nested `IF`/`OR` groups + the Kitsunite clamp; `ArrayFormula` unwrapping; ore `atk_speed` merged from `new.xlsx`. Fixed 7 multipliers, Tanto + 3 more weapons, and 30 ore ranges | ✅ Done | 1346641 |
+| 2 | **Engine alignment** — all three engines: Archangel smite `MIN(FLOOR(E21,1)*0.5,1.5)`; smite chance `MAX(ores)+race`; black hole `MAX(1,E21)`; explosion chance additive; berserk as a single multiplier on `C89`; Moon Stone adds procs back; Fichilliumorite excluded from `E10`; `gated`/`floor`/`ceiling` on `StatRange`; Felynx both spellings. Also fixed the standalone `avgOrePower` fallback (summed slot objects, not powers) and its missing lightning result fields | ✅ Done | 7c5fd5f |
+| 3 | **Lightning ability inputs** — the sheet's Lightning row (`C36`/`D36`/`E36`) was entirely unwired in the MediaWiki UI; added the three fields, the build/transform plumbing, and the ability terms in `procComponents` | ✅ Done | 74993ca |
+| 4 | **Tests re-synced** — parser + constants tests now read the workbook (the `all_formulas.txt` they used was deleted in `c6d3e31`); goldens, fuzz cases and the four stale MediaWiki tests updated; restored the `clampAbilityValue` guard that had gone missing from the source | ✅ Done | eed8632 |
+| 5 | **Docs** — this file: workbook pointer, approved deviations, corrected cell addresses, ability-grid layout, verification commands | ✅ Done | (this session) |
+
+**Verification:** `pytest tests/` → **82 passed**; `scripts/reall_parity.py`,
+`reall-golden.js`, `reall-golden.test.mjs`, `reall-aggregates.js` → all PARITY PASSED;
+`verify-engine.js` → ALL GOLDEN CHECKS PASSED; `fuzz_verify.js` → DIFFERENTIAL FUZZ
+PASSED (250 builds, 9,506 numeric fields, worst rel err 2.75e-16); all 7 focused
+MediaWiki tests PASS; `smoke_gui.py` → SMOKE OK.
+
+**Baseline note:** the suites were already red before this work began — `pytest` had 4
+failures, `verify-engine.js` 1, `fuzz_verify.js` 974 mismatches, and 4 MediaWiki tests
+failed (confirmed by running them at `4a3f4e3`). `active_traits` is no longer compared
+across engines: the desktop and web sides render it deliberately differently, so only
+the numeric fields are a parity contract.
+
 
 ### UX Polish Plan (Phases 1–5) — COMPLETED ✅
 **Goal:** Transform barebones input UX (readonly Comboboxes) into a polished desktop app with search, persistence, favorites, tooltips, and responsiveness.

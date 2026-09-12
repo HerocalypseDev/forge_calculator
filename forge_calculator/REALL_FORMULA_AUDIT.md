@@ -4,6 +4,34 @@
 **Baseline:** `reference/reall.xlsx`, sheet `DPS Calculator`
 **Date:** 2026-09-12
 
+> ## STATUS: RESOLVED
+>
+> Everything below has been fixed across all three engines. All three now replay the
+> workbook's own saved build at 37/37 cells. See the "reall.xlsx Realignment" entry in
+> `CLAUDE.md` for the commit-by-commit breakdown and the verification commands.
+>
+> The four §3 questions were answered by the maintainer and are recorded as
+> **approved deviations** in `CLAUDE.md`: ore attack speed is kept (sourced from
+> `new.xlsx` C48), Minotaur reaches Berserk DPS via `E54`, Max Burst scales its
+> lightning term, and `C64` keeps reading Fire's own `E34` (the sheet's `C37`
+> reference is treated as a typo, still unfixed **in the sheet**).
+>
+> ### Correction to §2.8
+>
+> The Gauntlet finding below is **wrong as written**, and the real situation is the
+> reverse. `C23`'s dropdown only offers the **plural** `"Gauntlets"`, so in the sheet
+> it is `E45`'s singular lethality test that can never fire, while `E48`'s plural
+> attack-speed test fires normally. The web calculators derive this from the weapon's
+> `type`, which is the **singular** `"Gauntlet"` — matching neither lookup key — so
+> Felynx was losing the attack-speed bonus the sheet does grant, and the MediaWiki
+> `CLASS_LETHALITY` plural key would have granted a bonus the sheet never does.
+> Resolved by registering both spellings in both tables, so Felynx + a Gauntlet weapon
+> gets both bonuses (a deliberate deviation, approved).
+>
+> Two further bugs were found while fixing these, neither in the original list:
+> the standalone `avgOrePower` fallback summed slot *objects* instead of their powers,
+> and the standalone engine never returned its `lightning_*` result fields.
+
 Method: every formula was read out of the workbook with openpyxl (no reliance on the
 older `all_formulas*.txt` dumps, which predate this workbook), then the engine was run
 against the workbook's **own saved default build** and diffed cell-by-cell against the
