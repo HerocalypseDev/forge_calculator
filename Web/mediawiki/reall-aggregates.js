@@ -82,15 +82,19 @@ function check(label, workbook, engine) {
   check('C97  berserk DPS (C54=30%)', workbook, r.berserk);
 }
 
-// Minotaur: workbook C97 still uses bare C54 (E54 = C54 + Minotaur 30% feeds the
-// *display* cell, not C97), so a Minotaur with C54=0 gets no berserk multiplier.
+// Minotaur: C97 literally references the bare C54, so the sheet gives a Minotaur
+// no berserk multiplier at all -- E54 (= C54 + 30%) only feeds the display cell.
+// The maintainer's call is that this is an oversight and the race bonus should
+// count, so the expectation uses E54 semantics (matching engine.py's long-standing
+// behaviour).
 {
+  const MINOTAUR = 0.30;
   const r = FC.calculate(mk({ race: 'Minotaur', bonus_weapon_type: 'Dagger', berserk: 0 }), game);
   const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
                   r.blackhole_dps + r.lightning_dps;
-  const workbook = r.weapon_dps * (1 + 0) + procSum;   // C54 = 0
-  check('C97  berserk DPS (Minotaur, C54=0)', workbook,
-        r.berserk === null ? workbook : r.berserk);
+  const expected = r.weapon_dps * (1 + MINOTAUR) + procSum;
+  check('C97  berserk DPS (Minotaur, E54)', expected,
+        r.berserk === null ? expected : r.berserk);
 }
 
 // ---------------- C98  TOTAL MOON STONE DPS ----------------
@@ -113,19 +117,21 @@ function check(label, workbook, engine) {
 // ---------------- C101 Max Burst DPS ----------------
 // =C18*(1+E45)*(C21+E47)*E21 + C18*C58*E21 + C18*C62 + C18*C67
 //   + C72*C18 + C76*C18 + C80
-// Note the final term is a bare +C80 (lightning DMG %), NOT scaled by C18/E21.
+// The sheet's final term is a bare +C80 -- the raw lightning PERCENTAGE, not
+// damage.  Per the maintainer's call that is an authoring slip, so the lightning
+// term is scaled like the other procs here.
 {
   const r = FC.calculate(mk(), game);
   const C18 = r.forged_damage, E21 = r.attack_rate;
-  const workbook =
+  const expected =
     C18 * (1 + r.lethality) * (1.45 + r.crit_dmg) * E21 +
     C18 * r.explosion_dmg * E21 +
     C18 * r.fire_dmg +
     C18 * r.poison_dmg +
     r.smite_dmg * C18 +
     r.blackhole_dmg * C18 +
-    r.lightning_dmg;
-  check('C101 max burst DPS', workbook, r.max_dps);
+    C18 * r.lightning_dmg * r.lightning_chance * E21;
+  check('C101 max burst DPS', expected, r.max_dps);
 }
 
 // ---------------- C59  Explosion proc chance ----------------

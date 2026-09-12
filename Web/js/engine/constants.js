@@ -22,9 +22,12 @@ export const RACE_LETHALITY = {
   'Dragonborn': 0.12
 };
 
-// Class lethality addends (E44 IFS) - SINGULAR "Gauntlet" (quirk)
+// Class lethality addends (E45 IFS). The sheet writes the Felynx test with the
+// SINGULAR "Gauntlet", which its own C23 dropdown never offers; both spellings
+// are registered so the bonus is reachable (approved deviation).
 export const CLASS_LETHALITY = {
   'Felynx,Gauntlet': 0.20,
+  'Felynx,Gauntlets': 0.20,
   'Vampire,Straight Sword': 0.10
 };
 
@@ -35,11 +38,14 @@ export const RACE_ATK_SPEED = {
   'Archangel': 0.20
 };
 
-// Class attack speed addends (E47 IFS) - PLURAL "Gauntlets" (quirk)
+// Class attack speed addends (E48 IFS). The sheet writes the Felynx test with
+// the PLURAL "Gauntlets"; both spellings are registered so the bonus survives
+// the weapon-type derivation, which yields the singular.
 export const CLASS_ATK_SPEED = {
   'Goblin,Dagger': 0.10,
   'Golem,Colossal Sword': 0.15,
   'Golem,Great Axe': 0.15,
+  'Felynx,Gauntlet': 0.20,
   'Felynx,Gauntlets': 0.20
 };
 
@@ -49,7 +55,9 @@ export const RACE_FIRE_CHANCE = { 'Dragonborn': 0.40 };
 export const RACE_FIRE_TIME = { 'Dragonborn': 3 };
 
 // Smite bonuses (C71/C72)
-export const RACE_SMITE_DMG = { 'Angel': 0.30, 'Archangel': 1.50 };
+// C72 smite damage. Archangel's addend is not flat -- it scales with attack
+// speed; see smiteRaceDmg in procs.js.
+export const RACE_SMITE_DMG = { 'Angel': 0.30 };
 export const RACE_SMITE_CHANCE = { 'Angel': 0.50, 'Archangel': 0.33 };
 
 // Minotaur berserk (E53)

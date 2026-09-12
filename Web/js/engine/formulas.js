@@ -11,16 +11,46 @@ import {
 /**
  * Share scaling formula
  * IF(share < 0.1, 0, (base + (max - base) * MIN((share - 0.1) / 0.2, 1)) / divisor)
+ *
+ * `rng` carries the two optional modifiers some cells wrap around the ramp:
+ * `gated === false` drops the 10% guard (Kitsunite smite damage), and
+ * `floor`/`ceiling` apply that cell's MAX(f, MIN(c, ramp)) after the divisor.
  * @param {number} base
  * @param {number} max
  * @param {number} share
  * @param {number} [divisor=100]
+ * @param {StatRange} [rng]
  * @returns {number}
  */
-export function shareScaling(base, max, share, divisor = 100) {
-  if (share < SHARE_GATE) return 0.0;
-  const value = base + (max - base) * Math.min((share - SHARE_GATE) / RAMP_SPAN, 1.0);
-  return value / divisor;
+export function shareScaling(base, max, share, divisor = 100, rng = undefined) {
+  const gated = !(rng && rng.gated === false);
+  if (gated && share < SHARE_GATE) return 0.0;
+  let value = base + (max - base) * Math.min((share - SHARE_GATE) / RAMP_SPAN, 1.0);
+  value /= divisor;
+  if (rng && typeof rng.ceiling === 'number') value = Math.min(rng.ceiling, value);
+  if (rng && typeof rng.floor === 'number') value = Math.max(rng.floor, value);
+  return value;
+}
+
+/**
+ * shareScaling for a StatRange, honouring its modifiers.
+ * @param {StatRange} rng
+ * @param {number} share
+ * @returns {number}
+ */
+export function scaleRange(rng, share) {
+  return shareScaling(rng.base, rng.max, share, rng.divisor, rng);
+}
+
+/**
+ * True when an ore's stat contributes nothing at this share.
+ * Ungated stats (Kitsunite smite damage) still pay out below the 10% gate.
+ * @param {StatRange} rng
+ * @param {number} share
+ * @returns {boolean}
+ */
+export function belowGate(rng, share) {
+  return rng.gated !== false && share < SHARE_GATE;
 }
 
 /**
@@ -50,24 +80,29 @@ export function slotPower(slot, game) {
 
 /**
  * Average ore power (E10)
- * SUMPRODUCT(D6:D9, E6:E9) / SUM(D6:D9) with fallback to AVERAGE(E6:E9)
+ *
+ * IFERROR(IFERROR(SUMPRODUCT(D6:D9, E6:E9, (C6:C9<>"Fichilliumorite")*1)
+ *   / SUMIFS(D6:D9, C6:C9, "<>Fichilliumorite"),
+ *   AVERAGEIFS(E6:E9, C6:C9, "<>Fichilliumorite")), 1)
+ *
+ * Fichilliumorite drops out of both the numerator and the denominator, so it is
+ * filler that never dilutes the average.
  * @param {OreSlot[]} slots
  * @param {GameData} game
  * @returns {number}
  */
 export function avgOrePower(slots, game) {
-  // Filter out Fichilliumorite slots to match workbook/MediaWiki behavior
-  const nonFichSlots = slots.filter(s => s.name !== 'Fichilliumorite');
-  const powers = nonFichSlots.map(s => slotPower(s, game));
-  const total = nonFichSlots.reduce((sum, s) => sum + s.amount, 0);
+  const kept = slots.filter(s => s.name !== 'Fichilliumorite');
+  const powers = kept.map(s => slotPower(s, game));
+  const total = kept.reduce((sum, s) => sum + s.amount, 0);
   if (total !== 0) {
-    return nonFichSlots.reduce((sum, s, i) => sum + s.amount * powers[i], 0) / total;
+    return kept.reduce((sum, s, i) => sum + s.amount * powers[i], 0) / total;
   }
-  // Fall back to simple average of non-Fichilliumorite multipliers
-  if (nonFichSlots.length > 0) {
-    return nonFichSlots.reduce((a, b) => a + b, 0) / nonFichSlots.length;
+  // 0/0 in the sheet -> the AVERAGEIFS fallback over the same kept multipliers
+  if (powers.length > 0) {
+    return powers.reduce((a, b) => a + b, 0) / powers.length;
   }
-  // Absolute fallback: 1.0
+  // nothing left at all -> the outer IFERROR's 1
   return 1.0;
 }
 

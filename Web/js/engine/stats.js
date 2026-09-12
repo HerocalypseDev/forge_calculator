@@ -11,7 +11,7 @@ import {
   RACE_ATK_SPEED,
   CLASS_ATK_SPEED
 } from './constants.js';
-import { shareScaling } from './formulas.js';
+import { scaleRange, belowGate } from './formulas.js';
 import { parseTrait } from '../utils/parse.js';
 
 /**
@@ -27,12 +27,13 @@ function oreStatSum(slots, shares, game, stat) {
   for (let i = 0; i < slots.length; i++) {
     const slot = slots[i];
     const share = shares[i];
-    if (share < SHARE_GATE || slot.name === game.select_ore) continue;
+    if (slot.name === game.select_ore) continue;
     const ore = game._ore_index?.get(slot.name);
     if (!ore) continue;
     const rng = ore.stats[stat];
     if (!rng) continue;
-    total += shareScaling(rng.base, rng.max, share, rng.divisor);
+    if (belowGate(rng, share)) continue;
+    total += scaleRange(rng, share);
   }
   return total;
 }

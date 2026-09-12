@@ -1,17 +1,29 @@
 """DPS engine, ported cell-for-cell from the workbook's "DPS Calculator" sheet.
 
-Every constant below cites its source cell (see ``all_formulas.txt``). The
+Every constant below cites its source cell in ``reference/reall.xlsx``.  The
 workbook's quirks are preserved rather than fixed: procs scale on the unforged
-A18 while C84/C96 use the forged C18, fire/poison durations subtract 1 and 2,
-an ability time input only counts when the matching ore is present, C76 treats
-"Select Ore" as a non-blank slot, and the ability inputs are cross-wired
-(fire=C34..C36, poison=D34..D36, blast=E34/E35).
+A18 while C89/C101 use the forged C18, fire/poison durations subtract 1 and 2,
+poison duration reads only the FIRST Malachite slot, C77 treats "Select Ore" as
+a non-blank slot, black-hole DPS floors its rate term at 1 (``MAX(1,E21)``), and
+C97 berserk multiplies the physical hit rather than boosting lethality.
+
+The ability grid is row-per-ability: Fire 34, Poison 35, Lightning 36, Blast 37,
+with DMG/Chance/Time in columns C/D/E (Blast has no time).
+
+Two deliberate, maintainer-approved deviations from reall.xlsx:
+
+* ore attack speed is still sourced (from ``new.xlsx`` C48); reall.xlsx replaced
+  that ramp with a bare input cell, which was judged a sheet regression.
+* Felynx + a Gauntlet weapon gets BOTH the E45 lethality and E48 attack-speed
+  bonuses.  The sheet's C23 dropdown only offers the plural "Gauntlets", so E45's
+  singular test can never fire there; the two spellings are treated as one type.
 
 Pure stdlib -- no tkinter, no openpyxl.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import Mapping
 
@@ -55,38 +67,48 @@ FORGE_MULT = {
     5: 1.25, 6: 1.3, 7: 1.35, 8: 1.4, 9: 1.5,
 }
 
-# E44 race lethality addends (SWITCH in E44)
+# E45 race lethality addends (SWITCH in E45)
 RACE_LETHALITY = {
     "Archangel": 0.20, "Demon": 0.20, "Orc": 0.10,
     "Shadow": 0.05, "Dragonborn": 0.12,
 }
-# E44 class lethality addends (IFS in E44) -- note SINGULAR "Gauntlet" (quirk)
+# E45 class lethality addends (IFS in E45).  The sheet writes the Felynx test
+# with the SINGULAR "Gauntlet", which its own C23 dropdown never offers; both
+# spellings are registered so the bonus is reachable (approved deviation).
 CLASS_LETHALITY = {
     ("Felynx", "Gauntlet"): 0.20,
+    ("Felynx", "Gauntlets"): 0.20,
     ("Vampire", "Straight Sword"): 0.10,
 }
-# E47 race atk-speed addends (SWITCH in E47)
+# E48 race atk-speed addends (SWITCH in E48)
 RACE_ATK_SPEED = {
     "Shadow": 0.10, "Demon": 0.20, "Archangel": 0.20,
 }
-# E47 class atk-speed addends (IFS in E47) -- note PLURAL "Gauntlets" (quirk)
+# E48 class atk-speed addends (IFS in E48).  The sheet writes the Felynx test
+# with the PLURAL "Gauntlets"; both spellings are registered so the bonus
+# survives the weapon-type derivation, which yields the singular.
 CLASS_ATK_SPEED = {
     ("Goblin", "Dagger"): 0.10,
     ("Golem", "Colossal Sword"): 0.15,
     ("Golem", "Great Axe"): 0.15,
+    ("Felynx", "Gauntlet"): 0.20,
     ("Felynx", "Gauntlets"): 0.20,
 }
-# C61/C62/C63 Dragonborn fire bonuses
+# C62/C63/C64 Dragonborn fire bonuses
 RACE_FIRE_DMG = {"Dragonborn": 0.30}
 RACE_FIRE_CHANCE = {"Dragonborn": 0.40}
 RACE_FIRE_TIME = {"Dragonborn": 3}
-# C71/C72 smite bonuses (no ability inputs for smite)
-RACE_SMITE_DMG = {"Angel": 0.30, "Archangel": 1.50}
+# C72/C73 smite bonuses (no ability inputs for smite).  Archangel's DAMAGE addend
+# is not flat -- see _smite_race_dmg.
+RACE_SMITE_DMG = {"Angel": 0.30}
 RACE_SMITE_CHANCE = {"Angel": 0.50, "Archangel": 0.33}
-# E53 berserk addend (Minotaur)
+# E54 berserk addend (Minotaur)
 RACE_BERSERK = {"Minotaur": 0.30}
 
-# E44/E45/E46/E47 caps
+# Ores excluded from the E10 weighted average ore power.
+AVG_POWER_EXCLUDED = ("Fichilliumorite",)
+
+# E45/E46/E47/E48 caps
 CAPS = {
     "lethality": 1.5,
     "crit_chance": 1.0,
@@ -113,18 +135,23 @@ class OreSlot:
 
 @dataclass(frozen=True)
 class Abilities:
-    """The 3x3 ability input grid (C34:E36 in the workbook).
+    """The rune ability grid, C34:E37 in the workbook.
 
-    Blast has no time input.  The values are raw fractions: 3% -> 0.03.
+    One row per ability -- Fire 34, Poison 35, Lightning 36, Blast 37 -- with
+    DMG in column C, proc chance in D and time/cooldown in E.  Blast has no time
+    input.  The values are raw fractions: 3% -> 0.03; times are plain seconds.
     """
-    fire_dmg: float = 0.0       # C34
-    fire_chance: float = 0.0    # C35
-    fire_time: float = 0.0      # C36
-    poison_dmg: float = 0.0     # D34
-    poison_chance: float = 0.0  # D35
-    poison_time: float = 0.0    # D36
-    blast_dmg: float = 0.0      # E34
-    blast_chance: float = 0.0   # E35
+    fire_dmg: float = 0.0               # C34
+    fire_chance: float = 0.0            # D34
+    fire_time: float = 0.0              # E34
+    poison_dmg: float = 0.0             # C35
+    poison_chance: float = 0.0          # D35
+    poison_time: float = 0.0            # E35
+    lightning_dmg: float = 0.0          # C36
+    lightning_chance: float = 0.0       # D36
+    lightning_cooldown: float = 0.0     # E36
+    blast_dmg: float = 0.0              # C37
+    blast_chance: float = 0.0           # D37
 
 
 @dataclass(frozen=True)
@@ -151,16 +178,42 @@ class Build:
 # --- core math ---
 
 
-def share_scaling(base: float, max_: float, share: float, divisor: int = 100) -> float:
+def share_scaling(
+    base: float,
+    max_: float,
+    share: float,
+    divisor: int = 100,
+    gated: bool = True,
+    floor: float | None = None,
+    ceiling: float | None = None,
+) -> float:
     """``IF(share<0.1, 0, (base+(max-base)*MIN((share-0.1)/0.2, 1))/divisor)``.
 
     Zero below the 10% gate, ``base`` at 10%, linear ramp to ``max`` at 30%,
     then clamped.  ``divisor`` is 100 for percent stats, 1 for durations.
+
+    ``gated=False`` drops the 10% guard, so the ramp is evaluated at any share --
+    it goes negative below 10%, which is why the only ungated stat also carries a
+    clamp.  ``floor``/``ceiling`` apply the cell's ``MAX(f, MIN(c, ramp))`` after
+    the divisor (Kitsunite smite damage: never under 5%, never over 50%).
     """
-    if share < SHARE_GATE:
+    if gated and share < SHARE_GATE:
         return 0.0
     value = base + (max_ - base) * min((share - SHARE_GATE) / RAMP_SPAN, 1.0)
-    return value / divisor
+    value /= divisor
+    if ceiling is not None:
+        value = min(ceiling, value)
+    if floor is not None:
+        value = max(floor, value)
+    return value
+
+
+def scale_range(rng, share: float) -> float:
+    """``share_scaling`` for a :class:`StatRange`, honouring its modifiers."""
+    return share_scaling(
+        rng.base, rng.max, share, rng.divisor,
+        gated=rng.gated, floor=rng.floor, ceiling=rng.ceiling,
+    )
 
 
 def slot_shares(slots) -> tuple:
@@ -184,16 +237,23 @@ def slot_power(slot: OreSlot, game: GameData) -> float:
 
 
 def avg_ore_power(slots, game: GameData) -> float:
-    """E10 -- ``IFERROR(SUMPRODUCT(D6:D9,E6:E9)/SUM(D6:D9), AVERAGE(E6:E9))``.
+    """E10 -- the weighted average ore power, excluding Fichilliumorite.
 
-    When the total amount is 0 the division is 0/0, so the fallback AVERAGE of
-    the four powers applies (all "Select Ore" -> 1.0).
+    ``IFERROR(IFERROR(SUMPRODUCT(D6:D9, E6:E9, (C6:C9<>"Fichilliumorite")*1)
+    / SUMIFS(D6:D9, C6:C9, "<>Fichilliumorite"),
+    AVERAGEIFS(E6:E9, C6:C9, "<>Fichilliumorite")), 1)``
+
+    Fichilliumorite drops out of both the numerator and the denominator, so it
+    is filler that never dilutes the average.  When the remaining total amount is
+    0 the division is 0/0 and the AVERAGEIFS fallback applies; with nothing left
+    at all the outer IFERROR yields 1.
     """
-    powers = [slot_power(s, game) for s in slots]
-    total = sum(s.amount for s in slots)
+    kept = [s for s in slots if s.name not in AVG_POWER_EXCLUDED]
+    powers = [slot_power(s, game) for s in kept]
+    total = sum(s.amount for s in kept)
     if total != 0:
-        return sum(s.amount * p for s, p in zip(slots, powers)) / total
-    return sum(powers) / len(powers) if powers else 0.0
+        return sum(s.amount * p for s, p in zip(kept, powers)) / total
+    return sum(powers) / len(powers) if powers else 1.0
 
 
 def forge_multiplier(level: int) -> float:
@@ -241,7 +301,7 @@ def _ore_stat_sum(slots, shares, game: GameData, stat: str) -> float:
     """
     total = 0.0
     for slot, share in zip(slots, shares):
-        if share < SHARE_GATE or slot.name == game.select_ore:
+        if slot.name == game.select_ore:
             continue
         ore = game.ore(slot.name)
         if ore is None:
@@ -249,7 +309,9 @@ def _ore_stat_sum(slots, shares, game: GameData, stat: str) -> float:
         rng = ore.stat(stat)
         if rng is None:
             continue
-        total += share_scaling(rng.base, rng.max, share, rng.divisor)
+        if rng.gated and share < SHARE_GATE:
+            continue
+        total += scale_range(rng, share)
     return total
 
 
@@ -303,19 +365,22 @@ def stat_totals(build: Build, game: GameData, ore_contribs: Mapping[str, float])
 
 @dataclass(frozen=True)
 class ProcComponents:
-    moon: float                  # C52
-    explosion_dmg: float         # C57
-    explosion_chance: float      # C58
-    fire_dmg: float              # C61
-    fire_chance: float           # C62
-    fire_duration: float         # C63
-    poison_dmg: float            # C66
-    poison_chance: float         # C67
-    poison_duration: float       # C68
-    smite_dmg: float             # C71
-    smite_chance: float          # C72
-    blackhole_dmg: float         # C75
-    blackhole_chance: float      # C76
+    moon: float                  # C53
+    explosion_dmg: float         # C58
+    explosion_chance: float      # C59
+    fire_dmg: float              # C62
+    fire_chance: float           # C63
+    fire_duration: float         # C64
+    poison_dmg: float            # C67
+    poison_chance: float         # C68
+    poison_duration: float       # C69
+    smite_dmg: float             # C72
+    smite_chance: float          # C73
+    blackhole_dmg: float         # C76
+    blackhole_chance: float      # C77
+    lightning_dmg: float         # C80
+    lightning_cooldown: float    # E80
+    lightning_chance: float      # C81
 
 
 def _duration(ore_terms, race_time: float, ability_time: float, minus: int) -> float:
@@ -328,8 +393,22 @@ def _duration(ore_terms, race_time: float, ability_time: float, minus: int) -> f
     return max(top - minus, 0.0)
 
 
+def _smite_race_dmg(race: str, atk_rate: float) -> float:
+    """C72's race addends.
+
+    ``IF(C22="Angel",0.3,0) + IF(C22="Archangel", MIN(FLOOR(E21,1)*0.5, 1.5), 0)``
+
+    Angel is a flat 30%; Archangel instead scales with attack speed -- half a
+    point per WHOLE attack per second (``FLOOR``, so it steps rather than ramps),
+    capped at 150%.  Below 1 hit/sec an Archangel gets nothing.
+    """
+    if race == "Archangel":
+        return min(math.floor(atk_rate) * 0.5, 1.5)
+    return RACE_SMITE_DMG.get(race, 0.0)
+
+
 def _blackhole_chance(slots, game: GameData) -> float:
-    """C76 -- ``IF(COUNTIF(C6:C9,"Galaxite")/COUNTA(C6:C9)>=0.1, 0.3, 0)``.
+    """C77 -- ``IF(COUNTIF(C6:C9,"Galaxite")/COUNTA(C6:C9)>=0.1, 0.3, 0)``.
 
     COUNTA counts every non-blank slot, and "Select Ore" is non-blank -- so in
     this app the denominator is always 4 and any Galaxite slot triggers 0.3.
@@ -341,16 +420,36 @@ def _blackhole_chance(slots, game: GameData) -> float:
     return 0.3 if galaxite / nonblank >= 0.1 else 0.0
 
 
-def proc_components(build: Build, shares, game: GameData) -> ProcComponents:
-    """C52-C76 -- all proc magnitudes (fractions of weapon damage / seconds).
+def _lightning_cooldown(ore_terms, ability_cooldown: float) -> float:
+    """E80 -- the shortest lightning cooldown, or 0 when there is none.
 
-    These feed the DPS rows in C85-C89, which all scale on the UNFORGED A18.
+    The sheet uses 99 as a "no lightning here" sentinel for each slot and for an
+    empty E36, then maps a surviving 99 back to 0:
+    ``IF(MIN(slots..., IF(E36=0,99,E36))=99, 0, MIN(same))``.  Leaving the absent
+    terms out is equivalent -- 99 never wins a MIN against a real cooldown -- and
+    0 then means "uncapped" to the C81 DPS term, matching the sheet's IFERROR.
+    """
+    terms = [t for t in ore_terms]
+    if ability_cooldown:
+        terms.append(ability_cooldown)
+    return min(terms) if terms else 0.0
+
+
+def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0) -> ProcComponents:
+    """C53-C81 -- all proc magnitudes (fractions of weapon damage / seconds).
+
+    These feed the DPS rows in C90-C94/E94, which all scale on the UNFORGED A18.
+    ``atk_rate`` is E21, needed only by the Archangel smite addend.
+
+    Note which cells aggregate across slots and which take the best slot: the
+    explosion pair (C58/C59) SUMS -- C59 is written ``SUM(slot1..slot4, D37)`` --
+    while fire, poison, smite and lightning chance all take a MAX.
     """
 
     def slot_vals(stat: str):
         vals = []
         for slot, share in zip(build.slots, shares):
-            if share < SHARE_GATE or slot.name == game.select_ore:
+            if slot.name == game.select_ore:
                 continue
             ore = game.ore(slot.name)
             if ore is None:
@@ -358,7 +457,9 @@ def proc_components(build: Build, shares, game: GameData) -> ProcComponents:
             rng = ore.stat(stat)
             if rng is None:
                 continue
-            vals.append(share_scaling(rng.base, rng.max, share, rng.divisor))
+            if rng.gated and share < SHARE_GATE:
+                continue
+            vals.append(scale_range(rng, share))
         return vals
 
     def slot_max(stat: str) -> float:
@@ -368,8 +469,13 @@ def proc_components(build: Build, shares, game: GameData) -> ProcComponents:
     def slot_sum(stat: str) -> float:
         return sum(slot_vals(stat))
 
+    def slot_min(stat: str) -> float:
+        """MIN across the slots that grant ``stat`` (E80 lightning cooldown)."""
+        vals = slot_vals(stat)
+        return min(vals) if vals else 0.0
+
     def first_slot_val(name: str, stat: str) -> float:
-        """Value of the FIRST slot holding ``name`` (C68 XLOOKUP; 0 when absent)."""
+        """Value of the FIRST slot holding ``name`` (C69 XLOOKUP; 0 when absent)."""
         for slot, share in zip(build.slots, shares):
             if slot.name != name:
                 continue
@@ -377,25 +483,34 @@ def proc_components(build: Build, shares, game: GameData) -> ProcComponents:
             rng = ore.stat(stat) if ore else None
             if rng is None:
                 return 0.0
-            return share_scaling(rng.base, rng.max, share, rng.divisor)
+            return scale_range(rng, share)
         return 0.0
 
     fire_terms = slot_vals("fire_duration")
 
     return ProcComponents(
         moon=slot_sum("moon"),
-        explosion_dmg=slot_sum("explosion_dmg") + build.abilities.blast_dmg,  # +E34
-        explosion_chance=max(slot_max("explosion_chance"), build.abilities.blast_chance),  # MAX(...,E35)
+        # C58/C59 both SUM across the slots and add the Blast ability (C37/D37)
+        explosion_dmg=slot_sum("explosion_dmg") + build.abilities.blast_dmg,
+        explosion_chance=slot_sum("explosion_chance") + build.abilities.blast_chance,
         fire_dmg=slot_sum("fire_dmg") + RACE_FIRE_DMG.get(build.race, 0.0) + build.abilities.fire_dmg,  # +C34
-        fire_chance=max(slot_max("fire_chance"), build.abilities.fire_chance) + RACE_FIRE_CHANCE.get(build.race, 0.0),  # MAX(...,C35)+0.4
+        fire_chance=max(slot_max("fire_chance"), build.abilities.fire_chance) + RACE_FIRE_CHANCE.get(build.race, 0.0),  # MAX(...,D34)+0.4
         fire_duration=_duration(fire_terms, RACE_FIRE_TIME.get(build.race, 0), build.abilities.fire_time, minus=1),
-        poison_dmg=slot_sum("poison_dmg") + build.abilities.poison_dmg,  # +D34
+        poison_dmg=slot_sum("poison_dmg") + build.abilities.poison_dmg,  # +C35
         poison_chance=max(slot_max("poison_chance"), build.abilities.poison_chance),  # MAX(...,D35)
         poison_duration=_duration([first_slot_val("Malachite", "poison_duration")], 0, build.abilities.poison_time, minus=2),
-        smite_dmg=slot_sum("smite_dmg") + RACE_SMITE_DMG.get(build.race, 0.0),
-        smite_chance=max(slot_max("smite_chance"), RACE_SMITE_CHANCE.get(build.race, 0.0)),
+        # C72/C73: the ore terms SUM for damage and MAX for chance, and in both
+        # cases the race addend is ADDED on top rather than maxed against.
+        smite_dmg=slot_sum("smite_dmg") + _smite_race_dmg(build.race, atk_rate),
+        smite_chance=slot_max("smite_chance") + RACE_SMITE_CHANCE.get(build.race, 0.0),
         blackhole_dmg=slot_sum("blackhole_dmg"),
         blackhole_chance=_blackhole_chance(build.slots, game),
+        # C80/E80/C81 -- the Lightning ability feeds all three (C36/E36/D36)
+        lightning_dmg=slot_sum("lightning_dmg") + build.abilities.lightning_dmg,
+        lightning_cooldown=_lightning_cooldown(
+            slot_vals("lightning_cooldown"), build.abilities.lightning_cooldown
+        ),
+        lightning_chance=max(slot_max("lightning_chance"), build.abilities.lightning_chance),
     )
 
 
@@ -447,24 +562,27 @@ class CalculateResult:
     fire_duration: float          # C63
     poison_dmg: float             # C66
     poison_chance: float          # C67
-    poison_duration: float        # C68
-    smite_dmg: float              # C71
-    smite_chance: float           # C72
-    blackhole_dmg: float          # C75
-    blackhole_chance: float       # C76
-    weapon_dps: float             # C84
-    explosion_dps: float          # C85
-    fire_dps: float               # C86
-    poison_dps: float             # C87
-    smite_dps: float              # C88
-    blackhole_dps: float          # C89
-    total_dps: float              # C91
-    berserk: float | None         # C92 (None -> "N/A")
-    moonstone: float | None       # C93 (None -> "N/A")
-    min_dps: float                # C95
-    max_dps: float                # C96
-    ttk_25k: float | None         # E91 (None -> "∞")
-    ttk_75k: float | None         # E92 (None -> "∞")
+    poison_duration: float        # C69
+    smite_dmg: float              # C72
+    smite_chance: float           # C73
+    blackhole_dmg: float          # C76
+    blackhole_chance: float       # C77
+    lightning_dmg: float          # C80
+    lightning_chance: float       # C81
+    weapon_dps: float             # C89
+    explosion_dps: float          # C90
+    fire_dps: float               # C91
+    poison_dps: float             # C92
+    smite_dps: float              # C93
+    blackhole_dps: float          # C94
+    lightning_dps: float          # E94
+    total_dps: float              # C96
+    berserk: float | None         # C97 (None -> "N/A")
+    moonstone: float | None       # C98 (None -> "N/A")
+    min_dps: float                # C100
+    max_dps: float                # C101
+    ttk_25k: float | None         # E96 (None -> "∞")
+    ttk_75k: float | None         # E97 (None -> "∞")
     active_traits: str            # C14
 
 
@@ -486,9 +604,9 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         build.base_crit_chance + totals["crit_chance"],
         build.base_crit_dmg + totals["crit_dmg"],
     )
-    procs = proc_components(build, shares, game)
+    procs = proc_components(build, shares, game, atk_rate)
 
-    # C84-C89
+    # C89-C94 + E94
     weapon_dps = forged * (1 + totals["lethality"]) * blend * atk_rate
     explosion_dps = unforged * procs.explosion_dmg * procs.explosion_chance * atk_rate
     fire_dps = (
@@ -500,24 +618,34 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         if atk_rate else 0.0
     )
     smite_dps = unforged * atk_rate * procs.smite_dmg * min(procs.smite_chance, 1)
-    blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * atk_rate
-    total = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps
+    # E77 floors the rate term at 1 -- MAX(1,E21), not MIN
+    blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * max(1.0, atk_rate)
+    # E81 -- procs are capped by the cooldown: MIN(E21, 1/E80)
+    lightning_rate = (
+        min(atk_rate, 1.0 / procs.lightning_cooldown)
+        if procs.lightning_cooldown > 0 else atk_rate
+    )
+    lightning_dps = (
+        unforged * procs.lightning_dmg * procs.lightning_chance * lightning_rate
+        if atk_rate else 0.0
+    )
+    total = (
+        weapon_dps + explosion_dps + fire_dps + poison_dps
+        + smite_dps + blackhole_dps + lightning_dps
+    )
+    proc_total = total - weapon_dps
 
-    # C92 berserk: E53 = C53 + Minotaur 30%
+    # C97 -- ((E19 * (1 + C54)) * E21) + SUM(C90:C94) + E94.  E19*E21 is exactly
+    # C89, so berserk is one clean multiplier on the physical hit; it does NOT
+    # boost lethality, and the cap never applies to it.  E54 adds Minotaur.
     berserk_level = build.berserk + RACE_BERSERK.get(build.race, 0.0)
-    if berserk_level == 0:
-        berserk = None
-    else:
-        leth_boosted = min(totals["lethality"] + berserk_level, CAPS["lethality"])
-        berserk = (
-            explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps
-            + forged * (1 + leth_boosted) * blend * atk_rate
-        )
+    berserk = None if berserk_level == 0 else weapon_dps * (1 + berserk_level) + proc_total
 
-    # C93 moonstone: E52 = 1+C52, applied to the weapon DPS only
-    moonstone = weapon_dps * (1 + procs.moon) if procs.moon != 0 else None
+    # C98 -- IF(C53=0, C96, (C89 * (1 + C53)) + C90..C94 + E94): the moon bonus
+    # lifts the physical hit, then every proc is added back on top.
+    moonstone = None if procs.moon == 0 else weapon_dps * (1 + procs.moon) + proc_total
 
-    # C95 min / C96 max-burst (procs on FORGED C18 -- preserved quirk)
+    # C100 min / C101 max-burst (procs on FORGED C18 -- preserved quirk)
     min_dps = forged * (1 + totals["lethality"]) * atk_rate
     max_dps = (
         forged * (1 + totals["lethality"]) * (build.base_crit_dmg + totals["crit_dmg"]) * atk_rate
@@ -526,9 +654,10 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         + forged * procs.poison_dmg
         + procs.smite_dmg * forged
         + procs.blackhole_dmg * forged
+        + forged * procs.lightning_dmg * procs.lightning_chance * atk_rate
     )
 
-    # E91/E92 TTK
+    # E96/E97 TTK
     ttk_25k = 25000 / total if total > 0 else None
     ttk_75k = 75000 / total if total > 0 else None
 
@@ -556,12 +685,15 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         smite_chance=procs.smite_chance,
         blackhole_dmg=procs.blackhole_dmg,
         blackhole_chance=procs.blackhole_chance,
+        lightning_dmg=procs.lightning_dmg,
+        lightning_chance=procs.lightning_chance,
         weapon_dps=weapon_dps,
         explosion_dps=explosion_dps,
         fire_dps=fire_dps,
         poison_dps=poison_dps,
         smite_dps=smite_dps,
         blackhole_dps=blackhole_dps,
+        lightning_dps=lightning_dps,
         total_dps=total,
         berserk=berserk,
         moonstone=moonstone,

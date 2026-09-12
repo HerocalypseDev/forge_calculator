@@ -29,7 +29,11 @@
     'Dragonborn': 0.12
   };
 
+  // E45 class lethality. The sheet writes the Felynx test with the SINGULAR
+  // "Gauntlet", which its own C23 dropdown never offers; both spellings are
+  // registered so the bonus is reachable (approved deviation).
   var CLASS_LETHALITY = {
+    'Felynx,Gauntlet': 0.20,
     'Felynx,Gauntlets': 0.20,
     'Vampire,Straight Sword': 0.10
   };
@@ -40,10 +44,14 @@
     'Archangel': 0.20
   };
 
+  // E48 class atk speed. The sheet writes the Felynx test with the PLURAL
+  // "Gauntlets"; both spellings are registered so the bonus survives the
+  // weapon-type derivation, which yields the singular.
   var CLASS_ATK_SPEED = {
     'Goblin,Dagger': 0.10,
     'Golem,Colossal Sword': 0.15,
     'Golem,Great Axe': 0.15,
+    'Felynx,Gauntlet': 0.20,
     'Felynx,Gauntlets': 0.20
   };
 
@@ -51,7 +59,8 @@
   var RACE_FIRE_CHANCE = { 'Dragonborn': 0.40 };
   var RACE_FIRE_TIME = { 'Dragonborn': 3 };
 
-  var RACE_SMITE_DMG = { 'Angel': 0.30, 'Archangel': 1.50 };
+  // C72/C73 smite bonuses. Archangel's DAMAGE addend is not flat -- see smiteRaceDmg.
+  var RACE_SMITE_DMG = { 'Angel': 0.30 };
   var RACE_SMITE_CHANCE = { 'Angel': 0.50, 'Archangel': 0.33 };
 
   var RACE_BERSERK = { 'Minotaur': 0.30 };
@@ -70,17 +79,29 @@
 
   var EXPECTED_COUNTS = {
     ores: 147,
-    weapons: 81,
+    weapons: 80,
     races: 16,
     runes: 47,
     achievements: 16
   };
 
-  function shareScaling(base, max, share, divisor) {
+  // IF(share<0.1, 0, (base+(max-base)*MIN((share-0.1)/0.2,1))/divisor), plus the
+  // two optional modifiers some cells wrap around the ramp: rng.gated === false
+  // drops the 10% guard (Kitsunite smite damage), and floor/ceiling apply that
+  // cell's MAX(f, MIN(c, ramp)) after the divisor.
+  function shareScaling(base, max, share, divisor, rng) {
     if (divisor === undefined) { divisor = 100; }
-    if (share < SHARE_GATE) { return 0.0; }
+    var gated = !(rng && rng.gated === false);
+    if (gated && share < SHARE_GATE) { return 0.0; }
     var value = base + (max - base) * Math.min((share - SHARE_GATE) / RAMP_SPAN, 1.0);
-    return value / divisor;
+    value = value / divisor;
+    if (rng && typeof rng.ceiling === 'number') { value = Math.min(rng.ceiling, value); }
+    if (rng && typeof rng.floor === 'number') { value = Math.max(rng.floor, value); }
+    return value;
+  }
+
+  function scaleRange(rng, share) {
+    return shareScaling(rng.base, rng.max, share, rng.divisor, rng);
   }
 
   function slotShares(slots) {
@@ -96,6 +117,9 @@
     return (ore && typeof ore.multiplier === 'number') ? ore.multiplier : 1.0;
   }
 
+  // E10 -- the weighted average ore power. Fichilliumorite drops out of BOTH the
+  // numerator and the denominator (SUMPRODUCT with a <>"Fichilliumorite" mask over
+  // SUMIFS), so it is filler that never dilutes the average.
   function avgOrePower(slots, game) {
     var powers = [];
     var amounts = [];
@@ -364,7 +388,7 @@
           var info = TRAIT_STAT_DISPLAY[sk];
           if (!info) continue;
           var rng = ore.stats[sk];
-          var val = shareScaling(rng.base, rng.max, share, rng.divisor);
+          var val = scaleRange(rng, share);
           if (merged[sk] === undefined) {
             merged[sk] = val;
           } else {
@@ -415,12 +439,13 @@
     for (var i = 0; i < slots.length; i++) {
       var slot = slots[i];
       var share = shares[i];
-      if (share < SHARE_GATE || slot.name === game.select_ore) { continue; }
+      if (slot.name === game.select_ore) { continue; }
       var ore = game._ore_index.get(slot.name);
       if (!ore) { continue; }
       var rng = ore.stats[stat];
       if (!rng) { continue; }
-      total += shareScaling(rng.base, rng.max, share, rng.divisor);
+      if (rng.gated !== false && share < SHARE_GATE) { continue; }
+      total += scaleRange(rng, share);
     }
     return total;
   }
@@ -503,12 +528,13 @@
     for (var i = 0; i < slots.length; i++) {
       var slot = slots[i];
       var share = shares[i];
-      if (share < SHARE_GATE || slot.name === game.select_ore) { continue; }
+      if (slot.name === game.select_ore) { continue; }
       var ore = game._ore_index.get(slot.name);
       if (!ore) { continue; }
       var rng = ore.stats[stat];
       if (!rng) { continue; }
-      vals.push(shareScaling(rng.base, rng.max, share, rng.divisor));
+      if (rng.gated !== false && share < SHARE_GATE) { continue; }
+      vals.push(scaleRange(rng, share));
     }
     return vals;
   }
@@ -542,26 +568,43 @@
       var ore = game._ore_index.get(name);
       var rng = ore ? ore.stats[stat] : null;
       if (!rng) { return 0.0; }
-      return shareScaling(rng.base, rng.max, shares[i], rng.divisor);
+      return scaleRange(rng, shares[i]);
     }
     return 0.0;
   }
 
-  function procComponents(build, shares, game, atkSpeedTotal) {
-    var fireTerms = slotVals(build.slots, shares, game, 'fire_duration');
+  // C72's race addends: Angel is flat 30%, Archangel instead scales with attack
+  // speed -- IF(C22="Archangel", MIN(FLOOR(E21,1)*0.5, 1.5), 0), i.e. half a point
+  // per WHOLE attack per second (a step, not a ramp), capped at 150%. Below
+  // 1 hit/sec an Archangel gets nothing.
+  function smiteRaceDmg(race, atkRate) {
+    if (race === 'Archangel') { return Math.min(Math.floor(atkRate) * 0.5, 1.5); }
+    return RACE_SMITE_DMG[race] !== undefined ? RACE_SMITE_DMG[race] : 0.0;
+  }
 
-    var smite_dmg_ore = slotSum(build.slots, shares, game, 'smite_dmg');
-    var smite_dmg_bonus = 0.0;
-    if (build.race === 'Archangel') {
-      smite_dmg_bonus = (1.5 + atkSpeedTotal * 1.5);
-    } else if (RACE_SMITE_DMG[build.race] !== undefined) {
-      smite_dmg_bonus = RACE_SMITE_DMG[build.race];
-    }
+  // E80 -- the shortest lightning cooldown, or 0 when there is none. The sheet
+  // uses 99 as a "no lightning here" sentinel per slot and for an empty E36, then
+  // maps a surviving 99 back to 0; omitting the absent terms is equivalent.
+  function lightningCooldown(oreTerms, abilityCooldown) {
+    var terms = oreTerms.slice();
+    if (abilityCooldown) { terms.push(abilityCooldown); }
+    if (!terms.length) { return 0.0; }
+    var m = terms[0];
+    for (var i = 1; i < terms.length; i++) { if (terms[i] < m) { m = terms[i]; } }
+    return m;
+  }
+
+  // C53-C81. Note which cells aggregate across slots and which take the best
+  // slot: the explosion pair (C58/C59) SUMS -- C59 is written
+  // SUM(slot1..slot4, D37) -- while fire, poison, smite and lightning chance all
+  // take a MAX. For smite, the race addend is ADDED on top, not maxed against.
+  function procComponents(build, shares, game, atkRate) {
+    var fireTerms = slotVals(build.slots, shares, game, 'fire_duration');
 
     return {
       moon: slotSum(build.slots, shares, game, 'moon'),
       explosion_dmg: slotSum(build.slots, shares, game, 'explosion_dmg') + build.abilities.blast_dmg,
-      explosion_chance: Math.max(slotMax(build.slots, shares, game, 'explosion_chance'), build.abilities.blast_chance),
+      explosion_chance: slotSum(build.slots, shares, game, 'explosion_chance') + build.abilities.blast_chance,
       fire_dmg: slotSum(build.slots, shares, game, 'fire_dmg')
         + (RACE_FIRE_DMG[build.race] !== undefined ? RACE_FIRE_DMG[build.race] : 0.0)
         + build.abilities.fire_dmg,
@@ -571,13 +614,17 @@
       poison_dmg: slotSum(build.slots, shares, game, 'poison_dmg') + build.abilities.poison_dmg,
       poison_chance: Math.max(slotMax(build.slots, shares, game, 'poison_chance'), build.abilities.poison_chance),
       poison_duration: duration([firstSlotVal(build.slots, shares, game, 'Malachite', 'poison_duration')], 0, build.abilities.poison_time, 2),
-      smite_dmg: smite_dmg_ore + smite_dmg_bonus,
-      smite_chance: Math.max(slotMax(build.slots, shares, game, 'smite_chance'), RACE_SMITE_CHANCE[build.race] !== undefined ? RACE_SMITE_CHANCE[build.race] : 0.0),
+      smite_dmg: slotSum(build.slots, shares, game, 'smite_dmg') + smiteRaceDmg(build.race, atkRate),
+      smite_chance: slotMax(build.slots, shares, game, 'smite_chance')
+        + (RACE_SMITE_CHANCE[build.race] !== undefined ? RACE_SMITE_CHANCE[build.race] : 0.0),
       blackhole_dmg: slotSum(build.slots, shares, game, 'blackhole_dmg'),
       blackhole_chance: blackholeChance(build.slots, game),
-      lightning_dmg: slotSum(build.slots, shares, game, 'lightning_dmg'),
-      lightning_chance: Math.max(slotMax(build.slots, shares, game, 'lightning_chance'), build.abilities.lightning_chance !== undefined ? build.abilities.lightning_chance : 0.0),
-      lightning_cooldown: slotMin(build.slots, shares, game, 'lightning_cooldown')
+      lightning_dmg: slotSum(build.slots, shares, game, 'lightning_dmg') + build.abilities.lightning_dmg,
+      lightning_chance: Math.max(slotMax(build.slots, shares, game, 'lightning_chance'), build.abilities.lightning_chance),
+      lightning_cooldown: lightningCooldown(
+        slotVals(build.slots, shares, game, 'lightning_cooldown'),
+        build.abilities.lightning_cooldown
+      )
     };
   }
 
@@ -621,7 +668,9 @@
         poison_dmg: num(b.abilities && b.abilities.poison_dmg),
         poison_chance: num(b.abilities && b.abilities.poison_chance),
         poison_time: num(b.abilities && b.abilities.poison_time),
-        lightning_chance: num(b.abilities && b.abilities.lightning_chance)
+        lightning_dmg: num(b.abilities && b.abilities.lightning_dmg),
+        lightning_chance: num(b.abilities && b.abilities.lightning_chance),
+        lightning_cooldown: num(b.abilities && b.abilities.lightning_cooldown)
       },
       berserk: num(b.berserk),
       achievement: typeof b.achievement === 'string' ? b.achievement : ''
@@ -648,7 +697,7 @@
       build.base_crit_dmg + totals.crit_dmg
     );
 
-    var procs = procComponents(build, shares, game, totals.atk_speed);
+    var procs = procComponents(build, shares, game, atkRate);
 
     var weapon_dps = forged * (1 + totals.lethality) * blend * atkRate;
     var explosion_dps = unforged * procs.explosion_dmg * procs.explosion_chance * atkRate;
@@ -659,20 +708,24 @@
       ? unforged * procs.poison_dmg * Math.min(1, procs.poison_chance * atkRate * Math.min(procs.poison_duration, 5))
       : 0.0;
     var smite_dps = unforged * atkRate * procs.smite_dmg * Math.min(procs.smite_chance, 1);
-    var blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * Math.min(atkRate, 1);
+    // E77 floors the rate term at 1 -- MAX(1,E21), not MIN
+    var blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * Math.max(1, atkRate);
+    // E81 -- procs are capped by the cooldown: MIN(E21, 1/E80)
     var lightningProcCap = procs.lightning_cooldown > 0 ? Math.min(atkRate, 1.0 / procs.lightning_cooldown) : atkRate;
     var lightning_dps = atkRate ? unforged * procs.lightning_dmg * procs.lightning_chance * lightningProcCap : 0.0;
     var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps;
+    var proc_total = total_dps - weapon_dps;
 
-    var berserkLevel = build.berserk + slotSum(build.slots, shares, game, 'phys_dmg') + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0);
-    var berserk = null;
-    if (berserkLevel !== 0) {
-      var lethBoosted = Math.min(totals.lethality + berserkLevel, CAPS.lethality);
-      var weaponBerserkDps = forged * (1 + lethBoosted) * blend * atkRate;
-      berserk = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps + weaponBerserkDps * (1 + berserkLevel);
-    }
+    // C97 -- ((E19 * (1 + C54)) * E21) + SUM(C90:C94) + E94. E19*E21 is exactly
+    // C89, so berserk is one clean multiplier on the physical hit: it does NOT
+    // boost lethality, the lethality cap never applies to it, and ore phys_dmg
+    // traits (display-only, "when HP < 35%") are not part of E54 either.
+    var berserkLevel = build.berserk + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0);
+    var berserk = berserkLevel !== 0 ? weapon_dps * (1 + berserkLevel) + proc_total : null;
 
-    var moonstone = procs.moon !== 0 ? weapon_dps * (1 + procs.moon) : null;
+    // C98 -- IF(C53=0, C96, (C89 * (1 + C53)) + C90..C94 + E94): the moon bonus
+    // lifts the physical hit, then every proc is added back on top.
+    var moonstone = procs.moon !== 0 ? weapon_dps * (1 + procs.moon) + proc_total : null;
 
     var min_dps = forged * (1 + totals.lethality) * atkRate;
     var max_dps = forged * (1 + totals.lethality) * (build.base_crit_dmg + totals.crit_dmg) * atkRate

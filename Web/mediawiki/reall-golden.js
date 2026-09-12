@@ -98,6 +98,18 @@ const build = {
 
 const r = FC.calculate(build, game);
 
+// A few of the workbook's cached cells, used to restate C101 below.
+const WB_C18 = 584.1;          // forged weapon damage
+const WB_C80 = 0.8;            // lightning DMG %
+const WB_C81 = 0.6;            // lightning proc chance
+const WB_E21 = 2.692307692;    // effective hits/sec
+
+// C101's final term is a bare "+C80" in the sheet -- the raw lightning PERCENTAGE
+// (0.8), not damage, while every other term is scaled by C18 and/or E21. The
+// maintainer's call is that this is an authoring slip and the term should scale
+// like the other procs, so the expectation is the cached C101 with that applied.
+const C101 = 10346.10962 - WB_C80 + WB_C18 * WB_C80 * WB_C81 * WB_E21;
+
 // --- Workbook cached values ---
 const expected = [
   ['E10  avg ore power',     'avg_power',        23.6],
@@ -134,7 +146,7 @@ const expected = [
   ['C97  berserk DPS',       'berserk',          9789.815538],
   ['C98  moon stone DPS',    'moonstone',        9789.815538],
   ['C100 min DPS',           'min_dps',          3459.669231],
-  ['C101 max burst DPS',     'max_dps',          10346.10962],
+  ['C101 max burst DPS*',    'max_dps',          C101],
   ['E96  TTK 25k',           'ttk_25k',          2.553674265],
   ['E97  TTK 75k',           'ttk_75k',          7.661022795]
 ];
@@ -159,6 +171,8 @@ for (const [label, key, want] of expected) {
   );
 }
 console.log('-'.repeat(78));
+console.log('* C101 restated for the scaled-lightning decision; ore atk_speed '
+  + 'excluded (see the notes at the top of this file)');
 console.log(fails === 0
   ? 'reall.xlsx PARITY PASSED'
   : fails + ' of ' + expected.length + ' cells diverge from reall.xlsx');

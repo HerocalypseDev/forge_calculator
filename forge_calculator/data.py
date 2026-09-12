@@ -25,10 +25,10 @@ __all__ = [
     "EXPECTED_COUNTS",
 ]
 
-# Counts from the source workbook; loading rejects data/ that drifted.
+# Counts from the source workbook (reall.xlsx); loading rejects data/ that drifted.
 EXPECTED_COUNTS = {
-    "ores": 140,
-    "weapons": 79,
+    "ores": 147,
+    "weapons": 80,
     "races": 16,
     "runes": 47,
     "achievements": 16,
@@ -44,12 +44,22 @@ class StatRange:
 
     ``base`` applies at 10% share and ramps linearly to ``max`` at 30% -- the
     workbook's ``(base+(max-base)*MIN((share-0.1)/0.2,1))`` term.  ``divisor``
-    is 100 for percent stats, 1 for fire/poison durations.
+    is 100 for percent stats, 1 for durations/cooldowns.
+
+    Two optional modifiers mirror cells that wrap the ramp differently:
+
+    ``gated`` is False where the ``IF(share<0.1, 0, ...)`` guard is absent, so
+    the ore still pays out below the usual 10% share (Kitsunite smite damage).
+    ``floor``/``ceiling`` come from a ``MAX(f, MIN(c, ramp))`` clamp on the same
+    cell, and are applied AFTER the divisor, as the workbook does.
     """
 
     base: float
     max: float
     divisor: int
+    gated: bool = True
+    floor: float | None = None
+    ceiling: float | None = None
 
 
 @dataclass(frozen=True)
@@ -197,12 +207,17 @@ def load_game_data(data_dir: str | Path | None = None) -> GameData:
 def _build_ore(raw: dict) -> Ore:
     stats: dict[str, StatRange] = {}
     for stat, rng in (raw.get("stats") or {}).items():
-        if set(rng) != {"base", "max", "divisor"}:
+        required = {"base", "max", "divisor"}
+        allowed = required | {"gated", "floor", "ceiling"}
+        if not required <= set(rng) or not set(rng) <= allowed:
             raise ValueError(f"ore {raw['name']!r}: malformed stat range {rng!r}")
         stats[stat] = StatRange(
             base=float(rng["base"]),
             max=float(rng["max"]),
             divisor=int(rng["divisor"]),
+            gated=bool(rng.get("gated", True)),
+            floor=None if rng.get("floor") is None else float(rng["floor"]),
+            ceiling=None if rng.get("ceiling") is None else float(rng["ceiling"]),
         )
     multiplier = raw.get("multiplier")
     if multiplier is None:

@@ -4,8 +4,8 @@
 
 /** Expected counts from the source workbook */
 export const EXPECTED_COUNTS = {
-  ores: 140,
-  weapons: 79,
+  ores: 147,
+  weapons: 80,
   races: 16,
   runes: 47,
   achievements: 16
