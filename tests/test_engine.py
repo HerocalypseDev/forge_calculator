@@ -200,21 +200,32 @@ def test_stat_totals_race_lethality_bonuses(game):
         assert totals["lethality"] == pytest.approx(bonus), race
 
 
-def test_stat_totals_class_lethality_singular_gauntlet(game):
+def test_stat_totals_felynx_gauntlet_grants_both_bonuses(game):
+    """Felynx + a Gauntlet weapon gets BOTH class bonuses, either spelling.
+
+    The sheet splits the two: E45's lethality test uses the SINGULAR "Gauntlet"
+    while E48's attack-speed test uses the PLURAL "Gauntlets" -- and C23's own
+    dropdown only offers the plural, so E45's branch can never fire there.  Per
+    the maintainer's call the two spellings name one weapon type and both bonuses
+    apply; this is a deliberate deviation from the sheet.
+    """
     ore = {"lethality": 0.0, "crit_chance": 0.0, "crit_dmg": 0.0, "atk_speed": 0.0}
-    totals = stat_totals(Build(race="Felynx", bonus_weapon_type="Gauntlet"), game, ore)
-    assert totals["lethality"] == pytest.approx(0.20)
-    # the plural "Gauntlets" must NOT trigger the E44 class bonus (quirk)
-    totals = stat_totals(Build(race="Felynx", bonus_weapon_type="Gauntlets"), game, ore)
+    for spelling in ("Gauntlet", "Gauntlets"):
+        totals = stat_totals(Build(race="Felynx", bonus_weapon_type=spelling), game, ore)
+        assert totals["lethality"] == pytest.approx(0.20), spelling
+        assert totals["atk_speed"] == pytest.approx(0.20), spelling
+
+
+def test_stat_totals_other_class_bonuses_are_exact(game):
+    """The remaining class combos are unaffected -- wrong weapon type, no bonus."""
+    ore = {"lethality": 0.0, "crit_chance": 0.0, "crit_dmg": 0.0, "atk_speed": 0.0}
+    totals = stat_totals(Build(race="Vampire", bonus_weapon_type="Straight Sword"), game, ore)
+    assert totals["lethality"] == pytest.approx(0.10)
+    totals = stat_totals(Build(race="Vampire", bonus_weapon_type="Dagger"), game, ore)
     assert totals["lethality"] == pytest.approx(0.0)
-
-
-def test_stat_totals_atk_speed_plural_gauntlets(game):
-    ore = {"lethality": 0.0, "crit_chance": 0.0, "crit_dmg": 0.0, "atk_speed": 0.0}
-    totals = stat_totals(Build(race="Felynx", bonus_weapon_type="Gauntlets"), game, ore)
-    assert totals["atk_speed"] == pytest.approx(0.20)
-    # singular "Gauntlet" must NOT trigger the E47 class bonus (quirk)
-    totals = stat_totals(Build(race="Felynx", bonus_weapon_type="Gauntlet"), game, ore)
+    totals = stat_totals(Build(race="Goblin", bonus_weapon_type="Dagger"), game, ore)
+    assert totals["atk_speed"] == pytest.approx(0.10)
+    totals = stat_totals(Build(race="Goblin", bonus_weapon_type="Mace"), game, ore)
     assert totals["atk_speed"] == pytest.approx(0.0)
 
 

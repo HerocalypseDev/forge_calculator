@@ -1308,8 +1308,10 @@
       onChange: function (newName) {
         var parsed = fromUI(newName);
         if (parsed !== currentName) {
-
-        currentName = parsed;
+          // Ore changed or removed — reset the amount to 0.
+          // Re-selecting the same ore keeps the typed amount, and setValue()
+          // does not route through here, so state restores keep theirs too.
+          currentName = parsed;
           currentAmount = 0;
           amountInput.value = 0;
         }
@@ -1583,10 +1585,18 @@
 
 
 
-  function parseAbilityValue(raw) {
+  // Ability inputs are entered as whole percentages (15 = 15%), or seconds for
+  // the time/cooldown fields. 0, empty and non-numeric all mean "no ability" and
+  // stay 0; any other value is clamped into the field's valid range so a typo
+  // cannot push a rune ability outside what the game can roll.
+  function clampAbilityValue(raw, min, max) {
     if (raw === '' || raw === undefined || raw === null) { return 0; }
-    var v = parseFloat(raw);
-    if (isNaN(v)) { return 0; }
+    var s = String(raw).trim().replace(/%$/, '').trim();
+    if (s === '') { return 0; }
+    var v = parseFloat(s);
+    if (isNaN(v) || v === 0) { return 0; }
+    if (v < min) { return min; }
+    if (v > max) { return max; }
     return v;
   }
 
@@ -1618,14 +1628,16 @@
             class: 'fc-ability-input',
             id: field.key,
             value: currentValues[field.key] !== undefined ? currentValues[field.key] : '',
+            min: String(range.min),
+            max: String(range.max),
             step: step,
             placeholder: rangeHint,
-            title: field.label + ' (from runes). Typical range: ' + rangeHint + '. 0 = no ability.',
+            title: field.label + ' (from runes). Range: ' + rangeHint + '. 0 = no ability.',
             inputmode: 'decimal'
           });
 
           function commit() {
-            currentValues[field.key] = parseAbilityValue(input.value);
+            currentValues[field.key] = clampAbilityValue(input.value, range.min, range.max);
             input.value = currentValues[field.key];
             var out = {};
             for (var k2 in currentValues) { out[k2] = currentValues[k2]; }

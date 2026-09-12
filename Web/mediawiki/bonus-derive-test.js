@@ -124,19 +124,23 @@ function calcAtk(build) { return FC.calculate(build, game).atk_speed; }
 const base = FC.transformBuildForEngine(uiBuild({ race: 'None', weaponName: 'None' }));
 assert(calcLeth(base) === 0 && calcAtk(base) === 0, 'baseline has no class bonuses');
 
-// E44 lethality: Felynx+Gauntlet, Vampire+Straight Sword
+// E45 lethality: Felynx+Gauntlet, Vampire+Straight Sword
 assert(calcLeth(FC.transformBuildForEngine(uiBuild({ race: 'Felynx', weaponName: 'Ironhand' }))) === 0.2,
-  'Felynx + Gauntlet -> +20% lethality (E44)');
+  'Felynx + Gauntlet -> +20% lethality (E45)');
 assert(calcLeth(FC.transformBuildForEngine(uiBuild({ race: 'Vampire', weaponName: 'Falchion' }))) === 0.1,
-  'Vampire + Straight Sword -> +10% lethality (E44)');
-assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Felynx', weaponName: 'Ironhand' }))) === 0,
-  'Felynx + Gauntlet gives NO attack speed (E47 wants plural Gauntlets)');
+  'Vampire + Straight Sword -> +10% lethality (E45)');
+// Felynx + Gauntlet now gets BOTH bonuses. The sheet splits the spellings --
+// E45 tests the singular "Gauntlet", E48 the plural "Gauntlets", and C23's own
+// dropdown only offers the plural, so E45's branch can never fire there. Per the
+// maintainer's call the two spellings name one weapon type and both apply.
+assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Felynx', weaponName: 'Ironhand' }))) === 0.2,
+  'Felynx + Gauntlet -> +20% attack speed (E48, both spellings registered)');
 
-// E47 atk speed: Goblin+Dagger, Golem+Colossal Sword, Golem+Great Axe
+// E48 atk speed: Goblin+Dagger, Golem+Colossal Sword, Golem+Great Axe
 assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Goblin', weaponName: 'Dagger' }))) === 0.1,
-  'Goblin + Dagger -> +10% atk speed (E47)');
+  'Goblin + Dagger -> +10% atk speed (E48)');
 assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Great Sword' }))) === 0.15,
-  'Golem + Colossal Sword -> +15% atk speed (E47)');
+  'Golem + Colossal Sword -> +15% atk speed (E48)');
 assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Double Battle Axe' }))) === 0.15,
   'Golem + Great Axe -> +15% atk speed (E47)');
 
@@ -145,8 +149,9 @@ console.log('== Source checks ==');
 assert(SRC.indexOf('Select Bonus Type') === -1, 'no "Select Bonus Type" prompt remains');
 assert(SRC.indexOf('bonus-type-select') === -1, 'no bonus-type dropdown id remains');
 assert(SRC.indexOf('bonus_weapon_type: deriveBonusType(build)') !== -1, 'transform uses deriveBonusType');
-assert(SRC.indexOf("'Felynx,Gauntlet'") !== -1, 'E44 Felynx+Gauntlet key present');
-assert(SRC.indexOf("'Goblin,Dagger'") !== -1, 'E47 Goblin+Dagger key present');
+assert(SRC.indexOf("'Felynx,Gauntlet'") !== -1, 'E45 Felynx+Gauntlet key present');
+assert(SRC.indexOf("'Felynx,Gauntlets'") !== -1, 'E48 Felynx+Gauntlets key present');
+assert(SRC.indexOf("'Goblin,Dagger'") !== -1, 'E48 Goblin+Dagger key present');
 
 console.log(failures === 0 ? '\nALL BONUS-DERIVE CHECKS PASSED ✓' : `\n${failures} CHECK(S) FAILED ✗`);
 process.exit(failures === 0 ? 0 : 1);

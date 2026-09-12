@@ -1,116 +1,232 @@
 """The stat-matrix parser must extract EXACTLY the known base/max/divisor table.
 
 This is the guard against hand-typing: the matrix is derived from the formula
-strings in ``all_formulas.txt`` (committed) and cross-checked against the
-workbook's own formula strings via the golden tests.
+strings in the workbook itself (``reference/reall.xlsx``, plus the ore
+attack-speed ramp that survives only in ``reference/new.xlsx``).  The old
+``all_formulas*.txt`` dumps are gone -- they kept drifting from the workbook,
+which is the actual authority, so the tests read the workbook directly.
+
+Entries are ``(base, max, divisor)``, with a fourth element carrying the
+optional modifiers when a cell wraps its ramp differently (only Kitsunite's
+smite damage does: ungated, clamped to 5%-50%).
 """
 
 from pathlib import Path
 
+import pytest
+
 from build_data.formula_parser import (
+    LEGACY_STAT_CELLS,
     STAT_CELLS,
-    load_formulas_from_txt,
     parse_stat_matrix,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
+WORKBOOK = ROOT / "reference" / "reall.xlsx"
+LEGACY_WORKBOOK = ROOT / "reference" / "new.xlsx"
 
 EXPECTED = {
-    "Wolfarite": {"lethality": (1.5, 15, 100), "atk_speed": (0.8, 8, 100)},
-    "Eye Ore": {"lethality": (1.5, 15, 100)},
-    "Frost Fossil": {"lethality": (1.75, 17.5, 100)},
-    "Crimsonite": {"lethality": (2, 20, 100)},
-    "Tigers Eye": {"lethality": (0.5, 5, 100)},  # no apostrophe -- quirk
-    "Tiger's Eye": {"atk_speed": (0.75, 7.5, 100)},  # apostrophe -- quirk
-    "Sealed Curse": {"lethality": (3, 30, 100)},
-    "Kokorite": {"lethality": (3, 30, 100)},
-    "Prismatic Heart": {"crit_chance": (2, 20, 100), "crit_dmg": (0.5, 5, 100)},
-    "Voidstar": {"crit_chance": (3.3, 33, 100), "crit_dmg": (1.5, 15, 100)},
-    "Yeti Heart": {
-        "crit_chance": (3, 30, 100),
-        "crit_dmg": (1, 10, 100),
-        "atk_speed": (1, 10, 100),
-    },
-    "Yang": {"crit_chance": (4, 40, 100), "crit_dmg": (1.8, 18, 100)},
-    "Golem Heart": {"crit_chance": (4, 40, 100), "crit_dmg": (1.5, 15, 100)},
-    "Onyx": {"crit_chance": (3.5, 35, 100), "crit_dmg": (1.75, 17.5, 100)},
-    "Kyubite": {
-        "crit_chance": (4, 40, 100),
-        "crit_dmg": (1.8, 18, 100),
-        "fire_dmg": (4.5, 45, 100),
-        "fire_chance": (4.5, 45, 100),
-        "fire_duration": (0.5, 5, 1),
-    },
-    "Rivalite": {"crit_chance": (2, 20, 100)},
-    "Yin-Yang": {"crit_chance": (4.5, 45, 100), "crit_dmg": (2, 20, 100)},
-    "Galaxite": {
-        "crit_chance": (4.5, 45, 100),
-        "crit_dmg": (2, 20, 100),
-        "blackhole_dmg": (6, 60, 100),
-    },
-    "Moon Stone": {"moon": (2.5, 25, 100)},
-    "Gargantuan": {
-        "explosion_dmg": (5, 50, 100),
-        "explosion_chance": (3.5, 35, 100),
-        "fire_dmg": (2, 20, 100),
-        "fire_chance": (2, 20, 100),
-        "fire_duration": (0.2, 2, 1),
-    },
-    "Magmaite": {"explosion_dmg": (3.5, 35, 100), "explosion_chance": (2, 20, 100)},
-    "Meteorite": {"explosion_dmg": (6, 60, 100), "explosion_chance": (2.5, 25, 100)},
-    "Supermassive Black Hole": {
-        "explosion_dmg": (6.5, 65, 100),
-        "explosion_chance": (4.5, 45, 100),
-        "fire_dmg": (5, 50, 100),
-        # C62 fire chance is 4.5, NOT 5 (quirk vs C61)
-        "fire_chance": (4.5, 45, 100),
-        "fire_duration": (0.5, 5, 1),
-    },
-    "Sun Stone": {
-        "fire_dmg": (3.5, 35, 100),
-        "fire_chance": (3.5, 35, 100),
-        "fire_duration": (0.5, 5, 1),
+    "Crimsonite": {"lethality": (2.0, 20.0, 100)},
+    "Eye Ore": {"lethality": (1.5, 15.0, 100)},
+    "Fierce Jade": {
+        "lethality": (2.0, 20.0, 100),
+        "crit_chance": (3.5, 35.0, 100),
+        "crit_dmg": (2.0, 20.0, 100),
+        "atk_speed": (1.5, 15.0, 100),
     },
     "Fireite": {
-        "fire_dmg": (2, 20, 100),
-        "fire_chance": (2, 20, 100),
-        "fire_duration": (0.2, 2, 1),
+        "fire_dmg": (2.0, 20.0, 100),
+        "fire_chance": (2.0, 20.0, 100),
+        "fire_duration": (0.2, 2.0, 1),
+    },
+    "Frost Fossil": {"lethality": (1.75, 17.5, 100)},
+    "Galaxite": {
+        "crit_chance": (4.5, 45.0, 100),
+        "crit_dmg": (2.0, 20.0, 100),
+        "blackhole_dmg": (6.0, 60.0, 100),
+    },
+    "Gargantuan": {
+        "explosion_dmg": (5.0, 50.0, 100),
+        "explosion_chance": (3.5, 35.0, 100),
+        "fire_dmg": (2.0, 20.0, 100),
+        "fire_chance": (2.0, 20.0, 100),
+        "fire_duration": (0.2, 2.0, 1),
+    },
+    "Golem Heart": {
+        "crit_chance": (4.0, 40.0, 100),
+        "crit_dmg": (1.5, 15.0, 100),
+    },
+    "Heavenite": {
+        "smite_dmg": (2.5, 25.0, 100),
+        "smite_chance": (4.0, 40.0, 100),
+    },
+    "Kitsunite": {
+        "explosion_dmg": (7.0, 70.0, 100),
+        "explosion_chance": (4.0, 40.0, 100),
+        "fire_dmg": (4.0, 40.0, 100),
+        "fire_chance": (5.0, 50.0, 100),
+        "fire_duration": (0.5, 5.0, 1),
+        # C72 wraps this one in MAX(0.05, MIN(0.5, ramp)) and omits the 10% gate
+        "smite_dmg": (2.5, 50.0, 100, {"gated": False, "floor": 0.05, "ceiling": 0.5}),
+        "smite_chance": (5.0, 50.0, 100),
+        "lightning_dmg": (8.0, 80.0, 100),
+        "lightning_chance": (6.0, 60.0, 100),
+        "lightning_cooldown": (0.3, 3.0, 1),
+    },
+    "Kokorite": {"lethality": (3.0, 30.0, 100)},
+    "Kyubite": {
+        "crit_chance": (4.0, 40.0, 100),
+        "crit_dmg": (1.8, 18.0, 100),
+        "fire_dmg": (4.5, 45.0, 100),
+        "fire_chance": (4.5, 45.0, 100),
+        "fire_duration": (0.5, 5.0, 1),
+    },
+    "Magmaite": {
+        "explosion_dmg": (3.5, 35.0, 100),
+        "explosion_chance": (2.0, 20.0, 100),
     },
     "Malachite": {
-        "poison_dmg": (1, 10, 100),
-        "poison_chance": (3.3, 33, 100),
-        "poison_duration": (0.3, 3, 1),
+        "poison_dmg": (1.0, 10.0, 100),
+        "poison_chance": (3.3, 33.0, 100),
+        "poison_duration": (0.3, 3.0, 1),
     },
-    "Heavenite": {"smite_dmg": (2.5, 25, 100), "smite_chance": (4, 40, 100)},
+    "Marblite": {
+        "lightning_dmg": (6.0, 60.0, 100),
+        "lightning_chance": (4.0, 40.0, 100),
+        "lightning_cooldown": (0.5, 5.0, 1),
+    },
+    "Meteorite": {
+        "explosion_dmg": (6.0, 60.0, 100),
+        "explosion_chance": (2.5, 25.0, 100),
+    },
+    "Moon Stone": {"moon": (2.5, 25.0, 100)},
+    "Onyx": {
+        "crit_chance": (3.5, 35.0, 100),
+        "crit_dmg": (1.75, 17.5, 100),
+    },
+    "Prismatic Heart": {
+        "crit_chance": (2.0, 20.0, 100),
+        "crit_dmg": (0.5, 5.0, 100),
+    },
+    "Rivalite": {"crit_chance": (2.0, 20.0, 100)},
+    "Sealed Curse": {"lethality": (3.0, 30.0, 100)},
+    "Sun Stone": {
+        "fire_dmg": (3.5, 35.0, 100),
+        "fire_chance": (3.5, 35.0, 100),
+        "fire_duration": (0.5, 5.0, 1),
+    },
+    "Supermassive Black Hole": {
+        "explosion_dmg": (6.5, 65.0, 100),
+        "explosion_chance": (4.5, 45.0, 100),
+        "fire_dmg": (5.0, 50.0, 100),
+        # C63 fire chance is 4.5, NOT 5 (quirk vs C62)
+        "fire_chance": (4.5, 45.0, 100),
+        "fire_duration": (0.5, 5.0, 1),
+    },
+    "Tiger's Eye": {
+        "lethality": (0.5, 5.0, 100),
+        "atk_speed": (0.75, 7.5, 100),
+    },
+    "Vanegos": {"lethality": (4.0, 40.0, 100)},
+    "Voidstar": {
+        "crit_chance": (3.3, 33.0, 100),
+        "crit_dmg": (1.5, 15.0, 100),
+    },
+    "Wolfarite": {
+        "lethality": (1.5, 15.0, 100),
+        "atk_speed": (0.8, 8.0, 100),
+    },
+    "Yang": {
+        "crit_chance": (4.0, 40.0, 100),
+        "crit_dmg": (1.8, 18.0, 100),
+    },
+    "Yeti Heart": {
+        "crit_chance": (3.0, 30.0, 100),
+        "crit_dmg": (1.0, 10.0, 100),
+        "atk_speed": (1.0, 10.0, 100),
+    },
+    "Yin-Yang": {
+        "crit_chance": (4.5, 45.0, 100),
+        "crit_dmg": (2.0, 20.0, 100),
+    },
 }
 
 
-def _matrix_as_tuples(matrix):
-    return {
-        ore: {stat: (e["base"], e["max"], e["divisor"]) for stat, e in stats.items()}
-        for ore, stats in matrix.items()
-    }
+def _formula_text(ws, coord):
+    """Formula string, unwrapping openpyxl's ArrayFormula (C69's XLOOKUP)."""
+    val = ws[coord].value
+    return getattr(val, "text", val) or ""
 
 
-def test_expected_matrix_from_all_formulas_txt():
-    formulas = load_formulas_from_txt(ROOT / "reference" / "all_formulas.txt")
-    matrix = parse_stat_matrix(formulas)
+def _workbook_formulas(path, cells):
+    openpyxl = pytest.importorskip("openpyxl")
+    if not path.exists():
+        pytest.skip(f"workbook not available: {path.name}")
+    ws = openpyxl.load_workbook(path, data_only=False)["DPS Calculator"]
+    return {cell: _formula_text(ws, cell) for cell in cells}
+
+
+@pytest.fixture(scope="module")
+def matrix():
+    """The full stat matrix: reall.xlsx, plus ore atk speed from new.xlsx."""
+    out = parse_stat_matrix(_workbook_formulas(WORKBOOK, STAT_CELLS))
+    legacy = parse_stat_matrix(
+        _workbook_formulas(LEGACY_WORKBOOK, LEGACY_STAT_CELLS), LEGACY_STAT_CELLS
+    )
+    for ore, stats in legacy.items():
+        for stat, entry in stats.items():
+            out.setdefault(ore, {}).setdefault(stat, entry)
+    return out
+
+
+def _as_tuple(entry):
+    base = (entry["base"], entry["max"], entry["divisor"])
+    mods = {k: v for k, v in entry.items() if k not in ("base", "max", "divisor")}
+    return base + (mods,) if mods else base
+
+
+def _matrix_as_tuples(m):
+    return {ore: {stat: _as_tuple(e) for stat, e in stats.items()} for ore, stats in m.items()}
+
+
+def test_expected_matrix_from_workbook(matrix):
     assert _matrix_as_tuples(matrix) == EXPECTED
 
 
-def test_matrix_has_exactly_the_known_ore_set():
-    formulas = load_formulas_from_txt(ROOT / "reference" / "all_formulas.txt")
-    matrix = parse_stat_matrix(formulas)
+def test_matrix_has_exactly_the_known_ore_set(matrix):
     assert set(matrix) == set(EXPECTED)
 
 
-def test_all_stat_cells_are_present_in_the_dump():
-    formulas = load_formulas_from_txt(ROOT / "reference" / "all_formulas.txt")
-    missing = [cell for cell in STAT_CELLS if cell not in formulas]
+def test_all_stat_cells_have_a_formula():
+    formulas = _workbook_formulas(WORKBOOK, STAT_CELLS)
+    missing = [cell for cell, text in formulas.items() if not text.startswith("=")]
     assert missing == []
 
 
 def test_every_expected_stat_has_a_divisor_of_1_or_100():
     for ore, stats in EXPECTED.items():
-        for stat, (_, _, divisor) in stats.items():
-            assert divisor in (1, 100), f"{ore}.{stat} divisor {divisor}"
+        for stat, entry in stats.items():
+            assert entry[2] in (1, 100), f"{ore}.{stat} divisor {entry[2]}"
+
+
+def test_only_kitsunite_smite_is_ungated_and_clamped(matrix):
+    """The ungated/clamped ramp is unique to C72's Kitsunite branch."""
+    odd = {
+        (ore, stat)
+        for ore, stats in matrix.items()
+        for stat, e in stats.items()
+        if e.get("gated") is False or e.get("floor") is not None or e.get("ceiling") is not None
+    }
+    assert odd == {("Kitsunite", "smite_dmg")}
+    entry = matrix["Kitsunite"]["smite_dmg"]
+    assert entry["gated"] is False
+    assert entry["floor"] == 0.05
+    assert entry["ceiling"] == 0.5
+
+
+def test_durations_use_divisor_one(matrix):
+    """Seconds-valued ramps must not be divided by 100."""
+    for ore, stats in matrix.items():
+        for stat, entry in stats.items():
+            if stat.endswith(("_duration", "_cooldown")):
+                assert entry["divisor"] == 1, f"{ore}.{stat}"

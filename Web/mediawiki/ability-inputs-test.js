@@ -1,5 +1,5 @@
 /**
- * Focused tests for the MediaWiki ability inputs (Fire / Poison / Blast):
+ * Focused tests for the MediaWiki ability inputs (Fire / Poison / Lightning / Blast):
  *  - clampAbilityValue: 0/empty = "no ability"; non-zero clamps into [min,max]
  *  - createAbilityGrid: min/max/step/placeholder/title attributes + clamping
  *    on change / blur / (debounced) input
@@ -158,6 +158,7 @@ function uiBuild(overrides) {
     armorLethality: 0, armorCritChance: 0, armorCritDmg: 0,
     fireDmg: 0, fireChance: 0, fireTime: 0,
     poisonDmg: 0, poisonChance: 0, poisonTime: 0,
+    lightningDmg: 0, lightningChance: 0, lightningCooldown: 0,
     blastDmg: 0, blastChance: 0,
     runes: [], achievement: 'None'
   }, overrides);
@@ -166,6 +167,7 @@ function uiBuild(overrides) {
   const eng = FC.transformBuildForEngine(uiBuild({
     fireDmg: 15, fireChance: 50, fireTime: 2,
     poisonDmg: 7, poisonChance: 35, poisonTime: 4,
+    lightningDmg: 80, lightningChance: 60, lightningCooldown: 2,
     blastDmg: 40, blastChance: 20
   })).abilities;
   assert(eng.fire_dmg === 0.15, 'fire_dmg 15% -> 0.15');
@@ -174,6 +176,9 @@ function uiBuild(overrides) {
   assert(eng.poison_dmg === 0.07, 'poison_dmg 7% -> 0.07');
   assert(eng.poison_chance === 0.35, 'poison_chance 35% -> 0.35');
   assert(eng.poison_time === 4, 'poison_time seconds unchanged');
+  assert(eng.lightning_dmg === 0.8, 'lightning_dmg 80% -> 0.8');
+  assert(eng.lightning_chance === 0.6, 'lightning_chance 60% -> 0.6');
+  assert(eng.lightning_cooldown === 2, 'lightning_cooldown seconds unchanged');
   assert(eng.blast_dmg === 0.4, 'blast_dmg 40% -> 0.4');
   assert(eng.blast_chance === 0.2, 'blast_chance 20% -> 0.2');
 }
@@ -186,7 +191,8 @@ function uiBuild(overrides) {
 {
   const eng = FC.transformBuildForEngine(uiBuild()).abilities;
   const allZero = ['fire_dmg', 'fire_chance', 'fire_time', 'poison_dmg', 'poison_chance',
-    'poison_time', 'blast_dmg', 'blast_chance'].every((k) => eng[k] === 0);
+    'poison_time', 'lightning_dmg', 'lightning_chance', 'lightning_cooldown',
+    'blast_dmg', 'blast_chance'].every((k) => eng[k] === 0);
   assert(allZero, 'default build -> all ability values 0');
 }
 
@@ -197,13 +203,14 @@ const grid = FC.createAbilityGrid({
   values: {
     fireDmg: 0, fireChance: 0, fireTime: 0,
     poisonDmg: 0, poisonChance: 0, poisonTime: 0,
+    lightningDmg: 0, lightningChance: 0, lightningCooldown: 0,
     blastDmg: 0, blastChance: 0
   },
   onChange: (v) => { lastValues = v; }
 });
 
 const inputs = grid.querySelectorAll('.fc-ability-input');
-assert(inputs.length === 8, '8 ability inputs rendered');
+assert(inputs.length === 11, '11 ability inputs rendered');
 
 const byId = {};
 inputs.forEach((inp) => { byId[inp.id] = inp; });
@@ -216,6 +223,10 @@ const expected = {
   poisonDmg: { min: '1', max: '7', placeholder: '1-7%', title: 'Range: 1-7%' },
   poisonChance: { min: '1', max: '35', placeholder: '1-35%', title: 'Range: 1-35%' },
   poisonTime: { min: '1', max: '6', placeholder: '1-6s', title: 'Range: 1-6s' },
+  lightningDmg: { min: '1', max: '80', placeholder: '1-80%', title: 'Range: 1-80%' },
+  lightningChance: { min: '1', max: '60', placeholder: '1-60%', title: 'Range: 1-60%' },
+  // fractional bounds -> a 0.1 step, so the spinner can reach 0.3s
+  lightningCooldown: { min: '0.3', max: '5', placeholder: '0.3-5s', title: 'Range: 0.3-5s', step: '0.1' },
   blastDmg: { min: '1', max: '40', placeholder: '1-40%', title: 'Range: 1-40%' },
   blastChance: { min: '1', max: '20', placeholder: '1-20%', title: 'Range: 1-20%' }
 };
@@ -225,7 +236,7 @@ Object.keys(expected).forEach((key) => {
   assert(inp, `input exists: ${key}`);
   assert(inp && inp.getAttribute('min') === exp.min, `${key} min=${exp.min}`);
   assert(inp && inp.getAttribute('max') === exp.max, `${key} max=${exp.max}`);
-  assert(inp && inp.getAttribute('step') === '1', `${key} step=1`);
+  assert(inp && inp.getAttribute('step') === (exp.step || '1'), `${key} step=${exp.step || '1'}`);
   assert(inp && inp.getAttribute('placeholder') === exp.placeholder, `${key} placeholder=${exp.placeholder}`);
   assert(inp && (inp.getAttribute('title') || '').indexOf(exp.title) !== -1, `${key} title shows range`);
   assert(inp && (inp.getAttribute('title') || '').indexOf('0 = no ability') !== -1, `${key} title mentions 0 = no ability`);
@@ -253,6 +264,19 @@ assert(lastValues.poisonDmg === 0, 'blur: poisonDmg 0 stays 0 (no ability)');
 byId.poisonChance.value = '60';
 byId.poisonChance.dispatchEvent({ type: 'blur' });
 assert(lastValues.poisonChance === 35, 'blur: poisonChance 60 -> max 35');
+
+// lightning clamps too, including the fractional cooldown floor
+byId.lightningDmg.value = '120';
+byId.lightningDmg.dispatchEvent({ type: 'change' });
+assert(lastValues.lightningDmg === 80, 'change: lightningDmg 120 -> max 80');
+
+byId.lightningCooldown.value = '0.1';
+byId.lightningCooldown.dispatchEvent({ type: 'change' });
+assert(lastValues.lightningCooldown === 0.3, 'change: lightningCooldown 0.1 -> min 0.3');
+
+byId.lightningCooldown.value = '2.5';
+byId.lightningCooldown.dispatchEvent({ type: 'blur' });
+assert(lastValues.lightningCooldown === 2.5, 'blur: fractional cooldown preserved');
 
 // empty clears to 0
 byId.blastDmg.value = '';

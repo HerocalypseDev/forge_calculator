@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from forge_calculator import settings
 from forge_calculator.app import build_app
+from forge_calculator.data import EXPECTED_COUNTS
 from forge_calculator.gui.calculator_tab import CalculatorTab
 
 GOLDEN_1 = {
@@ -29,12 +30,13 @@ GOLDEN_1 = {
     "enhancement": "0",
 }
 
-# tab title -> expected number of rows in its primary Treeview/Listbox
+# tab title -> expected number of rows in its primary Treeview/Listbox.
+# Sourced from the data layer so a workbook rebuild cannot silently drift this.
 BROWSE_EXPECTED = {
-    "Ores": 140,
-    "Races": 16,
-    "Weapons": 79,
-    "Achievements": 16,
+    "Ores": EXPECTED_COUNTS["ores"],
+    "Races": EXPECTED_COUNTS["races"],
+    "Weapons": EXPECTED_COUNTS["weapons"],
+    "Achievements": EXPECTED_COUNTS["achievements"],
 }
 
 
@@ -192,7 +194,7 @@ def main():
             root.update_idletasks()
             if widget.filter_var.get() != "":
                 failures.append("Escape did not clear the Ores filter")
-            if len(widget.tree.get_children()) != 140:
+            if len(widget.tree.get_children()) != EXPECTED_COUNTS["ores"]:
                 failures.append("Ores list not restored after Escape")
 
     root.destroy()

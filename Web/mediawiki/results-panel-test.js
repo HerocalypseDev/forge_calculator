@@ -1,6 +1,7 @@
 /**
  * Focused test for the MediaWiki results panel DPS Breakdown:
- *  - Renders 9 rows: Weapon / Explosion / Fire / Poison / Smite / Black Hole / Total /
+ *  - Renders 10 rows: Weapon / Explosion / Fire / Poison / Smite / Black Hole /
+ *    Lightning / Total /
  *    Total Berserk / Total Moonstone
  *  - "Explosion DPS" maps to result.explosion_dps (the blast-ability proc, C85)
  *  - "Smite DPS" maps to result.smite_dps (Heavenite/Angel/Archangel proc, C88)
@@ -182,8 +183,8 @@ assert(!!dpsCard, 'DPS Breakdown card found');
 
 const labels = (dpsCard.querySelectorAll('.fc-stat-row') || []).map((row) =>
   (row.querySelector('.fc-stat-label') || {}).textContent);
-const expectedLabels = ['Weapon DPS', 'Explosion DPS', 'Fire DPS', 'Poison DPS', 'Smite DPS', 'Black Hole DPS', 'Total DPS', 'Total Berserk DPS', 'Total Moonstone DPS'];
-assert(labels.length === 9, `9 rows rendered (got ${labels.length})`);
+const expectedLabels = ['Weapon DPS', 'Explosion DPS', 'Fire DPS', 'Poison DPS', 'Smite DPS', 'Black Hole DPS', 'Lightning DPS', 'Total DPS', 'Total Berserk DPS', 'Total Moonstone DPS'];
+assert(labels.length === 10, `10 rows rendered (got ${labels.length})`);
 assert(JSON.stringify(labels) === JSON.stringify(expectedLabels),
   'row labels match: ' + expectedLabels.join(' | '));
 
@@ -192,7 +193,7 @@ const fake = {
   unforged_damage: 100, avg_power: 2, forged_damage: 200, attack_rate: 1.5,
   weapon_dps: 300, lethality: 0.3, crit_chance: 0.2, crit_dmg: 0.1, atk_speed: 0.2,
   explosion_dps: 28.28, fire_dps: 11.11, poison_dps: 22.22,
-  smite_dps: 33.33, blackhole_dps: 44.44, total_dps: 439.38,
+  smite_dps: 33.33, blackhole_dps: 44.44, lightning_dps: 55.55, total_dps: 494.93,
   berserk: 512.5, moonstone: 600,
   ttk_25k: 56.9, ttk_75k: 170.69, active_traits: null
 };
@@ -202,16 +203,17 @@ const rows = dpsCard.querySelectorAll('.fc-stat-row');
 const val = (i) => (rows[i].querySelector('.fc-stat-val') || {}).textContent;
 assert(val(1) === '28.28', `Explosion DPS row shows explosion_dps (got ${val(1)})`);
 assert(val(4) === '33.33', `Smite DPS row shows smite_dps (got ${val(4)})`);
-assert(val(6) === '439.38', `Total DPS row shows total_dps (got ${val(6)})`);
-assert(val(7) === '512.50', `Total Berserk DPS row shows berserk (got ${val(7)})`);
-assert(val(8) === '600.00', `Total Moonstone DPS row shows moonstone (got ${val(8)})`);
+assert(val(6) === '55.55', `Lightning DPS row shows lightning_dps (got ${val(6)})`);
+assert(val(7) === '494.93', `Total DPS row shows total_dps (got ${val(7)})`);
+assert(val(8) === '512.50', `Total Berserk DPS row shows berserk (got ${val(8)})`);
+assert(val(9) === '600.00', `Total Moonstone DPS row shows moonstone (got ${val(9)})`);
 assert(val(1) !== val(4), 'Explosion and Smite rows are distinct components');
 assert(val(3) === '22.22' && val(2) === '11.11', 'Fire/Poison rows map correctly');
 
 // Inactive berserk/moonstone (null) render as "—"
 panel.updateResults({ ...fake, berserk: null, moonstone: null });
-assert(val(7) === '—', `null berserk renders as "—" (got ${val(7)})`);
-assert(val(8) === '—', `null moonstone renders as "—" (got ${val(8)})`);
+assert(val(8) === '—', `null berserk renders as "—" (got ${val(8)})`);
+assert(val(9) === '—', `null moonstone renders as "—" (got ${val(9)})`);
 panel.updateResults(fake); // restore for subsequent checks
 
 // --- Active Traits: full-width wrapping block (not clipped stat row) ---
@@ -251,10 +253,12 @@ cardClasses.forEach(([title, cls]) =>
   assert((byTitle(title) || {}).classList && byTitle(title).classList.contains(cls),
     `${title} card has ${cls} modifier`));
 
-// Hero card renders total_dps in the large-value row
+// Hero card renders total_dps as its single, unlabelled value row. The sizing
+// comes from the .fc-card--total modifier (asserted above), not a value class.
+const heroRows = totalCard.querySelectorAll('.fc-stat-row');
 const heroVal = totalCard.querySelector('.fc-stat-val');
-assert(heroVal && heroVal.classList.contains('fc-sv-dps-hero'), 'hero value uses fc-sv-dps-hero class');
-assert(heroVal && heroVal.textContent === '439.38', `hero card shows total_dps (got ${heroVal && heroVal.textContent})`);
+assert(heroRows.length === 1, `hero card has exactly one row (got ${heroRows.length})`);
+assert(heroVal && heroVal.textContent === '494.93', `hero card shows total_dps (got ${heroVal && heroVal.textContent})`);
 
 // Append order matches the reference layout: hero, dps, stats, traits, core, ttk
 const cardsContainer = panel.querySelector('.fc-results-cards');

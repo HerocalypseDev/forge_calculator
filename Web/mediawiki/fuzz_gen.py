@@ -1,10 +1,16 @@
 """Generate deterministic random builds + Python-engine results for differential
 verification against the JS engine in MediaWiki-ForgeCalculator.js.
 
-Usage: python fuzz_gen.py  (writes fuzz-cases.json)
+Usage: python Web/mediawiki/fuzz_gen.py  (writes fuzz-cases.json beside itself)
 """
 import json
 import random
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent.parent))
+OUT = HERE / "fuzz-cases.json"
 
 from forge_calculator.data import load_game_data, DEFAULT_DATA_DIR
 from forge_calculator.engine import Build, OreSlot, Abilities, calculate
@@ -51,6 +57,8 @@ def gen_build():
         abilities=Abilities(
             fire_dmg=rand_float(0.4), fire_chance=rand_float(0.5), fire_time=random.choice([0, 1, 2, 3, 5, 8]),
             poison_dmg=rand_float(0.4), poison_chance=rand_float(0.5), poison_time=random.choice([0, 1, 2, 3, 5, 8]),
+            lightning_dmg=rand_float(0.8), lightning_chance=rand_float(0.6),
+            lightning_cooldown=random.choice([0, 0.3, 1, 2, 3, 5]),
             blast_dmg=rand_float(0.4), blast_chance=rand_float(0.5),
         ),
         berserk=rand_float(0.3),
@@ -80,6 +88,9 @@ def build_to_dict(b):
             "poison_dmg": b.abilities.poison_dmg,
             "poison_chance": b.abilities.poison_chance,
             "poison_time": b.abilities.poison_time,
+            "lightning_dmg": b.abilities.lightning_dmg,
+            "lightning_chance": b.abilities.lightning_chance,
+            "lightning_cooldown": b.abilities.lightning_cooldown,
             "blast_dmg": b.abilities.blast_dmg,
             "blast_chance": b.abilities.blast_chance,
         },
@@ -113,12 +124,15 @@ def result_to_dict(r):
         "smite_chance": r.smite_chance,
         "blackhole_dmg": r.blackhole_dmg,
         "blackhole_chance": r.blackhole_chance,
+        "lightning_dmg": r.lightning_dmg,
+        "lightning_chance": r.lightning_chance,
         "weapon_dps": r.weapon_dps,
         "explosion_dps": r.explosion_dps,
         "fire_dps": r.fire_dps,
         "poison_dps": r.poison_dps,
         "smite_dps": r.smite_dps,
         "blackhole_dps": r.blackhole_dps,
+        "lightning_dps": r.lightning_dps,
         "total_dps": r.total_dps,
         "berserk": r.berserk,
         "moonstone": r.moonstone,
@@ -136,7 +150,7 @@ for i in range(250):
     r = calculate(b, game)
     cases.append({"build": build_to_dict(b), "result": result_to_dict(r)})
 
-with open("fuzz-cases.json", "w", encoding="utf-8") as f:
+with open(OUT, "w", encoding="utf-8") as f:
     json.dump({"select_ore": game.select_ore, "none": game.none_label, "cases": cases}, f)
 
-print(f"Generated {len(cases)} fuzz cases -> fuzz-cases.json")
+print(f"Generated {len(cases)} fuzz cases -> {OUT}")

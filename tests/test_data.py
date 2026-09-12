@@ -74,13 +74,18 @@ def test_stone_has_no_stats_and_is_not_weapon(data):
     assert ore.is_weapon is False
 
 
-def test_tigers_eye_apostrophe_quirk(data):
-    # "Tiger's Eye" (apostrophe) is the catalog ore carrying atk_speed from C47;
-    # the formula-only "Tigers Eye" (no apostrophe, C44 lethality) has no row.
+def test_tigers_eye_apostrophe_quirk_is_gone(data):
+    """reall.xlsx spells Tiger's Eye consistently, so the old quirk is resolved.
+
+    The previous workbook's lethality ramp said "Tigers Eye" (no apostrophe),
+    which matched no catalog row and so was dead.  reall.xlsx uses the apostrophe
+    in both places, so the one ore now carries lethality AND the attack speed
+    preserved from new.xlsx C48.
+    """
     ore = data.ore("Tiger's Eye")
     assert ore is not None
+    assert ore.stat("lethality") is not None
     assert ore.stat("atk_speed") is not None
-    assert ore.stat("lethality") is None
     assert data.ore("Tigers Eye") is None
 
 

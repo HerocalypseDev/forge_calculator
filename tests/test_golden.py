@@ -10,7 +10,6 @@
 
 import pytest
 
-from build_data.formula_parser import load_formulas_from_txt
 from forge_calculator.data import DEFAULT_DATA_DIR, load_game_data
 from forge_calculator.engine import (
     Abilities,
@@ -20,7 +19,7 @@ from forge_calculator.engine import (
 )
 
 ROOT = DEFAULT_DATA_DIR.parent
-WORKBOOK = ROOT / "reference" / "Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (1).xlsx"
+WORKBOOK = ROOT / "reference" / "reall.xlsx"
 
 
 @pytest.fixture(scope="module")
@@ -46,10 +45,39 @@ def _workbook_cache():
     return lambda cell: dps[cell].value
 
 
-def test_workbook_cached_golden(game):
+def _game_without_ore_atk_speed():
+    """The catalog with ore ``atk_speed`` dropped.
+
+    reall.xlsx deleted the C48 ore attack-speed ramp, but the engine still derives
+    that stat (from new.xlsx C48) because the deletion was judged a sheet
+    regression.  That deviation would otherwise shift E48 -- and therefore every
+    DPS cell -- for any build holding one of the four ores that grant it, so it is
+    removed here to keep this a pure formula check.
+    """
+    import json
+    import shutil
+    import tempfile
+    from pathlib import Path
+
+    tmp = Path(tempfile.mkdtemp(prefix="fc-golden-"))
+    try:
+        for name in ("ores", "weapons", "races", "runes", "achievements"):
+            shutil.copyfile(DEFAULT_DATA_DIR / f"{name}.json", tmp / f"{name}.json")
+        path = tmp / "ores.json"
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        for ore in raw["ores"]:
+            (ore.get("stats") or {}).pop("atk_speed", None)
+        path.write_text(json.dumps(raw), encoding="utf-8")
+        return load_game_data(tmp)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_workbook_cached_golden():
     c = _workbook_cache()
     if c is None:
         pytest.skip("workbook cache absent (openpyxl or cached values)")
+    game = _game_without_ore_atk_speed()
 
     build = Build(
         slots=(
@@ -67,17 +95,21 @@ def test_workbook_cached_golden(game):
                     c("D28") or "None", c("C29") or "None", c("D29") or "None"),
         base_crit_chance=c("C20") or 0.0,
         base_crit_dmg=c("C21") or 0.0,
-        armor_crit_chance=c("C41") or 0.0,
-        armor_crit_dmg=c("C42") or 0.0,
-        armor_lethality=c("C43") or 0.0,
-        base_lethality=c("A44") or 0.0,
+        armor_crit_chance=c("C42") or 0.0,
+        armor_crit_dmg=c("C43") or 0.0,
+        armor_lethality=c("C44") or 0.0,
+        base_lethality=c("A45") or 0.0,
+        # One row per ability: Fire 34, Poison 35, Lightning 36, Blast 37,
+        # with DMG/Chance/Time in columns C/D/E.
         abilities=Abilities(
-            fire_dmg=c("C34") or 0.0, fire_chance=c("C35") or 0.0, fire_time=c("C36") or 0.0,
-            poison_dmg=c("D34") or 0.0, poison_chance=c("D35") or 0.0, poison_time=c("D36") or 0.0,
-            blast_dmg=c("E34") or 0.0, blast_chance=c("E35") or 0.0,
+            fire_dmg=c("C34") or 0.0, fire_chance=c("D34") or 0.0, fire_time=c("E34") or 0.0,
+            poison_dmg=c("C35") or 0.0, poison_chance=c("D35") or 0.0, poison_time=c("E35") or 0.0,
+            lightning_dmg=c("C36") or 0.0, lightning_chance=c("D36") or 0.0,
+            lightning_cooldown=c("E36") or 0.0,
+            blast_dmg=c("C37") or 0.0, blast_chance=c("D37") or 0.0,
         ),
-        berserk=c("C53") or 0.0,
-        achievement=c("C80") or "None",
+        berserk=c("C54") or 0.0,
+        achievement=c("C85") or "None",
     )
     r = calculate(build, game)
 
@@ -86,27 +118,39 @@ def test_workbook_cached_golden(game):
     assert r.forged_damage == pytest.approx(c("C18"), rel=1e-9)
     assert r.interval == pytest.approx(c("C19"), rel=1e-9)
     assert r.attack_rate == pytest.approx(c("E21"), rel=1e-9)
-    assert r.lethality == pytest.approx(c("E44") or 0.0, rel=1e-9)
-    assert r.crit_chance == pytest.approx(c("E45") or 0.0, rel=1e-9)
-    assert r.crit_dmg == pytest.approx(c("E46") or 0.0, rel=1e-9)
-    assert r.atk_speed == pytest.approx(c("E47") or 0.0, rel=1e-9)
+    assert r.lethality == pytest.approx(c("E45") or 0.0, rel=1e-9)
+    assert r.crit_chance == pytest.approx(c("E46") or 0.0, rel=1e-9)
+    assert r.crit_dmg == pytest.approx(c("E47") or 0.0, rel=1e-9)
+    assert r.atk_speed == pytest.approx(c("E48") or 0.0, rel=1e-9)
 
     for cell, val in [
-        ("C52", r.moon), ("C57", r.explosion_dmg), ("C58", r.explosion_chance),
-        ("C61", r.fire_dmg), ("C62", r.fire_chance), ("C63", r.fire_duration),
-        ("C66", r.poison_dmg), ("C67", r.poison_chance), ("C68", r.poison_duration),
-        ("C71", r.smite_dmg), ("C72", r.smite_chance), ("C75", r.blackhole_dmg),
-        ("C76", r.blackhole_chance),
-        ("C84", r.weapon_dps), ("C85", r.explosion_dps), ("C86", r.fire_dps),
-        ("C87", r.poison_dps), ("C88", r.smite_dps), ("C89", r.blackhole_dps),
-        ("C91", r.total_dps), ("C95", r.min_dps), ("C96", r.max_dps),
-        ("E91", r.ttk_25k), ("E92", r.ttk_75k),
+        ("C53", r.moon), ("C58", r.explosion_dmg), ("C59", r.explosion_chance),
+        ("C62", r.fire_dmg), ("C63", r.fire_chance), ("C64", r.fire_duration),
+        ("C67", r.poison_dmg), ("C68", r.poison_chance), ("C69", r.poison_duration),
+        ("C72", r.smite_dmg), ("C73", r.smite_chance), ("C76", r.blackhole_dmg),
+        ("C77", r.blackhole_chance), ("C80", r.lightning_dmg), ("C81", r.lightning_chance),
+        ("C89", r.weapon_dps), ("C90", r.explosion_dps), ("C91", r.fire_dps),
+        ("C92", r.poison_dps), ("C93", r.smite_dps), ("C94", r.blackhole_dps),
+        ("E94", r.lightning_dps), ("C96", r.total_dps), ("C100", r.min_dps),
+        ("E96", r.ttk_25k), ("E97", r.ttk_75k),
     ]:
         assert val == pytest.approx(c(cell) or 0.0, rel=1e-9), f"{cell}: {val} vs cached {c(cell)}"
 
-    # berserk/moonstone mirror the workbook's "N/A" sentinel
-    assert (r.berserk is None) == (c("C92") == "N/A")
-    assert (r.moonstone is None) == (c("C93") == "N/A")
+    # C101's final term is a bare "+C80" in the sheet -- the raw lightning
+    # PERCENTAGE, not damage.  That is an authoring slip, so the engine scales the
+    # term like every other proc; the expectation is restated to match.
+    expected_max = (
+        c("C101") - c("C80") + c("C18") * c("C80") * c("C81") * c("E21")
+    )
+    assert r.max_dps == pytest.approx(expected_max, rel=1e-9)
+
+    # C97/C98 fall back to C96 in the sheet when the bonus is 0; the engine uses None
+    assert (r.berserk if r.berserk is not None else r.total_dps) == pytest.approx(
+        c("C97"), rel=1e-9
+    )
+    assert (r.moonstone if r.moonstone is not None else r.total_dps) == pytest.approx(
+        c("C98"), rel=1e-9
+    )
 
 
 # --- hand-computed single-ore cases ---
@@ -187,11 +231,14 @@ def test_black_hole_chance_requires_galaxite(game):
 
 
 def test_minotaur_berserk(game):
-    # E53 = 0 (C53) + 30% (Minotaur); C92 = procs + C18*(1+MIN(0.15+0.30,1.5))*blend*E21
+    # E54 = 0 (C54) + 30% (Minotaur).  C97 multiplies the physical hit once --
+    # C89*(1+E54) + procs -- rather than folding berserk into lethality, so with
+    # no procs this is just weapon_dps * 1.3.
     build = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger", race="Minotaur")
     r = calculate(build, game)
-    assert r.berserk == pytest.approx(221.78558297872337)
+    assert r.berserk == pytest.approx(r.weapon_dps * 1.30)
+    assert r.berserk == pytest.approx(228.66858382978722)
     # same build without the race -> N/A
     plain = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger")
@@ -202,10 +249,27 @@ def test_minotaur_berserk(game):
 
 
 def _load_formulas():
-    return load_formulas_from_txt(ROOT / "reference" / "all_formulas.txt")
+    """Read the DPS sheet's formula strings straight from the workbook.
+
+    The old ``all_formulas.txt`` dumps were deleted (and kept going stale against
+    the workbook), so the workbook is now the only source.  Needs openpyxl.
+    """
+    openpyxl = pytest.importorskip("openpyxl")
+    if not WORKBOOK.exists():
+        pytest.skip(f"workbook not available: {WORKBOOK.name}")
+    ws = openpyxl.load_workbook(WORKBOOK, data_only=False)["DPS Calculator"]
+    out = {}
+    for row in ws.iter_rows(min_row=1, max_row=110, min_col=1, max_col=12):
+        for cell in row:
+            val = cell.value
+            val = getattr(val, "text", val)  # unwrap ArrayFormula
+            if isinstance(val, str) and val.startswith("="):
+                out[cell.coordinate] = val
+    return out
 
 
 def _guard(formulas, cell, fragment, label):
+    assert cell in formulas, f"{label}: {cell} has no formula"
     assert fragment in formulas[cell], f"{label}: {fragment!r} not found in {cell}"
 
 
@@ -216,55 +280,74 @@ def test_engine_constants_match_source():
     _guard(formulas, "C18", "1.5", "forge level 9")
     _guard(formulas, "C18", "SWITCH", "forge uses SWITCH")
 
-    # E44 race/class lethality addends
+    # E45 race/class lethality addends
     for frag in ["20%", "10%", "5%", "12%"]:
-        _guard(formulas, "E44", frag, "race lethality")
-    _guard(formulas, "E44", '"Gauntlet"', "E44 class bonus singular")
-    _guard(formulas, "E44", "150%", "lethality cap")
+        _guard(formulas, "E45", frag, "race lethality")
+    _guard(formulas, "E45", '"Gauntlet"', "E45 class bonus singular")
+    _guard(formulas, "E45", "150%", "lethality cap")
 
-    # E47 race/class atk-speed addends (plural Gauntlets)
-    _guard(formulas, "E47", '"Gauntlets"', "E47 class bonus plural")
-    _guard(formulas, "E47", "15%", "Golem class atk speed")
-    _guard(formulas, "E47", "150%", "atk speed cap")
+    # E48 race/class atk-speed addends (plural Gauntlets)
+    _guard(formulas, "E48", '"Gauntlets"', "E48 class bonus plural")
+    _guard(formulas, "E48", "15%", "Golem class atk speed")
+    _guard(formulas, "E48", "150%", "atk speed cap")
 
-    # E45/E46 caps
-    _guard(formulas, "E45", "100%", "crit chance cap")
-    _guard(formulas, "E46", "100%", "crit dmg cap")
+    # E46/E47 caps
+    _guard(formulas, "E46", "100%", "crit chance cap")
+    _guard(formulas, "E47", "100%", "crit dmg cap")
 
     # share gate and ramp
-    _guard(formulas, "C44", "0.1", "share gate")
-    _guard(formulas, "C44", "0.2", "share ramp span")
+    _guard(formulas, "C45", "0.1", "share gate")
+    _guard(formulas, "C45", "0.2", "share ramp span")
 
-    # armor inputs folded into C44/C45/C46
-    _guard(formulas, "C44", "+C43", "armor lethality wired into C44")
-    _guard(formulas, "C45", "+C41", "armor CC wired into C45")
-    _guard(formulas, "C46", "+C42", "armor CD wired into C46")
+    # armor inputs folded into C45/C46/C47
+    _guard(formulas, "C45", "+C44", "armor lethality wired into C45")
+    _guard(formulas, "C46", "+C42", "armor CC wired into C46")
+    _guard(formulas, "C47", "+C43", "armor CD wired into C47")
 
-    # proc wiring
-    _guard(formulas, "C57", "+E34", "blast dmg input")
-    _guard(formulas, "C58", "E35", "blast chance input")
-    _guard(formulas, "C61", "+C34", "fire dmg input")
-    _guard(formulas, "C62", "0.4", "Dragonborn fire chance")
-    _guard(formulas, "C63", "-1", "fire duration -1")
-    _guard(formulas, "C63", '"Dragonborn",3', "Dragonborn fire time")
-    _guard(formulas, "C66", "+D34", "poison dmg input")
-    _guard(formulas, "C68", "-2", "poison duration -2")
-    _guard(formulas, "C71", "150%", "Archangel smite dmg")
-    _guard(formulas, "C72", "50%", "Angel smite chance")
-    _guard(formulas, "C72", "33%", "Archangel smite chance")
-    _guard(formulas, "C76", "0.3", "black hole threshold value")
-    _guard(formulas, "C76", "0.1", "black hole threshold ratio")
+    # ability wiring -- one row per ability, DMG/Chance/Time in C/D/E
+    _guard(formulas, "C58", "+C37", "blast dmg input")
+    _guard(formulas, "C59", "D37", "blast chance input")
+    _guard(formulas, "C62", "+C34", "fire dmg input")
+    _guard(formulas, "C63", "D34", "fire chance input")
+    _guard(formulas, "C63", "0.4", "Dragonborn fire chance")
+    _guard(formulas, "C64", "-1", "fire duration -1")
+    _guard(formulas, "C64", '"Dragonborn",3', "Dragonborn fire time")
+    _guard(formulas, "C67", "+C35", "poison dmg input")
+    _guard(formulas, "C68", "D35", "poison chance input")
+    _guard(formulas, "C69", "- 2", "poison duration -2")
+    _guard(formulas, "C69", "XLOOKUP", "poison duration reads the first Malachite")
+    _guard(formulas, "C80", "+C36", "lightning dmg input")
+    _guard(formulas, "C81", "D36", "lightning chance input")
+    _guard(formulas, "E80", "E36", "lightning cooldown input")
+
+    # explosion aggregates additively (C58 via "+", C59 via SUM)
+    _guard(formulas, "C59", "SUM(", "explosion chance sums across slots")
+
+    # smite: Archangel damage steps with attack speed, chance is an added IFS
+    _guard(formulas, "C72", "FLOOR(E21,1)*0.5", "Archangel smite dmg steps on E21")
+    _guard(formulas, "C72", "1.5", "Archangel smite dmg cap")
+    _guard(formulas, "C73", "0.5", "Angel smite chance")
+    _guard(formulas, "C73", "0.33", "Archangel smite chance")
+
+    # black hole
+    _guard(formulas, "C77", "0.3", "black hole threshold value")
+    _guard(formulas, "C77", "0.1", "black hole threshold ratio")
+    _guard(formulas, "E77", "MAX(1,E21)", "black hole DPS floors its rate at 1")
 
     # berserk
-    _guard(formulas, "E53", "30%", "Minotaur berserk")
-    _guard(formulas, "E53", "C53", "berserk input")
+    _guard(formulas, "E54", "30%", "Minotaur berserk")
+    _guard(formulas, "E54", "C54", "berserk input")
+    _guard(formulas, "C97", "C54", "berserk multiplies the physical hit")
 
-    # procs on unforged A18; C84/C96 on forged C18.
+    # procs on unforged A18; C89/C101 on forged C18.
     # (E58/E72 are not usable here -- _OptionsCrafter has same-named trait
-    # cells -- so the pattern is proven via E57, E76 and C96.)
-    _guard(formulas, "E57", "A18", "explosion dps on A18")
+    # cells -- so the pattern is proven via E59, E76 and C101.)
+    _guard(formulas, "E59", "A18", "explosion dps on A18")
     _guard(formulas, "E76", "A18", "black hole dps on A18")
-    _guard(formulas, "C96", "C18", "max-burst on C18")
+    _guard(formulas, "C101", "C18", "max-burst on C18")
+
+    # E10 drops Fichilliumorite from both halves of the weighted average
+    _guard(formulas, "E10", "Fichilliumorite", "E10 excludes Fichilliumorite")
 
     # active-trait power slope and weapon test
     _guard(formulas, "K6", "4.5", "trait power slope")
