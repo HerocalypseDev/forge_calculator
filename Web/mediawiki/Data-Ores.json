@@ -1443,7 +1443,23 @@
       "trait10": null,
       "trait30": null,
       "comments": null,
-      "stats": {}
+      "stats": {
+        "lightning_dmg": {
+          "base": 6.0,
+          "max": 60.0,
+          "divisor": 100
+        },
+        "lightning_chance": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        },
+        "lightning_cooldown": {
+          "base": 0.5,
+          "max": 5.0,
+          "divisor": 1
+        }
+      }
     },
     {
       "name": "Matter",
@@ -1648,21 +1664,11 @@
           "base": 1.0,
           "max": 10.0,
           "divisor": 100
-        }
-      }
-    },
-    {
-      "name": "Marblite",
-      "equipment": "Armor",
-      "multiplier": 3.5,
-      "trait10": "+1.5% Attack Speed",
-      "trait30": "+15% Attack Speed",
-      "comments": null,
-      "stats": {
-        "atk_speed": {
-          "base": 1.5,
-          "max": 15.0,
-          "divisor": 100
+        },
+        "lightning_cooldown": {
+          "base": 0.3,
+          "max": 3.0,
+          "divisor": 1
         }
       }
     },

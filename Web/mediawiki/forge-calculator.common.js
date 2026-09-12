@@ -1,1 +1,2 @@
 importScript('MediaWiki:ForgeCalculator.js');
+

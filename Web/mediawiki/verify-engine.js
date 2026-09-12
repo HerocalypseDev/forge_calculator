@@ -150,7 +150,7 @@ approx(r.blackhole_chance, 0.0, 'blackhole requires galaxite');
 
 // 7. test_minotaur_berserk
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger', race: 'Minotaur' }), game);
-approx(r.berserk, 221.78558297872337, 'minotaur berserk');
+approx(r.berserk, 288.32125787234037, 'minotaur berserk');
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.berserk === null ? 0 : 1, 0, 'no-race berserk is null');
 
@@ -159,8 +159,8 @@ r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'No
 approx(r.lethality, Math.min(0.15 + 0.20, 1.5), 'achievement lethality');
 
 // 9. Data counts (must match workbook)
-approx(game.ores.length, 140, 'ore count');
-approx(game.weapons.length, 79, 'weapon count');
+approx(game.ores.length, 147, 'ore count');
+approx(game.weapons.length, 80, 'weapon count');
 approx(game.races.length, 16, 'race count');
 approx(game.runes.length, 47, 'rune count');
 approx(game.achievements.length, 16, 'achievement count');

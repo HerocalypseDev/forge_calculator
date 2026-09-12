@@ -1,0 +1,1178 @@
+[
+  {
+    "row": 56,
+    "name": "Graphite",
+    "multiplier": "2.33x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 57,
+    "name": "Aetherit",
+    "multiplier": "2.55x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 58,
+    "name": "Frost Fossil",
+    "multiplier": "3.34x",
+    "category": "Weapon",
+    "trait_min": "=\"+1.75% Lethality | -0.5% Swiftness\"",
+    "trait_max": "=\"+17.5% Lethality | -5% Swiftness\""
+  },
+  {
+    "row": 59,
+    "name": "Crimsonite",
+    "multiplier": "5.8x",
+    "category": "Weapon",
+    "trait_min": "=\"+2% Lethality\"",
+    "trait_max": "=\"+20% Lethality\""
+  },
+  {
+    "row": 60,
+    "name": "Malachite",
+    "multiplier": "6.4x",
+    "category": "Weapon",
+    "trait_min": "=\"Deals +1% of weapon damage as poison per second for 0.3 seconds. 3.3% chance on hit\"",
+    "trait_max": "=\"Deals +10% of weapon damage as poison per second for 3 seconds. 33% chance on hit\""
+  },
+  {
+    "row": 61,
+    "name": "Frogite",
+    "multiplier": "6.2x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 62,
+    "name": "Mosasaursit",
+    "multiplier": "7.5x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 63,
+    "name": "Coinite",
+    "multiplier": "1x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 64,
+    "name": "Prismatic Heart",
+    "multiplier": "4.3x",
+    "category": "Weapon",
+    "trait_min": "=\"+2% Critical Chance | +0.5% Critical Damage | Freeze enemies for 0.2 seconds. 1.5% chance on hit. Has cooldown of 15\"",
+    "trait_max": "=\"+20% Critical Chance | +5% Critical Damage | Freeze enemies for 2 seconds. 15% chance on hit. Has cooldown of 15\""
+  },
+  {
+    "row": 65,
+    "name": "Velchire",
+    "multiplier": "4.7x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 66,
+    "name": "Sanctis",
+    "multiplier": "5x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 67,
+    "name": "Snowite",
+    "multiplier": "6x",
+    "category": "Weapon",
+    "trait_min": "=\"Slows enemies by 1.5% for 0.3s with 3% chance on hit\"",
+    "trait_max": "=\"Slows enemies by 15% for 3s with 30% chance on hit\""
+  },
+  {
+    "row": 68,
+    "name": "Moon Stone",
+    "multiplier": "7.2x",
+    "category": "Weapon",
+    "trait_min": "=\"+2.5% Moonboost (Physical Damage at night time)\"",
+    "trait_max": "=\"+25% Moonboost (Physical Damage at night time)\""
+  },
+  {
+    "row": 69,
+    "name": "Voidstar",
+    "multiplier": "7.5x",
+    "category": "Weapon",
+    "trait_min": "=\"+3.3% Crit Chance | +1.5% Crit Damage | -1.5% Vitality\"",
+    "trait_max": "=\"+33% Crit Chance | +15% Crit Damage | -15% Vitality\""
+  },
+  {
+    "row": 70,
+    "name": "Gulabite",
+    "multiplier": "7.77x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 71,
+    "name": "Yeti Heart",
+    "multiplier": "6x",
+    "category": "Weapon",
+    "trait_min": "=\"+3% Critical Chance | +1% Critical Damage | +1% Attack Speed\"",
+    "trait_max": "=\"+30% Critical Chance | +10% Critical Damage | +10% Attack Speed\""
+  },
+  {
+    "row": 72,
+    "name": "Iceite",
+    "multiplier": "8x",
+    "category": "Weapon",
+    "trait_min": "=\"Freeze enemies for 0.2 seconds. 2.5% chance on hit. Has cooldown of 12sec\"",
+    "trait_max": "=\"Freeze enemies for 2 seconds. 25% chance on hit. Has cooldown of 12sec\""
+  },
+  {
+    "row": 73,
+    "name": "Etherealite",
+    "multiplier": "8.5x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 74,
+    "name": "Duranite",
+    "multiplier": "9x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 75,
+    "name": "Evil Eye Ore",
+    "multiplier": "9.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 76,
+    "name": "Suryafal",
+    "multiplier": "11.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 77,
+    "name": "Heart of the Island",
+    "multiplier": "13x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 78,
+    "name": "Golem Heart",
+    "multiplier": "8.5x",
+    "category": "Weapon",
+    "trait_min": "=\"+4% Critical Chance | +1.5% Critical Damage | Slows enemies by 2.5% for 0.3s with 2.5% chance on hit\"",
+    "trait_max": "=\"+40% Critical Chance | +15% Critical Damage | Slows enemies by 25% for 3s with 25% chance on hit\""
+  },
+  {
+    "row": 79,
+    "name": "Stolen Heart",
+    "multiplier": "12.5x",
+    "category": "Weapon",
+    "trait_min": "=\"+0.7% Life Steal\"",
+    "trait_max": "=\"+7% Life Steal\""
+  },
+  {
+    "row": 80,
+    "name": "Heavenite",
+    "multiplier": "13.7x",
+    "category": "Weapon",
+    "trait_min": "=\"+2.5% of weapon damage done as smite, 4% chance on hit\"",
+    "trait_max": "=\"+25% of weapon damage done as smite, 40% chance on hit\""
+  },
+  {
+    "row": 81,
+    "name": "Gargantuan",
+    "multiplier": "15x",
+    "category": "Weapon",
+    "trait_min": "=\"3.5% Chance for 5% weapon damage AOE Explosion | Deals 2% of weapon damage as fire per second for 0.2s (2% chance)\"",
+    "trait_max": "=\"35% Chance for 50% weapon damage AOE Explosion | Deals 20% of weapon damage as fire per second for 2s (20% chance)\""
+  },
+  {
+    "row": 82,
+    "name": "Bamboo",
+    "multiplier": "4x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 83,
+    "name": "Root Spire",
+    "multiplier": "4.44x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 84,
+    "name": "Water Stone",
+    "multiplier": "4.7x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 85,
+    "name": "Earthite",
+    "multiplier": "5x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 86,
+    "name": "Melonite",
+    "multiplier": "5.2x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 87,
+    "name": "Rock Seed",
+    "multiplier": "5.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 88,
+    "name": "Aurelia-No-Ki",
+    "multiplier": "9.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 89,
+    "name": "Sakuranite",
+    "multiplier": "10.1x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 90,
+    "name": "Fruite",
+    "multiplier": "10.33x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 91,
+    "name": "Wraith",
+    "multiplier": "5.75x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 92,
+    "name": "Tiger's Eye",
+    "multiplier": "6x",
+    "category": "Weapons",
+    "trait_min": "=\"+0.75% Attack Speed | +0.5% Lethality | +0.5% Swiftness | -1% Vitality\"",
+    "trait_max": "=\"7.5% Attack Speed | +5% Lethality | +5% Swiftness | -10% Vitality\""
+  },
+  {
+    "row": 93,
+    "name": "Shikanite",
+    "multiplier": "6.15x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 94,
+    "name": "Cyanite Jade",
+    "multiplier": "6.5x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 95,
+    "name": "Magit",
+    "multiplier": "6.8x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 96,
+    "name": "Blue Gem Quill",
+    "multiplier": "11x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 97,
+    "name": "Heat Steel",
+    "multiplier": "11.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 98,
+    "name": "Sealed Curse",
+    "multiplier": "12x",
+    "category": "Weapons",
+    "trait_min": "=\"+3% Lethality | -2% Vitality | -1% Stamina | -1.5% Movement Speed | (Armor only) +2% Physical Damage and +2% Movement Speed for 0.6 seconds when HP drops below 35%\"",
+    "trait_max": "=\"+30% Lethality | -20% Vitality | -10% Stamina | -15% Movement Speed | +20% Physical Damage and +20% Movement Speed for 6 seconds when HP drops below 35%\""
+  },
+  {
+    "row": 99,
+    "name": "Lucky Cat",
+    "multiplier": "11.1x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 100,
+    "name": "Duquack",
+    "multiplier": "8x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 101,
+    "name": "Onyx",
+    "multiplier": "10x",
+    "category": "Weapons",
+    "trait_min": "=\"+3.5% Critical Chance | +1.75% Critical Damage\"",
+    "trait_max": "=\"+35% Critical Chance | +17.5% Critical Damage\""
+  },
+  {
+    "row": 102,
+    "name": "Zenstone",
+    "multiplier": "12.21x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 103,
+    "name": "Azuryxite",
+    "multiplier": "13x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 104,
+    "name": "Sun Stone",
+    "multiplier": "13.39x",
+    "category": "Weapons",
+    "trait_min": "=\"Deals 3.5% of weapon damage as fire per second for 0.5s (3.5% chance)\"",
+    "trait_max": "=\"Deals 35% of weapon damage as fire per second for 5s (35% chance)\""
+  },
+  {
+    "row": 105,
+    "name": "Roosite",
+    "multiplier": "14x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 106,
+    "name": "Onite",
+    "multiplier": "9.8x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 107,
+    "name": "Meteorite",
+    "multiplier": "14.44x",
+    "category": "Weapons",
+    "trait_min": "=\"2.5% Chance for 6% weapon damage AOE Explosion\"",
+    "trait_max": "=\"25% Chance for 60% weapon damage AOE Explosion\""
+  },
+  {
+    "row": 108,
+    "name": "Heavenly Orb",
+    "multiplier": "15.15x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 109,
+    "name": "Kyubite",
+    "multiplier": "17x",
+    "category": "Weapons",
+    "trait_min": "=\"+4% Critical Chance | +1.8% Critical Damage | Deals 4.5% of weapon damage as fire per second for 0.5s (4% chance)\"",
+    "trait_max": "=\"+40% Critical Chance | +18% Critical Damage | Deals 45% of weapon damage as fire per second for 5s (40% chance)\""
+  },
+  {
+    "row": 110,
+    "name": "Stone",
+    "multiplier": "0.2x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 111,
+    "name": "Sand Stone",
+    "multiplier": "0.25x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 112,
+    "name": "Copper",
+    "multiplier": "0.3x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 113,
+    "name": "Iron",
+    "multiplier": "0.35x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 114,
+    "name": "Tin",
+    "multiplier": "0.425x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 115,
+    "name": "Silver",
+    "multiplier": "0.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 116,
+    "name": "Gold",
+    "multiplier": "0.65x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 117,
+    "name": "Mushroomite",
+    "multiplier": "0.8x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 118,
+    "name": "Platinum",
+    "multiplier": "0.8x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 119,
+    "name": "Bananite",
+    "multiplier": "0.85x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 120,
+    "name": "Cardboardite",
+    "multiplier": "0.7x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 121,
+    "name": "Aite",
+    "multiplier": "1x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 122,
+    "name": "Poopite",
+    "multiplier": "1.2x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 123,
+    "name": "Fichillium",
+    "multiplier": "0x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 124,
+    "name": "Cobalt",
+    "multiplier": "1x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 125,
+    "name": "Titanium",
+    "multiplier": "1.15x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 126,
+    "name": "Volcanic Rock",
+    "multiplier": "1.55x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 127,
+    "name": "Lapis Lazuli",
+    "multiplier": "1.3x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 128,
+    "name": "Quartz",
+    "multiplier": "1.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 129,
+    "name": "Amethyst",
+    "multiplier": "1.65x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 130,
+    "name": "Topaz",
+    "multiplier": "1.75x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 131,
+    "name": "Diamond",
+    "multiplier": "2x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 132,
+    "name": "Sapphire",
+    "multiplier": "2.25x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 133,
+    "name": "Cuprite",
+    "multiplier": "2.43x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 134,
+    "name": "Obsidian",
+    "multiplier": "2.35x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 135,
+    "name": "Emerald",
+    "multiplier": "2.55x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 136,
+    "name": "Ruby",
+    "multiplier": "2.95x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 137,
+    "name": "Rivalite",
+    "multiplier": "3.33x",
+    "category": "Weapons",
+    "trait_min": "=\"+2% Critical Chance\"",
+    "trait_max": "=\"+20% Crit chance\""
+  },
+  {
+    "row": 138,
+    "name": "Uranium",
+    "multiplier": "3x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 139,
+    "name": "Mythril",
+    "multiplier": "3.5x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 140,
+    "name": "Eye Ore",
+    "multiplier": "4x",
+    "category": "Weapons",
+    "trait_min": "=\"+1.5% Lethality\"",
+    "trait_max": "=\"+15% Lethality\""
+  },
+  {
+    "row": 141,
+    "name": "Fireite",
+    "multiplier": "4.5x",
+    "category": "Weapons",
+    "trait_min": "=\"3% chance to burn for 2% weapon damage per second for 0.2 seconds on attack\"",
+    "trait_max": "=\"30% chance to burn for 20% weapon damage per second for 2 seconds on attack\""
+  },
+  {
+    "row": 142,
+    "name": "Magmaite",
+    "multiplier": "5x",
+    "category": "Weapons",
+    "trait_min": "=\"+3.5% AOE Explosion on Weapons with 2% chance\"",
+    "trait_max": "=\"+35% AOE Explosion on Weapons with 20% chance\""
+  },
+  {
+    "row": 143,
+    "name": "Lightite",
+    "multiplier": "4.6x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 144,
+    "name": "Demonite",
+    "multiplier": "5.5x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 145,
+    "name": "Darkryte",
+    "multiplier": "6.3x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 146,
+    "name": "Boneite",
+    "multiplier": "1.2x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 147,
+    "name": "Dark Boneite",
+    "multiplier": "2.25x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 148,
+    "name": "Slimite",
+    "multiplier": "2.25x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 149,
+    "name": "Green Crystal",
+    "multiplier": "3.2x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 150,
+    "name": "Magenta Crystal",
+    "multiplier": "3.1x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 151,
+    "name": "Orange Crystal",
+    "multiplier": "3x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 152,
+    "name": "Crimson Crystal",
+    "multiplier": "3.3x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 153,
+    "name": "Blue Crystal",
+    "multiplier": "3.4x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 154,
+    "name": "Rainbow Crystal",
+    "multiplier": "5.25x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 155,
+    "name": "Arcane Crystal",
+    "multiplier": "7.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 156,
+    "name": "Grass",
+    "multiplier": "0.1x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 157,
+    "name": "Tungsten",
+    "multiplier": "1.95x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 158,
+    "name": "Sulfur",
+    "multiplier": "2.1x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 159,
+    "name": "Pumice",
+    "multiplier": "2.2x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 160,
+    "name": "Scheelite",
+    "multiplier": "2.8x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 161,
+    "name": "Larimar",
+    "multiplier": "3.1x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 162,
+    "name": "Neurotite",
+    "multiplier": "3.2x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 163,
+    "name": "Tide Carve",
+    "multiplier": "3.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 164,
+    "name": "Mistvein",
+    "multiplier": "5.4x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 165,
+    "name": "Lagarite",
+    "multiplier": "5.7x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 166,
+    "name": "Voidfractal",
+    "multiplier": "6x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 167,
+    "name": "Moltenfrost",
+    "multiplier": "6.2x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 168,
+    "name": "Aqujade",
+    "multiplier": "6.75x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 169,
+    "name": "Cryptex",
+    "multiplier": "7x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 170,
+    "name": "Galestor",
+    "multiplier": "7.2x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 171,
+    "name": "Seedheart",
+    "multiplier": "12.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 172,
+    "name": "Viridite",
+    "multiplier": "13x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 173,
+    "name": "Star Dust",
+    "multiplier": "2.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 174,
+    "name": "Yin",
+    "multiplier": "13x",
+    "category": "Armor",
+    "trait_min": "=\"+0.8% Vitality | +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%\"",
+    "trait_max": "=\"+8% Vitality | +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%\""
+  },
+  {
+    "row": 175,
+    "name": "Yang",
+    "multiplier": "13x",
+    "category": "Weapons",
+    "trait_min": "=\"+4% Critical Chance | +1.8% Critical Damage\"",
+    "trait_max": "=\"+40% Critical Chance | +18% Critical Damage\""
+  },
+  {
+    "row": 176,
+    "name": "Ancienite",
+    "multiplier": "13.33x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 177,
+    "name": "Kyomutite",
+    "multiplier": "13.9x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 178,
+    "name": "Oni Mask",
+    "multiplier": "14.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 179,
+    "name": "Takiseki",
+    "multiplier": "14.7x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 180,
+    "name": "Kokorite",
+    "multiplier": "14.75x",
+    "category": "Weapons",
+    "trait_min": "=\"Both: +3% Lethality | -0.5% Vitality | -0.5% Endurance | -0.5% Swiftness\nArmor only: +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%\"",
+    "trait_max": "=\"Both: +30% Lethality | -5% Vitality | -5% Endurance | -5% Swiftness\nArmor only: +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%\""
+  },
+  {
+    "row": 181,
+    "name": "Takenokoishi",
+    "multiplier": "13.75x",
+    "category": "Armor",
+    "trait_min": "=\"-1% Swiftness | +1.5% Vitality | +0.5 Health Regeneration | +7% chance to reduce incoming damage by 2.5%\"",
+    "trait_max": "=\"-10% Swiftness | +15% Vitality | +5 Health Regeneration | +70% chance to reduce incoming damage by 25%\""
+  },
+  {
+    "row": 182,
+    "name": "Dorabell",
+    "multiplier": "14x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 183,
+    "name": "Starite",
+    "multiplier": "4x",
+    "category": "Armor",
+    "trait_min": "=\"+0.4% Luck | +0.6% Yield Chance\"",
+    "trait_max": "=\"+4% Luck | +6% Yield Chance\""
+  },
+  {
+    "row": 184,
+    "name": "Sakurite",
+    "multiplier": "14.2x",
+    "category": "Armor",
+    "trait_min": "=\"+0.6% Jump Boost | +1.2% Dash Distance | +1% longer Dash Invincibility duration| +1.5% Dash cooldown reduction\"",
+    "trait_max": "=\"+6% Jump Boost | +12% Dash Distance | +10% longer Dash Invincibility duration| +15% Dash cooldown reduction\""
+  },
+  {
+    "row": 185,
+    "name": "Ryuseki",
+    "multiplier": "15.8x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 186,
+    "name": "Ceyite",
+    "multiplier": "16.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 187,
+    "name": "Marblite",
+    "multiplier": "18x",
+    "category": "Weapons",
+    "trait_min": "=\"4% chance to deal 6% weapon damage Has cooldown of 0.5s\"",
+    "trait_max": "=\"40% chance to deal 60% weapon damage Has cooldown of 5s\""
+  },
+  {
+    "row": 188,
+    "name": "Matter",
+    "multiplier": "8x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 189,
+    "name": "Anti Matter",
+    "multiplier": "11.5x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 190,
+    "name": "Sentira",
+    "multiplier": "16.3x",
+    "category": "Armor",
+    "trait_min": "=\"+0.5% Vitality | +1 Health Regeneration | +5% chance to reduce incoming damage by 5% | +0.3% Thorn damage\"",
+    "trait_max": "=\"+5% Vitality | +10 Health Regeneration | +50% chance to reduce incoming damage by 50% | +3% Thorn damage\""
+  },
+  {
+    "row": 191,
+    "name": "Singularity",
+    "multiplier": "12.75x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 192,
+    "name": "Wolfarite",
+    "multiplier": "15.48x",
+    "category": "Weapons",
+    "trait_min": "=\"+0.8% Attack Speed | +1.5% Lethality | +0.6% Swiftness | -0.8% Vitality\"",
+    "trait_max": "=\"+8% Attack Speed | +15% Lethality | +6% Swiftness | -8% Vitality\""
+  },
+  {
+    "row": 193,
+    "name": "Supermassive Black Hole",
+    "multiplier": "18x",
+    "category": "Weapons",
+    "trait_min": "=\"4.5% Chance for 6.5% weapon damage AOE Explosion | Deals 5% of weapon damage as fire per second for 0.5s (4.5% chance)\"",
+    "trait_max": "=\"45% Chance for 65% weapon damage AOE Explosion | Deals 50% of weapon damage as fire per second for 5s (45% chance)\""
+  },
+  {
+    "row": 194,
+    "name": "Yin-Yang",
+    "multiplier": "13.5x",
+    "category": "Weapons",
+    "trait_min": "=\"+4.5% Critical Chance | +2% Critical Damage | +0.8% Vitality | +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%\"",
+    "trait_max": "=\"+45% Critical Chance | +20% Critical Damage | +8% Vitality | +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%\""
+  },
+  {
+    "row": 195,
+    "name": "Galaxite",
+    "multiplier": "25x",
+    "category": "Weapons",
+    "trait_min": "=\"Weapons only: +6% Black Hole Damage | +3% Black Hole Chance | +6.5% Black Hole Radius | +4.5% Critical Chance | +2% Critical Damage\"\n",
+    "trait_max": "=\"Weapons only: +60% Black Hole Damage | +30% Black Hole Chance | +65% Black Hole Radius | +45% Critical Chance | +20% Critical Damage\""
+  },
+  {
+    "row": 196,
+    "name": "Fierce Jade",
+    "multiplier": "17x",
+    "category": "Weapons",
+    "trait_min": "=\"+3.5% Physical Damage and +3.5% Movement Speed for 1 second when HP drops below 35% | +3.5% Critical Chance | +2% Critical Damage | +2% Lethality\"",
+    "trait_max": "=\"+35% Physical Damage and +35% Movement Speed for 10 seconds when HP drops below 35% | +35% Critical Chance | +20% Critical Damage | +20% Lethality\""
+  },
+  {
+    "row": 197,
+    "name": "Aether Lotus",
+    "multiplier": "18x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 198,
+    "name": "Zephyte",
+    "multiplier": "18.5x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 199,
+    "name": "Vanegos",
+    "multiplier": "19.5x",
+    "category": "Weapons",
+    "trait_min": "=\"+4% Lethality\"",
+    "trait_max": "=\"+40% Lethality\""
+  },
+  {
+    "row": 200,
+    "name": "Vooite",
+    "multiplier": "21x",
+    "category": "Armor",
+    "trait_min": null,
+    "trait_max": null
+  },
+  {
+    "row": 201,
+    "name": "Kitsunite",
+    "multiplier": "27.5x",
+    "category": "Weapons",
+    "trait_min": "=\"6% chance to deal 8% weapon damage up to 5 enemies 0.3s cooldown| +5% of weapon damage done as smite, 5% chance on hit | Deals 4% of weapon damage as fire per second for 0.5s (5% chance) | 4% Chance for 7% weapon damage AOE Explosion\"",
+    "trait_max": "=\"60% chance to deal 80% weapon damage up to 5 enemies 3s cooldown| +50% of weapon damage done as smite, 50% chance on hit | Deals 40% of weapon damage as fire per second for 5s (50% chance) | 40% Chance for 70% weapon damage AOE Explosion\""
+  },
+  {
+    "row": 202,
+    "name": "Fichilliumorite",
+    "multiplier": "1x",
+    "category": null,
+    "trait_min": null,
+    "trait_max": null
+  }
+]

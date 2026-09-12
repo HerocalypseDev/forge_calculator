@@ -30,7 +30,7 @@
   };
 
   var CLASS_LETHALITY = {
-    'Felynx,Gauntlet': 0.20,
+    'Felynx,Gauntlets': 0.20,
     'Vampire,Straight Sword': 0.10
   };
 
@@ -117,7 +117,7 @@
       for (var m = 0; m < powers.length; m++) { sum += powers[m]; }
       return sum / powers.length;
     }
-    return 0.0;
+    return 1.0;
   }
 
   function forgeMultiplier(level) {
@@ -174,6 +174,240 @@
       }
     }
     return null;
+  }
+
+
+  var TRAIT_STAT_DISPLAY = {
+    lethality: { name: 'Lethality', group: 'simple', agg: 'sum' },
+    crit_chance: { name: 'Crit Chance', group: 'simple', agg: 'sum' },
+    crit_dmg: { name: 'Crit DMG', group: 'simple', agg: 'sum' },
+    atk_speed: { name: 'Attack Speed', group: 'simple', agg: 'sum' },
+    moon: { name: 'Moonboost', group: 'simple', agg: 'sum' },
+    phys_dmg: { name: 'Physical DMG', group: 'berserk', agg: 'sum' },
+    move_speed: { name: 'Movement Speed', group: 'berserk', agg: 'sum' },
+    berserk_duration: { name: 'Berserk Duration', group: 'berserk', agg: 'max' },
+    fire_dmg: { name: 'Fire DMG/s', group: 'fire', agg: 'sum' },
+    fire_chance: { name: 'Fire Chance', group: 'fire', agg: 'max' },
+    fire_duration: { name: 'Fire Duration', group: 'fire', agg: 'max' },
+    explosion_dmg: { name: 'Explosion DMG', group: 'explosion', agg: 'sum' },
+    explosion_chance: { name: 'Explosion Chance', group: 'explosion', agg: 'max' },
+    poison_dmg: { name: 'Poison DMG/s', group: 'poison', agg: 'sum' },
+    poison_chance: { name: 'Poison Chance', group: 'poison', agg: 'max' },
+    poison_duration: { name: 'Poison Duration', group: 'poison', agg: 'max' },
+    smite_dmg: { name: 'Smite DMG', group: 'smite', agg: 'sum' },
+    smite_chance: { name: 'Smite Chance', group: 'smite', agg: 'max' },
+    lightning_dmg: { name: 'Lightning DMG', group: 'lightning', agg: 'sum' },
+    lightning_chance: { name: 'Lightning Chance', group: 'lightning', agg: 'max' },
+    lightning_cooldown: { name: 'Lightning Cooldown', group: 'lightning', agg: 'min' },
+    blackhole_dmg: { name: 'Black Hole DMG', group: 'blackhole', agg: 'sum' },
+    blackhole_chance: { name: 'Black Hole Chance', group: 'blackhole', agg: 'max' },
+    blackhole_radius: { name: 'Black Hole Radius', group: 'blackhole', agg: 'sum' }
+  };
+
+  var TRAIT_CLAIM_PATTERNS = {
+    lethality: /Lethality/i,
+    crit_chance: /Crit(?:ical)?\s*Chance/i,
+    crit_dmg: /Crit(?:ical)?\s*Dam(?:age)?/i,
+    atk_speed: /(?:Attack|Atk)\s*Speed/i,
+    moon: /Moonboost/i,
+    phys_dmg: /Physical\s*Damage/i,
+    move_speed: /Movement\s*Speed.*(?:for\s*[\d.]+\s*s|HP\s*drops|below\s*35%|when\s*HP)/i,
+    berserk_duration: /HP\s*drops\s*below|when\s*HP/i,
+    fire_dmg: /fire|burn/i,
+    fire_chance: /fire|burn/i,
+    fire_duration: /fire|burn/i,
+    explosion_dmg: /Explosion/i,
+    explosion_chance: /Explosion/i,
+    smite_dmg: /smite/i,
+    smite_chance: /smite/i,
+    poison_dmg: /poison/i,
+    poison_chance: /poison/i,
+    poison_duration: /poison/i,
+    lightning_dmg: /chance\s*to\s*deal/i,
+    lightning_chance: /chance\s*to\s*deal/i,
+    lightning_cooldown: /chance\s*to\s*deal|cooldown/i,
+    blackhole_dmg: /Black\s*Hole\s*Damage/i,
+    blackhole_chance: /Black\s*Hole\s*Chance/i,
+    blackhole_radius: /Black\s*Hole\s*Radius/i
+  };
+
+  var TRAIT_GROUP_ORDER = ['simple', 'berserk', 'fire', 'explosion', 'poison', 'smite', 'lightning', 'blackhole'];
+
+  var TRAIT_GROUP_KEYS = {
+    simple: ['lethality', 'crit_chance', 'crit_dmg', 'atk_speed', 'moon'],
+    berserk: ['phys_dmg', 'move_speed', 'berserk_duration'],
+    fire: ['fire_dmg', 'fire_chance', 'fire_duration'],
+    explosion: ['explosion_dmg', 'explosion_chance'],
+    poison: ['poison_dmg', 'poison_chance', 'poison_duration'],
+    smite: ['smite_dmg', 'smite_chance'],
+    lightning: ['lightning_dmg', 'lightning_chance', 'lightning_cooldown'],
+    blackhole: ['blackhole_dmg', 'blackhole_chance', 'blackhole_radius']
+  };
+
+  function isTraitClaimed(sub, ore) {
+    if (!ore.stats) return false;
+    var keys = Object.keys(ore.stats);
+    for (var i = 0; i < keys.length; i++) {
+      var pat = TRAIT_CLAIM_PATTERNS[keys[i]];
+      if (pat && pat.test(sub)) return true;
+    }
+    return false;
+  }
+
+  function fmtPct(val) {
+    var pct = val * 100;
+    var sign = pct < -0.005 ? '-' : '+';
+    var str = Math.abs(pct).toFixed(1);
+    if (str.slice(-2) === '.0') str = str.slice(0, -2);
+    return sign + str + '%';
+  }
+
+  function fmtDur(val) {
+    var str = val.toFixed(1);
+    if (str.slice(-2) === '.0') str = str.slice(0, -2);
+    return str + 's';
+  }
+
+  function aggStat(agg, a, b) {
+    if (agg === 'max') return Math.max(a, b);
+    if (agg === 'min') return Math.min(a, b);
+    return a + b;
+  }
+
+  function formatTraitGroup(group, merged) {
+    var keys = TRAIT_GROUP_KEYS[group];
+    if (!keys) return '';
+    var vals = {};
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      if (merged[k] !== undefined && merged[k] !== 0) vals[k] = merged[k];
+    }
+    if (Object.keys(vals).length === 0) return '';
+    var info = TRAIT_STAT_DISPLAY;
+
+    if (group === 'simple') {
+      var parts = [];
+      for (var j = 0; j < keys.length; j++) {
+        var sk = keys[j];
+        if (vals[sk] !== undefined) {
+          parts.push(fmtPct(vals[sk]) + ' ' + info[sk].name);
+        }
+      }
+      return parts.join('\n');
+    }
+
+    if (group === 'berserk') {
+      var pd = vals.phys_dmg || 0;
+      var ms = vals.move_speed || 0;
+      var bd = vals.berserk_duration !== undefined ? vals.berserk_duration : 0;
+      return fmtPct(pd) + ' Physical DMG & ' + fmtPct(ms) + ' Movement Speed for ' + fmtDur(bd) + ' (when HP < 35%)';
+    }
+
+    if (group === 'fire') {
+      var fd = vals.fire_dmg || 0;
+      var fc = vals.fire_chance !== undefined ? vals.fire_chance : 0;
+      var fdt = vals.fire_duration !== undefined ? vals.fire_duration : 0;
+      return fmtPct(fd) + ' Fire DMG/s for ' + fmtDur(fdt) + ' (' + fmtPct(fc) + ' chance on hit)';
+    }
+
+    if (group === 'explosion') {
+      var ed = vals.explosion_dmg || 0;
+      var ec = vals.explosion_chance !== undefined ? vals.explosion_chance : 0;
+      return fmtPct(ed) + ' Explosion DMG (' + fmtPct(ec) + ' chance)';
+    }
+
+    if (group === 'poison') {
+      var pd2 = vals.poison_dmg || 0;
+      var pc = vals.poison_chance !== undefined ? vals.poison_chance : 0;
+      var pdt = vals.poison_duration !== undefined ? vals.poison_duration : 0;
+      return fmtPct(pd2) + ' Poison DMG/s for ' + fmtDur(pdt) + ' (' + fmtPct(pc) + ' chance on hit)';
+    }
+
+    if (group === 'smite') {
+      var sd = vals.smite_dmg || 0;
+      var sc = vals.smite_chance !== undefined ? vals.smite_chance : 0;
+      return fmtPct(sd) + ' Smite DMG (' + fmtPct(sc) + ' chance on hit)';
+    }
+
+    if (group === 'lightning') {
+      var ld = vals.lightning_dmg || 0;
+      var lc = vals.lightning_chance !== undefined ? vals.lightning_chance : 0;
+      var lco = vals.lightning_cooldown !== undefined ? vals.lightning_cooldown : 0;
+      return fmtPct(ld) + ' Lightning DMG (' + fmtPct(lc) + ' chance, ' + fmtDur(lco) + ' cooldown)';
+    }
+
+    if (group === 'blackhole') {
+      var bd2 = vals.blackhole_dmg || 0;
+      var bc = vals.blackhole_chance !== undefined ? vals.blackhole_chance : 0;
+      var br = vals.blackhole_radius || 0;
+      return fmtPct(bd2) + ' Black Hole DMG (' + fmtPct(bc) + ' chance, ' + fmtPct(br) + ' radius)';
+    }
+
+    return '';
+  }
+
+  function activeTraits(build, shares, game) {
+    var merged = {};
+    var extras = [];
+
+    for (var i = 0; i < build.slots.length; i++) {
+      var slot = build.slots[i];
+      var share = shares[i];
+      if (slot.name === game.select_ore || share < SHARE_GATE) continue;
+      var ore = game._ore_index.get(slot.name);
+      if (!ore || !ore.is_weapon) continue;
+
+      if (ore.stats) {
+        var statKeys = Object.keys(ore.stats);
+        for (var j = 0; j < statKeys.length; j++) {
+          var sk = statKeys[j];
+          var info = TRAIT_STAT_DISPLAY[sk];
+          if (!info) continue;
+          var rng = ore.stats[sk];
+          var val = shareScaling(rng.base, rng.max, share, rng.divisor);
+          if (merged[sk] === undefined) {
+            merged[sk] = val;
+          } else {
+            merged[sk] = aggStat(info.agg, merged[sk], val);
+          }
+        }
+      }
+
+      var traitText = share >= 0.3 ? (ore.trait30 || '') : (ore.trait10 || '');
+      if (!traitText) continue;
+
+      traitText = traitText.replace(/\n/g, ' | ');
+      var subs = traitText.split(/\s*\|\s*/);
+
+      for (var k = 0; k < subs.length; k++) {
+        var sub = subs[k].replace(/^(Both|Armor\s*only|Weapons\s*only|\(Armor\s*only\))\s*:\s*/i, '').trim();
+        if (!sub) continue;
+        if (isTraitClaimed(sub, ore)) continue;
+
+        if (share < 0.3) {
+          var power = Math.min(
+            Math.max((share - SHARE_GATE) * TRAIT_POWER_SLOPE + TRAIT_POWER_FLOOR, TRAIT_POWER_FLOOR),
+            1.0
+          );
+          extras.push('[' + (power * 100).toFixed(1) + '% power] ' + sub);
+        } else {
+          extras.push(sub);
+        }
+      }
+    }
+
+    var parts = [];
+    for (var g = 0; g < TRAIT_GROUP_ORDER.length; g++) {
+      var group = TRAIT_GROUP_ORDER[g];
+      var fmt = formatTraitGroup(group, merged);
+      if (fmt) parts.push(fmt);
+    }
+
+    for (var e = 0; e < extras.length; e++) {
+      parts.push(extras[e]);
+    }
+
+    return parts.length ? parts.join('\n') : 'No active weapon traits';
   }
 
   function oreStatSum(slots, shares, game, stat) {
@@ -287,6 +521,14 @@
     return m;
   }
 
+  function slotMin(slots, shares, game, stat) {
+    var vals = slotVals(slots, shares, game, stat);
+    if (!vals.length) { return 0.0; }
+    var m = vals[0];
+    for (var i = 1; i < vals.length; i++) { if (vals[i] < m) { m = vals[i]; } }
+    return m;
+  }
+
   function slotSum(slots, shares, game, stat) {
     var vals = slotVals(slots, shares, game, stat);
     var total = 0.0;
@@ -334,37 +576,11 @@
       blackhole_dmg: slotSum(build.slots, shares, game, 'blackhole_dmg'),
       blackhole_chance: blackholeChance(build.slots, game),
       lightning_dmg: slotSum(build.slots, shares, game, 'lightning_dmg'),
-      lightning_chance: Math.max(slotMax(build.slots, shares, game, 'lightning_chance'), build.abilities.lightning_chance !== undefined ? build.abilities.lightning_chance : 0.0)
+      lightning_chance: Math.max(slotMax(build.slots, shares, game, 'lightning_chance'), build.abilities.lightning_chance !== undefined ? build.abilities.lightning_chance : 0.0),
+      lightning_cooldown: slotMin(build.slots, shares, game, 'lightning_cooldown')
     };
   }
 
-  function activeTraits(build, shares, game) {
-    var parts = [];
-    for (var i = 0; i < build.slots.length; i++) {
-      var slot = build.slots[i];
-      var share = shares[i];
-      if (slot.name === game.select_ore || share < SHARE_GATE) { continue; }
-      var ore = game._ore_index.get(slot.name);
-      if (!ore || !ore.is_weapon) { continue; }
-
-      var power = Math.min(
-        Math.max((share - SHARE_GATE) * TRAIT_POWER_SLOPE + TRAIT_POWER_FLOOR, TRAIT_POWER_FLOOR),
-        1.0
-      );
-
-      var text = '';
-      if (share >= 0.3) {
-        text = ore.trait30 || '';
-      } else {
-        var trait10 = ore.trait10 || '';
-        if (trait10) {
-          text = '[' + (power * 100).toFixed(1) + '% power] ' + trait10;
-        }
-      }
-      if (text) { parts.push(text); }
-    }
-    return parts.length ? parts.join(' | ') : 'No active weapon traits';
-  }
 
   function num(v) {
     var n = Number(v);
@@ -443,16 +659,17 @@
       ? unforged * procs.poison_dmg * Math.min(1, procs.poison_chance * atkRate * Math.min(procs.poison_duration, 5))
       : 0.0;
     var smite_dps = unforged * atkRate * procs.smite_dmg * Math.min(procs.smite_chance, 1);
-    var blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * atkRate;
-    var lightning_dps = unforged * procs.lightning_dmg * procs.lightning_chance * atkRate;
+    var blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * Math.min(atkRate, 1);
+    var lightningProcCap = procs.lightning_cooldown > 0 ? Math.min(atkRate, 1.0 / procs.lightning_cooldown) : atkRate;
+    var lightning_dps = atkRate ? unforged * procs.lightning_dmg * procs.lightning_chance * lightningProcCap : 0.0;
     var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps;
 
-    var berserkLevel = build.berserk + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0);
+    var berserkLevel = build.berserk + slotSum(build.slots, shares, game, 'phys_dmg') + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0);
     var berserk = null;
     if (berserkLevel !== 0) {
       var lethBoosted = Math.min(totals.lethality + berserkLevel, CAPS.lethality);
       var weaponBerserkDps = forged * (1 + lethBoosted) * blend * atkRate;
-      berserk = (explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps + weaponBerserkDps) * (1 + berserkLevel);
+      berserk = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps + weaponBerserkDps * (1 + berserkLevel);
     }
 
     var moonstone = procs.moon !== 0 ? weapon_dps * (1 + procs.moon) : null;
@@ -616,7 +833,7 @@
         name: raw.name,
         multiplier: raw.multiplier,
         equipment: raw.equipment != null ? raw.equipment : null,
-        // Preserved quirk: weapon ores marked by "eapon" substring in equipment
+
         is_weapon: raw.equipment != null && String(raw.equipment).toLowerCase().indexOf('eapon') !== -1,
         trait10: raw.trait10 != null ? raw.trait10 : null,
         trait30: raw.trait30 != null ? raw.trait30 : null,
@@ -701,7 +918,7 @@
       mw.log('Forge Calculator: data count drift detected', drift);
     }
 
-    // Check for duplicate ore names (fatal)
+
     var seen = {};
     for (var i = 0; i < data.ores.length; i++) {
       var name = data.ores[i].name;
@@ -1038,7 +1255,7 @@
       onChange: function (newName) {
         var parsed = fromUI(newName);
         if (parsed !== currentName) {
-          // Ore changed or removed — reset the amount to 0.
+
         currentName = parsed;
           currentAmount = 0;
           amountInput.value = 0;
@@ -1102,7 +1319,7 @@
     var enhancementPrompt = opts.enhancementPrompt || noneLabel;
     var onChange = opts.onChange;
 
-    // Prompt ↔ "None" sentinel translation
+
     function toUI(val, sentinel, prompt) {
       return (val === sentinel || val === undefined) ? prompt : val;
     }
@@ -1225,7 +1442,6 @@
     return container;
   }
 
-
   function createStatInput(opts) {
     var onChange = opts.onChange;
     var currentValues = {};
@@ -1233,9 +1449,9 @@
 
     var container = createEl('div', { class: 'fc-stat-input' });
 
-    // Whole-percent entry (15 = 15%); max = the stat's cap (lethality 150%,
-    // crit chance/crit dmg 100%). The build stores percents and
-    // transformBuildForEngine divides by 100.
+
+
+
     var fields = [
       { key: 'armorLethality', label: 'Armor Lethality', placeholder: '0', min: 0, max: 150, step: 1 },
       { key: 'armorCritChance', label: 'Armor Crit Chance', placeholder: '0', min: 0, max: 100, step: 1 },
@@ -1293,8 +1509,8 @@
     return container;
   }
 
-  // Ability (rune) input ranges. `unit` is 'pct' (entered as whole percents,
-  // converted to a decimal fraction for the engine) or 'sec' (plain seconds).
+
+
   var ABILITY_RANGES = {
     fireDmg: { min: 1, max: 22, unit: 'pct' },
     fireChance: { min: 1, max: 50, unit: 'pct' },
@@ -1306,15 +1522,12 @@
     blastChance: { min: 1, max: 20, unit: 'pct' }
   };
 
-  // Clamp an ability input into [min, max]. Empty, non-numeric and 0 all mean
-  // "no ability" (the default/reset state); any other value snaps to the range.
-  function clampAbilityValue(raw, min, max) {
+
+
+  function parseAbilityValue(raw) {
     if (raw === '' || raw === undefined || raw === null) { return 0; }
     var v = parseFloat(raw);
     if (isNaN(v)) { return 0; }
-    if (v === 0) { return 0; }
-    if (v < min) { return min; }
-    if (v > max) { return max; }
     return v;
   }
 
@@ -1335,9 +1548,7 @@
       for (var i = 0; i < fields.length; i++) {
         (function (field) {
           var range = ABILITY_RANGES[field.key];
-          var min = range.min;
-          var max = range.max;
-          var rangeHint = (range.unit === 'sec') ? (min + '-' + max + 's') : (min + '-' + max + '%');
+          var rangeHint = (range.unit === 'sec') ? (range.min + '-' + range.max + 's') : (range.min + '-' + range.max + '%');
           var row = createEl('div', { class: 'fc-ability-row' });
           var label = createEl('label', { class: 'fc-ability-label', for: field.key }, [field.label]);
           var input = createEl('input', {
@@ -1345,16 +1556,14 @@
             class: 'fc-ability-input',
             id: field.key,
             value: currentValues[field.key] !== undefined ? currentValues[field.key] : '',
-            min: String(min),
-            max: String(max),
             step: '1',
             placeholder: rangeHint,
-            title: field.label + ' (from runes). Range: ' + rangeHint + '. 0 = no ability.',
+            title: field.label + ' (from runes). Typical range: ' + rangeHint + '. 0 = no ability.',
             inputmode: 'decimal'
           });
 
           function commit() {
-            currentValues[field.key] = clampAbilityValue(input.value, min, max);
+            currentValues[field.key] = parseAbilityValue(input.value);
             input.value = currentValues[field.key];
             var out = {};
             for (var k2 in currentValues) { out[k2] = currentValues[k2]; }
@@ -1433,7 +1642,7 @@
       current.push(initial[ci] !== undefined ? initial[ci] : noneLabel);
     }
 
-    // Prompt ↔ "None" sentinel translation
+
     function toUI(val) { return (val === noneLabel || val === undefined) ? prompt : val; }
     function fromUI(val) { return val === prompt ? noneLabel : val; }
 
@@ -1511,12 +1720,12 @@
 
   function createStatRow(opts) {
     var row = createEl('div', { class: 'fc-stat-row' });
-    var labelEl = createEl('span', { class: 'fc-stat-label' }, [opts.label]);
+    var labelEl = createEl('span', { class: ('fc-stat-label ' + (opts.labelClass || '')).trim() }, [opts.label]);
     var valueClass = ('fc-stat-val ' + (opts.valueClass || '')).trim();
     var valueEl = createEl('span', { class: valueClass }, [opts.value !== undefined ? opts.value : '']);
     if (opts.isCap) { valueEl.style.color = '#ff5555'; }
 
-    // Click a value to copy it to the clipboard.
+
     valueEl.classList.add('fc-copyable');
     valueEl.setAttribute('title', 'Click to copy');
     valueEl.addEventListener('click', function () {
@@ -1569,17 +1778,17 @@
     return mins + 'm ' + secs + 's';
   }
 
-  /* ---------- Section icon helpers ---------- */
 
-  // Section icons are the wiki's own uploaded PNGs, referenced as standard
-  // [[File:...]] wikitext — the same image-link convention the wiki's templates
-  // use (e.g. [[File:{{{image}}}|frameless|link=File:{{{image}}}|alt={{{name}}}]]).
-  // The JS can't paste wikitext into the page, so it collects placeholder spans
-  // while the input panel renders, then resolves them in one batched
-  // mw.Api().parse() call: the server parses each [[File:...]] into the exact
-  // <a><img></a> markup it produces anywhere on the wiki (Special:FilePath src,
-  // alt text, link to the file page). No raw <img src> is hand-built.
-  // Upload all 11 PNGs with these exact names (or edit the map to match).
+
+
+
+
+
+
+
+
+
+
   var SECTION_ICON_FILES = {
     weapon:      'ForgeCalculator-weapon.png',
     ore:         'ForgeCalculator-ore.png',
@@ -1596,6 +1805,7 @@
     calc:        'ForgeCalculator-calc.png'
   };
 
+
   var ICON_PLACEHOLDERS = [];
 
   function iconImg(name, alt) {
@@ -1605,9 +1815,9 @@
     return wrap;
   }
 
-  // Split the batched parse output (one <p> per [[File:...]] line) back into
-  // individual <a><img></a> fragments. Each image is self-contained in its
-  // paragraph, so extracting the paragraph bodies is safe.
+
+
+
   function splitIconHtml(html) {
     var blocks = String(html || '').match(/<p>[\s\S]*?<\/p>/g);
     if (!blocks) { return []; }
@@ -1633,10 +1843,11 @@
           pending[i].wrap.innerHTML = blocks[i];
         }
       }, function () {
-        // Icons are decorative — an empty placeholder is fine.
+
       });
     });
   }
+
 
   function sectionTitle(title, iconName) {
     var h3 = createEl('h3', { class: 'fc-input-section-title' });
@@ -1645,7 +1856,7 @@
     return h3;
   }
 
-  /* ---------- Results panel ---------- */
+
 
   function createResultsPanel(handlers) {
     var container = createEl('div', { class: 'fc-results-panel' });
@@ -1689,16 +1900,16 @@
     var dpsCard = createResultsCard({
       title: 'DPS Breakdown',
       content: createStatRows([
-        { label: 'Weapon DPS', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Explosion DPS', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Fire DPS', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Poison DPS', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Smite DPS', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Black Hole DPS', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Lightning DPS', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold' },
-        { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-dmg' },
-        { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-dmg' }
+        { label: 'Weapon DPS', value: '0', valueClass: 'fc-sv-dmg', labelClass: 'fc-sv-dmg' },
+        { label: 'Explosion DPS', value: '0', valueClass: 'fc-sv-blast', labelClass: 'fc-sv-blast' },
+        { label: 'Fire DPS', value: '0', valueClass: 'fc-sv-fire', labelClass: 'fc-sv-fire' },
+        { label: 'Poison DPS', value: '0', valueClass: 'fc-sv-poison', labelClass: 'fc-sv-poison' },
+        { label: 'Smite DPS', value: '0', valueClass: 'fc-sv-smite', labelClass: 'fc-sv-smite' },
+        { label: 'Black Hole DPS', value: '0', valueClass: 'fc-sv-blackhole', labelClass: 'fc-sv-blackhole' },
+        { label: 'Lightning DPS', value: '0', valueClass: 'fc-sv-lightning', labelClass: 'fc-sv-lightning' },
+        { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold', labelClass: 'fc-sv-dmg' },
+        { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-dmg', labelClass: 'fc-sv-dmg' },
+        { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-dmg', labelClass: 'fc-sv-dmg' }
       ])
     });
 
@@ -1721,11 +1932,11 @@
       title: 'Total DPS',
       hideIcon: true,
       content: createStatRows([
-        { label: '', value: '0', valueClass: 'fc-sv-dps-hero' }
+        { label: '', value: '0' }
       ])
     });
 
-    // Modifier classes drive the results grid placement + hero styling.
+
     totalDpsCard.classList.add('fc-card--total');
     coreDpsCard.classList.add('fc-card--core');
     statsCard.classList.add('fc-card--stats');
@@ -1781,10 +1992,10 @@
       }
 
       if (result.active_traits) {
-        // Full-width wrapping block so long trait text is never clipped by the
-        // stat-row layout (`.fc-stat-val` is flex-shrink:0, cards clip overflow).
+
+
         var traitsBlock = createEl('div', { class: 'fc-traits-block' });
-        var traitsValue = createEl('div', { class: 'fc-traits-value' }, [result.active_traits]);
+        var traitsValue = createEl('div', { class: 'fc-traits-value', style: { whiteSpace: 'pre-line' } }, [result.active_traits]);
         traitsValue.classList.add('fc-copyable');
         traitsValue.setAttribute('title', 'Click to copy');
         traitsValue.addEventListener('click', function () {
@@ -1811,7 +2022,7 @@
     var noneLabel = data.constants.noneLabel;
     var selectOreLabel = data.constants.selectOreLabel;
 
-    // "Select X" prompts — build state keeps "None" sentinel
+
     var ORE_PROMPT = 'Select Ores';
     var RACE_PROMPT = 'Select Race';
     var WEAPON_TYPE_PROMPT = 'Select Weapon Type';
@@ -1894,9 +2105,9 @@
     });
     weaponSection.appendChild(weaponSelector);
 
-    // The race/class weapon-type bonus is auto-detected from the selected
-    // weapon's type (workbook E44/E47 key off C23 = bonus type, which now
-    // always equals the equipped weapon's type), so there is no separate input.
+
+
+
     var metaWrap = createEl('div', { class: 'fc-meta-wrap' });
     var raceSection = createEl('div', { class: 'fc-input-section' });
     raceSection.appendChild(sectionTitle('Race', 'race'));
@@ -1919,11 +2130,8 @@
     var berserkSection = createEl('div', { class: 'fc-input-section' });
     berserkSection.appendChild(sectionTitle('Berserk', 'berserk'));
 
-    // Whole-percent entry (30 = 30%); max = the lethality cap (150%), since any
-    // more is capped away by the engine. The build stores percents and
-    // transformBuildForEngine divides by 100.
-    var berserkRow = createEl('div', { class: 'fc-stat-input-row' });
-    var berserkLabel = createEl('label', { class: 'fc-stat-input-label', for: 'berserk' }, ['Berserk']);
+    var berserkWrapper = createEl('div', { class: 'fc-berserk-wrapper' });
+    var berserkLabel = createEl('label', { for: 'berserk' }, ['Berserk']);
     var berserkInput = createEl('input', {
       type: 'number',
       class: 'fc-stat-input-input',
@@ -1943,10 +2151,8 @@
     var handleBerserkChange = debounce(commitBerserk, 150);
     berserkInput.addEventListener('input', handleBerserkChange);
     berserkInput.addEventListener('change', commitBerserk);
-    var berserkField = createEl('div', { class: 'fc-stat-input-field' });
-    berserkField.appendChild(berserkInput);
-    berserkRow.append(berserkLabel, berserkField);
-    berserkSection.appendChild(berserkRow);
+    berserkWrapper.append(berserkLabel, berserkInput);
+    berserkSection.appendChild(berserkWrapper);
     metaWrap.appendChild(berserkSection);
 
     var statSection = createEl('div', { class: 'fc-input-section' });
@@ -2027,7 +2233,7 @@
     var warningsBox = createEl('div', { class: 'fc-warnings fc-hidden' });
     container.appendChild(warningsBox);
 
-    // Live advisory warnings (computed from build state only — no engine call).
+
     container.refreshWarnings = function () {
       var list = computeWarnings(getBuild());
       empty(warningsBox);
@@ -2075,8 +2281,8 @@
       achievementDropdown.setValue(toUI(newBuild.achievement, ACHIEVEMENT_PROMPT));
     };
 
-    // All section-icon placeholders are now registered — resolve them through
-    // the wiki's [[File:...]] pipeline (one batched API parse).
+
+
     loadSectionIcons();
 
     return container;
@@ -2117,17 +2323,17 @@
     resultsPanel: null
   };
 
-  // Auto-detect the race/class weapon-type bonus from the selected weapon's
-  // type (workbook E44/E47 check C23 = bonus type, and it now always equals
-  // the equipped weapon's type). Empty when no weapon is selected.
+
+
+
   function deriveBonusType(build) {
     if (!state.gameData || !build.weaponName || build.weaponName === NONE_LABEL) { return ''; }
     var weapon = state.gameData._weapon_index.get(build.weaponName);
     return weapon ? weapon.type : '';
   }
 
-  // Advisory warnings shown above the Calculate button. Computed purely from
-  // the UI build (no engine call) so they update live as inputs change.
+
+
   function computeWarnings(build) {
     var warnings = [];
     if (!build.weaponName || build.weaponName === NONE_LABEL) {
@@ -2166,14 +2372,14 @@
       bonus_weapon_type: deriveBonusType(build),
       rune_cells: build.runes || [],
       base_crit_chance: 0,
-      base_crit_dmg: 1.45, // workbook C21 base crit damage (145% crits before bonuses)
+      base_crit_dmg: 1.45,
       armor_crit_chance: (Number(build.armorCritChance) || 0) / 100,
       armor_crit_dmg: (Number(build.armorCritDmg) || 0) / 100,
       armor_lethality: (Number(build.armorLethality) || 0) / 100,
       base_lethality: 0,
       abilities: {
-        // UI stores ability percents as whole numbers (15 = 15%); engine wants
-        // decimal fractions. Times are plain seconds already.
+
+
         fire_dmg: (Number(build.fireDmg) || 0) / 100,
         fire_chance: (Number(build.fireChance) || 0) / 100,
         fire_time: Number(build.fireTime) || 0,
@@ -2183,9 +2389,9 @@
         blast_dmg: (Number(build.blastDmg) || 0) / 100,
         blast_chance: (Number(build.blastChance) || 0) / 100
       },
-      // Berserk is entered as whole percents (30 = 30%) and adds to lethality
-      // for the berserk burst (workbook C53/E53); Minotaur's +30% is added in
-      // the engine. Divide by 100 like the other percent fields.
+
+
+
       berserk: (Number(build.berserk) || 0) / 100,
       achievement: build.achievement || NONE_LABEL
     };
@@ -2202,7 +2408,7 @@
   }
 
   function handleBuildChange(newBuild) {
-    // Only update state here; results compute on "Calculate DPS" press
+
     state.build = newBuild;
     if (state.inputPanel && state.inputPanel.refreshWarnings) { state.inputPanel.refreshWarnings(); }
   }
@@ -2318,7 +2524,6 @@
   function init(root) {
     var loading = root.querySelector('.fc-loading');
     if (loading) { loading.textContent = 'Loading game data…'; }
-
     loadGameData().then(function (gameData) {
       state.gameData = gameData;
 
@@ -2341,8 +2546,8 @@
       });
       right.appendChild(state.resultsPanel);
 
-      // Results-panel buttons also register section icons (Reset / Calculate DPS);
-      // resolve them now that all placeholders are in place.
+
+
       loadSectionIcons();
 
       body.append(left, right);
@@ -2367,7 +2572,7 @@
   }
 
   function start() {
-    // Tag body so MediaWiki:Common.css can constrain page width on calculator pages
+
     if (document.body) {
       document.body.classList.add('fc-page');
     }
