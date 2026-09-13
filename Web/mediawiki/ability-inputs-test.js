@@ -118,19 +118,19 @@ function assert(cond, label) {
 }
 
 console.log('== clampAbilityValue ==');
-assert(FC.clampAbilityValue('', 1, 22) === 0, 'empty -> 0 (no ability)');
-assert(FC.clampAbilityValue('0', 1, 22) === 0, 'zero -> 0 (no ability)');
-assert(FC.clampAbilityValue('0.5', 1, 22) === 1, 'below min -> min');
-assert(FC.clampAbilityValue('-5', 1, 22) === 1, 'negative -> min');
-assert(FC.clampAbilityValue('1', 1, 22) === 1, 'min stays');
-assert(FC.clampAbilityValue('15', 1, 22) === 15, 'in-range stays');
-assert(FC.clampAbilityValue('15%', 1, 22) === 15, 'trailing % tolerated');
-assert(FC.clampAbilityValue(' 15 ', 1, 22) === 15, 'whitespace tolerated');
-assert(FC.clampAbilityValue('22', 1, 22) === 22, 'max stays');
-assert(FC.clampAbilityValue('30', 1, 22) === 22, 'above max -> max');
-assert(FC.clampAbilityValue('abc', 1, 22) === 0, 'non-numeric -> 0');
-assert(FC.clampAbilityValue('5', 1, 3) === 3, 'time above max -> max');
-assert(FC.clampAbilityValue('2', 1, 6) === 2, 'time in-range stays');
+assert(FC.clampAbilityValue('') === 0, 'empty -> 0 (no ability)');
+assert(FC.clampAbilityValue('0') === 0, 'zero -> 0 (no ability)');
+assert(FC.clampAbilityValue('0.5') === 0.5, 'no min floor -- passes through');
+assert(FC.clampAbilityValue('-5') === -5, 'no min floor -- negative passes through');
+assert(FC.clampAbilityValue('1') === 1, 'unchanged');
+assert(FC.clampAbilityValue('15') === 15, 'unchanged');
+assert(FC.clampAbilityValue('15%') === 15, 'trailing % tolerated');
+assert(FC.clampAbilityValue(' 15 ') === 15, 'whitespace tolerated');
+assert(FC.clampAbilityValue('22') === 22, 'unchanged');
+assert(FC.clampAbilityValue('30') === 30, 'no max ceiling -- passes through');
+assert(FC.clampAbilityValue('abc') === 0, 'non-numeric -> 0');
+assert(FC.clampAbilityValue('5') === 5, 'no max ceiling on time fields either');
+assert(FC.clampAbilityValue('9999') === 9999, 'arbitrarily large values pass through unclamped');
 
 console.log('== transformBuildForEngine ==');
 function uiBuild(overrides) {
@@ -197,42 +197,42 @@ const byId = {};
 inputs.forEach((inp) => { byId[inp.id] = inp; });
 
 const expected = {
-  fireDmg: { min: '1', max: '22', placeholder: '1-22%', title: 'Range: 1-22%' },
-  fireChance: { min: '1', max: '50', placeholder: '1-50%', title: 'Range: 1-50%' },
-  fireTime: { min: '1', max: '3', placeholder: '1-3s', title: 'Range: 1-3s' },
-  poisonDmg: { min: '1', max: '7', placeholder: '1-7%', title: 'Range: 1-7%' },
-  poisonChance: { min: '1', max: '35', placeholder: '1-35%', title: 'Range: 1-35%' },
-  poisonTime: { min: '1', max: '6', placeholder: '1-6s', title: 'Range: 1-6s' },
-  lightningDmg: { min: '1', max: '80', placeholder: '1-80%', title: 'Range: 1-80%' },
-  lightningChance: { min: '1', max: '60', placeholder: '1-60%', title: 'Range: 1-60%' },
-  lightningCooldown: { min: '0.3', max: '5', placeholder: '0.3-5s', title: 'Range: 0.3-5s', step: '0.1' },
-  blastDmg: { min: '1', max: '40', placeholder: '1-40%', title: 'Range: 1-40%' },
-  blastChance: { min: '1', max: '20', placeholder: '1-20%', title: 'Range: 1-20%' }
+  fireDmg: { step: '1' },
+  fireChance: { step: '1' },
+  fireTime: { step: '1' },
+  poisonDmg: { step: '1' },
+  poisonChance: { step: '1' },
+  poisonTime: { step: '1' },
+  lightningDmg: { step: '1' },
+  lightningChance: { step: '1' },
+  lightningCooldown: { step: '0.1' },
+  blastDmg: { step: '1' },
+  blastChance: { step: '1' }
 };
 Object.keys(expected).forEach((key) => {
   const inp = byId[key];
   const exp = expected[key];
   assert(inp, `input exists: ${key}`);
-  assert(inp && inp.getAttribute('min') === exp.min, `${key} min=${exp.min}`);
-  assert(inp && inp.getAttribute('max') === exp.max, `${key} max=${exp.max}`);
-  assert(inp && inp.getAttribute('step') === (exp.step || '1'), `${key} step=${exp.step || '1'}`);
-  assert(inp && inp.getAttribute('placeholder') === exp.placeholder, `${key} placeholder=${exp.placeholder}`);
-  assert(inp && (inp.getAttribute('title') || '').indexOf(exp.title) !== -1, `${key} title shows range`);
+  assert(inp && inp.getAttribute('min') === undefined, `${key} has no min attribute`);
+  assert(inp && inp.getAttribute('max') === undefined, `${key} has no max attribute`);
+  assert(inp && inp.getAttribute('step') === exp.step, `${key} step=${exp.step}`);
+  assert(inp && inp.getAttribute('placeholder') === '0', `${key} placeholder=0`);
+  assert(inp && (inp.getAttribute('title') || '').indexOf('Range:') === -1, `${key} title no longer shows a range`);
   assert(inp && (inp.getAttribute('title') || '').indexOf('0 = no ability') !== -1, `${key} title mentions 0 = no ability`);
 });
 
 byId.fireDmg.value = '30';
 byId.fireDmg.dispatchEvent({ type: 'change' });
-assert(lastValues.fireDmg === 22, 'change: fireDmg 30 -> clamped 22');
-assert(byId.fireDmg.value === '22', 'change: input snaps to 22');
+assert(lastValues.fireDmg === 30, 'change: fireDmg 30 passes through unclamped');
+assert(byId.fireDmg.value === '30', 'change: input keeps 30, no snapping');
 
 byId.fireChance.value = '0.5';
 byId.fireChance.dispatchEvent({ type: 'change' });
-assert(lastValues.fireChance === 1, 'change: fireChance 0.5 -> min 1');
+assert(lastValues.fireChance === 0.5, 'change: fireChance 0.5 passes through, no min floor');
 
 byId.fireTime.value = '9';
 byId.fireTime.dispatchEvent({ type: 'change' });
-assert(lastValues.fireTime === 3, 'change: fireTime 9 -> max 3');
+assert(lastValues.fireTime === 9, 'change: fireTime 9 passes through, no max ceiling');
 
 byId.poisonDmg.value = '0';
 byId.poisonDmg.dispatchEvent({ type: 'blur' });
@@ -240,15 +240,15 @@ assert(lastValues.poisonDmg === 0, 'blur: poisonDmg 0 stays 0 (no ability)');
 
 byId.poisonChance.value = '60';
 byId.poisonChance.dispatchEvent({ type: 'blur' });
-assert(lastValues.poisonChance === 35, 'blur: poisonChance 60 -> max 35');
+assert(lastValues.poisonChance === 60, 'blur: poisonChance 60 passes through, no max ceiling');
 
 byId.lightningDmg.value = '120';
 byId.lightningDmg.dispatchEvent({ type: 'change' });
-assert(lastValues.lightningDmg === 80, 'change: lightningDmg 120 -> max 80');
+assert(lastValues.lightningDmg === 120, 'change: lightningDmg 120 passes through, no max ceiling');
 
 byId.lightningCooldown.value = '0.1';
 byId.lightningCooldown.dispatchEvent({ type: 'change' });
-assert(lastValues.lightningCooldown === 0.3, 'change: lightningCooldown 0.1 -> min 0.3');
+assert(lastValues.lightningCooldown === 0.1, 'change: lightningCooldown 0.1 passes through, no min floor');
 
 byId.lightningCooldown.value = '2.5';
 byId.lightningCooldown.dispatchEvent({ type: 'blur' });
@@ -258,6 +258,22 @@ byId.blastDmg.value = '';
 byId.blastDmg.dispatchEvent({ type: 'change' });
 assert(lastValues.blastDmg === 0, 'change: empty -> 0');
 
+console.log('== non-numeric ability input warnings ==');
+assert(grid.getInvalidAbilityWarnings().length === 0, 'no warnings before typing garbage');
+
+byId.blastChance.value = 'abc';
+byId.blastChance.dispatchEvent({ type: 'change' });
+assert(lastValues.blastChance === 0, 'change: non-numeric -> 0 (still zeroed, just no longer range-clamped)');
+assert(
+  grid.getInvalidAbilityWarnings().indexOf('Blast Chance ability only takes numerical values.') !== -1,
+  'non-numeric blastChance surfaces a warning'
+);
+
+byId.blastChance.value = '10';
+byId.blastChance.dispatchEvent({ type: 'change' });
+assert(lastValues.blastChance === 10, 'change: valid number after garbage commits normally');
+assert(grid.getInvalidAbilityWarnings().length === 0, 'warning clears once a valid number is entered');
+
 byId.fireDmg.value = '5';
 byId.fireDmg.dispatchEvent({ type: 'input' });
 setTimeout(() => {
@@ -266,7 +282,7 @@ setTimeout(() => {
   grid.setValues({ fireDmg: 15 });
   assert(byId.fireDmg.value === '15', 'setValues: fireDmg 15 displays');
   const vals = grid.getValues();
-  assert(vals.fireDmg === 15 && vals.fireChance === 1 && vals.fireTime === 3, 'getValues reflects last committed values');
+  assert(vals.fireDmg === 15 && vals.fireChance === 0.5 && vals.fireTime === 9, 'getValues reflects last committed values');
 
   console.log('== Section header (source) ==');
   assert(SRC.indexOf("'Abilities (From Runes)'") !== -1, "header is 'Abilities (From Runes)'");

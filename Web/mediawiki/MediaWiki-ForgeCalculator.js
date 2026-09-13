@@ -1547,14 +1547,12 @@
 
 
 
-  function clampAbilityValue(raw, min, max) {
+  function clampAbilityValue(raw) {
     if (raw === '' || raw === undefined || raw === null) { return 0; }
     var s = String(raw).trim().replace(/%$/, '').trim();
     if (s === '') { return 0; }
     var v = parseFloat(s);
     if (isNaN(v) || v === 0) { return 0; }
-    if (v < min) { return min; }
-    if (v > max) { return max; }
     return v;
   }
 
@@ -1562,6 +1560,7 @@
     var onChange = opts.onChange;
     var currentValues = {};
     for (var k in opts.values) { currentValues[k] = opts.values[k]; }
+    var invalidFields = {};
 
     var container = createEl('div', { class: 'fc-ability-grid' });
 
@@ -1575,7 +1574,6 @@
       for (var i = 0; i < fields.length; i++) {
         (function (field) {
           var range = ABILITY_RANGES[field.key];
-          var rangeHint = (range.unit === 'sec') ? (range.min + '-' + range.max + 's') : (range.min + '-' + range.max + '%');
           var step = (range.min % 1 !== 0 || range.max % 1 !== 0) ? '0.1' : '1';
           var row = createEl('div', { class: 'fc-ability-row' });
           var label = createEl('label', { class: 'fc-ability-label', for: field.key }, [field.label]);
@@ -1584,16 +1582,18 @@
             class: 'fc-ability-input',
             id: field.key,
             value: currentValues[field.key] !== undefined ? currentValues[field.key] : '',
-            min: String(range.min),
-            max: String(range.max),
             step: step,
-            placeholder: rangeHint,
-            title: field.label + ' (from runes). Range: ' + rangeHint + '. 0 = no ability.',
+            placeholder: '0',
+            title: field.label + ' (from runes). 0 = no ability.',
             inputmode: 'decimal'
           });
 
           function commit() {
-            currentValues[field.key] = clampAbilityValue(input.value, range.min, range.max);
+            var trimmed = String(input.value).trim();
+            invalidFields[field.key] = (trimmed !== '' && isNaN(Number(trimmed)))
+              ? (title + ' ' + field.label)
+              : null;
+            currentValues[field.key] = clampAbilityValue(input.value);
             input.value = currentValues[field.key];
             var out = {};
             for (var k2 in currentValues) { out[k2] = currentValues[k2]; }
@@ -1646,6 +1646,7 @@
 
     container.setValues = function (values) {
       for (var key in values) { currentValues[key] = values[key]; }
+      invalidFields = {};
       var sections = [fireSection, poisonSection, lightningSection, blastSection];
       for (var i = 0; i < sections.length; i++) {
         var inputs = sections[i].querySelectorAll('.fc-ability-input');
@@ -1661,6 +1662,14 @@
     container.getValues = function () {
       var out = {};
       for (var k3 in currentValues) { out[k3] = currentValues[k3]; }
+      return out;
+    };
+
+    container.getInvalidAbilityWarnings = function () {
+      var out = [];
+      for (var k4 in invalidFields) {
+        if (invalidFields[k4]) { out.push(invalidFields[k4] + ' ability only takes numerical values.'); }
+      }
       return out;
     };
 
@@ -2276,6 +2285,9 @@
 
     container.refreshWarnings = function () {
       var list = computeWarnings(getBuild());
+      if (abilityGrid.getInvalidAbilityWarnings) {
+        list = list.concat(abilityGrid.getInvalidAbilityWarnings());
+      }
       empty(warningsBox);
       if (list.length) {
         for (var i = 0; i < list.length; i++) {

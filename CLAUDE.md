@@ -148,16 +148,23 @@ Workbook sheets:
 Not workbook formulas — behaviour the tests lock down, recorded here because the code
 carries no comments.
 
-- **Ability clamp ranges** (`ABILITY_RANGES`) are **game rune ranges, not formula
-  constants**, so they are exempt from "zero invented mechanics" — the same precedent as
-  the Quality cap. Lightning's mirror the Kitsunite/Marblite *ore* ramps: damage to 80%,
-  chance to 60%, cooldown 0.3–5s.
-- The lightning cooldown field uses a **fractional `step` (0.1)** because its lower bound
-  is 0.3s; with `step=1` the spinner could never reach it. Any field with a fractional
-  bound gets the same treatment.
+- **Ability inputs are no longer range-clamped (removed by request).** `ABILITY_RANGES`
+  still exists and still drives the fractional-vs-whole `step` hint per field (Lightning
+  Cooldown's `0.3` lower bound needs `step=0.1`, everything else is `step=1`), but its
+  `min`/`max` are no longer read as HTML attributes or enforced by `clampAbilityValue` —
+  a player can type any value from a rune roll the game ever offers without it snapping
+  to a coded ceiling. Placeholder is a plain `0` and the tooltip just says
+  "`<Field> (from runes). 0 = no ability.`" — no range is displayed because none is
+  enforced. This was a deliberate UI decision, not a workbook fact, so — same as the
+  ranges it replaces — it's exempt from "zero invented mechanics."
 - `clampAbilityValue` treats `0`, empty and non-numeric alike as **"no ability" → 0**;
-  anything else is clamped into range. Clamping is silent, with the range shown in the
-  field's placeholder and tooltip.
+  any other numeric text passes through unchanged, unclamped. A **non-numeric** entry
+  (e.g. "abc") is zeroed and additionally surfaces a warning in the shared `.fc-warnings`
+  box ("`<Section> <Field> ability only takes numerical values.`"), the same mechanism
+  used for the ore-slot-without-amount warning. `createAbilityGrid` tracks this per-field
+  in a local `invalidFields` map (`container.getInvalidAbilityWarnings()`), separate from
+  `computeWarnings(build)` since the invalid raw text never survives into `build` (it's
+  zeroed on commit before the warning is read).
 - **`setValue` deliberately does not fire `onChange`.** That is why a state restore or
   Reset keeps a slot's typed amount, while actually changing the ore in the dropdown
   zeroes it (`createOreSlot`). Changing this breaks `ore-slot-test.js`.
