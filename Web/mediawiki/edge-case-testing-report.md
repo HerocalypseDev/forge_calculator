@@ -1,14 +1,15 @@
 # Edge-case testing report — MediaWiki engine
 
-**Scope:** 76 scenarios run directly against `MediaWiki-ForgeCalculator.js`'s `calculate()`,
+**Scope:** 84 scenarios run directly against `MediaWiki-ForgeCalculator.js`'s `calculate()`,
 targeting ore-stacking, race+trait double-dipping, share-gate boundaries, stat caps, and
 every on-hit proc (Explosion/Blast, Fire, Poison, Smite, Black Hole, Lightning) plus
-Berserk and Moon Stone. Base weapon is Hook Blade (Straight Sword, 0.52s interval)
-unless a scenario names a different weapon to exercise attack-rate-dependent behavior.
+Berserk, Moon Stone, and Attack Speed ores. Base weapon is Hook Blade (Straight Sword,
+0.52s interval) unless a scenario names a different weapon to exercise
+attack-rate-dependent behavior.
 
 **Result: no defects found.** Every scenario matched the engine behavior already
-documented in `CLAUDE.md` (domain model, approved deviations, preserved quirks). Two of
-my own test predictions turned out to be wrong going in — both times the *engine* was
+documented in `CLAUDE.md` (domain model, approved deviations, preserved quirks). Three of
+my own test predictions turned out to be wrong going in — every time the *engine* was
 right and my assumption was the bug; see "Corrections to my own assumptions" below.
 
 Full raw output (all 33 fields per scenario) is in the session scratchpad as
@@ -277,7 +278,41 @@ property holds even in a maximally loaded build: `berserk (1154.75) = weapon_dps
 never touched by the berserk multiplier. 12C is the floor case: every single proc field
 is exactly 0 with nothing configured, and both berserk and moonstone are `null`.
 
-## Corrections to my own assumptions (the engine was right both times)
+## 13 — Attack Speed ores: SUM aggregation, share-gate, cap headroom (added on request)
+
+The original 76-scenario pass only exercised ore attack speed bundled together with
+race and achievement bonuses (category 10D). A dedicated 8-scenario follow-up isolates
+the four attack-speed ores — Yeti Heart, Tiger's Eye, Wolfarite, Fierce Jade.
+
+| # | Scenario | atk_speed | attack_rate | weapon_dps | total_dps |
+|---|---|---|---|---|---|
+| 13A | Yeti Heart @9.9% (below gate) | **0** | 1.923 | 23.72 | 23.72 |
+| 13B | Yeti Heart @10.0% (exact gate) | **0.01** (base) | 1.942 | 24.37 | 24.37 |
+| 13C | Yeti Heart @30% (ramp top) | **0.10** (max) | 2.115 | 50.83 | 50.83 |
+| 13D | Yeti Heart @100% | 0.10 (flat, same as 13C) | 2.115 | 121.99 | 121.99 |
+| 13E | all 4 atk_speed ores stacked, 25% each, ore-only | **0.313875** (sum, mid-ramp) | 2.527 | 408.05 | 408.05 |
+| 13F | Fierce Jade @30% + Archangel + Attack Speed +20% | 0.55 | 2.981 | 245.11 | 292.18 |
+| 13G | all 4 ores @25% + Archangel + Straight Sword + achievement | 0.713875 | 3.296 | 613.55 | 763.22 |
+| 13H | all 4 ores @25% + Felynx + Gauntlets + achievement | 0.713875 | 3.296 | 613.55 | 613.55 |
+
+**Confirms:** ore attack speed obeys the identical 10%/30% share gate and ramp as every
+other core stat (13A→13B→13C→13D mirrors category 9's lethality progression exactly).
+13E confirms attack-speed ores **sum** across slots rather than maxing — the four ores'
+individual per-ore contributions at 25% share (0.0775+0.058125+0.062+0.11625) add to
+0.313875, matching the engine's output to the last decimal. 13F/13G/13H confirm ore,
+race, class-table, and achievement attack speed all sum into the same total with no
+double-counting or override, and that `attack_rate = (1+atk_speed)/interval` correctly
+propagates into `weapon_dps` in every case. 13G/13H incidentally show that **an
+Archangel build automatically pulls in its smite proc** once attack_rate crosses a whole
+number (13G's total_dps of 763.22 vs. weapon_dps of 613.55 is entirely the Archangel
+smite term, `FLOOR(3.296)×0.5 = 1.5`) while the Felynx build in 13H has no such
+side-effect (total_dps == weapon_dps) — not a defect, just a reminder that Archangel
+specifically never gives attack speed "for free" without also nudging its own smite
+tier. None of the four ores can reach the 150% atk_speed cap on their own (max combined
+sum is 0.10+0.075+0.08+0.15 = 0.405); reaching the cap needs race/class/achievement
+stacking on top, as already shown in category 10D.
+
+## Corrections to my own assumptions (the engine was right every time)
 
 1. **"crit_dmg has no cap" (scenario 10C) — wrong.** All four core stats, including
    crit_dmg, are capped via `Math.min(x, CAPS.x)` at the end of `statTotals`. This
@@ -289,6 +324,11 @@ is exactly 0 with nothing configured, and both berserk and moonstone are `null`.
    not a diluted one. This is consistent with every other share calculation in the
    engine; I'd assumed "blank" slots would count toward the denominator the way they do
    for black hole's structural `COUNTA` trigger, but they don't for ordinary ramps.
+3. **"25% share = the ramp-maxed value" (scenario 13E) — wrong.** The ramp only reaches
+   its max at 30% share; 25% is 75% of the way through the base→max interpolation, not
+   at the top. I wrote the scenario note predicting the fully-maxed sum (0.405) for a
+   25%-share stack of the four attack-speed ores; the engine's actual 0.313875 is the
+   correct mid-ramp sum (verified by hand: 0.0775+0.058125+0.062+0.11625 = 0.313875).
 
 ## Methodology
 
