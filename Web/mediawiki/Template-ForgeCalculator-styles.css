@@ -300,6 +300,19 @@
   letter-spacing: 0.04em;
 }
 
+.fc-berserk-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fc-berserk-wrapper label {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .fc-searchable-dropdown {
   position: relative;
   width: 100%;
