@@ -527,6 +527,26 @@
   gap: 8px;
 }
 
+.fc-rune-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fc-rune-line-label {
+  flex: 0 0 auto;
+  min-width: 48px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a4a3a;
+}
+
+.fc-rune-slot {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
 .fc-rune-tags {
   display: flex;
   flex-wrap: wrap;
@@ -693,8 +713,18 @@
   .fc-race-wrapper label,
   .fc-bonus-wrapper label,
   .fc-berserk-wrapper label,
-  .fc-achievement-wrapper label {
+  .fc-achievement-wrapper label,
+  .fc-rune-line-label {
     font-size: 11px;
+  }
+
+  .fc-rune-line {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fc-rune-slot {
+    flex-basis: auto;
   }
 
   .fc-stat-input-input,
