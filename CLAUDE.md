@@ -65,6 +65,14 @@ These four are deliberate and signed off; do not "correct" them back to the shee
    `Gauntlet` and `E48` the plural `Gauntlets`, and the `C23` dropdown only offers
    the plural — so the `E45` branch can never fire in the sheet. Both spellings are
    registered in `CLASS_LETHALITY` and `CLASS_ATK_SPEED`.
+5. **Berserk is capped at 200% total, MediaWiki JS only.** `C97` has no cap at all
+   in the sheet. `CAPS.berserk = 2.0` clamps `berserkLevel` (manual `build.berserk`
+   input + `RACE_BERSERK`, i.e. Minotaur's +30%) before it multiplies the weapon
+   hit — same `Math.min` pattern as the four core stats. Not ported to
+   `forge_calculator/engine.py` or `Web/js/` (out of scope per the request that
+   added it); harmless for `fuzz_verify.js` parity today since the UI's manual
+   berserk field tops out at 150% and Minotaur only adds 30%, so 180% is the
+   highest total either engine can currently reach — under the cap either way.
 
 Still open in the sheet (reported, not worked around): **`C64` reads `C37`**, the
 Blast row's DMG cell, instead of `E34` (Fire's own Time). Every other ability wires
@@ -115,7 +123,7 @@ Workbook sheets:
 - **Ore power** `E10` — weighted average of the slot multipliers, with **Fichilliumorite excluded from both halves** of the division, so it is filler that never dilutes.
 - **Weapon DPS** `C89` = `C18 × (1+E45) × crit_blend × E21`; the seven proc rows (`C90`–`C94`, `E94`) scale on **unforged A18**; **Total** `C96` = sum; TTK `E96/E97` = 25k/75k ÷ total; `C100` min, `C101` max-burst (procs on **forged C18**).
 - **Aggregation differs per proc.** Explosion (`C58`/`C59`) **sums** across the four slots — `C59` is literally `SUM(slot1..slot4, D37)` — while fire, poison, smite and lightning **chance** take a `MAX`. Smite adds its race bonus *on top of* the slot max rather than maxing against it.
-- **Berserk** `C97` = `C89 × (1+E54)` + the six proc rows: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. `E54` is the manual `C54` input plus Minotaur only — ore `phys_dmg` traits are **display-only** ("when HP < 35%") and must not feed it. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
+- **Berserk** `C97` = `C89 × (1+E54)` + the six proc rows: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. `E54` is the manual `C54` input plus Minotaur only — ore `phys_dmg` traits are **display-only** ("when HP < 35%") and must not feed it. The MediaWiki JS engine caps the combined `berserkLevel` at 200% (approved deviation #5); the sheet itself has no cap. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
 - **Lightning** (`C80`/`E80`/`C81`, DPS `E81`): damage sums, chance maxes, and the cooldown is the `MIN` across slots — the sheet uses `99` as its "no lightning" sentinel and maps a surviving 99 back to 0. Procs are rate-capped by `MIN(E21, 1/E80)`.
 
 ## Preserved workbook quirks (do not "fix")
