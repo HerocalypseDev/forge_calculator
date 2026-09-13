@@ -7,15 +7,30 @@ Berserk, Moon Stone, and Attack Speed ores. Base weapon is Hook Blade (Straight 
 0.52s interval) unless a scenario names a different weapon to exercise
 attack-rate-dependent behavior.
 
-**Result: no defects found.** Every scenario matched the engine behavior already
-documented in `CLAUDE.md` (domain model, approved deviations, preserved quirks). Three of
-my own test predictions turned out to be wrong going in — every time the *engine* was
-right and my assumption was the bug; see "Corrections to my own assumptions" below.
+**Result at the time: no defects found.** Every scenario matched the engine behavior
+documented in `CLAUDE.md` at the time (domain model, approved deviations, preserved
+quirks). Three of my own test predictions turned out to be wrong going in — every time
+the *engine* was right and my assumption was the bug; see "Corrections to my own
+assumptions" below. **One genuine engine bug was found later, separately, and is now
+fixed** — explosion_chance was summing across slots instead of taking the max, the one
+proc family out of six that didn't match its siblings' aggregation rule. None of these
+83 scenarios caught it at the time because catching it needs *multiple* explosion
+sources active in one build, and only two scenarios here (1E, 1H) happen to do that —
+see the update note at the top of Category 1 for the corrected numbers.
 
 Full raw output (all 33 fields per scenario) is in the session scratchpad as
 `scenario-results.json` — this report carries the fields relevant to each category.
 
-## 1 — Explosion/Blast: SUM aggregation across slots
+## 1 — Explosion/Blast: dmg SUMs, chance MAXes (fixed since this report was first written)
+
+> **Update:** when this section was first written, explosion_chance summed across every
+> triggering slot — the one proc family out of six that didn't MAX its chance term like
+> its siblings. That was a genuine bug in `reall.xlsx` itself, not just the engines; it's
+> since been fixed at the source (`reall.xlsx` was corrected and all three engines
+> updated to match). The table and analysis below now reflect the fixed behavior. Of the
+> 8 scenarios in this category, only **1E** and **1H** actually changed — every other row
+> here only ever had one source of explosion chance active, and MAX-of-one equals
+> SUM-of-one, so single-source builds were never able to expose the old bug.
 
 | # | Scenario | explosion_dmg | explosion_chance | explosion_dps | total_dps |
 |---|---|---|---|---|---|
@@ -23,16 +38,22 @@ Full raw output (all 33 fields per scenario) is in the session scratchpad as
 | 1B | Gargantuan @10.0% (exact gate) | 0.05 | 0.035 | 0.067 | 38.14 |
 | 1C | Gargantuan @30% (ramp top) | 0.50 | 0.35 | 14.44 | 100.24 |
 | 1D | Gargantuan @100% | 0.50 | 0.35 | 41.65 | 289.15 |
-| 1E | 4 explosion ores stacked, 25% each | **1.6275** | **0.96875** | 327.93 | 594.60 |
+| 1E | 4 explosion ores stacked, 25% each | **1.6275** (sum) | **0.34875** (max) | 118.06 | 384.73 |
 | 1F | Kitsunite alone @40% | 0.70 | 0.40 | 51.53 | 335.17 |
 | 1G | Blast ability alone, no ore | 0.40 | 0.20 | 1.27 | 17.13 |
-| 1H | Gargantuan ore + Blast ability | 0.90 | 0.55 | 40.84 | 126.64 |
+| 1H | Gargantuan ore + Blast ability | 0.90 | 0.35 (max) | 25.99 | 111.79 |
 
-**Confirms:** explosion is the one proc family that **sums both dmg and chance** across
-every slot that clears the 10% gate (1E: 0.05+0.60+0.35+0.65 = 1.6275 dmg, matching the
-four ramp-maxed ore contributions exactly) — unlike fire/poison/smite/lightning, whose
-*chance* term MAXes. Ability terms (1G, 1H) add into the same sums as ore terms with no
-special-casing. Gate boundary is a hard cliff at 9.9%→0 / 10.0%→base (1A vs 1B).
+**Confirms:** explosion_dmg still **sums** across every slot that clears the 10% gate
+(1E: 0.05+0.60+0.35+0.65 = 1.6275 dmg, matching the four ramp-maxed ore contributions
+exactly), but explosion_chance now **MAXes**, exactly like fire/poison/smite/lightning's
+chance terms — 1E's four ore chances at 25% share (Gargantuan 0.27125, Meteorite
+0.19375, Magmaite 0.155, Supermassive Black Hole 0.34875) resolve to the highest one
+(SSBH's 0.34875), not their sum. 1H shows the same fix for ore+ability: Gargantuan's own
+0.35 already exceeds the Blast ability's 0.20, so `max(0.35, 0.20) = 0.35` rather than
+their old sum of 0.55. `explosion_dmg` is unaffected by this fix — it never had the
+inconsistency to begin with, so 1E's dmg total and every dmg value in this table are
+unchanged from the original run. Gate boundary is still a hard cliff at 9.9%→0 /
+10.0%→base (1A vs 1B), unrelated to this fix.
 
 ## 2 — Fire: dmg SUMs, chance/duration MAX; Dragonborn race stacks on top
 
@@ -263,7 +284,7 @@ applied (11A/11B/11C all land at the arithmetic sum, well under their respective
 
 | # | Scenario | explosion | fire | poison | smite | blackhole | lightning | berserk | total_dps |
 |---|---|---|---|---|---|---|---|---|---|
-| 12A | Kitsunite+Galaxite+Malachite+Marblite, Archangel, full armor, Blast ability | 263.63 | 80.12 | 0 | 596.76 | 86.28 | 183.73 | n/a (no Minotaur) | **3175.75** |
+| 12A | Kitsunite+Galaxite+Malachite+Marblite, Archangel, full armor, Blast ability | 191.73 | 80.12 | 0 | 596.76 | 86.28 | 183.73 | n/a (no Minotaur) | **3103.85** |
 | 12B | same 4 ores + Minotaur + manual 20% berserk | 95.86 | 71.21 | 0 | 85.59 | 61.63 | 176.67 | **1154.75** | 933.49 (pre-berserk) |
 | 12C | Select Ore ×4, nothing else | 0 | 0 | 0 | 0 | 0 | 0 | null | 15.87 |
 
