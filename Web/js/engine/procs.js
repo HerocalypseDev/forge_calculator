@@ -74,7 +74,7 @@ export function procComponents(build, shares, game, atkRate = 0) {
   return {
     moon: slotSum(build.slots, shares, game, 'moon'),
     explosion_dmg: slotSum(build.slots, shares, game, 'explosion_dmg') + build.abilities.blast_dmg,
-    explosion_chance: slotSum(build.slots, shares, game, 'explosion_chance') + build.abilities.blast_chance,
+    explosion_chance: Math.max(slotMax(build.slots, shares, game, 'explosion_chance'), build.abilities.blast_chance),
     fire_dmg: slotSum(build.slots, shares, game, 'fire_dmg')
       + (RACE_FIRE_DMG[build.race] ?? 0.0)
       + build.abilities.fire_dmg,

@@ -119,7 +119,7 @@ function check(label, workbook, engine) {
   }), game);
   const magma = ORES_stat('Magmaite', 'explosion_chance');
   const meteor = ORES_stat('Meteorite', 'explosion_chance');
-  check('C59  explosion chance (2 ores, additive)', magma + meteor, r.explosion_chance);
+  check('C59  explosion chance (2 ores, max)', Math.max(magma, meteor), r.explosion_chance);
 }
 
 function ORES_stat(name, stat) {

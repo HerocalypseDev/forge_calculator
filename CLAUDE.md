@@ -122,7 +122,7 @@ Workbook sheets:
 - **Stats** (E45–E48): lethality / crit chance / crit dmg / atk speed totals from ores + runes + race/class combos + armor/base inputs, each capped (1.5 / 1.0 / 1.0 / 1.5).
 - **Ore power** `E10` — weighted average of the slot multipliers, with **Fichilliumorite excluded from both halves** of the division, so it is filler that never dilutes.
 - **Weapon DPS** `C89` = `C18 × (1+E45) × crit_blend × E21`; the seven proc rows (`C90`–`C94`, `E94`) scale on **unforged A18**; **Total** `C96` = sum; TTK `E96/E97` = 25k/75k ÷ total; `C100` min, `C101` max-burst (procs on **forged C18**).
-- **Aggregation differs per proc.** Explosion (`C58`/`C59`) **sums** across the four slots — `C59` is literally `SUM(slot1..slot4, D37)` — while fire, poison, smite and lightning **chance** take a `MAX`. Smite adds its race bonus *on top of* the slot max rather than maxing against it.
+- **Aggregation differs per proc.** Explosion damage (`C58`) **sums** across the four slots, while explosion chance (`C59`) — like fire, poison, smite and lightning **chance** — takes a `MAX` (see "Explosion Chance SUM→MAX Fix" below). Smite adds its race bonus *on top of* the slot max rather than maxing against it.
 - **Berserk** `C97` = `C89 × (1+E54)` + the six proc rows: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. `E54` is the manual `C54` input plus Minotaur only — ore `phys_dmg` traits are **display-only** ("when HP < 35%") and must not feed it. The MediaWiki JS engine caps the combined `berserkLevel` at 200% (approved deviation #5); the sheet itself has no cap. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
 - **Lightning** (`C80`/`E80`/`C81`, DPS `E81`): damage sums, chance maxes, and the cooldown is the `MIN` across slots — the sheet uses `99` as its "no lightning" sentinel and maps a surviving 99 back to 0. Procs are rate-capped by `MIN(E21, 1/E80)`.
 
@@ -445,5 +445,19 @@ the numeric fields are a parity contract.
 | **DEPLOY.md** — artifact map + new steps 4/5 (create `MediaWiki:ForgeCalculator.js`, append the import line to Common.js), maintenance + source-files notes | `Web/mediawiki/DEPLOY.md` | ✅ Done | (this session) |
 
 **Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 8755 fields, worst rel err 5.19e-16); all 7 `*-test.js` + `zero_dps_repro.js` PASSED; `node --check` clean on the new module and the stripped Common.js artifact. Engine byte-identical — display/organisation only.
+
+### Explosion Chance SUM→MAX Fix — COMPLETED ✅
+**Goal:** `C59` (explosion chance) in `reference/reall.xlsx` was `=SUM(slot1..slot4, D37)`, additively stacking every explosion-triggering ore's chance. The user identified this as a workbook design bug — every other chance stat (fire, poison, smite, lightning `C81`) takes a `MAX` across slots, with the ability term folded into the same `MAX` (confirmed against `C81`'s literal `MAX(slot1..slot4, D36)` pattern). Unlike the open `C64` issue (documented, not fixed), the user chose to correct the workbook itself so "ported verbatim from the source workbook" stays true, rather than carrying this as an engine-only deviation.
+
+| Change | Where | Status | Commit |
+|--------|-------|--------|--------|
+| **Workbook formula edit** — `C59`'s outer `SUM(` → `MAX(` via direct XML patch inside the xlsx zip (not an openpyxl round-trip, which silently strips all cached formula values on save); cached `<v>` values untouched since the default build's result is identical either way (only one ore triggers explosion there) | `reference/reall.xlsx` | ✅ Done | (this session) |
+| **Data rebuild** — `scripts/build_data.py` rerun; `data/ores.json` unchanged (ramp extraction doesn't depend on the outer aggregator keyword), only `data/meta.json`'s formula hash moved. Also restored an unrelated pre-existing working-tree deletion of `reference/new.xlsx` (needed for the ore atk_speed legacy merge) before rebuilding, so 4 ores didn't silently lose `atk_speed` | `data/*.json` | ✅ Done | (this session) |
+| **Engine ports** — `explosion_chance` changed from `slot_sum(...) + blast_chance` to `max(slot_max(...), blast_chance)` in all three engines | `forge_calculator/engine.py`, `Web/mediawiki/MediaWiki-ForgeCalculator.js`, `Web/js/engine/procs.js` | ✅ Done | (this session) |
+| **Test fix** — `reall-aggregates.js`'s 2-ore explosion-chance check asserted the old additive result (0.45); corrected to `Math.max` (0.25) | `Web/mediawiki/reall-aggregates.js` | ✅ Done | (this session) |
+| **Fuzz regenerated** — `fuzz_gen.py` rerun so `fuzz-cases.json` stores results from the corrected Python engine | `Web/mediawiki/fuzz-cases.json` | ✅ Done | (this session) |
+| **Docs** — domain-model aggregation bullet updated | `CLAUDE.md` | ✅ Done | (this session) |
+
+**Verification:** `python -m pytest tests/` → 82 passed; `python scripts/audit_reall.py reference/reall.xlsx data/ores.json` → 0 ore-range problems; `node Web/mediawiki/reall-golden.js` / `reall-aggregates.js` / `python scripts/reall_parity.py` → all PARITY/AGGREGATES PASSED (explosion chance now shows `MAX` not `additive`); `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 9506 fields, worst rel err 2.75e-16); all 7 focused MediaWiki tests PASSED; `node Web/js/engine/reall-golden.test.mjs` / `normalize.test.mjs` PASSED; `python scripts/smoke_gui.py` → SMOKE OK. Single-ore golden tests (Gargantuan, default build) were unaffected since SUM and MAX agree when only one term is non-zero.
 
 

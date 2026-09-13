@@ -441,9 +441,9 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
     These feed the DPS rows in C90-C94/E94, which all scale on the UNFORGED A18.
     ``atk_rate`` is E21, needed only by the Archangel smite addend.
 
-    Note which cells aggregate across slots and which take the best slot: the
-    explosion pair (C58/C59) SUMS -- C59 is written ``SUM(slot1..slot4, D37)`` --
-    while fire, poison, smite and lightning chance all take a MAX.
+    Note which cells aggregate across slots and which take the best slot:
+    explosion damage (C58) SUMS across slots, while explosion chance (C59) --
+    like fire, poison, smite and lightning chance -- takes a MAX.
     """
 
     def slot_vals(stat: str):
@@ -490,9 +490,10 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
 
     return ProcComponents(
         moon=slot_sum("moon"),
-        # C58/C59 both SUM across the slots and add the Blast ability (C37/D37)
+        # C58 SUMS across the slots and adds the Blast ability (C37/D37);
+        # C59 MAXes across the slots and the ability instead
         explosion_dmg=slot_sum("explosion_dmg") + build.abilities.blast_dmg,
-        explosion_chance=slot_sum("explosion_chance") + build.abilities.blast_chance,
+        explosion_chance=max(slot_max("explosion_chance"), build.abilities.blast_chance),
         fire_dmg=slot_sum("fire_dmg") + RACE_FIRE_DMG.get(build.race, 0.0) + build.abilities.fire_dmg,  # +C34
         fire_chance=max(slot_max("fire_chance"), build.abilities.fire_chance) + RACE_FIRE_CHANCE.get(build.race, 0.0),  # MAX(...,D34)+0.4
         fire_duration=_duration(fire_terms, RACE_FIRE_TIME.get(build.race, 0), build.abilities.fire_time, minus=1),

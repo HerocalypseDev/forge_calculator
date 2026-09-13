@@ -580,7 +580,7 @@
     return {
       moon: slotSum(build.slots, shares, game, 'moon'),
       explosion_dmg: slotSum(build.slots, shares, game, 'explosion_dmg') + build.abilities.blast_dmg,
-      explosion_chance: slotSum(build.slots, shares, game, 'explosion_chance') + build.abilities.blast_chance,
+      explosion_chance: Math.max(slotMax(build.slots, shares, game, 'explosion_chance'), build.abilities.blast_chance),
       fire_dmg: slotSum(build.slots, shares, game, 'fire_dmg')
         + (RACE_FIRE_DMG[build.race] !== undefined ? RACE_FIRE_DMG[build.race] : 0.0)
         + build.abilities.fire_dmg,
@@ -1675,7 +1675,7 @@
 
     var initial = opts.values || [];
     var current = [];
-    for (var ci = 0; ci < 6; ci++) {
+    for (var ci = 0; ci < 9; ci++) {
       current.push(initial[ci] !== undefined ? initial[ci] : noneLabel);
     }
 
@@ -1692,7 +1692,7 @@
       var lineEl = createEl('div', { class: 'fc-rune-line' });
       var lineLabel = createEl('span', { class: 'fc-rune-line-label' }, ['Rune ' + (line + 1)]);
       lineEl.appendChild(lineLabel);
-      for (var col = 0; col < 2; col++) {
+      for (var col = 0; col < 3; col++) {
         (function (idx) {
           var dropdown = createSearchableDropdown({
             options: options,
@@ -1708,7 +1708,7 @@
           var slotEl = createEl('div', { class: 'fc-rune-slot' });
           slotEl.appendChild(dropdown);
           lineEl.appendChild(slotEl);
-        })(line * 2 + col);
+        })(line * 3 + col);
       }
       container.appendChild(lineEl);
     }
@@ -1716,10 +1716,10 @@
     container.setValues = function (vals) {
       vals = vals || [];
       current = [];
-      for (var i = 0; i < 6; i++) {
+      for (var i = 0; i < 9; i++) {
         current.push(vals[i] !== undefined ? vals[i] : noneLabel);
       }
-      for (var d = 0; d < 6; d++) {
+      for (var d = 0; d < 9; d++) {
         dropdowns[d].setValue(toUI(current[d]));
       }
     };
@@ -2358,7 +2358,7 @@
     blastDmg: 0,
     blastChance: 0,
     berserk: 0,
-    runes: [NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL],
+    runes: [NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL],
     achievement: NONE_LABEL
   };
 
