@@ -648,7 +648,7 @@
 
 .fc-ability-label {
   color: #ffffff;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 600;
   text-align: center;
   white-space: normal;
@@ -689,6 +689,13 @@
   text-align: center;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  -moz-appearance: textfield;
+}
+
+.fc-ability-input::-webkit-outer-spin-button,
+.fc-ability-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .fc-ore-slot-amount:hover,
