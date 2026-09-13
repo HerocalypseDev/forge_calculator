@@ -820,10 +820,11 @@
 .fc-card--total .fc-stat-label {
   display: none;
 }
-.fc-sv-dps-hero {
-  font-size: 3.3rem;
-  font-weight: 700;
-  color: #ffffff;
+.fc-sv-dps-hero,
+.fc-card--total .fc-stat-val {
+  font-size: 4.4rem;
+  font-weight: 800;
+  color: #e8b53a;
   font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 }
 
@@ -910,7 +911,7 @@
 
 .fc-stat-val.fc-sv-poison,
 .fc-stat-label.fc-sv-poison {
-  color: #66bb6a !important;
+  color: #81c784 !important;
 }
 
 .fc-stat-val.fc-sv-smite,
@@ -1082,7 +1083,8 @@
   .fc-stat-row { font-size: 0.8rem; gap: 10px; }
   .fc-stat-val { font-size: 0.8rem; }
   .fc-stat-val.fc-bold { font-size: 0.85rem; }
-  .fc-sv-dps-hero { font-size: 1.8rem; }
+  .fc-sv-dps-hero,
+  .fc-card--total .fc-stat-val { font-size: 2.4rem; }
   .fc-traits-value { font-size: 0.8rem; }
   .fc-rune-line-label { width: 44px; font-size: 0.7rem; }
 }
