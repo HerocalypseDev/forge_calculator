@@ -924,6 +924,16 @@
   color: #ba68c8 !important;
 }
 
+.fc-stat-val.fc-sv-berserk,
+.fc-stat-label.fc-sv-berserk {
+  color: #e06a1f !important;
+}
+
+.fc-stat-val.fc-sv-moonstone,
+.fc-stat-label.fc-sv-moonstone {
+  color: #81d4fa !important;
+}
+
 .fc-stat-val.fc-sv-lightning,
 .fc-stat-label.fc-sv-lightning {
   color: #42a5f5 !important;

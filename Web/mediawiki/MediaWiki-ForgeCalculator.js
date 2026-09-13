@@ -1945,8 +1945,8 @@
         { label: 'Black Hole DPS', value: '0', valueClass: 'fc-sv-blackhole', labelClass: 'fc-sv-blackhole' },
         { label: 'Lightning DPS', value: '0', valueClass: 'fc-sv-lightning', labelClass: 'fc-sv-lightning' },
         { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold', labelClass: 'fc-sv-dmg' },
-        { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-dmg', labelClass: 'fc-sv-dmg' },
-        { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-dmg', labelClass: 'fc-sv-dmg' }
+        { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-berserk', labelClass: 'fc-sv-berserk' },
+        { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-moonstone', labelClass: 'fc-sv-moonstone' }
       ])
     });
 
