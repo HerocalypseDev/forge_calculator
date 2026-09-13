@@ -601,22 +601,28 @@
 }
 
 .fc-ability-section--fire {
-  border-color: #e07b3a;
+  border-color: #ef5350;
 }
 .fc-ability-section--fire .fc-ability-section-title {
-  color: #e07b3a;
+  color: #ef5350;
 }
 .fc-ability-section--blast {
-  border-color: #a06bd6;
+  border-color: #ffa726;
 }
 .fc-ability-section--blast .fc-ability-section-title {
-  color: #a06bd6;
+  color: #ffa726;
 }
 .fc-ability-section--poison {
-  border-color: #4caf6a;
+  border-color: #81c784;
 }
 .fc-ability-section--poison .fc-ability-section-title {
-  color: #4caf6a;
+  color: #81c784;
+}
+.fc-ability-section--lightning {
+  border-color: #42a5f5;
+}
+.fc-ability-section--lightning .fc-ability-section-title {
+  color: #42a5f5;
 }
 
 .fc-ability-row {
