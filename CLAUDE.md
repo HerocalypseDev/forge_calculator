@@ -467,4 +467,16 @@ the numeric fields are a parity contract.
 
 **Verification:** `python -m pytest tests/` → 82 passed; `python scripts/audit_reall.py reference/reall.xlsx data/ores.json` → 0 ore-range problems; `node Web/mediawiki/reall-golden.js` / `reall-aggregates.js` / `python scripts/reall_parity.py` → all PARITY/AGGREGATES PASSED (explosion chance now shows `MAX` not `additive`); `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 9506 fields, worst rel err 2.75e-16); all 7 focused MediaWiki tests PASSED; `node Web/js/engine/reall-golden.test.mjs` / `normalize.test.mjs` PASSED; `python scripts/smoke_gui.py` → SMOKE OK. Single-ore golden tests (Gargantuan, default build) were unaffected since SUM and MAX agree when only one term is non-zero.
 
+### Forger Discord Bot Fuzzing Tool — IN PROGRESS 🚧
+**Goal:** Build a standalone script to run ~10 diverse test builds through the third-party "Forger" Discord bot (`/forge` slash command) and capture its raw output for comparison against our engine (see `[[project_forger_mechanic_divergences]]` memory). **Out of scope for the "MediaWiki only" rule** — this is not a calculator feature, so it lives entirely in a new `tools/forger_fuzz/` folder, untouched by that restriction. **ToS constraint:** Discord's Bot API has no way for one application to invoke another application's slash command — only a real user can trigger `/forge` from the client. A self-bot (automated user token) could fake this but violates Discord ToS, so the tool is semi-automated: a bot account (bot token, `message_content` intent) listens in the target channel and auto-captures the Forger bot's reply, while a human pastes each generated `/forge ...` command into Discord manually.
+
+| Phase | Work | Status | Commit |
+|-------|------|--------|--------|
+| 1 | **Build matrix** — 10 diverse builds (`weapon` + `ore1`–`ore4` + `quality`) using real ore/weapon names pulled from `data/ores.json`/`data/weapons.json`, covering no-ore baseline, single-ore, quad-same-ore, mixed 2–4 ore fills, and quality 0/10/25/40/50/60/75/100 spread | ✅ Done | (this session) |
+| 2 | **Fuzz runner** — `discord.py` client (`tools/forger_fuzz/fuzz_runner.py`): prints each `/forge` command for manual paste, `wait_for` captures the Forger bot's reply (raw `content` + full `embeds`, no assumed field names), 3–5s randomized delay between builds, exports timestamped `forger_results_*.json` + `.csv` to `output/` | ✅ Done | (this session) |
+| 3 | **Config/secrets** — `.env`-based config (`DISCORD_BOT_TOKEN`, `FORGER_CHANNEL_ID`, optional `FORGER_BOT_ID` filter, timeouts/delays); `.env` and `output/` gitignored; `.env.example` committed with the channel ID pre-filled | ✅ Done | (this session) |
+| 4 | **First live run + analysis** | ⬜ Not started | — |
+
+**Note:** channel ID `1093639931978596422` is pre-filled in `.env.example`; the user still needs to supply `DISCORD_BOT_TOKEN` (a real bot added to that server with permission to read the channel) before running `python tools/forger_fuzz/fuzz_runner.py`.
+
 
