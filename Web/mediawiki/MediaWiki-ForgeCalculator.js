@@ -69,7 +69,7 @@
   var TRAIT_POWER_SLOPE = 4.5;
   var TRAIT_POWER_FLOOR = 0.1;
 
-  var CAP_COLOR = '#cc0000';
+  var CAP_CLASS = 'fc-is-capped';
 
   var CORE_STATS = ['lethality', 'crit_chance', 'crit_dmg', 'atk_speed'];
 
@@ -1809,7 +1809,7 @@
     var labelEl = createEl('span', { class: ('fc-stat-label ' + (opts.labelClass || '')).trim() }, [opts.label]);
     var valueClass = ('fc-stat-val ' + (opts.valueClass || '')).trim();
     var valueEl = createEl('span', { class: valueClass }, [opts.value !== undefined ? opts.value : '']);
-    if (opts.isCap) { valueEl.style.color = CAP_COLOR; }
+    if (opts.isCap) { valueEl.classList.add(CAP_CLASS); }
 
 
     valueEl.classList.add('fc-copyable');
@@ -1828,7 +1828,7 @@
     var valueEl = row.querySelector('.fc-stat-val');
     if (valueEl) {
       valueEl.textContent = value;
-      valueEl.style.color = isCap ? CAP_COLOR : '';
+      valueEl.classList.toggle(CAP_CLASS, !!isCap);
     }
   }
 

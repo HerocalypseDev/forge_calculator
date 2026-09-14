@@ -972,6 +972,10 @@
   color: #ce93d8 !important;
 }
 
+.fc-stat-row .fc-stat-val.fc-is-capped {
+  color: #cc0000 !important;
+}
+
 .fc-stat-val.fc-sv-time,
 .fc-stat-label.fc-sv-time {
   color: #ffa06a !important;

@@ -118,9 +118,44 @@ console.log('\n== Stats (Capped) card: Berserk row + red cap color ==');
 
 {
   check('createResultsPanel/statsCard source has a Berserk row', /label:\s*'Berserk'/.test(SRC));
-  check('cap color constant is a true red (#cc0000), not the old pink (#ff5555)',
-    SRC.indexOf('#ff5555') === -1 && /CAP_COLOR\s*=\s*'#cc0000'/.test(SRC));
   check('statsCard update reads statRows[4] for berserk_level', /statRows\[4\][\s\S]{0,80}berserk_level/.test(SRC));
+}
+
+{
+  // The cap indicator must be a CSS class, not an inline style.color -- every
+  // .fc-sv-* value color in the stylesheet is !important, and !important beats
+  // an inline style every time, so setting style.color from JS silently never
+  // took effect (the original bug this test now guards against).
+  check('no more #ff5555 (old pink) anywhere in the JS', SRC.indexOf('#ff5555') === -1);
+  check('no inline style.color used for the cap indicator anymore',
+    !/valueEl\.style\.color\s*=/.test(SRC));
+  check('cap indicator is a CSS class (CAP_CLASS), toggled via classList',
+    /CAP_CLASS\s*=\s*'fc-is-capped'/.test(SRC) &&
+    /classList\.add\(CAP_CLASS\)/.test(SRC) &&
+    /classList\.toggle\(CAP_CLASS/.test(SRC));
+
+  const css = fs.readFileSync(path.join(HERE, 'Template-ForgeCalculator-styles.css'), 'utf8');
+  const capRuleMatch = /\.fc-is-capped\s*\{[^}]*color:\s*#cc0000\s*!important/.exec(css) ||
+    /\.fc-is-capped[^{]*\{[^}]*color:\s*#cc0000\s*!important/.exec(css);
+  check('stylesheet defines .fc-is-capped as true red with !important', !!capRuleMatch);
+
+  // Specificity is per comma-separated branch, not summed across the whole
+  // selector list -- take the branch that actually mentions the class in
+  // question and count its own classes.
+  function specificityFor(selectorListText, targetClass) {
+    const branches = selectorListText.split(',');
+    let max = 0;
+    for (const branch of branches) {
+      if (branch.indexOf(targetClass) === -1) { continue; }
+      const n = (branch.match(/\.[A-Za-z-]+/g) || []).length;
+      if (n > max) { max = n; }
+    }
+    return max;
+  }
+  const pctSelectorText = (css.match(/([^{}]*\.fc-sv-pct[^{}]*)\{/) || [])[1] || '';
+  const capSelectorText = (css.match(/([^{}]*\.fc-is-capped[^{}]*)\{/) || [])[1] || '';
+  check('.fc-is-capped has higher selector specificity than .fc-sv-pct (so it always wins, regardless of source order)',
+    specificityFor(capSelectorText, '.fc-is-capped') > specificityFor(pctSelectorText, '.fc-sv-pct'));
 }
 
 {

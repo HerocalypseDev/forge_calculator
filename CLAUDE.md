@@ -598,8 +598,13 @@ this is solved generically at display time: pair each `trait10` clause with its 
 `trait30` clause and, if both are a clean single-number percentage with an identical label,
 compute the real value. (2) The Stats (Capped) card gained a fifth row showing total Berserk
 level as a percentage, since Berserk has had a real 200% cap since the last session. (3) The
-cap-exceeded highlight color was changed from a light pink (`#ff5555`) to a true red
-(`#cc0000`, matching the toast-error color already used elsewhere in the file).
+cap-exceeded highlight was changed from a light pink to a true red — this took **two**
+attempts: the first (setting `valueEl.style.color` inline) looked right in isolation but
+never actually took effect in the real UI, because every `.fc-sv-*` value color in
+`Template-ForgeCalculator-styles.css` (`.fc-sv-pct` included) is declared `!important`, and
+`!important` beats an inline style unconditionally. The real fix moves the cap indicator to
+a CSS class (`.fc-is-capped`) with both `!important` *and* higher selector specificity than
+`.fc-sv-pct`, so it wins the cascade regardless of source order.
 
 | Change | Where | Status |
 |--------|-------|--------|
@@ -607,9 +612,10 @@ cap-exceeded highlight color was changed from a light pink (`#ff5555`) to a true
 | **`berserk_level` exposed on the `calculate()` result** — the raw capped fraction (e.g. `2.0` for 200%), separate from `berserk` (the DPS value); `0` when no source is active (unlike `berserk`, which is `null`) | `MediaWiki-ForgeCalculator.js` | ✅ Done |
 | **Stats (Capped) card: 5th row "Berserk"** — `pctFmt(result.berserk_level)`, red when `>= CAPS.berserk`; the other four rows' cap checks switched from hardcoded `1.5`/`1.0`/`1.0`/`1.5` literals to `CAPS.lethality`/`CAPS.crit_chance`/`CAPS.crit_dmg`/`CAPS.atk_speed` in the same pass | `MediaWiki-ForgeCalculator.js` (`createResultsPanel`) | ✅ Done |
 | **Clipboard export** — `formatResultsForClipboard`'s Stats (Capped) section gained a matching `Berserk: X% (CAPPED)` line, same `CAPS.*` cleanup | `MediaWiki-ForgeCalculator.js` | ✅ Done |
-| **Cap color** — new `CAP_COLOR = '#cc0000'` constant, both `createStatRow` and `updateStatRow` switched from the inline `'#ff5555'` literal | `MediaWiki-ForgeCalculator.js` | ✅ Done |
+| **Cap color, take 1 (insufficient)** — `CAP_COLOR = '#cc0000'` constant, `createStatRow`/`updateStatRow` set `valueEl.style.color`. Silently overridden in the browser by `.fc-sv-pct { color: #ce93d8 !important; }` — user reported the value was still pink | `MediaWiki-ForgeCalculator.js` | ⚠️ Shipped, then reverted |
+| **Cap color, take 2 (actual fix)** — `CAP_CLASS = 'fc-is-capped'`; both functions now `classList.add`/`classList.toggle` the class instead of touching `style.color`. New stylesheet rule `.fc-stat-row .fc-stat-val.fc-is-capped { color: #cc0000 !important; }` — three classes beat `.fc-sv-pct`'s two, so it wins the cascade no matter where either rule sits in the file | `MediaWiki-ForgeCalculator.js`, `Template-ForgeCalculator-styles.css` | ✅ Done |
 | **`berserk-trait-test.js` updated** — its Sealed Curse check had asserted Vitality/Stamina/plain-Movement-Speed *still* show `[X% power]`; that's no longer true now that the generic parser handles them, so the check was corrected to assert the opposite (no `% power]` left at all for that ore) | `Web/mediawiki/berserk-trait-test.js` | ✅ Done |
-| **New `generic-trait-ramp-test.js`** — Swiftness/Vitality ramped-value checks against `scaleRange`'s own formula (both mid-ramp and exact-10%-share), Sealed Curse's standalone Movement Speed clause (distinct from its berserk clause) computed correctly, Endurance at full share, a genuinely unparseable compound clause (Prismatic Heart's "Freeze enemies...") still falls back to `[X% power]`, an ore with only claimed stats has no stray extras, plus the three Stats-card/`berserk_level`/color checks above | `Web/mediawiki/generic-trait-ramp-test.js` | ✅ Done |
+| **New `generic-trait-ramp-test.js`** — Swiftness/Vitality ramped-value checks against `scaleRange`'s own formula (both mid-ramp and exact-10%-share), Sealed Curse's standalone Movement Speed clause (distinct from its berserk clause) computed correctly, Endurance at full share, a genuinely unparseable compound clause (Prismatic Heart's "Freeze enemies...") still falls back to `[X% power]`, an ore with only claimed stats has no stray extras, the Stats-card/`berserk_level` checks, and — added for the take-2 fix — no inline `style.color` remains, `CAP_CLASS` is toggled via `classList`, the stylesheet defines `.fc-is-capped` as `#cc0000 !important`, and a specificity check (counts classes per comma-separated selector branch, not summed across the list — the first version of this check was itself wrong for that reason and had to be fixed) confirms `.fc-is-capped` outranks `.fc-sv-pct` | `Web/mediawiki/generic-trait-ramp-test.js` | ✅ Done |
 
 **Verification:** `python -m pytest tests/` → 84 passed (unaffected — this is MediaWiki-JS-only);
 `node Web/mediawiki/reall-golden.js` / `reall-aggregates.js` / `verify-engine.js` → all still
