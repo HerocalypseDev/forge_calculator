@@ -92,17 +92,17 @@ console.log('== Berserk-group trait text now computed like every other stat ==')
 }
 
 {
-  // the OLD [X% power] system must still be used for every trait this parser
-  // does NOT understand -- Sealed Curse has both a berserk clause AND a
-  // separate, unrelated "-1.5% Movement Speed" line
+  // Sealed Curse has both the berserk clause AND a separate, unrelated
+  // "-X% Movement Speed" line -- both are now computed exactly (the generic
+  // simple-percentage-clause ramp, see generic-trait-ramp-test.js), just via
+  // two different mechanisms (this one from structured build-time data, that
+  // one from generic runtime pairing). Neither should show [X% power].
   const r = FC.calculate(mk('Sealed Curse', 25), game);
-  check('unrelated traits (Vitality/Stamina/plain Movement Speed) still show [X% power]',
-    /\[[\d.]+% power\][^\n]*Vitality/.test(r.active_traits) &&
-    /\[[\d.]+% power\][^\n]*Stamina/.test(r.active_traits) &&
-    /\[[\d.]+% power\][^\n]*-1\.5% Movement Speed/.test(r.active_traits));
   check('the berserk clause itself is computed, not shown as [X% power] raw text',
     r.active_traits.indexOf('Physical DMG & ') !== -1 &&
     !/\[[\d.]+% power\][^\n]*Physical Damage and/.test(r.active_traits));
+  check('no [X% power] fallback left anywhere for this ore',
+    !/% power\]/.test(r.active_traits));
 }
 
 {

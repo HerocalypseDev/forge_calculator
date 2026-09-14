@@ -204,6 +204,19 @@ carries no comments.
   zeroes it (`createOreSlot`). Changing this breaks `ore-slot-test.js`.
 - Ore `atk_speed` is **not** reachable from the MediaWiki UI — there is no attack-speed
   input, so it only ever arrives from ores, runes, race and achievements.
+- **Active Traits' free-text clauses are computed when they safely can be, approximated
+  otherwise.** Below 30% share, `activeTraits` tries to pair each `|`-separated clause in
+  `trait10` against the same-position clause in `trait30` (`splitTraitClauses` +
+  `parsePercentClause`): if both are a clean `"+X% Label"` with an identical label after the
+  number is stripped, it computes the real `scaleRange` ramp instead of guessing. This
+  covers Vitality/Swiftness/Endurance/Stamina/plain Movement Speed — none of these have a
+  DPS Calculator formula cell (see "Berserk-Group Trait Text..." below for the structured-data
+  equivalent), so they're never invented, only algebra on numbers already in the workbook's
+  own trait text. A clause that doesn't cleanly pair (a second embedded number, a differently
+  worded counterpart, no clause at that position at all) falls back to the original
+  `"[X% power]"` approximation — still present for genuinely compound free text like "Freeze
+  enemies for 0.2 seconds. 1.5% chance on hit. Has cooldown of 15" (Prismatic Heart, Snowite,
+  Iceite, Golem Heart). Verify with `node Web/mediawiki/generic-trait-ramp-test.js`.
 
 ## Commands
 
@@ -240,6 +253,7 @@ node Web/mediawiki/ability-inputs-test.js   node Web/mediawiki/results-panel-tes
 node Web/mediawiki/ore-slot-test.js         node Web/mediawiki/bonus-derive-test.js
 node Web/mediawiki/armor-stats-test.js      node Web/mediawiki/berserk-input-test.js
 node Web/mediawiki/no-ore-weapon-test.js    node Web/mediawiki/berserk-trait-test.js
+node Web/mediawiki/generic-trait-ramp-test.js
 ```
 
 After changing either engine, rerun `fuzz_gen.py` *then* `fuzz_verify.js` — the
@@ -561,7 +575,7 @@ recognized slot in `TRAIT_STAT_DISPLAY` (`phys_dmg`/`move_speed`/`berserk_durati
 | **No MediaWiki JS engine change needed** — `activeTraits`'s `merged`/`formatTraitGroup('berserk', ...)`/`isTraitClaimed` machinery already handled any `ore.stats` key with a `TRAIT_STAT_DISPLAY` entry generically; it was only ever the *data* that was missing these three keys | `MediaWiki-ForgeCalculator.js` | ✅ Done (no-op) |
 | **`scripts/audit_reall.py`** — independently re-derives `phys_dmg`/`move_speed`/`berserk_duration` straight from `_OptionsCrafter`'s own trait columns (its own copy of the regex, not imported from `build_data`, so it's a genuine cross-check) and diffs against the shipped JSON | `scripts/audit_reall.py` | ✅ Done |
 | **Python reference engine untouched** — its own `active_traits()` always prints the raw `trait10`/`trait30` sentence verbatim regardless of stat keys (a structurally different, simpler renderer, already documented as allowed to diverge from MediaWiki's); unaffected by the new `ore.stats` keys since it never reads them for trait display | `forge_calculator/engine.py` | ✅ Done (no-op, confirmed) |
-| **Tests** — `tests/test_data.py::test_berserk_group_traits_parsed_from_trait_text` (exact ore set + exact base/max/divisor for all 5, plus a negative check that an unrelated ore gets nothing invented); `Web/mediawiki/berserk-trait-test.js` (new, 10 checks: exact base text at 10% share with no `[X% power]` prefix, the ramped value at 20% share matches `scaleRange`'s formula bit-for-bit, exact max text at 30%/100% share, Sealed Curse's *unrelated* Vitality/Stamina/plain-Movement-Speed lines still show the old `[X% power]` fallback, an ore without the trait shows nothing, and `berserkLevel`/`C97` numeric DPS is provably untouched by the trait) | `tests/test_data.py`, `Web/mediawiki/berserk-trait-test.js` | ✅ Done |
+| **Tests** — `tests/test_data.py::test_berserk_group_traits_parsed_from_trait_text` (exact ore set + exact base/max/divisor for all 5, plus a negative check that an unrelated ore gets nothing invented); `Web/mediawiki/berserk-trait-test.js` (exact base text at 10% share with no `[X% power]` prefix, the ramped value at 20% share matches `scaleRange`'s formula bit-for-bit, exact max text at 30%/100% share, an ore without the trait shows nothing, and `berserkLevel`/`C97` numeric DPS is provably untouched by the trait) | `tests/test_data.py`, `Web/mediawiki/berserk-trait-test.js` | ✅ Done |
 
 **Verification:** `python -m pytest tests/` → 84 passed; `python scripts/audit_reall.py
 reference/Extended.xlsx data/ores.json` → 0 problems (independent cross-check, not just the
@@ -572,4 +586,38 @@ FUZZ PASSED (250 builds, 9506 fields, worst rel err 2.75e-16 — proves the new 
 don't leak into any numeric field either engine computes); `node berserk-trait-test.js` →
 ALL BERSERK-TRAIT CHECKS PASSED (10/10); all other 7 focused MediaWiki tests still pass;
 `python scripts/smoke_gui.py` → SMOKE OK.
+
+### Generic Trait-Clause Ramp + Stats Card Berserk Row + Cap Color — COMPLETED ✅
+**Goal:** Three related MediaWiki-only UI requests. (1) Vitality/Swiftness/Endurance/Stamina
+and plain (non-berserk-clause) Movement Speed still showed the `[X% power]` approximation
+below 30% share, same as any other unrecognized free text — but unlike genuinely compound
+traits, these are always a single clean `"+X% Label"` clause that scales the same
+base-at-10%→max-at-30% way as every formula-backed stat. Rather than extending the
+Python-build-time/`TRAIT_STAT_DISPLAY` approach per named stat (an ever-growing allowlist),
+this is solved generically at display time: pair each `trait10` clause with its same-position
+`trait30` clause and, if both are a clean single-number percentage with an identical label,
+compute the real value. (2) The Stats (Capped) card gained a fifth row showing total Berserk
+level as a percentage, since Berserk has had a real 200% cap since the last session. (3) The
+cap-exceeded highlight color was changed from a light pink (`#ff5555`) to a true red
+(`#cc0000`, matching the toast-error color already used elsewhere in the file).
+
+| Change | Where | Status |
+|--------|-------|--------|
+| **`splitTraitClauses`/`parsePercentClause`/generic pairing in `activeTraits`** — below 30% share, each unclaimed clause tries to pair against its same-index `trait30` counterpart; on a clean match (`"+X% Label"` on both sides, identical label after the number) computes `scaleRange({base, max, divisor:100}, share)` instead of the old power estimate. Anything that doesn't cleanly pair (compound/multi-number text, mismatched label, missing counterpart) falls through to the unchanged `[X% power]` fallback — verified across the whole 147-ore catalog before writing anything (0 clause-count mismatches; every "label mismatch" found was already claimed by a known stat or a genuine multi-number clause) | `MediaWiki-ForgeCalculator.js` | ✅ Done |
+| **`berserk_level` exposed on the `calculate()` result** — the raw capped fraction (e.g. `2.0` for 200%), separate from `berserk` (the DPS value); `0` when no source is active (unlike `berserk`, which is `null`) | `MediaWiki-ForgeCalculator.js` | ✅ Done |
+| **Stats (Capped) card: 5th row "Berserk"** — `pctFmt(result.berserk_level)`, red when `>= CAPS.berserk`; the other four rows' cap checks switched from hardcoded `1.5`/`1.0`/`1.0`/`1.5` literals to `CAPS.lethality`/`CAPS.crit_chance`/`CAPS.crit_dmg`/`CAPS.atk_speed` in the same pass | `MediaWiki-ForgeCalculator.js` (`createResultsPanel`) | ✅ Done |
+| **Clipboard export** — `formatResultsForClipboard`'s Stats (Capped) section gained a matching `Berserk: X% (CAPPED)` line, same `CAPS.*` cleanup | `MediaWiki-ForgeCalculator.js` | ✅ Done |
+| **Cap color** — new `CAP_COLOR = '#cc0000'` constant, both `createStatRow` and `updateStatRow` switched from the inline `'#ff5555'` literal | `MediaWiki-ForgeCalculator.js` | ✅ Done |
+| **`berserk-trait-test.js` updated** — its Sealed Curse check had asserted Vitality/Stamina/plain-Movement-Speed *still* show `[X% power]`; that's no longer true now that the generic parser handles them, so the check was corrected to assert the opposite (no `% power]` left at all for that ore) | `Web/mediawiki/berserk-trait-test.js` | ✅ Done |
+| **New `generic-trait-ramp-test.js`** — Swiftness/Vitality ramped-value checks against `scaleRange`'s own formula (both mid-ramp and exact-10%-share), Sealed Curse's standalone Movement Speed clause (distinct from its berserk clause) computed correctly, Endurance at full share, a genuinely unparseable compound clause (Prismatic Heart's "Freeze enemies...") still falls back to `[X% power]`, an ore with only claimed stats has no stray extras, plus the three Stats-card/`berserk_level`/color checks above | `Web/mediawiki/generic-trait-ramp-test.js` | ✅ Done |
+
+**Verification:** `python -m pytest tests/` → 84 passed (unaffected — this is MediaWiki-JS-only);
+`node Web/mediawiki/reall-golden.js` / `reall-aggregates.js` / `verify-engine.js` → all still
+PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 9506
+fields, worst rel err 2.75e-16 — `berserk_level`/trait text are outside the numeric parity
+contract, confirmed unchanged); `node berserk-trait-test.js` / `generic-trait-ramp-test.js` →
+both ALL CHECKS PASSED; all other 7 focused MediaWiki tests still pass; `node --check` clean;
+`python scripts/smoke_gui.py` → SMOKE OK. A full-catalog scan (every weapon-eligible ore at
+15% share) confirmed the `[X% power]` fallback still fires for genuinely compound text
+(Prismatic Heart, Snowite, Iceite, Golem Heart) and nowhere else.
 

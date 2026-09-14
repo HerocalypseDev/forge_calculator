@@ -69,6 +69,8 @@
   var TRAIT_POWER_SLOPE = 4.5;
   var TRAIT_POWER_FLOOR = 0.1;
 
+  var CAP_COLOR = '#cc0000';
+
   var CORE_STATS = ['lethality', 'crit_chance', 'crit_dmg', 'atk_speed'];
 
   var EXPECTED_COUNTS = {
@@ -357,6 +359,27 @@
     return '';
   }
 
+  var TRAIT_PREFIX_RE = /^(Both|Armor\s*only|Weapons\s*only|\(Armor\s*only\))\s*:\s*/i;
+  var PERCENT_CLAUSE_RE = /^([+-]?\d+(?:\.\d+)?)\s*%\s*(.+)$/;
+
+  function splitTraitClauses(text) {
+    if (!text) { return []; }
+    var cleaned = text.replace(/\n/g, ' | ');
+    var subs = cleaned.split(/\s*\|\s*/);
+    var out = [];
+    for (var i = 0; i < subs.length; i++) {
+      var sub = subs[i].replace(TRAIT_PREFIX_RE, '').trim();
+      if (sub) { out.push(sub); }
+    }
+    return out;
+  }
+
+  function parsePercentClause(clause) {
+    var m = PERCENT_CLAUSE_RE.exec(clause);
+    if (!m) { return null; }
+    return { value: parseFloat(m[1]), rawLabel: m[2].trim(), label: m[2].trim().toLowerCase() };
+  }
+
   function activeTraits(build, shares, game) {
     var merged = {};
     var extras = [];
@@ -384,23 +407,39 @@
         }
       }
 
-      var traitText = share >= 0.3 ? (ore.trait30 || '') : (ore.trait10 || '');
-      if (!traitText) continue;
-
-      traitText = traitText.replace(/\n/g, ' | ');
-      var subs = traitText.split(/\s*\|\s*/);
+      var subs10 = splitTraitClauses(ore.trait10);
+      var subs30 = splitTraitClauses(ore.trait30);
+      var subs = share >= 0.3 ? subs30 : subs10;
+      if (!subs.length) continue;
 
       for (var k = 0; k < subs.length; k++) {
-        var sub = subs[k].replace(/^(Both|Armor\s*only|Weapons\s*only|\(Armor\s*only\))\s*:\s*/i, '').trim();
-        if (!sub) continue;
+        var sub = subs[k];
         if (isTraitClaimed(sub, ore)) continue;
 
         if (share < 0.3) {
-          var power = Math.min(
-            Math.max((share - SHARE_GATE) * TRAIT_POWER_SLOPE + TRAIT_POWER_FLOOR, TRAIT_POWER_FLOOR),
-            1.0
-          );
-          extras.push('[' + (power * 100).toFixed(1) + '% power] ' + sub);
+          // Most ores phrase every "|"-separated clause identically between
+          // trait10 and trait30 (same wording, just bigger numbers), scaling
+          // by the same base-at-10%-share -> max-at-30%-share ramp every
+          // formula-backed stat uses. When this clause and its same-position
+          // trait30 counterpart are both a plain "+X% Label", compute the
+          // real ramped value instead of guessing at one -- same principle as
+          // the berserk-group traits, just done generically at display time
+          // instead of needing a named stat slot per trait. Anything that
+          // doesn't cleanly pair (a different label, a second embedded
+          // number, no matching clause at all) falls back to the original
+          // "[X% power]" approximation unchanged.
+          var parsed10 = parsePercentClause(sub);
+          var parsed30 = subs30[k] !== undefined ? parsePercentClause(subs30[k]) : null;
+          if (parsed10 && parsed30 && parsed10.label === parsed30.label) {
+            var ramped = scaleRange({ base: parsed10.value, max: parsed30.value, divisor: 100 }, share);
+            extras.push(fmtPct(ramped) + ' ' + parsed10.rawLabel);
+          } else {
+            var power = Math.min(
+              Math.max((share - SHARE_GATE) * TRAIT_POWER_SLOPE + TRAIT_POWER_FLOOR, TRAIT_POWER_FLOOR),
+              1.0
+            );
+            extras.push('[' + (power * 100).toFixed(1) + '% power] ' + sub);
+          }
         } else {
           extras.push(sub);
         }
@@ -741,6 +780,7 @@
       blackhole_dps: blackhole_dps,
       lightning_dps: lightning_dps,
       total_dps: total_dps,
+      berserk_level: berserkLevel,
       berserk: berserk,
       moonstone: moonstone,
       min_dps: min_dps,
@@ -1769,7 +1809,7 @@
     var labelEl = createEl('span', { class: ('fc-stat-label ' + (opts.labelClass || '')).trim() }, [opts.label]);
     var valueClass = ('fc-stat-val ' + (opts.valueClass || '')).trim();
     var valueEl = createEl('span', { class: valueClass }, [opts.value !== undefined ? opts.value : '']);
-    if (opts.isCap) { valueEl.style.color = '#ff5555'; }
+    if (opts.isCap) { valueEl.style.color = CAP_COLOR; }
 
 
     valueEl.classList.add('fc-copyable');
@@ -1788,7 +1828,7 @@
     var valueEl = row.querySelector('.fc-stat-val');
     if (valueEl) {
       valueEl.textContent = value;
-      valueEl.style.color = isCap ? '#ff5555' : '';
+      valueEl.style.color = isCap ? CAP_COLOR : '';
     }
   }
 
@@ -1939,7 +1979,8 @@
         { label: 'Lethality', value: '0.00%', valueClass: 'fc-sv-pct' },
         { label: 'Crit Chance', value: '0.00%', valueClass: 'fc-sv-pct' },
         { label: 'Crit Damage', value: '0.00%', valueClass: 'fc-sv-pct' },
-        { label: 'Attack Speed', value: '0.00%', valueClass: 'fc-sv-pct' }
+        { label: 'Attack Speed', value: '0.00%', valueClass: 'fc-sv-pct' },
+        { label: 'Berserk', value: '0.00%', valueClass: 'fc-sv-pct' }
       ])
     });
 
@@ -2010,11 +2051,12 @@
       }
 
       var statRows = statsCard.querySelectorAll('.fc-stat-row');
-      if (statRows.length >= 4) {
-        updateStatRow(statRows[0], pctFmt(result.lethality), result.lethality >= 1.5);
-        updateStatRow(statRows[1], pctFmt(result.crit_chance), result.crit_chance >= 1.0);
-        updateStatRow(statRows[2], pctFmt(result.crit_dmg), result.crit_dmg >= 1.0);
-        updateStatRow(statRows[3], pctFmt(result.atk_speed), result.atk_speed >= 1.5);
+      if (statRows.length >= 5) {
+        updateStatRow(statRows[0], pctFmt(result.lethality), result.lethality >= CAPS.lethality);
+        updateStatRow(statRows[1], pctFmt(result.crit_chance), result.crit_chance >= CAPS.crit_chance);
+        updateStatRow(statRows[2], pctFmt(result.crit_dmg), result.crit_dmg >= CAPS.crit_dmg);
+        updateStatRow(statRows[3], pctFmt(result.atk_speed), result.atk_speed >= CAPS.atk_speed);
+        updateStatRow(statRows[4], pctFmt(result.berserk_level), result.berserk_level >= CAPS.berserk);
       }
 
       var dpsRows = dpsCard.querySelectorAll('.fc-stat-row');
@@ -2533,10 +2575,11 @@
       'Weapon DPS: ' + result.weapon_dps.toFixed(2),
       '',
       '--- Stats (Capped) ---',
-      'Lethality: ' + (result.lethality * 100).toFixed(2) + '%' + (result.lethality >= 1.5 ? ' (CAPPED)' : ''),
-      'Crit Chance: ' + (result.crit_chance * 100).toFixed(2) + '%' + (result.crit_chance >= 1.0 ? ' (CAPPED)' : ''),
-      'Crit Damage: ' + (result.crit_dmg * 100).toFixed(2) + '%' + (result.crit_dmg >= 1.0 ? ' (CAPPED)' : ''),
-      'Attack Speed: ' + (result.atk_speed * 100).toFixed(2) + '%' + (result.atk_speed >= 1.5 ? ' (CAPPED)' : ''),
+      'Lethality: ' + (result.lethality * 100).toFixed(2) + '%' + (result.lethality >= CAPS.lethality ? ' (CAPPED)' : ''),
+      'Crit Chance: ' + (result.crit_chance * 100).toFixed(2) + '%' + (result.crit_chance >= CAPS.crit_chance ? ' (CAPPED)' : ''),
+      'Crit Damage: ' + (result.crit_dmg * 100).toFixed(2) + '%' + (result.crit_dmg >= CAPS.crit_dmg ? ' (CAPPED)' : ''),
+      'Attack Speed: ' + (result.atk_speed * 100).toFixed(2) + '%' + (result.atk_speed >= CAPS.atk_speed ? ' (CAPPED)' : ''),
+      'Berserk: ' + (result.berserk_level * 100).toFixed(2) + '%' + (result.berserk_level >= CAPS.berserk ? ' (CAPPED)' : ''),
       '',
       '--- DPS Breakdown ---',
       'Weapon DPS: ' + result.weapon_dps.toFixed(2),
