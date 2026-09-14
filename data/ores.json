@@ -524,6 +524,21 @@
           "base": 3.0,
           "max": 30.0,
           "divisor": 100
+        },
+        "phys_dmg": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "move_speed": {
+          "base": 2.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "berserk_duration": {
+          "base": 0.6,
+          "max": 6.0,
+          "divisor": 1
         }
       }
     },
@@ -1312,7 +1327,23 @@
       "trait10": "+0.8% Vitality | +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%",
       "trait30": "+8% Vitality | +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%",
       "comments": "Vitality stacks infinitely\nBerserker Damage/Movespeed stacks, rest does not",
-      "stats": {}
+      "stats": {
+        "phys_dmg": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        },
+        "move_speed": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        },
+        "berserk_duration": {
+          "base": 0.8,
+          "max": 8.0,
+          "divisor": 1
+        }
+      }
     },
     {
       "name": "Yang",
@@ -1382,6 +1413,21 @@
           "base": 3.0,
           "max": 30.0,
           "divisor": 100
+        },
+        "phys_dmg": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        },
+        "move_speed": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        },
+        "berserk_duration": {
+          "base": 0.8,
+          "max": 8.0,
+          "divisor": 1
         }
       }
     },
@@ -1572,6 +1618,21 @@
           "base": 2.0,
           "max": 20.0,
           "divisor": 100
+        },
+        "phys_dmg": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        },
+        "move_speed": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        },
+        "berserk_duration": {
+          "base": 0.8,
+          "max": 8.0,
+          "divisor": 1
         }
       }
     },
@@ -1627,6 +1688,21 @@
           "base": 1.5,
           "max": 15.0,
           "divisor": 100
+        },
+        "phys_dmg": {
+          "base": 3.5,
+          "max": 35.0,
+          "divisor": 100
+        },
+        "move_speed": {
+          "base": 3.5,
+          "max": 35.0,
+          "divisor": 100
+        },
+        "berserk_duration": {
+          "base": 1.0,
+          "max": 10.0,
+          "divisor": 1
         }
       }
     },

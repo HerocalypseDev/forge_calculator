@@ -174,6 +174,41 @@ def extract_ores(ws_v):
     return ores
 
 
+# The berserk-group traits (phys_dmg/move_speed/berserk_duration) have no
+# DPS Calculator formula cell -- they exist only as two hand-written sentences
+# per ore in trait10/trait30. Every ore carrying this trait phrases it
+# identically ("+X% Physical Damage and +Y% Movement Speed for Z second(s)
+# when HP drops below 35%"), and the numbers follow the same base-at-10%-share
+# -> max-at-30%-share ramp every formula-backed stat uses. This regex pulls
+# those three numbers straight out of the verbatim trait text -- nothing here
+# is hand-typed, same principle as parse_stat_matrix.
+BERSERK_TRAIT_RE = re.compile(
+    r"([+-]?\d+(?:\.\d+)?)%\s*Physical\s*Damage\s*and\s*"
+    r"([+-]?\d+(?:\.\d+)?)%\s*Movement\s*Speed\s*for\s*"
+    r"(\d+(?:\.\d+)?)\s*seconds?\s*when\s*HP\s*drops\s*below\s*35%",
+    re.IGNORECASE,
+)
+
+
+def extract_berserk_trait_stats(trait10, trait30):
+    """{phys_dmg, move_speed, berserk_duration} ramps parsed from trait text.
+
+    Returns {} unless the exact phrase is found in BOTH trait10 and trait30 --
+    a partial match (only one breakpoint present) isn't a usable ramp.
+    """
+    m10 = BERSERK_TRAIT_RE.search(trait10 or "")
+    m30 = BERSERK_TRAIT_RE.search(trait30 or "")
+    if not m10 or not m30:
+        return {}
+    pd10, ms10, dur10 = (float(g) for g in m10.groups())
+    pd30, ms30, dur30 = (float(g) for g in m30.groups())
+    return {
+        "phys_dmg": {"base": pd10, "max": pd30, "divisor": 100},
+        "move_speed": {"base": ms10, "max": ms30, "divisor": 100},
+        "berserk_duration": {"base": dur10, "max": dur30, "divisor": 1},
+    }
+
+
 def extract_races(ws_v):
     """_Options race list + the availability matrix.
 
@@ -283,9 +318,12 @@ def extract(workbook_path, out_dir, source_name=None):
     if not race_bonus_types:
         race_bonus_types = derived_types
 
-    # attach stat matrix to catalog ores (by exact name)
+    # attach stat matrix to catalog ores (by exact name), plus any berserk-group
+    # trait ramps parsed straight from that ore's own trait10/trait30 text
     for ore in ores:
         ore["stats"] = matrix.get(ore["name"], {})
+        for stat, rng in extract_berserk_trait_stats(ore["trait10"], ore["trait30"]).items():
+            ore["stats"].setdefault(stat, rng)
 
     # ores that appear only in formulas (not the catalog) -- preserved as a note
     formula_only = sorted(set(matrix) - {o["name"] for o in ores})

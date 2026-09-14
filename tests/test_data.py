@@ -89,6 +89,41 @@ def test_tigers_eye_apostrophe_quirk_is_gone(data):
     assert data.ore("Tigers Eye") is None
 
 
+def test_berserk_group_traits_parsed_from_trait_text(data):
+    """phys_dmg/move_speed/berserk_duration have no DPS Calculator formula cell --
+
+    they're parsed straight out of each ore's own trait10/trait30 sentences
+    ("+X% Physical Damage and +Y% Movement Speed for Z second(s) when HP drops
+    below 35%"), since every ore carrying this trait phrases it identically and
+    the numbers follow the same base-at-10%-share -> max-at-30%-share ramp every
+    formula-backed stat uses. Exactly 5 ores in the catalog have it.
+    """
+    expected = {
+        "Sealed Curse": (2.0, 20.0, 0.6, 6.0),
+        "Yin": (2.5, 25.0, 0.8, 8.0),
+        "Kokorite": (2.5, 25.0, 0.8, 8.0),
+        "Yin-Yang": (2.5, 25.0, 0.8, 8.0),
+        "Fierce Jade": (3.5, 35.0, 1.0, 10.0),
+    }
+    found = {
+        o.name for o in data.ores
+        if o.stat("phys_dmg") or o.stat("move_speed") or o.stat("berserk_duration")
+    }
+    assert found == set(expected)
+
+    for name, (pd_base, pd_max, dur_base, dur_max) in expected.items():
+        ore = data.ore(name)
+        phys = ore.stat("phys_dmg")
+        move = ore.stat("move_speed")
+        dur = ore.stat("berserk_duration")
+        assert (phys.base, phys.max, phys.divisor) == (pd_base, pd_max, 100)
+        assert (move.base, move.max, move.divisor) == (pd_base, pd_max, 100)
+        assert (dur.base, dur.max, dur.divisor) == (dur_base, dur_max, 1)
+
+    # an ore with no such trait sentence at all gets nothing invented
+    assert data.ore("Wolfarite").stat("phys_dmg") is None
+
+
 def test_fire_duration_divisor_is_one(data):
     # Gargantuan fire_duration ramps in seconds, not percent -> divisor 1
     ore = data.ore("Gargantuan")

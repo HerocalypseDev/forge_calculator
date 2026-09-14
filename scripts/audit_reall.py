@@ -32,6 +32,17 @@ CELL_STATS = {
     "E80": ("lightning_cooldown", 1),
 }
 
+# phys_dmg/move_speed/berserk_duration have no DPS Calculator formula cell --
+# they're parsed from each ore's own trait10/trait30 sentences instead. This
+# regex is deliberately reimplemented here (not imported from build_data) so
+# the audit is an independent cross-check, not a tautology.
+BERSERK_TRAIT_RE = re.compile(
+    r"([+-]?\d+(?:\.\d+)?)%\s*Physical\s*Damage\s*and\s*"
+    r"([+-]?\d+(?:\.\d+)?)%\s*Movement\s*Speed\s*for\s*"
+    r"(\d+(?:\.\d+)?)\s*seconds?\s*when\s*HP\s*drops\s*below\s*35%",
+    re.IGNORECASE,
+)
+
 # a slot-1 ore test: C6="Name"  or  OR(C6="A",C6="B",...)
 NAME_RE = re.compile(r'C6\s*=\s*"([^"]+)"')
 # the scaling payload that follows it: (base+(max-base)*MIN(  or  (base+K*MIN(
@@ -100,6 +111,26 @@ def main(xlsx, json_path):
     if r:
         b = float(r.group(1))
         book["poison_duration"] = {"Malachite": (b, b + float(r.group(2)), 1)}
+
+    # berserk-group traits: independently re-derive from _OptionsCrafter's own
+    # trait10 (D) / trait30 (E) text, cross-checking build_data's extraction
+    wsv = openpyxl.load_workbook(xlsx, data_only=True)["_OptionsCrafter"]
+    book.setdefault("phys_dmg", {})
+    book.setdefault("move_speed", {})
+    book.setdefault("berserk_duration", {})
+    for row in wsv.iter_rows(min_row=56, max_row=202):
+        name = (row[0].value or "").strip()
+        if not name:
+            continue
+        t10, t30 = row[3].value or "", row[4].value or ""
+        m10, m30 = BERSERK_TRAIT_RE.search(t10), BERSERK_TRAIT_RE.search(t30)
+        if not m10 or not m30:
+            continue
+        pd10, ms10, dur10 = (float(g) for g in m10.groups())
+        pd30, ms30, dur30 = (float(g) for g in m30.groups())
+        book["phys_dmg"][name] = (pd10, pd30, 100)
+        book["move_speed"][name] = (ms10, ms30, 100)
+        book["berserk_duration"][name] = (dur10, dur30, 1)
 
     data = json.load(open(json_path, encoding="utf-8"))
     ores = data["ores"] if isinstance(data, dict) and "ores" in data else data

@@ -239,7 +239,7 @@ Every MediaWiki UI change should also keep the focused tests green:
 node Web/mediawiki/ability-inputs-test.js   node Web/mediawiki/results-panel-test.js
 node Web/mediawiki/ore-slot-test.js         node Web/mediawiki/bonus-derive-test.js
 node Web/mediawiki/armor-stats-test.js      node Web/mediawiki/berserk-input-test.js
-node Web/mediawiki/no-ore-weapon-test.js
+node Web/mediawiki/no-ore-weapon-test.js    node Web/mediawiki/berserk-trait-test.js
 ```
 
 After changing either engine, rerun `fuzz_gen.py` *then* `fuzz_verify.js` — the
@@ -535,5 +535,41 @@ Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 9506 fie
 rel err 2.75e-16); all 7 focused MediaWiki tests PASSED; `node --check` clean on the
 modified engine; `node Web/js/engine/reall-golden.test.mjs` / `normalize.test.mjs` PASSED
 (untouched, still frozen against the old `reall.xlsx` sample per "MediaWiki only");
+`python scripts/smoke_gui.py` → SMOKE OK.
+
+### Berserk-Group Trait Text Parsed Into Real Ramps — COMPLETED ✅
+**Goal:** The Active Traits card showed most ore stats (Lethality, Crit Chance, Fire DMG,
+etc.) as real computed numbers via each stat's `{base, max, divisor}` ramp, but five ores'
+"+X% Physical Damage and +X% Movement Speed for Y second(s) when HP drops below 35%"
+trait — a real, formula-shaped ramp that the workbook just never gave its own DPS
+Calculator cell — fell back to showing the raw 10%-share sentence with an approximate
+`[Z% power]` prefix, the same generic fallback used for traits with no numeric backing at
+all (Vitality, Swiftness, Health Regen, damage-reduction chance, etc.). The two cases look
+identical in the UI but aren't: the berserk-clause numbers in every ore's `trait10`/`trait30`
+text scale by exactly ×10 between the two breakpoints, the same base→max pattern every
+formula-backed stat uses — verified across all 147 ores before writing anything. The
+`[Z% power]` fallback stays exactly as before for everything else (Vitality and friends),
+per the user's explicit request — this was scoped to the traits that already had a
+recognized slot in `TRAIT_STAT_DISPLAY` (`phys_dmg`/`move_speed`/`berserk_duration`, group
+`'berserk'`), not a general free-text-number parser.
+
+| Change | Where | Status |
+|--------|-------|--------|
+| **`BERSERK_TRAIT_RE` + `extract_berserk_trait_stats`** — regex pulls the two percentages and the duration out of `trait10`/`trait30` verbatim (`"+X% Physical Damage and +Y% Movement Speed for Z second(s) when HP drops below 35%"`); only fires when the phrase is found in BOTH breakpoints, so a partial match never produces a fabricated ramp | `build_data/extract.py` | ✅ Done |
+| **Wired into `extract()`** — merged into each ore's `stats` dict via `setdefault`, same pattern as the old `new.xlsx` legacy merge, so it can never shadow a real formula-cell stat | `build_data/extract.py` | ✅ Done |
+| **Data rebuilt** — exactly the 5 ores with this trait (Sealed Curse, Yin, Kokorite, Yin-Yang, Fierce Jade) gained `phys_dmg`/`move_speed`/`berserk_duration` entries; every other ore/count unchanged. Copied to `Web/mediawiki/Data-Ores.json` and `Web/data/` | `data/ores.json` + copies | ✅ Done |
+| **No MediaWiki JS engine change needed** — `activeTraits`'s `merged`/`formatTraitGroup('berserk', ...)`/`isTraitClaimed` machinery already handled any `ore.stats` key with a `TRAIT_STAT_DISPLAY` entry generically; it was only ever the *data* that was missing these three keys | `MediaWiki-ForgeCalculator.js` | ✅ Done (no-op) |
+| **`scripts/audit_reall.py`** — independently re-derives `phys_dmg`/`move_speed`/`berserk_duration` straight from `_OptionsCrafter`'s own trait columns (its own copy of the regex, not imported from `build_data`, so it's a genuine cross-check) and diffs against the shipped JSON | `scripts/audit_reall.py` | ✅ Done |
+| **Python reference engine untouched** — its own `active_traits()` always prints the raw `trait10`/`trait30` sentence verbatim regardless of stat keys (a structurally different, simpler renderer, already documented as allowed to diverge from MediaWiki's); unaffected by the new `ore.stats` keys since it never reads them for trait display | `forge_calculator/engine.py` | ✅ Done (no-op, confirmed) |
+| **Tests** — `tests/test_data.py::test_berserk_group_traits_parsed_from_trait_text` (exact ore set + exact base/max/divisor for all 5, plus a negative check that an unrelated ore gets nothing invented); `Web/mediawiki/berserk-trait-test.js` (new, 10 checks: exact base text at 10% share with no `[X% power]` prefix, the ramped value at 20% share matches `scaleRange`'s formula bit-for-bit, exact max text at 30%/100% share, Sealed Curse's *unrelated* Vitality/Stamina/plain-Movement-Speed lines still show the old `[X% power]` fallback, an ore without the trait shows nothing, and `berserkLevel`/`C97` numeric DPS is provably untouched by the trait) | `tests/test_data.py`, `Web/mediawiki/berserk-trait-test.js` | ✅ Done |
+
+**Verification:** `python -m pytest tests/` → 84 passed; `python scripts/audit_reall.py
+reference/Extended.xlsx data/ores.json` → 0 problems (independent cross-check, not just the
+same code re-run); `python scripts/reall_parity.py` / `node reall-golden.js` / `node
+reall-aggregates.js` / `node verify-engine.js` → all still PASSED (numeric DPS untouched, as
+expected — this is a display-only change); `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL
+FUZZ PASSED (250 builds, 9506 fields, worst rel err 2.75e-16 — proves the new ore stat keys
+don't leak into any numeric field either engine computes); `node berserk-trait-test.js` →
+ALL BERSERK-TRAIT CHECKS PASSED (10/10); all other 7 focused MediaWiki tests still pass;
 `python scripts/smoke_gui.py` → SMOKE OK.
 
