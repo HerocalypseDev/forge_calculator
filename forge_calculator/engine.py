@@ -110,6 +110,7 @@ CAPS = {
     "crit_chance": 1.0,
     "crit_dmg": 1.0,
     "atk_speed": 1.5,
+    "berserk": 2.0,
 }
 
 # K6-K9 active-trait power: MIN(MAX((share-0.1)*4.5+0.1, 0.1), 1)
@@ -632,11 +633,13 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
     )
     proc_total = total - weapon_dps
 
-    # C97 -- ((E19 * (1 + C54 + IF(Minotaur,30%,0))) * E21) + SUM(C90:C94) + E94.
-    # E19*E21 is exactly C89, so berserk is one clean multiplier on the physical
-    # hit; it does NOT boost lethality, and no cap applies -- E54 has a MIN(200%)
-    # wrapper in the sheet, but nothing (including C97) ever reads E54.
-    berserk_level = build.berserk + RACE_BERSERK.get(build.race, 0.0)
+    # C97 -- ((E19 * (1 + E54)) * E21) + SUM(C90:C94) + E94, once the sheet is
+    # fixed to read E54 = MIN(200%, C54 + IF(Minotaur,30%,0)) instead of
+    # recomputing the addend inline (which is what it does today -- see
+    # "Approved deviation: berserk 200% cap" in CLAUDE.md).  E19*E21 is exactly
+    # C89, so berserk is one clean multiplier on the physical hit; it does NOT
+    # boost lethality.
+    berserk_level = min(build.berserk + RACE_BERSERK.get(build.race, 0.0), CAPS["berserk"])
     berserk = None if berserk_level == 0 else weapon_dps * (1 + berserk_level) + proc_total
 
     # C98 -- IF(C53=0, C96, (C89 * (1 + C53)) + C90..C94 + E94): the moon bonus

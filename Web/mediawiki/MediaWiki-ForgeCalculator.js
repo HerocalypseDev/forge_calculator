@@ -62,7 +62,8 @@
     lethality: 1.5,
     crit_chance: 1.0,
     crit_dmg: 1.0,
-    atk_speed: 1.5
+    atk_speed: 1.5,
+    berserk: 2.0
   };
 
   var TRAIT_POWER_SLOPE = 4.5;
@@ -689,7 +690,7 @@
     var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps;
     var proc_total = total_dps - weapon_dps;
 
-    var berserkLevel = build.berserk + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0);
+    var berserkLevel = Math.min(build.berserk + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0), CAPS.berserk);
     var berserk = berserkLevel !== 0 ? weapon_dps * (1 + berserkLevel) + proc_total : null;
 
     var moonstone = procs.moon !== 0 ? weapon_dps * (1 + procs.moon) + proc_total : null;

@@ -52,12 +52,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   Commit `e512c81` hand-edited the JSON instead of rebuilding it, which silently
   broke 7 ore multipliers and most of Kitsunite for three commits.
 
-### Formerly-approved deviations (all resolved in Extended.xlsx — historical)
-The engines carried five deliberate deviations from the older `reall.xlsx`. Every
-one of them is now moot: `reference/Extended.xlsx` either fixes the sheet formula
-to match what the engines already did, or (for #5) the engines were changed to
-match the sheet instead. Kept here only so the "both spellings registered" /
-similar defensive code in the engines still makes sense on read.
+### Formerly-approved deviations (resolved in Extended.xlsx — historical)
+The engines carried five deliberate deviations from the older `reall.xlsx`. Four of
+them are now moot: `reference/Extended.xlsx` fixes the sheet formula to match what
+the engines already did. Kept here only so the "both spellings registered" / similar
+defensive code in the engines still makes sense on read. (The fifth, berserk's 200%
+cap, is a live deviation again — see below.)
 1. **Ore attack speed.** `reall.xlsx`'s `C48` was a bare input cell (the ramp had
    been deleted); the engines derived the stat from `new.xlsx`'s `C48` instead.
    `Extended.xlsx` restores `C48` as a live formula with identical constants, so
@@ -77,19 +77,40 @@ similar defensive code in the engines still makes sense on read.
    either way. `Extended.xlsx`'s `E45` now tests the plural `Gauntlets` too, same
    as `E48` — genuinely reachable at the source. Both spellings stay registered in
    the engines; harmless now that only the plural is ever seen.
-5. **Berserk's 200% cap.** This was previously a MediaWiki-JS-only addition
-   (`CAPS.berserk`) with no sheet equivalent. `Extended.xlsx` added
-   `MIN(200%, …)` to `E54` — but no formula on `DPS Calculator` reads `E54`;
-   `C97` recomputes `C54 + IF(C22="Minotaur",30%,0)` inline instead of
-   referencing it, so the sheet's own cap never actually clamps real DPS output.
-   Rather than diverge from a sheet that *tried* to cap but wired it to nothing,
-   `CAPS.berserk` was **removed** from the MediaWiki engine — berserk is now
-   uncapped in all three engines, matching `C97` verbatim. (If the sheet is ever
-   fixed so `C97` reads `E54`, the cap should be re-added to match.)
 
 `C64` reading `C37` (the Blast row's DMG cell) instead of `E34` (Fire's own Time)
 was also fixed at the source — `Extended.xlsx`'s `C64` reads `E34`, matching what
 the engines always did via `fire_time`.
+
+### Approved deviation (current, live): berserk's 200% cap
+`Extended.xlsx`'s `C97` computes berserk DPS as
+`((E19 * (1 + C54 + IF(C22="Minotaur",30%,0))) * E21) + SUM(C90:C94) + E94` — an
+inline, **uncapped** recomputation of the addend. `E54` right next to it already
+computes `MIN(200%, C54 + IF(C22="Minotaur",30%,0))`, the same expression capped —
+but nothing on `DPS Calculator`, including `C97`, ever reads `E54`. The user has
+confirmed this is a spreadsheet bug (the intent was clearly for `E54` to cap every
+berserk source at 200% total) and will fix `C97` to read `E54` later; until then,
+all three engines deliberately diverge from the sheet's real (uncapped) `C97` output
+to enforce the cap themselves:
+
+- `forge_calculator/engine.py`: `CAPS["berserk"] = 2.0`; `berserk_level =
+  min(build.berserk + RACE_BERSERK.get(build.race, 0.0), CAPS["berserk"])`.
+- `Web/mediawiki/MediaWiki-ForgeCalculator.js`: `CAPS.berserk = 2.0`; `berserkLevel
+  = Math.min(build.berserk + RACE_BERSERK[...], CAPS.berserk)`.
+- **Not** ported to the retired `Web/js/` standalone engine, per the "MediaWiki
+  only" rule (no fixes into retired code).
+
+**Spreadsheet fix, when applied:** change `C97` from the inline recomputation above
+to `=((E19 * (1 + E54)) * E21) + SUM(C90:C94) + E94` — i.e. reference `E54` instead
+of duplicating its expression. Once that's live in the workbook, this stops being a
+deviation and the code comments (`forge_calculator/engine.py`'s `berserk_level`
+comment, this section) should be updated to say so.
+
+Regression tests proving the clamp actually triggers (not just that it's dormant
+under today's UI limits — manual input maxes at 150%, Minotaur adds 30%, so 180% is
+the highest the UI alone can reach): `tests/test_golden.py::test_berserk_caps_at_200_percent`
+(manual 500% + Minotaur 30% → capped to 200%) and the `E54  berserk caps at 200%
+total` check in `Web/mediawiki/reall-aggregates.js`.
 
 ### Dynamic Plan Tracking & Memory
 - **Plan Storage:** Whenever a new development plan or roadmap is created while in **Plan Mode**, you must add a summary of that plan to `CLAUDE.md` under a dedicated tracking section **immediately when the plan is made** — before any implementation work begins. Do not wait until the plan's phases have been implemented to record it.
@@ -136,7 +157,7 @@ Workbook sheets:
 - **Ore power** `E10` — weighted average of the slot multipliers, with **Fichilliumorite excluded from both halves** of the division, so it is filler that never dilutes.
 - **Weapon DPS** `C89` = `C18 × (1+E45) × crit_blend × E21`; the seven proc rows (`C90`–`C94`, `E94`) scale on **unforged A18**; **Total** `C96` = sum; TTK `E96/E97` = 25k/75k ÷ total; `C100` min, `C101` max-burst (procs on **forged C18**).
 - **Aggregation differs per proc.** Explosion damage (`C58`) **sums** across the four slots, while explosion chance (`C59`) — like fire, poison, smite and lightning **chance** — takes a `MAX` (see "Explosion Chance SUM→MAX Fix" below). Smite adds its race bonus *on top of* the slot max rather than maxing against it.
-- **Berserk** `C97` = `C89 × (1 + C54 + IF(Minotaur,30%,0))` + the six proc rows: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. Uncapped in the sheet and in all three engines — `E54` computes the same addend with a `MIN(200%, …)` wrapper, but it's a dead cell nothing reads (not even `C97`), so the cap is decorative. Ore `phys_dmg` traits are **display-only** ("when HP < 35%") and must not feed it. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
+- **Berserk** `C97` = `C89 × (1 + C54 + IF(Minotaur,30%,0))` + the six proc rows: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. **Capped at 200% total in `forge_calculator/engine.py` and MediaWiki JS** (see "Approved deviation (current, live): berserk's 200% cap") — the sheet's own cap lives on `E54` but nothing, including `C97`, reads it, so the sheet itself stays uncapped until that's fixed. Ore `phys_dmg` traits are **display-only** ("when HP < 35%") and must not feed it. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
 - **Lightning** (`C80`/`E80`/`C81`, DPS `E81`): damage sums, chance maxes, and the cooldown is the `MIN` across slots — the sheet uses `99` as its "no lightning" sentinel and maps a surviving 99 back to 0. Procs are rate-capped by `MIN(E21, 1/E80)`.
 
 ## Preserved workbook quirks (do not "fix")
@@ -500,13 +521,15 @@ no script).
 | 3 | **`scripts/audit_reall.py`** — added `C48` to its own `CELL_STATS` table (it had never read C48, from the reall.xlsx-era bare-input days) → **0 ore-range problems** against the rebuilt `data/ores.json` | ✅ Done |
 | 4 | **Python engine parity** — `tests/test_golden.py`'s `WORKBOOK` → `Extended.xlsx`; `test_workbook_cached_golden` now reads the real `game` fixture (the old `_game_without_ore_atk_speed` strip-and-reload workaround is gone, since `C48` is live in the main workbook now); `rune_cells` extended to 9 cells (`C27:E29`); the `C101` max-burst assertion no longer needs the old "undo the bare-`+C80` bug" restatement, since `Extended.xlsx`'s `C101` is already correct. `tests/test_formula_parser.py`'s legacy-workbook merge removed (single-workbook parse now reproduces the full `EXPECTED` matrix, `C48` included). `scripts/reall_parity.py` rewritten to read the default build and every expected cell from the workbook's own cache dynamically (was hand-typed `EXPECTED` constants tied to the old sample build — a rebuild-breaking pattern the "zero invented mechanics" rule exists to avoid) | ✅ Done |
 | 5 | **JS harness parity** — `Web/mediawiki/reall-golden.js` and `reall-aggregates.js` updated to the new default build (`Fierce Jade`/`Kitsunite`/`Galaxite`/`Supermassive Black Hole`, `Excalibur`, `Human`, 9-slot rune grid) and the workbook's own cached values (transcribed via the Python-side dump, not hand-derived); `fuzz_gen.py` rerun so `fuzz-cases.json` stores results from the migrated Python engine | ✅ Done |
-| 6 | **Berserk cap resolved (deviation #5)** — `CAPS.berserk` (the `MIN(200%, …)` clamp) removed from `MediaWiki-ForgeCalculator.js`'s real berserk computation, since `Extended.xlsx`'s own cap (`E54`) is provably a dead cell that `C97` never reads. All three engines are now uncapped, matching `C97` verbatim | ✅ Done |
+| 6 | **Berserk cap (deviation #5)** — initially removed `CAPS.berserk` to match `Extended.xlsx`'s `C97` verbatim (uncapped, since `E54`'s `MIN(200%, …)` is a dead cell nothing reads). The user then judged the sheet's dead cap a spreadsheet bug and asked for the 200% cap to be enforced engine-side regardless, pending a manual fix to `C97` later — see "Approved deviation (current, live): berserk's 200% cap". Re-added `CAPS.berserk = 2.0` to both `forge_calculator/engine.py` and `MediaWiki-ForgeCalculator.js` (not the retired `Web/js/`), with regression tests that actually exercise the clamp (`test_berserk_caps_at_200_percent`, `reall-aggregates.js`'s 530%→200% check) | ✅ Done |
 | 7 | **Docs** — `CLAUDE.md`: "Zero invented mechanics" repointed to `Extended.xlsx`; the five former deviations rewritten as resolved history; the `C64`/`C37` "still open" note removed (fixed at the source); Berserk/Gauntlet domain-model bullets updated; `Build.rune_cells` default widened to 9 cells and several stale cell-reference comments in `forge_calculator/engine.py`'s `Build` dataclass fixed in passing (`armor_crit_chance`/`armor_crit_dmg`/`armor_lethality`/`base_lethality`/`berserk`/`achievement` were citing the wrong row, off by one from what the passing tests actually used) | ✅ Done |
 
-**Verification:** `python -m pytest tests/` → 82 passed; `python scripts/audit_reall.py
+**Verification:** `python -m pytest tests/` → 83 passed (incl.
+`test_berserk_caps_at_200_percent`); `python scripts/audit_reall.py
 reference/Extended.xlsx data/ores.json` → 0 problems; `python scripts/reall_parity.py` →
 PARITY PASSED (37 cells, dynamic); `node Web/mediawiki/reall-golden.js` → PARITY PASSED;
-`node Web/mediawiki/reall-aggregates.js` → AGGREGATES MATCH; `node
+`node Web/mediawiki/reall-aggregates.js` → AGGREGATES MATCH (incl. the 530%→200% berserk
+cap check); `node
 Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node
 Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 9506 fields, worst
 rel err 2.75e-16); all 7 focused MediaWiki tests PASSED; `node --check` clean on the

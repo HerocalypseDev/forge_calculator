@@ -81,6 +81,16 @@ function check(label, workbook, engine) {
 }
 
 {
+  // manual 500% + Minotaur 30% = 530% uncapped, clamped to 200% (E54's
+  // MIN(200%,...) applied engine-side since C97 doesn't read E54 in the sheet yet)
+  const r = FC.calculate(mk({ race: 'Minotaur', bonus_weapon_type: 'Dagger', berserk: 5.0 }), game);
+  const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
+                  r.blackhole_dps + r.lightning_dps;
+  const expected = r.weapon_dps * (1 + 2.0) + procSum;
+  check('E54  berserk caps at 200% total', expected, r.berserk);
+}
+
+{
   const r = FC.calculate(mk({
     slots: [
       { name: 'Moon Stone', amount: 20 }, { name: 'Kitsunite', amount: 20 },

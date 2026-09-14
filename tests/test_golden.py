@@ -211,6 +211,22 @@ def test_minotaur_berserk(game):
     assert calculate(plain, game).berserk is None
 
 
+def test_berserk_caps_at_200_percent(game):
+    # manual 500% + Minotaur 30% = 530% uncapped, clamped to 200% (approved
+    # deviation: the sheet's own MIN(200%,...) lives on E54, a cell nothing --
+    # including today's C97 -- reads, so the engines apply the cap themselves).
+    build = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
+                  weapon_name="Dagger", race="Minotaur", berserk=5.0)
+    r = calculate(build, game)
+    assert r.berserk == pytest.approx(r.weapon_dps * 3.0)
+
+    # just under the cap is untouched
+    under = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
+                  weapon_name="Dagger", race="Minotaur", berserk=1.5)
+    r_under = calculate(under, game)
+    assert r_under.berserk == pytest.approx(r_under.weapon_dps * 2.80)
+
+
 # --- engine-vs-source guard: every hardcoded constant must appear in the formulas ---
 
 
