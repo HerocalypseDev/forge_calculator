@@ -220,5 +220,9 @@ To achieve bit-for-bit parity with the workbook (as required by the project's "Z
 ## Note on Data Files
 The JS engine relies on `data/*.json` for ore and weapon stats. Ensure these files are generated from the new.xlsx workbook using the build script (`scripts/build_data.py`) to maintain consistency.
 
+
+
+
+
 ---
 *Report generated: $(date)*
