@@ -19,7 +19,7 @@ from forge_calculator.engine import (
 )
 
 ROOT = DEFAULT_DATA_DIR.parent
-WORKBOOK = ROOT / "reference" / "reall.xlsx"
+WORKBOOK = ROOT / "reference" / "Extended.xlsx"
 
 
 @pytest.fixture(scope="module")
@@ -45,39 +45,10 @@ def _workbook_cache():
     return lambda cell: dps[cell].value
 
 
-def _game_without_ore_atk_speed():
-    """The catalog with ore ``atk_speed`` dropped.
-
-    reall.xlsx deleted the C48 ore attack-speed ramp, but the engine still derives
-    that stat (from new.xlsx C48) because the deletion was judged a sheet
-    regression.  That deviation would otherwise shift E48 -- and therefore every
-    DPS cell -- for any build holding one of the four ores that grant it, so it is
-    removed here to keep this a pure formula check.
-    """
-    import json
-    import shutil
-    import tempfile
-    from pathlib import Path
-
-    tmp = Path(tempfile.mkdtemp(prefix="fc-golden-"))
-    try:
-        for name in ("ores", "weapons", "races", "runes", "achievements"):
-            shutil.copyfile(DEFAULT_DATA_DIR / f"{name}.json", tmp / f"{name}.json")
-        path = tmp / "ores.json"
-        raw = json.loads(path.read_text(encoding="utf-8"))
-        for ore in raw["ores"]:
-            (ore.get("stats") or {}).pop("atk_speed", None)
-        path.write_text(json.dumps(raw), encoding="utf-8")
-        return load_game_data(tmp)
-    finally:
-        shutil.rmtree(tmp, ignore_errors=True)
-
-
-def test_workbook_cached_golden():
+def test_workbook_cached_golden(game):
     c = _workbook_cache()
     if c is None:
         pytest.skip("workbook cache absent (openpyxl or cached values)")
-    game = _game_without_ore_atk_speed()
 
     build = Build(
         slots=(
@@ -91,8 +62,9 @@ def test_workbook_cached_golden():
         forge_level=int(c("C13") or 0),
         race=c("C22") or "",
         bonus_weapon_type=c("C23") or "",
-        rune_cells=(c("C27") or "None", c("D27") or "None", c("C28") or "None",
-                    c("D28") or "None", c("C29") or "None", c("D29") or "None"),
+        rune_cells=(c("C27") or "None", c("D27") or "None", c("E27") or "None",
+                    c("C28") or "None", c("D28") or "None", c("E28") or "None",
+                    c("C29") or "None", c("D29") or "None", c("E29") or "None"),
         base_crit_chance=c("C20") or 0.0,
         base_crit_dmg=c("C21") or 0.0,
         armor_crit_chance=c("C42") or 0.0,
@@ -136,13 +108,7 @@ def test_workbook_cached_golden():
     ]:
         assert val == pytest.approx(c(cell) or 0.0, rel=1e-9), f"{cell}: {val} vs cached {c(cell)}"
 
-    # C101's final term is a bare "+C80" in the sheet -- the raw lightning
-    # PERCENTAGE, not damage.  That is an authoring slip, so the engine scales the
-    # term like every other proc; the expectation is restated to match.
-    expected_max = (
-        c("C101") - c("C80") + c("C18") * c("C80") * c("C81") * c("E21")
-    )
-    assert r.max_dps == pytest.approx(expected_max, rel=1e-9)
+    assert r.max_dps == pytest.approx(c("C101"), rel=1e-9)
 
     # C97/C98 fall back to C96 in the sheet when the bonus is 0; the engine uses None
     assert (r.berserk if r.berserk is not None else r.total_dps) == pytest.approx(
@@ -283,7 +249,7 @@ def test_engine_constants_match_source():
     # E45 race/class lethality addends
     for frag in ["20%", "10%", "5%", "12%"]:
         _guard(formulas, "E45", frag, "race lethality")
-    _guard(formulas, "E45", '"Gauntlet"', "E45 class bonus singular")
+    _guard(formulas, "E45", '"Gauntlets"', "E45 class bonus plural")
     _guard(formulas, "E45", "150%", "lethality cap")
 
     # E48 race/class atk-speed addends (plural Gauntlets)

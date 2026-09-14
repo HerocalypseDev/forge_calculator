@@ -1,8 +1,7 @@
 """The stat-matrix parser must extract EXACTLY the known base/max/divisor table.
 
 This is the guard against hand-typing: the matrix is derived from the formula
-strings in the workbook itself (``reference/reall.xlsx``, plus the ore
-attack-speed ramp that survives only in ``reference/new.xlsx``).  The old
+strings in the workbook itself (``reference/Extended.xlsx``).  The old
 ``all_formulas*.txt`` dumps are gone -- they kept drifting from the workbook,
 which is the actual authority, so the tests read the workbook directly.
 
@@ -15,15 +14,10 @@ from pathlib import Path
 
 import pytest
 
-from build_data.formula_parser import (
-    LEGACY_STAT_CELLS,
-    STAT_CELLS,
-    parse_stat_matrix,
-)
+from build_data.formula_parser import STAT_CELLS, parse_stat_matrix
 
 ROOT = Path(__file__).resolve().parent.parent
-WORKBOOK = ROOT / "reference" / "reall.xlsx"
-LEGACY_WORKBOOK = ROOT / "reference" / "new.xlsx"
+WORKBOOK = ROOT / "reference" / "Extended.xlsx"
 
 EXPECTED = {
     "Crimsonite": {"lethality": (2.0, 20.0, 100)},
@@ -168,15 +162,8 @@ def _workbook_formulas(path, cells):
 
 @pytest.fixture(scope="module")
 def matrix():
-    """The full stat matrix: reall.xlsx, plus ore atk speed from new.xlsx."""
-    out = parse_stat_matrix(_workbook_formulas(WORKBOOK, STAT_CELLS))
-    legacy = parse_stat_matrix(
-        _workbook_formulas(LEGACY_WORKBOOK, LEGACY_STAT_CELLS), LEGACY_STAT_CELLS
-    )
-    for ore, stats in legacy.items():
-        for stat, entry in stats.items():
-            out.setdefault(ore, {}).setdefault(stat, entry)
-    return out
+    """The full stat matrix, parsed straight from Extended.xlsx."""
+    return parse_stat_matrix(_workbook_formulas(WORKBOOK, STAT_CELLS))
 
 
 def _as_tuple(entry):

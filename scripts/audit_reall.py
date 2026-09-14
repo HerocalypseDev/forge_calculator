@@ -1,4 +1,4 @@
-"""Diff reall.xlsx per-ore stat ranges against Web/mediawiki/Data-Ores.json.
+"""Diff Extended.xlsx per-ore stat ranges against Web/mediawiki/Data-Ores.json.
 
 Dev-only audit helper. Parses the slot-1 (C6/D6) branch of each DPS Calculator
 stat formula -- all four slots repeat identical ranges -- and reports any ore
@@ -15,6 +15,7 @@ CELL_STATS = {
     "C45": ("lethality", 100),
     "C46": ("crit_chance", 100),
     "C47": ("crit_dmg", 100),
+    "C48": ("atk_speed", 100),
     "C53": ("moon", 100),
     "C58": ("explosion_dmg", 100),
     "C59": ("explosion_chance", 100),

@@ -1,6 +1,6 @@
 {
-  "workbook": "reall.xlsx",
-  "built_at": "2026-09-12T22:42:10+00:00",
+  "workbook": "Extended.xlsx",
+  "built_at": "2026-09-14T04:03:59+00:00",
   "counts": {
     "ores": 147,
     "weapons": 80,
@@ -8,6 +8,6 @@
     "runes": 47,
     "achievements": 16
   },
-  "stat_formulas_sha256": "844572664ea0eff3ebdb903d85823baa3dc7e7fb4f8089feafb498b5432e6c85",
+  "stat_formulas_sha256": "97d0e15c1dd21bf96b5f0eb0de443caf7230c8f0b57860efa77604e683e1aabb",
   "formula_only_ores": []
 }

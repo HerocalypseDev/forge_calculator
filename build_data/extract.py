@@ -19,24 +19,18 @@ from openpyxl import load_workbook
 from openpyxl.utils.cell import coordinate_to_tuple, range_boundaries
 
 from forge_calculator.parse import parse_ore_power, parse_trait
-from .formula_parser import LEGACY_STAT_CELLS, STAT_CELLS, parse_stat_matrix
+from .formula_parser import STAT_CELLS, parse_stat_matrix
 
 DPS_SHEET = "DPS Calculator"
 WEAPON_SHEET = "_Weapon"
 CRAFTER_SHEET = "_OptionsCrafter"
 OPTIONS_SHEET = "_Options"
 
-# Sheet ranges, as laid out in reall.xlsx.
+# Sheet ranges, as laid out in Extended.xlsx.
 WEAPON_ROWS = (2, 81)          # _Weapon!B2:E81   (row 1 is the header)
 CRAFTER_ROWS = (56, 202)       # _OptionsCrafter!A56:F202
 #                              # (53 banner, 54 header, 55 the "Select Ore" sentinel)
 ACHIEVEMENT_CELL = "C85"       # DPS Calculator achievement selector
-
-# The ore attack-speed ramp was deleted from the DPS sheet between new.xlsx and
-# reall.xlsx (reall's C48 is a bare input).  The maintainer's call is that this
-# was a sheet regression, so the stat is still sourced -- from the prior
-# workbook, so it stays parsed rather than hand-typed.
-LEGACY_WORKBOOK = "new.xlsx"
 
 
 # --- small helpers ---
@@ -264,21 +258,6 @@ def _signature(formulas):
 # --- main entry ---
 
 
-def _legacy_matrix(workbook_path):
-    """Parse the stats that only exist in the prior workbook (ore atk speed).
-
-    Returns ``{}`` when the legacy workbook is absent, so a checkout without it
-    still builds (minus ore attack speed).
-    """
-    legacy = Path(workbook_path).parent / LEGACY_WORKBOOK
-    if not legacy.exists():
-        return {}
-    wb = load_workbook(legacy, data_only=False)
-    dps = wb[DPS_SHEET]
-    formulas = {cell: _formula_text(dps, cell) for cell in LEGACY_STAT_CELLS}
-    return parse_stat_matrix(formulas, LEGACY_STAT_CELLS)
-
-
 def extract(workbook_path, out_dir, source_name=None):
     wb_f = load_workbook(workbook_path, data_only=False)
     wb_v = load_workbook(workbook_path, data_only=True)
@@ -295,12 +274,6 @@ def extract(workbook_path, out_dir, source_name=None):
     for cell in STAT_CELLS:
         formulas[cell] = _formula_text(dps, cell)
     matrix = parse_stat_matrix(formulas)
-
-    # ore attack speed survives only in the prior workbook -- merge it in without
-    # letting it shadow anything the current workbook defines
-    for ore_name, stats in _legacy_matrix(workbook_path).items():
-        for stat, entry in stats.items():
-            matrix.setdefault(ore_name, {}).setdefault(stat, entry)
 
     # weapon-type validation lists (C12 / C23) -- preserved verbatim
     types_from_c12 = _validation_list(dps, "C12", wb_v)
@@ -336,8 +309,7 @@ def extract(workbook_path, out_dir, source_name=None):
         json.dumps(
             {
                 "source": f"{CRAFTER_SHEET}!A56:F202 + DPS stat formulas "
-                f"({min(STAT_CELLS)}..{max(STAT_CELLS)}) "
-                f"+ {LEGACY_WORKBOOK} C48 (ore atk speed)",
+                f"({min(STAT_CELLS)}..{max(STAT_CELLS)})",
                 "select_ore": "Select Ore",
                 "formula_only_ores": formula_only,
                 "ores": ores,

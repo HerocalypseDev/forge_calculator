@@ -1,5 +1,5 @@
 {
-  "source": "_OptionsCrafter!A56:F202 + DPS stat formulas (C45..E80) + new.xlsx C48 (ore atk speed)",
+  "source": "_OptionsCrafter!A56:F202 + DPS stat formulas (C45..E80)",
   "select_ore": "Select Ore",
   "formula_only_ores": [],
   "ores": [

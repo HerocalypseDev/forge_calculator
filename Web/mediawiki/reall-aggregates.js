@@ -43,7 +43,7 @@ function mk(over) {
     ],
     weapon_name: 'Hook Blade', quality: 100, forge_level: 9,
     race: 'Archangel', bonus_weapon_type: 'Dagger',
-    rune_cells: ['None', 'None', 'None', 'None', 'None', 'None'],
+    rune_cells: ['None', 'None', 'None', 'None', 'None', 'None', 'None', 'None', 'None'],
     base_crit_chance: 0, base_crit_dmg: 1.45,
     armor_crit_chance: 0.7, armor_crit_dmg: 0.4, armor_lethality: 0.8, base_lethality: 0,
     abilities: {
@@ -152,6 +152,6 @@ for (const [label, w, e, ok] of rows) {
     Number(e).toFixed(6).padStart(14), ok ? '  ok' : '  <-- MISMATCH');
 }
 console.log('-'.repeat(78));
-console.log(fails === 0 ? 'AGGREGATES MATCH reall.xlsx'
+console.log(fails === 0 ? 'AGGREGATES MATCH Extended.xlsx'
   : fails + ' of ' + rows.length + ' aggregate formulas diverge');
 process.exit(fails ? 1 : 0);

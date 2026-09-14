@@ -33,16 +33,16 @@ __all__ = [
     "load_formulas_from_txt",
     "parse_stat_matrix",
     "STAT_CELLS",
-    "LEGACY_STAT_CELLS",
 ]
 
 
 # cell -> stat name.  This is the ONLY hardcoded table in the build; the values
-# themselves are always parsed from the formulas.  Addresses are reall.xlsx.
+# themselves are always parsed from the formulas.  Addresses are Extended.xlsx.
 STAT_CELLS = {
     "C45": "lethality",
     "C46": "crit_chance",
     "C47": "crit_dmg",
+    "C48": "atk_speed",
     "C53": "moon",
     "C58": "explosion_dmg",
     "C59": "explosion_chance",
@@ -62,14 +62,6 @@ STAT_CELLS = {
 
 # C77 (black-hole proc chance) is the constant IF(COUNTIF(...)>=0.1,0.3,0) and
 # is handled directly in the engine, not in the matrix.
-
-# Ore attack speed: the C48 ramp existed in new.xlsx but was replaced by a bare
-# input cell in reall.xlsx.  Per the maintainer's call that deletion was a sheet
-# regression, so the stat is still sourced -- from the prior workbook, never
-# hand-typed.  See reference/new.xlsx.
-LEGACY_STAT_CELLS = {
-    "C48": "atk_speed",
-}
 
 
 _CELL_HEADER = re.compile(r"^\s*([A-Z]{1,3}[0-9]+):\s*$")

@@ -1,6 +1,6 @@
 """DPS engine, ported cell-for-cell from the workbook's "DPS Calculator" sheet.
 
-Every constant below cites its source cell in ``reference/reall.xlsx``.  The
+Every constant below cites its source cell in ``reference/Extended.xlsx``.  The
 workbook's quirks are preserved rather than fixed: procs scale on the unforged
 A18 while C89/C101 use the forged C18, fire/poison durations subtract 1 and 2,
 poison duration reads only the FIRST Malachite slot, C77 treats "Select Ore" as
@@ -10,13 +10,11 @@ C97 berserk multiplies the physical hit rather than boosting lethality.
 The ability grid is row-per-ability: Fire 34, Poison 35, Lightning 36, Blast 37,
 with DMG/Chance/Time in columns C/D/E (Blast has no time).
 
-Two deliberate, maintainer-approved deviations from reall.xlsx:
-
-* ore attack speed is still sourced (from ``new.xlsx`` C48); reall.xlsx replaced
-  that ramp with a bare input cell, which was judged a sheet regression.
-* Felynx + a Gauntlet weapon gets BOTH the E45 lethality and E48 attack-speed
-  bonuses.  The sheet's C23 dropdown only offers the plural "Gauntlets", so E45's
-  singular test can never fire there; the two spellings are treated as one type.
+Felynx + a Gauntlets weapon gets BOTH the E45 lethality and E48 attack-speed
+bonuses -- E45 and E48 both test the plural "Gauntlets" (the only spelling the
+C23 dropdown offers). The singular "Gauntlet" is registered alongside it in
+``CLASS_LETHALITY``/``CLASS_ATK_SPEED`` too, harmless dead weight kept from when
+an older workbook (reall.xlsx) had E45 testing the singular and never firing.
 
 Pure stdlib -- no tkinter, no openpyxl.
 """
@@ -73,8 +71,8 @@ RACE_LETHALITY = {
     "Shadow": 0.05, "Dragonborn": 0.12,
 }
 # E45 class lethality addends (IFS in E45).  The sheet writes the Felynx test
-# with the SINGULAR "Gauntlet", which its own C23 dropdown never offers; both
-# spellings are registered so the bonus is reachable (approved deviation).
+# with the plural "Gauntlets" (the only spelling its C23 dropdown offers); the
+# singular is registered too, harmless dead weight kept from an older workbook.
 CLASS_LETHALITY = {
     ("Felynx", "Gauntlet"): 0.20,
     ("Felynx", "Gauntlets"): 0.20,
@@ -84,9 +82,7 @@ CLASS_LETHALITY = {
 RACE_ATK_SPEED = {
     "Shadow": 0.10, "Demon": 0.20, "Archangel": 0.20,
 }
-# E48 class atk-speed addends (IFS in E48).  The sheet writes the Felynx test
-# with the PLURAL "Gauntlets"; both spellings are registered so the bonus
-# survives the weapon-type derivation, which yields the singular.
+# E48 class atk-speed addends (IFS in E48), same Felynx test as CLASS_LETHALITY.
 CLASS_ATK_SPEED = {
     ("Goblin", "Dagger"): 0.10,
     ("Golem", "Colossal Sword"): 0.15,
@@ -163,16 +159,16 @@ class Build:
     forge_level: int = 0            # C13
     race: str = ""                  # C22
     bonus_weapon_type: str = ""     # C23
-    rune_cells: tuple = ("None", "None", "None", "None", "None", "None")  # C27:D29
+    rune_cells: tuple = ("None",) * 9  # C27:E29
     base_crit_chance: float = 0.0   # C20
     base_crit_dmg: float = 1.45     # C21 — workbook's base crit damage (a crit deals 145% before bonuses)
-    armor_crit_chance: float = 0.0  # C41
-    armor_crit_dmg: float = 0.0     # C42
-    armor_lethality: float = 0.0    # C43
-    base_lethality: float = 0.0     # A44
+    armor_crit_chance: float = 0.0  # C42
+    armor_crit_dmg: float = 0.0     # C43
+    armor_lethality: float = 0.0    # C44
+    base_lethality: float = 0.0     # A45
     abilities: Abilities = Abilities()
-    berserk: float = 0.0            # C53
-    achievement: str = "None"       # C80
+    berserk: float = 0.0            # C54
+    achievement: str = "None"       # C85
 
 
 # --- core math ---
@@ -281,7 +277,7 @@ def attack_rate(weapon, atk_speed_total: float) -> float:
 
 
 def rune_totals(rune_cells) -> Mapping[str, float]:
-    """A27/A28/A29/A30-31 -- sum each rune's parsed stat across the 6 cells."""
+    """A27/A28/A29/A31 -- sum each rune's parsed stat across the 9 grid cells."""
     totals = {stat: 0.0 for stat in _CORE_STATS}
     for text in rune_cells:
         parsed = parse_trait(text)
@@ -636,9 +632,10 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
     )
     proc_total = total - weapon_dps
 
-    # C97 -- ((E19 * (1 + C54)) * E21) + SUM(C90:C94) + E94.  E19*E21 is exactly
-    # C89, so berserk is one clean multiplier on the physical hit; it does NOT
-    # boost lethality, and the cap never applies to it.  E54 adds Minotaur.
+    # C97 -- ((E19 * (1 + C54 + IF(Minotaur,30%,0))) * E21) + SUM(C90:C94) + E94.
+    # E19*E21 is exactly C89, so berserk is one clean multiplier on the physical
+    # hit; it does NOT boost lethality, and no cap applies -- E54 has a MIN(200%)
+    # wrapper in the sheet, but nothing (including C97) ever reads E54.
     berserk_level = build.berserk + RACE_BERSERK.get(build.race, 0.0)
     berserk = None if berserk_level == 0 else weapon_dps * (1 + berserk_level) + proc_total
 
