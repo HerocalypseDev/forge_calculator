@@ -55,16 +55,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Approved deviations from reall.xlsx
 These four are deliberate and signed off; do not "correct" them back to the sheet.
+**Deviations #1–#4 are fixed at the source in `reference/Extended.xlsx`** (not yet
+adopted as authoritative — see "Extended.xlsx Diff Review" below). Keep them listed
+here as history for *why* the engines already do the right thing; once `Extended.xlsx`
+ships, these stop being deviations and become plain verbatim ports.
 1. **Ore attack speed is kept** (sourced from `new.xlsx` C48). reall.xlsx replaced
-   the ramp with a bare `C48` input cell.
+   the ramp with a bare `C48` input cell. *(Extended.xlsx restores `C48` as a live
+   formula with identical constants — `new.xlsx`/`LEGACY_STAT_CELLS` become removable
+   once Extended.xlsx ships.)*
 2. **Minotaur reaches Berserk DPS.** `C97` references the bare `C54`, so the sheet
    gives Minotaur no berserk multiplier; the engines use `E54` (`C54` + 30%).
+   *(Extended.xlsx's `C97` adds the Minotaur term inline — matches the engines.)*
 3. **Max Burst scales its lightning term.** `C101` ends with a bare `+C80` — the raw
    lightning *percentage*. The engines use `C18*C80*C81*E21`, like every other proc.
+   *(Extended.xlsx's `C101` already uses the full term — matches the engines.)*
 4. **Felynx + a Gauntlet weapon gets BOTH class bonuses.** `E45` tests the singular
    `Gauntlet` and `E48` the plural `Gauntlets`, and the `C23` dropdown only offers
    the plural — so the `E45` branch can never fire in the sheet. Both spellings are
-   registered in `CLASS_LETHALITY` and `CLASS_ATK_SPEED`.
+   registered in `CLASS_LETHALITY` and `CLASS_ATK_SPEED`. *(Extended.xlsx's `E45` now
+   tests the plural `Gauntlets`, same as `E48` — the branch is reachable at the
+   source. Both spellings stay registered; harmless now that only one is ever seen.)*
 5. **Berserk is capped at 200% total, MediaWiki JS only.** `C97` has no cap at all
    in the sheet. `CAPS.berserk = 2.0` clamps `berserkLevel` (manual `build.berserk`
    input + `RACE_BERSERK`, i.e. Minotaur's +30%) before it multiplies the weapon
@@ -73,10 +83,22 @@ These four are deliberate and signed off; do not "correct" them back to the shee
    added it); harmless for `fuzz_verify.js` parity today since the UI's manual
    berserk field tops out at 150% and Minotaur only adds 30%, so 180% is the
    highest total either engine can currently reach — under the cap either way.
+   **Extended.xlsx adds `MIN(200%, …)` to `E54` — but `E54` is a dead cell there.**
+   No formula on `DPS Calculator` reads `E54`; `C97` recomputes
+   `C54 + IF(C22="Minotaur",30%,0)` inline instead of referencing it, so the cap
+   never actually clamps real DPS output in the sheet. `C97` *should* read `E54`
+   instead of duplicating its expression — same pattern as `C89` reading `E45`
+   rather than re-deriving lethality. Until that's fixed sheet-side (or decided
+   against), MediaWiki JS's cap is the only one that does anything, which is a
+   slightly different claim than "matches an uncapped sheet" — it now diverges
+   from a sheet that *tried* to cap but wired it to nothing.
 
-Still open in the sheet (reported, not worked around): **`C64` reads `C37`**, the
-Blast row's DMG cell, instead of `E34` (Fire's own Time). Every other ability wires
-to its own row. The engines use `fire_time`, i.e. the `E34` reading.
+**`C64` reading `C37` instead of `E34` is fixed in `reference/Extended.xlsx`** (was
+listed here as "still open in the sheet, reported not worked around" against
+reall.xlsx — every other ability row wires to its own row; `C64` alone read the
+Blast row's DMG cell. The engines always used `fire_time`, the `E34` reading, so no
+engine change was needed once the sheet caught up). Still open against the *current*
+authoritative `reall.xlsx` until `Extended.xlsx` is adopted.
 
 ### Dynamic Plan Tracking & Memory
 - **Plan Storage:** Whenever a new development plan or roadmap is created while in **Plan Mode**, you must add a summary of that plan to `CLAUDE.md` under a dedicated tracking section **immediately when the plan is made** — before any implementation work begins. Do not wait until the plan's phases have been implemented to record it.
@@ -313,7 +335,7 @@ the numeric fields are a parity contract.
 | **"Select X" placeholders** — prompt-first dropdown options, `toUI`/`fromUI` at state boundaries; desktop `_build`/`get_state`/`set_state`/`_reset` translate prompt ↔ sentinel | `forge-calculator.common.js` | `WeaponSelector.js`, `InputPanel.js` | `calculator_tab.py` | ✅ Done | 4aaa441 |
 | **Remove Base Crit Chance** — UI field, DEFAULT_BUILD, `base_crit_chance: 0` (web only) | `forge-calculator.common.js` | `StatInput.js`, `InputPanel.js`, `main.js` | — | ✅ Done | 4aaa441 |
 | **Per-ore multiplier** — `×multiplier` readout beside each slot, live-updated | `.fc-ore-slot-mult` CSS | `OreSlot.js` + `.ep-ore-slot-mult` CSS | `_update_ore_mult` label | ✅ Done | 4aaa441 |
-| **Rune 3×2 grid** — 6 fixed cells (C27/D27–C29/D29); `runes` → 6-element array in DEFAULT_BUILD (web only) | `createRuneSelector` + CSS | `RuneSelector.js` + CSS | — | ✅ Done | 4aaa441 |
+| **Rune grid** — MediaWiki was later widened to 3×3 (9 cells, C27:E29; `runes` → 9-element array in DEFAULT_BUILD); standalone stayed 3×2 (6 fixed cells, C27/D27–C29/D29) since it's retired. `runeTotals`/`rune_totals` loop generically in all three engines, so grid width was never an engine change | `createRuneSelector` + CSS | `RuneSelector.js` + CSS | — | ✅ Done | 4aaa441 (later widened to 9, see Extended.xlsx Diff Review) |
 
 **Verification:** `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED; `python -m pytest tests/` → 75 passed; `python scripts/smoke_gui.py` → SMOKE OK (incl. new quality-cap + quality 100→50 recompute checks).
 
@@ -467,4 +489,34 @@ the numeric fields are a parity contract.
 
 **Verification:** `python -m pytest tests/` → 82 passed; `python scripts/audit_reall.py reference/reall.xlsx data/ores.json` → 0 ore-range problems; `node Web/mediawiki/reall-golden.js` / `reall-aggregates.js` / `python scripts/reall_parity.py` → all PARITY/AGGREGATES PASSED (explosion chance now shows `MAX` not `additive`); `node Web/mediawiki/verify-engine.js` → ALL GOLDEN CHECKS PASSED; `node Web/mediawiki/fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED (250 builds, 9506 fields, worst rel err 2.75e-16); all 7 focused MediaWiki tests PASSED; `node Web/js/engine/reall-golden.test.mjs` / `normalize.test.mjs` PASSED; `python scripts/smoke_gui.py` → SMOKE OK. Single-ore golden tests (Gargantuan, default build) were unaffected since SUM and MAX agree when only one term is non-zero.
 
+### Extended.xlsx Diff Review — COMPLETED ✅ (audit only, no code changes)
+**Goal:** `reference/Extended.xlsx` arrived as a candidate successor to `reall.xlsx`. Diffed
+every cell (formula + cached value) across all five sheets to find what changed and
+whether any engine needed updating. Full findings in `Diff report.md`. **`Extended.xlsx`
+has not been adopted as authoritative** — this was a read-only audit; `reference/reall.xlsx`
+stays the source of truth referenced by "Zero invented mechanics" until a decision is
+made.
+
+| Finding | Resolution | Engine action |
+|---------|-----------|----------------|
+| Rune grid `C27:D29` (3×2) → `C27:E29` (3×3); `A27`–`A31` extended to sum the new `E` column | New workbook only — data (`_Options` rune pool) unchanged | None — MediaWiki JS already builds a 9-slot grid and `runeTotals`/`rune_totals` loop generically in all three engines (see corrected "Rune grid" row above) |
+| `E45` tests `C23="Gauntlets"` (was singular `"Gauntlet"`, a dead branch) | Fixes approved deviation #4 at the source | None — both spellings already registered defensively |
+| `C48` (ore atk-speed ramp) restored as a live `IFS(...)` formula, same constants as `new.xlsx`'s legacy `C48` | Fixes approved deviation #1 at the source | None — `LEGACY_STAT_CELLS`/`new.xlsx` become removable once `Extended.xlsx` ships |
+| `E54` gets `MIN(200%, …)`, but no formula on the sheet reads `E54` — `C97` still recomputes the addend inline, uncapped | Partial fix to approved deviation #5 — cap added but wired to a dead cell | **Open** — `C97` should read `E54` instead of duplicating its expression; until then MediaWiki JS's cap diverges from the (inert) sheet cap. See deviation #5 above |
+| `C97` adds `IF(C22="Minotaur",30%,0)` inline | Fixes approved deviation #2 at the source | None — engines already add `RACE_BERSERK` |
+| `C64` reads `E34` (was `C37`, the Blast row's DMG cell) | Fixes the previously "still open" bug | None — engines already used the `E34` (`fire_time`) reading |
+| `C101` lightning term is `C18*C80*C81*E21` (was bare `C80`) | Fixes approved deviation #3 at the source | None — engines already use the full term |
+| `A30` (cosmetic "Total" summary text only) searches `" Atk Speed "` with padding spaces; rune strings have no leading space, so it's now permanently 0 | Workbook authoring slip, not consumed anywhere else | None — `A31` (the cell that actually feeds `E48`) is unaffected |
+| Sample/default build cells (`D7`,`D9`,`C9`,`C12`,`D12`,`C22`,`C85`,`C42:C44`) changed | Just the workbook's own example build | None |
+| `_Weapon`, `_OptionsCrafter`, `_Options` sheets | Byte-identical to `reall.xlsx` | None — no ore/weapon/race/rune/achievement data changed |
+
+**Verification:** cell-by-cell openpyxl diff (formula + `data_only` cached value) across
+every sheet in both workbooks; cross-checked every changed formula against
+`forge_calculator/engine.py`, `Web/mediawiki/MediaWiki-ForgeCalculator.js`, and the
+retired `Web/js/engine/*.js`. No test suite reruns needed since no code changed.
+
+**If `Extended.xlsx` is adopted later:** rerun the full realignment playbook (see "reall.xlsx
+Realignment" above) — `build_data.py`, `data/*.json` + `Web/mediawiki/Data-*.json` refresh,
+`reall-golden.js`/`reall-aggregates.js`/`verify-engine.js`/`fuzz_verify.js` — and resolve
+the open `E54`/`C97` question above first.
 
