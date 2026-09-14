@@ -106,11 +106,12 @@ of duplicating its expression. Once that's live in the workbook, this stops bein
 deviation and the code comments (`forge_calculator/engine.py`'s `berserk_level`
 comment, this section) should be updated to say so.
 
-Regression tests proving the clamp actually triggers (not just that it's dormant
-under today's UI limits — manual input maxes at 150%, Minotaur adds 30%, so 180% is
-the highest the UI alone can reach): `tests/test_golden.py::test_berserk_caps_at_200_percent`
+Regression tests proving the clamp actually triggers: `tests/test_golden.py::test_berserk_caps_at_200_percent`
 (manual 500% + Minotaur 30% → capped to 200%) and the `E54  berserk caps at 200%
-total` check in `Web/mediawiki/reall-aggregates.js`.
+total` check in `Web/mediawiki/reall-aggregates.js`. **The cap is reachable from the UI
+itself now, not just direct engine calls** — the manual Berserk input's max was raised to
+200% (see "Armor Stat & Berserk Input Cap Increase" below), so 200% manual + Minotaur's
++30% = 230% genuinely hits the clamp through the real input box, not only in tests.
 
 ### Dynamic Plan Tracking & Memory
 - **Plan Storage:** Whenever a new development plan or roadmap is created while in **Plan Mode**, you must add a summary of that plan to `CLAUDE.md` under a dedicated tracking section **immediately when the plan is made** — before any implementation work begins. Do not wait until the plan's phases have been implemented to record it.
@@ -463,7 +464,7 @@ the numeric fields are a parity contract.
 
 | Change | Where | Status | Commit |
 |--------|-------|--------|--------|
-| **Whole-percent format** — `createStatInput` fields use `step:1`, `max` = stat cap (lethality 150, crit chance/dmg 100); `transformBuildForEngine` divides the 3 armor pct fields by 100 | `forge-calculator.common.js` | ✅ Done | (this session) |
+| **Whole-percent format** — `createStatInput` fields use `step:1`, `max` = stat cap (lethality 150, crit chance/dmg 100 at the time); `transformBuildForEngine` divides the 3 armor pct fields by 100. *(Crit Damage's max was later raised to 150 — see "Armor Stat & Berserk Input Cap Increase" below.)* | `forge-calculator.common.js` | ✅ Done | (this session) |
 | **Commit clamping** — `[0, max]` clamp on change; non-numeric/empty → 0 | `createStatInput` | ✅ Done | (this session) |
 | **Subtext** — "Enter percentages as whole numbers (15 = 15%)." under the Armor Stats title | `forge-calculator.common.js` + `.fc-input-section-subtext` in `Template-ForgeCalculator-styles.css` | ✅ Done | (this session) |
 | **Test** — `armor-stats-test.js`: DOM-level checks for step/max/min attrs, clamp on commit, percent→decimal transform, no stale decimal inputmode | `Web/mediawiki/armor-stats-test.js` | ✅ Done | (this session) |
@@ -471,11 +472,11 @@ the numeric fields are a parity contract.
 **Verification:** `node Web/mediawiki/armor-stats-test.js` → ALL ARMOR-STATS CHECKS PASSED; `verify-engine.js` / `fuzz_verify.js` / `ability-inputs-test.js` / `results-panel-test.js` / `ore-slot-test.js` / `bonus-derive-test.js` all pass; `node --check` clean. Engine untouched.
 
 ### MediaWiki Berserk Input — COMPLETED ✅
-**Goal:** Add a manual Berserk input to the MediaWiki calculator. Berserk was engine-supported (`build.berserk`, workbook C53) but hardcoded to 0 in every UI — the only way to get "Total Berserk DPS" was the Minotaur race (+30%, E53). New "Berserk" section between Race and Armor Stats: whole-percent entry (30 = 30%), clamps to the lethality cap (150), transform divides by 100. Engine/formulas untouched — the input feeds the existing `build.berserk` + Minotaur path (C92). MediaWiki-only, same precedent as Abilities/Armor.
+**Goal:** Add a manual Berserk input to the MediaWiki calculator. Berserk was engine-supported (`build.berserk`, workbook C53) but hardcoded to 0 in every UI — the only way to get "Total Berserk DPS" was the Minotaur race (+30%, E53). New "Berserk" section between Race and Armor Stats: whole-percent entry (30 = 30%), clamped to 150 at the time (borrowed the lethality cap as a placeholder — Berserk didn't have its own cap yet), transform divides by 100. Engine/formulas untouched — the input feeds the existing `build.berserk` + Minotaur path (C92). MediaWiki-only, same precedent as Abilities/Armor. *(The input max was later raised to 200 once Berserk got its own real cap — see "Armor Stat & Berserk Input Cap Increase" below.)*
 
 | Change | Where | Status | Commit |
 |--------|-------|--------|--------|
-| **Berserk section** — "Berserk" input section (label, whole-percent subtext, number field `id="berserk"`, min 0 / max 150 / step 1, inputmode numeric, debounced `input` + `change` clamp `[0,150]`, non-numeric/empty → 0) | `forge-calculator.common.js` `createInputPanel` (reuses `.fc-stat-input-*` CSS) | ✅ Done | (this session) |
+| **Berserk section** — "Berserk" input section (label, whole-percent subtext, number field `id="berserk"`, min 0 / max 150 (later 200) / step 1, inputmode numeric, debounced `input` + `change` clamp `[0,150]` (later `[0,200]`), non-numeric/empty → 0) | `forge-calculator.common.js` `createInputPanel` (reuses `.fc-stat-input-*` CSS) | ✅ Done | (this session) |
 | **Build state** — `berserk: 0` in `DEFAULT_BUILD`; `setBuild` restores the input value | `forge-calculator.common.js` | ✅ Done | (this session) |
 | **Transform** — `berserk: (Number(build.berserk) || 0) / 100` (whole-percent → decimal for the engine) | `forge-calculator.common.js` `transformBuildForEngine` | ✅ Done | (this session) |
 | **Test** — `berserk-input-test.js`: renders the real input panel, checks attrs + clamp, /100 transform, C92 end-to-end (Minotaur+30% → 8.6·1.6/0.47, manual 30% → 8.6·1.3/0.47, 0+no Minotaur → null, total_dps unchanged), setBuild restore | `Web/mediawiki/berserk-input-test.js` | ✅ Done | (this session) |
@@ -626,4 +627,27 @@ both ALL CHECKS PASSED; all other 7 focused MediaWiki tests still pass; `node --
 `python scripts/smoke_gui.py` → SMOKE OK. A full-catalog scan (every weapon-eligible ore at
 15% share) confirmed the `[X% power]` fallback still fires for genuinely compound text
 (Prismatic Heart, Snowite, Iceite, Golem Heart) and nowhere else.
+
+### Armor Stat & Berserk Input Cap Increase — COMPLETED ✅
+**Goal:** By request — raise two input ceilings that were narrower than their real stat cap.
+Armor Crit Damage's input maxed out at 100 even though `CAPS.crit_dmg` allows up to 150 total
+(armor is just one of several sources feeding that stat, same as Lethality, whose input
+already correctly maxed at 150). The Berserk input maxed out at 150 — a placeholder borrowed
+from the Lethality cap when the field was first added, before Berserk had its own real cap;
+now that it does (`CAPS.berserk = 2.0`, see "Approved deviation (current, live): berserk's
+200% cap" above), the input should match it. Armor Lethality (already 150) and Armor Crit
+Chance (100 — its real cap, `CAPS.crit_chance`, unchanged) were left as they were.
+
+| Change | Where | Status |
+|--------|-------|--------|
+| **Armor Crit Damage: 100 → 150** — `createStatInput`'s `fields` array, `armorCritDmg` entry's `max` | `MediaWiki-ForgeCalculator.js` | ✅ Done |
+| **Berserk input: 150 → 200** — both the `<input max>` attribute and `commitBerserk`'s `Math.min(..., 150)` clamp | `MediaWiki-ForgeCalculator.js` | ✅ Done |
+| **Tests updated** — `armor-stats-test.js`: `max` attribute assertion 100→150, added a clamp-at-boundary check (200 → clamped to 150, mirroring the existing Lethality one); `berserk-input-test.js`: `max` attribute assertion 150→200 (and its stale "(lethality cap)" comment corrected to "(berserk cap)"), the clamp-boundary check moved from "200 → clamped to 150" to "250 → clamped to 200" | `Web/mediawiki/armor-stats-test.js`, `Web/mediawiki/berserk-input-test.js` | ✅ Done |
+
+**Verification:** `python -m pytest tests/` → 84 passed (unaffected — MediaWiki-JS-only);
+`node --check` clean; `node armor-stats-test.js` / `berserk-input-test.js` → both ALL CHECKS
+PASSED; all other 7 focused MediaWiki tests still pass; `node Web/mediawiki/fuzz_verify.js` →
+DIFFERENTIAL FUZZ PASSED (250 builds, 9506 fields — these are just input-box ceilings, the
+underlying `calculate()` math and its caps are untouched); `python scripts/smoke_gui.py` →
+SMOKE OK.
 

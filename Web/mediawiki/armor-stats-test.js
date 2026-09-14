@@ -162,7 +162,7 @@ assert(byId.armorCritChance.getAttribute('step') === '1', 'crit chance step=1');
 assert(byId.armorCritDmg.getAttribute('step') === '1', 'crit dmg step=1');
 assert(byId.armorLethality.getAttribute('max') === '150', 'lethality max=150 (cap)');
 assert(byId.armorCritChance.getAttribute('max') === '100', 'crit chance max=100 (cap)');
-assert(byId.armorCritDmg.getAttribute('max') === '100', 'crit dmg max=100 (cap)');
+assert(byId.armorCritDmg.getAttribute('max') === '150', 'crit dmg max=150 (cap)');
 assert(byId.armorCritChance.getAttribute('min') === '0', 'crit chance min=0');
 
 console.log('== Commit clamping ==');
@@ -178,6 +178,8 @@ assert(stat.getValues().armorCritChance === 0, 'crit chance -5 -> clamped to 0')
 commit(byId.armorCritDmg, '30');
 assert(stat.getValues().armorCritDmg === 30, 'crit dmg 30 stays 30');
 assert(byId.armorCritDmg.value === '30', 'input displays the percent');
+commit(byId.armorCritDmg, '200');
+assert(stat.getValues().armorCritDmg === 150, 'crit dmg 200 -> clamped to 150');
 commit(byId.armorCritChance, 'abc');
 assert(stat.getValues().armorCritChance === 0, 'non-numeric -> 0');
 assert(byId.armorCritChance.value === '0', 'input snaps to 0');

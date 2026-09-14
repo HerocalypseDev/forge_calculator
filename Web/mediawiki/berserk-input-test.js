@@ -233,14 +233,14 @@ function commit(value) {
 console.log('== Input attributes ==');
 assert(!!berserkInput, 'berserk input rendered (id berserk)');
 assert(berserkInput.getAttribute('min') === '0', 'min=0');
-assert(berserkInput.getAttribute('max') === '150', 'max=150 (lethality cap)');
+assert(berserkInput.getAttribute('max') === '200', 'max=200 (berserk cap)');
 assert(berserkInput.getAttribute('step') === '1', 'step=1 (whole percent)');
 assert(berserkInput.getAttribute('inputmode') === 'numeric', 'numeric inputmode');
 
 console.log('== Commit clamping ==');
-commit('200');
-assert(lastBuild.berserk === 150, '200 -> clamped to 150');
-assert(berserkInput.value === '150', 'input snaps to 150');
+commit('250');
+assert(lastBuild.berserk === 200, '250 -> clamped to 200');
+assert(berserkInput.value === '200', 'input snaps to 200');
 commit('-5');
 assert(lastBuild.berserk === 0, '-5 -> clamped to 0');
 commit('abc');

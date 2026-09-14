@@ -1515,7 +1515,7 @@
     var fields = [
       { key: 'armorLethality', label: 'Armor Lethality', placeholder: '0', min: 0, max: 150, step: 1 },
       { key: 'armorCritChance', label: 'Armor Crit Chance', placeholder: '0', min: 0, max: 100, step: 1 },
-      { key: 'armorCritDmg', label: 'Armor Crit Damage', placeholder: '0', min: 0, max: 100, step: 1 }
+      { key: 'armorCritDmg', label: 'Armor Crit Damage', placeholder: '0', min: 0, max: 150, step: 1 }
     ];
 
     for (var i = 0; i < fields.length; i++) {
@@ -2226,13 +2226,13 @@
       id: 'berserk',
       value: getBuild().berserk !== undefined ? getBuild().berserk : '',
       min: '0',
-      max: '150',
+      max: '200',
       step: 1,
       placeholder: '0',
       inputmode: 'numeric'
     });
     function commitBerserk() {
-      var v = Math.max(0, Math.min(parseFloat(berserkInput.value) || 0, 150));
+      var v = Math.max(0, Math.min(parseFloat(berserkInput.value) || 0, 200));
       berserkInput.value = v;
       patch({ berserk: v });
     }
