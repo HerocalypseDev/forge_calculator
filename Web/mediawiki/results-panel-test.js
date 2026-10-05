@@ -158,8 +158,8 @@ assert(!!dpsCard, 'DPS Breakdown card found');
 
 const labels = (dpsCard.querySelectorAll('.fc-stat-row') || []).map((row) =>
   (row.querySelector('.fc-stat-label') || {}).textContent);
-const expectedLabels = ['Weapon DPS', 'Explosion DPS', 'Fire DPS', 'Poison DPS', 'Smite DPS', 'Black Hole DPS', 'Lightning DPS', 'Total DPS', 'Total Berserk DPS', 'Total Moonstone DPS'];
-assert(labels.length === 10, `10 rows rendered (got ${labels.length})`);
+const expectedLabels = ['Weapon DPS', 'Explosion DPS', 'Fire DPS', 'Poison DPS', 'Smite DPS', 'Black Hole DPS', 'Lightning DPS', 'Smash DPS', 'Fox Claws DPS', 'Foxfire DPS', 'Total DPS', 'Total Berserk DPS', 'Total Moonstone DPS'];
+assert(labels.length === 13, `13 rows rendered (got ${labels.length})`);
 assert(JSON.stringify(labels) === JSON.stringify(expectedLabels),
   'row labels match: ' + expectedLabels.join(' | '));
 
@@ -167,7 +167,8 @@ const fake = {
   unforged_damage: 100, avg_power: 2, forged_damage: 200, attack_rate: 1.5,
   weapon_dps: 300, lethality: 0.3, crit_chance: 0.2, crit_dmg: 0.1, atk_speed: 0.2,
   explosion_dps: 28.28, fire_dps: 11.11, poison_dps: 22.22,
-  smite_dps: 33.33, blackhole_dps: 44.44, lightning_dps: 55.55, total_dps: 494.93,
+  smite_dps: 33.33, blackhole_dps: 44.44, lightning_dps: 55.55,
+  smash_dps: 66.66, fox_claws_dps: 77.77, foxfire_dps: 88.88, total_dps: 728.24,
   berserk: 512.5, moonstone: 600,
   ttk_25k: 56.9, ttk_75k: 170.69, active_traits: null
 };
@@ -178,15 +179,18 @@ const val = (i) => (rows[i].querySelector('.fc-stat-val') || {}).textContent;
 assert(val(1) === '28.28', `Explosion DPS row shows explosion_dps (got ${val(1)})`);
 assert(val(4) === '33.33', `Smite DPS row shows smite_dps (got ${val(4)})`);
 assert(val(6) === '55.55', `Lightning DPS row shows lightning_dps (got ${val(6)})`);
-assert(val(7) === '494.93', `Total DPS row shows total_dps (got ${val(7)})`);
-assert(val(8) === '512.50', `Total Berserk DPS row shows berserk (got ${val(8)})`);
-assert(val(9) === '600.00', `Total Moonstone DPS row shows moonstone (got ${val(9)})`);
+assert(val(7) === '66.66', `Smash DPS row shows smash_dps (got ${val(7)})`);
+assert(val(8) === '77.77', `Fox Claws DPS row shows fox_claws_dps (got ${val(8)})`);
+assert(val(9) === '88.88', `Foxfire DPS row shows foxfire_dps (got ${val(9)})`);
+assert(val(10) === '728.24', `Total DPS row shows total_dps (got ${val(10)})`);
+assert(val(11) === '512.50', `Total Berserk DPS row shows berserk (got ${val(11)})`);
+assert(val(12) === '600.00', `Total Moonstone DPS row shows moonstone (got ${val(12)})`);
 assert(val(1) !== val(4), 'Explosion and Smite rows are distinct components');
 assert(val(3) === '22.22' && val(2) === '11.11', 'Fire/Poison rows map correctly');
 
 panel.updateResults({ ...fake, berserk: null, moonstone: null });
-assert(val(8) === '—', `null berserk renders as "—" (got ${val(8)})`);
-assert(val(9) === '—', `null moonstone renders as "—" (got ${val(9)})`);
+assert(val(11) === '—', `null berserk renders as "—" (got ${val(11)})`);
+assert(val(12) === '—', `null moonstone renders as "—" (got ${val(12)})`);
 panel.updateResults(fake);
 
 console.log('== Active Traits block ==');
@@ -227,7 +231,7 @@ cardClasses.forEach(([title, cls]) =>
 const heroRows = totalCard.querySelectorAll('.fc-stat-row');
 const heroVal = totalCard.querySelector('.fc-stat-val');
 assert(heroRows.length === 1, `hero card has exactly one row (got ${heroRows.length})`);
-assert(heroVal && heroVal.textContent === '494.93', `hero card shows total_dps (got ${heroVal && heroVal.textContent})`);
+assert(heroVal && heroVal.textContent === '728.24', `hero card shows total_dps (got ${heroVal && heroVal.textContent})`);
 
 const cardsContainer = panel.querySelector('.fc-results-cards');
 const order = (cardsContainer.children || []).map((c) =>
@@ -239,6 +243,9 @@ assert(JSON.stringify(order) === JSON.stringify(
 console.log('== Clipboard (source) ==');
 assert(SRC.indexOf("'Explosion DPS: ' + result.explosion_dps") !== -1, 'clipboard has Explosion DPS');
 assert(SRC.indexOf("'Smite DPS: ' + result.smite_dps") !== -1, 'clipboard has Smite DPS');
+assert(SRC.indexOf("'Smash DPS: ' + result.smash_dps") !== -1, 'clipboard has Smash DPS');
+assert(SRC.indexOf("'Fox Claws DPS: ' + result.fox_claws_dps") !== -1, 'clipboard has Fox Claws DPS');
+assert(SRC.indexOf("'Foxfire DPS: ' + result.foxfire_dps") !== -1, 'clipboard has Foxfire DPS');
 assert(SRC.indexOf('Blast DPS') === -1, 'no stale "Blast DPS" label remains');
 
 console.log(failures === 0 ? '\nALL RESULTS-PANEL CHECKS PASSED ✓' : `\n${failures} CHECK(S) FAILED ✗`);

@@ -2064,6 +2064,9 @@
         { label: 'Smite DPS', value: '0', valueClass: 'fc-sv-smite', labelClass: 'fc-sv-smite' },
         { label: 'Black Hole DPS', value: '0', valueClass: 'fc-sv-blackhole', labelClass: 'fc-sv-blackhole' },
         { label: 'Lightning DPS', value: '0', valueClass: 'fc-sv-lightning', labelClass: 'fc-sv-lightning' },
+        { label: 'Smash DPS', value: '0', valueClass: 'fc-sv-smash', labelClass: 'fc-sv-smash' },
+        { label: 'Fox Claws DPS', value: '0', valueClass: 'fc-sv-foxclaws', labelClass: 'fc-sv-foxclaws' },
+        { label: 'Foxfire DPS', value: '0', valueClass: 'fc-sv-foxfire', labelClass: 'fc-sv-foxfire' },
         { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold', labelClass: 'fc-sv-dmg' },
         { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-berserk', labelClass: 'fc-sv-berserk' },
         { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-moonstone', labelClass: 'fc-sv-moonstone' }
@@ -2130,7 +2133,7 @@
       }
 
       var dpsRows = dpsCard.querySelectorAll('.fc-stat-row');
-      if (dpsRows.length >= 10) {
+      if (dpsRows.length >= 13) {
         updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
         updateStatRow(dpsRows[1], fmtDps(result.explosion_dps), false);
         updateStatRow(dpsRows[2], fmtDps(result.fire_dps), false);
@@ -2138,9 +2141,12 @@
         updateStatRow(dpsRows[4], fmtDps(result.smite_dps), false);
         updateStatRow(dpsRows[5], fmtDps(result.blackhole_dps), false);
         updateStatRow(dpsRows[6], fmtDps(result.lightning_dps), false);
-        updateStatRow(dpsRows[7], fmtDps(result.total_dps), false);
-        updateStatRow(dpsRows[8], fmtDps(result.berserk), false);
-        updateStatRow(dpsRows[9], fmtDps(result.moonstone), false);
+        updateStatRow(dpsRows[7], fmtDps(result.smash_dps), false);
+        updateStatRow(dpsRows[8], fmtDps(result.fox_claws_dps), false);
+        updateStatRow(dpsRows[9], fmtDps(result.foxfire_dps), false);
+        updateStatRow(dpsRows[10], fmtDps(result.total_dps), false);
+        updateStatRow(dpsRows[11], fmtDps(result.berserk), false);
+        updateStatRow(dpsRows[12], fmtDps(result.moonstone), false);
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
@@ -2659,6 +2665,9 @@
       'Smite DPS: ' + result.smite_dps.toFixed(2),
       'Black Hole DPS: ' + result.blackhole_dps.toFixed(2),
       'Lightning DPS: ' + result.lightning_dps.toFixed(2),
+      'Smash DPS: ' + result.smash_dps.toFixed(2),
+      'Fox Claws DPS: ' + result.fox_claws_dps.toFixed(2),
+      'Foxfire DPS: ' + result.foxfire_dps.toFixed(2),
       'Total DPS: ' + result.total_dps.toFixed(2),
       '',
       '--- Time to Kill ---',
