@@ -216,9 +216,6 @@ def test_minotaur_berserk(game):
 
 
 def test_berserk_caps_at_200_percent(game):
-    # manual 500% + Minotaur 30% = 530% uncapped, clamped to 200% (approved
-    # deviation: the sheet's own MIN(200%,...) lives on E54, a cell nothing --
-    # including today's C97 -- reads, so the engines apply the cap themselves).
     build = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger", race="Minotaur", berserk=5.0)
     r = calculate(build, game)
@@ -331,6 +328,33 @@ def test_engine_constants_match_source():
     _guard(formulas, "E59", "A18", "explosion dps on A18")
     _guard(formulas, "E76", "A18", "black hole dps on A18")
     _guard(formulas, "C116", "C18", "max-burst on C18")
+
+    _guard(formulas, "C45", 'IF(C22="Orc Lord", 0.4, 0)', "Orc Lord lethality")
+    _guard(formulas, "C45", 'IF(C22="Kitsune", 0.2, 0)', "Kitsune lethality")
+    _guard(formulas, "C45", 'IF(AND(C22="Fairy", C23="Spear"), 0.15, 0)', "Fairy spear lethality")
+    _guard(formulas, "C48", 'AND(C22="Fairy", C23="Spear"), 0.15', "Fairy spear atk speed")
+    _guard(formulas, "C48", 'C22="Elf", 0.05', "Elf atk speed")
+    _guard(formulas, "C48", 'IF(C22="Kitsune", 0.2, 0)', "Kitsune atk speed")
+    for heavy in ["Great Sword", "Colossal Sword", "Great Axe", "Mace"]:
+        _guard(formulas, "C48", f'C23="{heavy}"', "Shadow heavy-weapon atk speed")
+    _guard(formulas, "C58", "MIN(2.5,", "explosion dmg per-slot cap")
+    _guard(formulas, "C72", "MIN(2.5,", "smite dmg cap")
+
+    _guard(formulas, "C84", '"Orc Lord",1', "smash dmg")
+    _guard(formulas, "E84", '"Orc Lord",10', "smash cooldown")
+    _guard(formulas, "C85", '"Orc Lord",0.25', "smash chance")
+    _guard(formulas, "E85", "E13 * C84 * C85 * MIN(E21, 1/E84)", "smash dps")
+    _guard(formulas, "C88", "MIN(FLOOR(E21,1)*0.075,0.75)", "fox claws dmg steps on E21")
+    _guard(formulas, "C89", '"Kitsune",0.5', "fox claws chance")
+    _guard(formulas, "E89", "A18*E21*C88*MIN(C89,1)", "fox claws dps")
+    _guard(formulas, "C92", '"Kitsune",0.3', "foxfire dmg")
+    _guard(formulas, "C93", '"Kitsune",0.5', "foxfire chance")
+    _guard(formulas, "C94", '"Kitsune",2', "foxfire duration")
+    _guard(formulas, "E93", "A18*C92*MIN(1,C93*E21*MIN(C94,5))", "foxfire dps uptime")
+    _guard(formulas, "C111", "C108+E108+C109", "total includes the race procs")
+    _guard(formulas, "C112", "C108+E108+C109", "berserk includes the race procs")
+    _guard(formulas, "C113", "C108+E108+C109", "moon stone includes the race procs")
+    _guard(formulas, "C116", "C84*C18", "max burst adds smash on forged C18")
 
     # E10 drops Fichilliumorite from both halves of the weighted average
     _guard(formulas, "E10", "Fichilliumorite", "E10 excludes Fichilliumorite")
