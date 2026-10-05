@@ -90,6 +90,10 @@ approx(run('Orc').lethality, 0.10, 'Orc lethality counted once');
 approx(run('Dragonborn').lethality, 0.12, 'Dragonborn lethality counted once');
 approx(run('Goblin', 'Dagger', 'Dagger').atk_speed, 0.10, 'Goblin dagger atk speed counted once');
 
+approx(run('Minotaur').lethality, 0.30, 'Minotaur lethality');
+approx(run('Demon', 'Dagger', 'Straight Sword').lethality, 0.30, 'Demon + Straight Sword lethality');
+approx(run('Demon', 'Dagger', 'Dagger').lethality, 0.20, 'Demon without a straight sword');
+
 const dryad = run('Dryad');
 const noRace = run('');
 assert(JSON.stringify(dryad) === JSON.stringify(noRace), 'Dryad has no DPS effect');

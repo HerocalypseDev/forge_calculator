@@ -28,14 +28,16 @@
     'Shadow': 0.05,
     'Dragonborn': 0.12,
     'Orc Lord': 0.40,
-    'Kitsune': 0.20
+    'Kitsune': 0.20,
+    'Minotaur': 0.30
   };
 
   var CLASS_LETHALITY = {
     'Felynx,Gauntlet': 0.20,
     'Felynx,Gauntlets': 0.20,
     'Vampire,Straight Sword': 0.10,
-    'Fairy,Spear': 0.15
+    'Fairy,Spear': 0.15,
+    'Demon,Straight Sword': 0.10
   };
 
   var RACE_ATK_SPEED = {

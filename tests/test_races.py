@@ -91,12 +91,21 @@ def test_elf_attack_speed(game):
     assert run(game, "Elf").atk_speed == pytest.approx(0.05)
 
 
-def test_sheet_double_counts_are_not_ported(game):
+def test_race_bonuses_are_counted_once(game):
     assert run(game, "Orc").lethality == pytest.approx(0.10)
     assert run(game, "Dragonborn").lethality == pytest.approx(0.12)
     assert run(game, "Goblin", bonus="Dagger").atk_speed == pytest.approx(0.10)
     assert run(game, "Felynx", bonus="Gauntlet").lethality == pytest.approx(0.20)
     assert run(game, "Felynx", bonus="Gauntlet").atk_speed == pytest.approx(0.20)
+
+
+def test_minotaur_lethality(game):
+    assert run(game, "Minotaur").lethality == pytest.approx(0.30)
+
+
+def test_demon_straight_sword_lethality(game):
+    assert run(game, "Demon", bonus="Straight Sword").lethality == pytest.approx(0.30)
+    assert run(game, "Demon", bonus="Dagger").lethality == pytest.approx(0.20)
 
 
 def test_dryad_has_no_dps_effect(game):

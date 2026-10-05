@@ -69,7 +69,7 @@ FORGE_MULT = {
 RACE_LETHALITY = {
     "Archangel": 0.20, "Demon": 0.20, "Orc": 0.10,
     "Shadow": 0.05, "Dragonborn": 0.12,
-    "Orc Lord": 0.40, "Kitsune": 0.20,
+    "Orc Lord": 0.40, "Kitsune": 0.20, "Minotaur": 0.30,
 }
 # E45 class lethality addends (IFS in E45).  The sheet writes the Felynx test
 # with the plural "Gauntlets" (the only spelling its C23 dropdown offers); the
@@ -79,6 +79,7 @@ CLASS_LETHALITY = {
     ("Felynx", "Gauntlets"): 0.20,
     ("Vampire", "Straight Sword"): 0.10,
     ("Fairy", "Spear"): 0.15,
+    ("Demon", "Straight Sword"): 0.10,
 }
 # E48 race atk-speed addends (SWITCH in E48)
 RACE_ATK_SPEED = {

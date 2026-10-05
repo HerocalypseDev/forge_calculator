@@ -208,7 +208,7 @@ def test_minotaur_berserk(game):
                   weapon_name="Dagger", race="Minotaur")
     r = calculate(build, game)
     assert r.berserk == pytest.approx(r.weapon_dps * 1.30)
-    assert r.berserk == pytest.approx(228.66858382978722)
+    assert r.berserk == pytest.approx(288.32125787234037)
     # same build without the race -> N/A
     plain = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger")
@@ -266,11 +266,11 @@ def test_engine_constants_match_source():
     # E45 race/class lethality addends
     for frag in ["20%", "10%", "5%", "12%"]:
         _guard(formulas, "E45", frag, "race lethality")
-    _guard(formulas, "E45", '"Gauntlets"', "E45 class bonus plural")
+    _guard(formulas, "E45", 'AND(C22="Felynx",C23="Gauntlet")', "E45 Felynx gauntlet")
     _guard(formulas, "E45", "150%", "lethality cap")
 
     # E48 race/class atk-speed addends (plural Gauntlets)
-    _guard(formulas, "E48", '"Gauntlets"', "E48 class bonus plural")
+    _guard(formulas, "E48", 'AND(C22="Felynx",C23="Gauntlet")', "E48 Felynx gauntlet")
     _guard(formulas, "E48", "15%", "Golem class atk speed")
     _guard(formulas, "E48", "150%", "atk speed cap")
 
@@ -329,14 +329,18 @@ def test_engine_constants_match_source():
     _guard(formulas, "E76", "A18", "black hole dps on A18")
     _guard(formulas, "C116", "C18", "max-burst on C18")
 
-    _guard(formulas, "C45", 'IF(C22="Orc Lord", 0.4, 0)', "Orc Lord lethality")
-    _guard(formulas, "C45", 'IF(C22="Kitsune", 0.2, 0)', "Kitsune lethality")
-    _guard(formulas, "C45", 'IF(AND(C22="Fairy", C23="Spear"), 0.15, 0)', "Fairy spear lethality")
-    _guard(formulas, "C48", 'AND(C22="Fairy", C23="Spear"), 0.15', "Fairy spear atk speed")
-    _guard(formulas, "C48", 'C22="Elf", 0.05', "Elf atk speed")
-    _guard(formulas, "C48", 'IF(C22="Kitsune", 0.2, 0)', "Kitsune atk speed")
+    _guard(formulas, "E45", '"Orc Lord",40%', "Orc Lord lethality")
+    _guard(formulas, "E45", '"Minotaur",30%', "Minotaur lethality")
+    _guard(formulas, "E45", '"Kitsune",20%', "Kitsune lethality")
+    _guard(formulas, "E45", 'AND(C22="Fairy",C23="Spear"),15%', "Fairy spear lethality")
+    _guard(formulas, "E45", 'AND(C22="Demon",C23="Straight Sword"),10%', "Demon straight sword lethality")
+    _guard(formulas, "E48", 'AND(C22="Fairy",C23="Spear"),15%', "Fairy spear atk speed")
+    _guard(formulas, "E48", '"Elf",5%', "Elf atk speed")
+    _guard(formulas, "E48", '"Kitsune",20%', "Kitsune atk speed")
     for heavy in ["Great Sword", "Colossal Sword", "Great Axe", "Mace"]:
-        _guard(formulas, "C48", f'C23="{heavy}"', "Shadow heavy-weapon atk speed")
+        _guard(formulas, "E48", f'C23="{heavy}"', "Shadow heavy-weapon atk speed")
+    for cell in ["C45", "C48"]:
+        assert "C22" not in formulas[cell], f"{cell} must hold ore terms only"
     _guard(formulas, "C58", "MIN(2.5,", "explosion dmg per-slot cap")
     _guard(formulas, "C72", "MIN(2.5,", "smite dmg cap")
 

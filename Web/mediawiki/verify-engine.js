@@ -132,7 +132,7 @@ approx(r.blackhole_chance, 0.0, 'blackhole requires galaxite');
 
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger', race: 'Minotaur' }), game);
 approx(r.berserk, r.weapon_dps * 1.30, 'minotaur berserk == weapon_dps * 1.3');
-approx(r.berserk, 228.66858382978722, 'minotaur berserk');
+approx(r.berserk, 288.32125787234037, 'minotaur berserk');
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.berserk === null ? 0 : 1, 0, 'no-race berserk is null');
 

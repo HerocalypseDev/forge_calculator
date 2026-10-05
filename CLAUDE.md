@@ -82,32 +82,31 @@ defensive code in the engines still makes sense on read. (The fifth, berserk's 2
 was also fixed at the source — `Extended.xlsx`'s `C64` reads `E34`, matching what
 the engines always did via `fire_time`.
 
-### Approved deviation (current, live): race bonuses double-counted by the sheet
-`UpdatedSpreadsheet.xlsx` appends race terms to the end of `C45` (ore lethality) and `C48`
-(ore attack speed). Some of them repeat a term the sheet already has in the `E45`/`E48`
-race switches, so the sheet counts them twice:
+### Resolved deviation (historical): race bonuses double-counted by the sheet
+The first `UpdatedSpreadsheet.xlsx` appended race terms to the ends of `C45`/`C48` that
+repeated `E45`/`E48` (Orc and Dragonborn lethality, Goblin + Dagger attack speed counted
+twice); the engines counted each once. **The user fixed the sheet:** `C45`/`C48` are pure
+ore cells again and every race/class bonus lives once in `E45`/`E48`, so the engines are
+verbatim. That fix also added **Minotaur +30% lethality** (on top of its `E54` +30%
+berserk) and **Demon + Straight Sword +10% lethality**, both ported.
+`test_engine_constants_match_source` asserts `C45`/`C48` no longer reference `C22`.
 
-| Race | `C45`/`C48` term | Already in | Sheet total | Engines |
-|------|------------------|------------|-------------|---------|
-| Orc | `IF(C22="Orc", 0.1, 0)` in `C45` | `E45` SWITCH 10% | 20% lethality | **10%** |
-| Dragonborn | `IF(C22="Dragonborn", 0.12, 0)` in `C45` | `E45` SWITCH 12% | 24% lethality | **12%** |
-| Goblin + Dagger | `AND(C22="Goblin", C23="Dagger"), 0.1` in `C48` | `E48` IFS 10% | 20% atk speed | **10%** |
+Current race/class terms (all in `E45` lethality / `E48` attack speed):
 
-The user confirmed these are spreadsheet bugs and will fix the sheet later; until then
-both engines count each bonus **once** (the existing `RACE_LETHALITY`/`CLASS_ATK_SPEED`
-entries are simply not duplicated). Felynx is *not* a double count: `C45`/`C48` test the
-singular `Gauntlet` and `E45`/`E48` the plural `Gauntlets`, so only one ever fires for a
-given `C23`; both spellings stay registered at 20%. Locked by
-`tests/test_races.py::test_sheet_double_counts_are_not_ported` and the matching checks in
-`Web/mediawiki/new-races-test.js`. **When the sheet is fixed**, delete this section — no
-engine change is needed as long as the fix removes the duplicate terms rather than the
-`E45`/`E48` ones.
-
-The genuinely new terms are ported verbatim: Fairy + Spear (+15% lethality, +15% atk
-speed), Orc Lord (+40% lethality), Kitsune (+20% lethality, +20% atk speed), Elf (+5% atk
-speed) and Shadow + Great Sword / Colossal Sword / Great Axe / Mace (+15% atk speed, on top
-of Shadow's flat `E48` 10%). They live in `RACE_*`/`CLASS_*` alongside the old entries —
-additive, so which cell the sheet writes them in doesn't change the total.
+| Race | Lethality (`E45`) | Attack speed (`E48`) |
+|------|-------------------|----------------------|
+| Orc Lord | 40% | — |
+| Minotaur | 30% | — |
+| Archangel, Kitsune, Demon | 20% (Demon +10% more with Straight Sword) | 20% |
+| Dragonborn | 12% | — |
+| Orc | 10% | — |
+| Shadow | 5% | 10%, +15% with Great Sword / Colossal Sword / Great Axe / Mace |
+| Elf | — | 5% |
+| Fairy + Spear | 15% | 15% |
+| Felynx + Gauntlet | 20% | 20% |
+| Vampire + Straight Sword | 10% | — |
+| Goblin + Dagger | — | 10% |
+| Golem + Colossal Sword / Great Axe | — | 15% |
 
 ### Resolved deviation (historical): berserk's 200% cap
 **Resolved at the source in `UpdatedSpreadsheet.xlsx`:** Total Berserk DPS (`C112`) is now
@@ -198,7 +197,7 @@ Workbook sheets:
 
 ## Preserved workbook quirks (do not "fix")
 
-- `E45` and `E48` test the plural `Gauntlets` (the spelling `C23`'s dropdown offers); the new `C45`/`C48` race terms test the singular `Gauntlet` (the weapon data's actual type, which the MediaWiki UI derives `C23` from). Both spellings stay registered at 20% in `CLASS_LETHALITY`/`CLASS_ATK_SPEED`, which matches the sheet: only one of the two branches can fire for a given `C23`. `Tigers Eye` (no apostrophe) is **gone**: the workbook spells it consistently as `Tiger's Eye`, so the one ore carries both lethality and attack speed straight from its own formulas.
+- `E45` and `E48` now test the singular `Gauntlet` (the weapon data's real type, which the MediaWiki UI derives `C23` from), but the sheet's own `C23` dropdown still offers only the plural `Gauntlets` — so **inside the spreadsheet** Felynx's gauntlet bonus can't fire from the dropdown, while in the MediaWiki calculator it always does. Both spellings stay registered at 20% in `CLASS_LETHALITY`/`CLASS_ATK_SPEED`; the plural is harmless dead weight. `Tigers Eye` (no apostrophe) is **gone**: the workbook spells it consistently as `Tiger's Eye`, so the one ore carries both lethality and attack speed straight from its own formulas.
 - Armor stats feed `E45`/`E46`/`E47` via **C44/C42/C43** (`E42`–`E44` are dead cells).
 - Fire/poison duration offsets `-1` / `-2`. The outer `MAX(ore)=0` gate was removed (user workbook edit): a fire/poison ability time alone now counts, even without a matching ore and for fire without Dragonborn. Poison duration takes only the **first** Malachite slot (`C69` XLOOKUP), not the max.
 - `C77` (black hole chance) = 0.3 when `COUNTIF("Galaxite")/COUNTA(slots) ≥ 0.1`; COUNTA counts "Select Ore" as non-blank, so **any** Galaxite slot triggers it.
@@ -257,7 +256,7 @@ carries no comments.
 ## Commands
 
 ```bash
-python -m pytest tests/               # 106 tests (engine/golden/parser/data/races)
+python -m pytest tests/               # 108 tests (engine/golden/parser/data/races)
 pip install -e .[build]               # dev: add openpyxl
 python -m scripts.build_data          # regenerate data/*.json from UpdatedSpreadsheet.xlsx
 ```
@@ -715,3 +714,11 @@ Goblin+Dagger attack speed); **by the user's decision those double counts are no
 build (incl. Foxfire 134.66 of Total 915.27); `reall-aggregates.js` → AGGREGATES MATCH;
 `verify-engine.js` → ALL GOLDEN CHECKS PASSED; `fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED
 (250 builds, 12,005 fields); all focused MediaWiki tests incl. `new-races-test.js` PASSED.
+
+**Follow-up — sheet's double counts fixed by the user:** the corrected workbook replaced
+`reference/UpdatedSpreadsheet.xlsx` (only `C45`/`C48`/`E45`/`E48` changed). Engines gained
+Minotaur +30% lethality and Demon + Straight Sword +10%; the double-count deviation section
+became historical; `C45`/`C48` race-term guards moved to `E45`/`E48`; the two Minotaur goldens
+(`test_minotaur_berserk`, `verify-engine.js`, `berserk-input-test.js`) rescaled by the new
+lethality (×1.45/1.15 and ×1.3, verified by hand). `pytest` → 108 passed; all parity, fuzz
+and focused MediaWiki tests PASSED.
