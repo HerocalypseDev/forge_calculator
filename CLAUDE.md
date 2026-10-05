@@ -56,8 +56,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 The engines carried five deliberate deviations from the older `reall.xlsx`. Four of
 them are now moot: `reference/Extended.xlsx` fixes the sheet formula to match what
 the engines already did. Kept here only so the "both spellings registered" / similar
-defensive code in the engines still makes sense on read. (The fifth, berserk's 200%
-cap, is a live deviation again — see below.)
+defensive code in the engines still makes sense on read. (The fifth, berserk's 200% cap, was a live deviation until
+`UpdatedSpreadsheet.xlsx` fixed it at the source — see below.)
 1. **Ore attack speed.** `reall.xlsx`'s `C48` was a bare input cell (the ramp had
    been deleted); the engines derived the stat from `new.xlsx`'s `C48` instead.
    `Extended.xlsx` restores `C48` as a live formula with identical constants, so
