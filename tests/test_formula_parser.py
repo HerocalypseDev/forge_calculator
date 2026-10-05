@@ -17,7 +17,7 @@ import pytest
 from build_data.formula_parser import STAT_CELLS, parse_stat_matrix
 
 ROOT = Path(__file__).resolve().parent.parent
-WORKBOOK = ROOT / "reference" / "Extended.xlsx"
+WORKBOOK = ROOT / "reference" / "UpdatedSpreadsheet.xlsx"
 
 EXPECTED = {
     "Crimsonite": {"lethality": (2.0, 20.0, 100)},

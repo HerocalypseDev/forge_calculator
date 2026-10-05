@@ -1,10 +1,10 @@
-"""Extended.xlsx parity check for the Python engine.
+"""UpdatedSpreadsheet.xlsx parity check for the Python engine.
 
 Runs the workbook's own saved default build through ``forge_calculator.engine``
 and diffs every cell against the workbook's cached values -- the Python twin of
 ``Web/mediawiki/reall-golden.js``.  Dev-only audit harness.
 
-    python scripts/reall_parity.py [reference/Extended.xlsx]
+    python scripts/reall_parity.py [reference/UpdatedSpreadsheet.xlsx]
 
 Reads the default build and every expected cell straight from the workbook's
 own cache rather than hand-typing them, so it stays correct across workbook
@@ -22,7 +22,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from forge_calculator.data import DEFAULT_DATA_DIR, load_game_data  # noqa: E402
 from forge_calculator.engine import Abilities, Build, OreSlot, calculate  # noqa: E402
 
-DEFAULT_WORKBOOK = PROJECT_ROOT / "reference" / "Extended.xlsx"
+DEFAULT_WORKBOOK = PROJECT_ROOT / "reference" / "UpdatedSpreadsheet.xlsx"
 
 TOL = 1e-6
 
@@ -50,20 +50,20 @@ CELL_ATTRS = [
     ("C77  black hole chance", "blackhole_chance", "C77"),
     ("C80  lightning dmg", "lightning_dmg", "C80"),
     ("C81  lightning chance", "lightning_chance", "C81"),
-    ("C89  physical hit DPS", "weapon_dps", "C89"),
-    ("C90  explosion DPS", "explosion_dps", "C90"),
-    ("C91  fire DoT DPS", "fire_dps", "C91"),
-    ("C92  poison DoT DPS", "poison_dps", "C92"),
-    ("C93  smite DPS", "smite_dps", "C93"),
-    ("C94  black hole DPS", "blackhole_dps", "C94"),
-    ("E94  lightning DPS", "lightning_dps", "E94"),
-    ("C96  TOTAL DPS", "total_dps", "C96"),
-    ("C97  berserk DPS", "berserk", "C97"),
-    ("C98  moon stone DPS", "moonstone", "C98"),
-    ("C100 min DPS", "min_dps", "C100"),
-    ("C101 max burst DPS", "max_dps", "C101"),
-    ("E96  TTK 25k", "ttk_25k", "E96"),
-    ("E97  TTK 75k", "ttk_75k", "E97"),
+    ("C102 physical hit DPS", "weapon_dps", "C102"),
+    ("C103 explosion DPS", "explosion_dps", "C103"),
+    ("C104 fire DoT DPS", "fire_dps", "C104"),
+    ("C105 poison DoT DPS", "poison_dps", "C105"),
+    ("C106 smite DPS", "smite_dps", "C106"),
+    ("C107 black hole DPS", "blackhole_dps", "C107"),
+    ("E107 lightning DPS", "lightning_dps", "E107"),
+    ("C111 TOTAL DPS", "total_dps", "C111"),
+    ("C112 berserk DPS", "berserk", "C112"),
+    ("C113 moon stone DPS", "moonstone", "C113"),
+    ("C115 min DPS", "min_dps", "C115"),
+    ("C116 max burst DPS", "max_dps", "C116"),
+    ("E111 TTK 25k", "ttk_25k", "E111"),
+    ("E112 TTK 75k", "ttk_75k", "E112"),
 ]
 
 
@@ -97,7 +97,7 @@ def _build_from_cache(c):
             blast_dmg=c("C37") or 0.0, blast_chance=c("D37") or 0.0,
         ),
         berserk=c("C54") or 0.0,
-        achievement=c("C85") or "None",
+        achievement=c("C98") or "None",
     )
 
 
@@ -128,7 +128,7 @@ def main(argv):
         want = c(cell) or 0.0
         got = getattr(r, attr)
         if got is None and attr in ("berserk", "moonstone"):
-            got = r.total_dps  # workbook falls back to C96 when the bonus is 0
+            got = r.total_dps  # workbook falls back to C111 when the bonus is 0
         ok = got is not None and abs(got - want) <= TOL * max(1.0, abs(want))
         if not ok:
             fails += 1

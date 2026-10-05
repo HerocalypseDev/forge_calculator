@@ -141,7 +141,7 @@ approx(r.lethality, Math.min(0.15 + 0.20, 1.5), 'achievement lethality');
 
 approx(game.ores.length, 147, 'ore count');
 approx(game.weapons.length, 80, 'weapon count');
-approx(game.races.length, 16, 'race count');
+approx(game.races.length, 20, 'race count');
 approx(game.runes.length, 47, 'rune count');
 approx(game.achievements.length, 16, 'achievement count');
 

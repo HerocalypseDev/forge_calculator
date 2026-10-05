@@ -25,11 +25,11 @@ __all__ = [
     "EXPECTED_COUNTS",
 ]
 
-# Counts from the source workbook (Extended.xlsx); loading rejects data/ that drifted.
+# Counts from the source workbook (UpdatedSpreadsheet.xlsx); loading rejects data/ that drifted.
 EXPECTED_COUNTS = {
     "ores": 147,
     "weapons": 80,
-    "races": 16,
+    "races": 20,
     "runes": 47,
     "achievements": 16,
 }

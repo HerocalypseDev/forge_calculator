@@ -43,13 +43,13 @@ def test_every_ore_has_a_multiplier(data):
 def test_weapon_type_lists(data):
     # C12: 10 weapon types
     assert len(data.weapon_types) == 10
-    # C23: 5 race-bonus types -- note the PLURAL "Gauntlets" (quirk preserved)
     assert data.race_bonus_types == (
         "Dagger",
         "Straight Sword",
         "Gauntlets",
         "Great Axe",
         "Colossal Sword",
+        "Spear",
     )
     # every weapon's type is in the C12 list
     assert {w.type for w in data.weapons} == set(data.weapon_types)

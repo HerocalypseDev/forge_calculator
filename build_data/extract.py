@@ -26,11 +26,11 @@ WEAPON_SHEET = "_Weapon"
 CRAFTER_SHEET = "_OptionsCrafter"
 OPTIONS_SHEET = "_Options"
 
-# Sheet ranges, as laid out in Extended.xlsx.
+# Sheet ranges, as laid out in UpdatedSpreadsheet.xlsx.
 WEAPON_ROWS = (2, 81)          # _Weapon!B2:E81   (row 1 is the header)
 CRAFTER_ROWS = (56, 202)       # _OptionsCrafter!A56:F202
 #                              # (53 banner, 54 header, 55 the "Select Ore" sentinel)
-ACHIEVEMENT_CELL = "C85"       # DPS Calculator achievement selector
+ACHIEVEMENT_CELL = "C98"       # DPS Calculator achievement selector
 
 
 # --- small helpers ---
@@ -128,6 +128,18 @@ def _cell_text(ws_v, ws_f, coord):
     return raw
 
 
+_FILTER_LITERAL = re.compile(r'FILTER\(\s*\{([^}]*)\}')
+
+
+def _filter_literal_list(ws_f, coord):
+    """The string array literal inside a ``FILTER({"a"; "b"; ...}, ...)`` formula."""
+    m = _FILTER_LITERAL.search(_formula_text(ws_f, coord).replace('""', '"'))
+    if not m:
+        return None
+    items = re.findall(r'"([^"]+)"', m.group(1))
+    return items or None
+
+
 # --- extraction sections ---
 
 
@@ -212,26 +224,27 @@ def extract_berserk_trait_stats(trait10, trait30):
 def extract_races(ws_v):
     """_Options race list + the availability matrix.
 
-    Layout quirk in the workbook: the matrix rows ``E2:U17`` are indexed by the
-    race names in column E (rows 2..17), while the dropdown list lives in
-    ``B1:B16`` with descriptions in ``C1:C16`` (off by one row).  We read the
-    names from column E (self-consistent with the matrix) and pull the default
-    trait from the B->C map.
+    Layout quirk in the workbook: the matrix rows ``E2:AA21`` are indexed by the
+    race names in column E, while the dropdown list lives in ``B1:B20`` with
+    descriptions in ``C1:C20`` (off by one row).  We read the names from column
+    E (self-consistent with the matrix) and pull the default trait from the
+    B->C map.
     """
     headers = []
-    for col in range(6, 21):  # F..U
-        headers.append((ws_v.cell(row=1, column=col).value or "").strip())
-    # B1:B16 -> C1:C16 default-trait map (B[r] == E[r+1])
+    col = 6
+    while (ws_v.cell(row=1, column=col).value or "").strip():
+        headers.append(ws_v.cell(row=1, column=col).value.strip())
+        col += 1
     default_traits = {}
-    for r in range(1, 17):
-        name = (ws_v.cell(row=r, column=2).value or "").strip()
-        if name:
-            default_traits[name] = (ws_v.cell(row=r, column=3).value or "").strip()
+    r = 1
+    while (ws_v.cell(row=r, column=2).value or "").strip():
+        name = ws_v.cell(row=r, column=2).value.strip()
+        default_traits[name] = (ws_v.cell(row=r, column=3).value or "").strip()
+        r += 1
     races = []
-    for r in range(2, 18):  # rows 2..17 == the 16 races
-        name = (ws_v.cell(row=r, column=5).value or "").strip()
-        if not name:
-            continue
+    r = 2
+    while (ws_v.cell(row=r, column=5).value or "").strip():
+        name = ws_v.cell(row=r, column=5).value.strip()
         avail = []
         for idx, header in enumerate(headers):
             cell = ws_v.cell(row=r, column=6 + idx).value
@@ -244,6 +257,7 @@ def extract_races(ws_v):
                 "available_traits": avail,
             }
         )
+        r += 1
     return races, headers
 
 
@@ -311,7 +325,7 @@ def extract(workbook_path, out_dir, source_name=None):
     matrix = parse_stat_matrix(formulas)
 
     # weapon-type validation lists (C12 / C23) -- preserved verbatim
-    types_from_c12 = _validation_list(dps, "C12", wb_v)
+    types_from_c12 = _filter_literal_list(dps, "F12") or _validation_list(dps, "C12", wb_v)
     race_bonus_types = _validation_list(dps, "C23", wb_v)
     if not types_from_c12:
         types_from_c12 = derived_types
@@ -360,7 +374,7 @@ def extract(workbook_path, out_dir, source_name=None):
     (out / "races.json").write_text(
         json.dumps(
             {
-                "source": f"{OPTIONS_SHEET}!B1:C16 + availability matrix E2:U17",
+                "source": f"{OPTIONS_SHEET}!B1:C{len(races)} + availability matrix E2:AA{len(races) + 1}",
                 "trait_headers": trait_headers,
                 "races": races,
             },

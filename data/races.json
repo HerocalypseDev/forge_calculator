@@ -1,5 +1,5 @@
 {
-  "source": "_Options!B1:C16 + availability matrix E2:U17",
+  "source": "_Options!B1:C20 + availability matrix E2:AA21",
   "trait_headers": [
     "Physical Damage +5%",
     "Physical Damage +10%",
@@ -15,7 +15,14 @@
     "Fire Damage +20%",
     "50% chance to deal 30% Physical Damage on-hit",
     "40% chance to burn enemies for 30% weapon damage/s for 3 seconds",
-    "10% Damage Boost (Straight Swords Only)"
+    "10% Damage Boost (Straight Swords Only)",
+    "Deals 10% weapon damage/s during combat",
+    "Physical Damage +15% (Spears Only)",
+    "Attack Speed +15% (Spears Only)",
+    "Physical Damage +40%",
+    "25% chance for slam",
+    "Fox Claws",
+    "Foxfire"
   ],
   "races": [
     {
@@ -115,7 +122,8 @@
       "available_traits": [
         "Physical Damage +20%",
         "Attack Speed +20%",
-        "Fire Damage +20%"
+        "Fire Damage +20%",
+        "Deals 10% weapon damage/s during combat"
       ]
     },
     {
@@ -124,6 +132,35 @@
       "available_traits": [
         "Physical Damage +20%",
         "Attack Speed +20%"
+      ]
+    },
+    {
+      "name": "Fairy",
+      "default_trait": "Physical Damage +15% (Spears Only)",
+      "available_traits": [
+        "Physical Damage +15% (Spears Only)",
+        "Attack Speed +15% (Spears Only)"
+      ]
+    },
+    {
+      "name": "Orc Lord",
+      "default_trait": "Attack Speed +15% (Spears Only)",
+      "available_traits": [
+        "Physical Damage +40%",
+        "25% chance for slam"
+      ]
+    },
+    {
+      "name": "Dryad",
+      "default_trait": "Physical Damage +40%",
+      "available_traits": []
+    },
+    {
+      "name": "Kitsune",
+      "default_trait": "25% chance for slam",
+      "available_traits": [
+        "Fox Claws",
+        "Foxfire"
       ]
     }
   ]

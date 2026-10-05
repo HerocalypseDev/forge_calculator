@@ -651,3 +651,22 @@ DIFFERENTIAL FUZZ PASSED (250 builds, 9506 fields — these are just input-box c
 underlying `calculate()` math and its caps are untouched); `python scripts/smoke_gui.py` →
 SMOKE OK.
 
+
+### UpdatedSpreadsheet.xlsx Adoption + Four New Races — IN PROGRESS
+**Goal:** `reference/UpdatedSpreadsheet.xlsx` replaces `Extended.xlsx` as the authoritative
+workbook (all older workbooks deleted from `reference/`). It adds four races — **Fairy**,
+**Orc Lord**, **Dryad**, **Kitsune** — three new race proc rows (Smash 83–85, Fox Claws
+87–89, Foxfire 91–94), moves achievements to `C98` and the results block to rows 102–116,
+caps explosion/smite damage at 250%, and makes Total Berserk DPS (`C112`) read `E54`
+(resolving the berserk-cap deviation at the source). The race bonuses the sheet appends to
+`C45`/`C48` duplicate some existing `E45`/`E48` terms (Orc, Dragonborn lethality;
+Goblin+Dagger attack speed); **by the user's decision those double counts are not ported**
+— each race bonus is counted once — until the sheet is fixed.
+
+| Phase | Work | Status |
+|-------|------|--------|
+| 1 | **Workbook swap** — rename to `UpdatedSpreadsheet.xlsx`, delete old workbooks, retarget build/test/parity paths; extractor reads achievements from `C98`, races from `B1:B20`/`E2:AA21`, weapon types from `F12`'s `FILTER` literal (the saved build is empty, so its cache is useless); data rebuilt (20 races, `Spear` in `C23`); results-cell addresses in tests moved to rows 102–116 | ✅ Done |
+| 2 | **Engines** — new race stat bonuses (Fairy+Spear, Orc Lord, Kitsune lethality; Fairy+Spear, Shadow+heavy, Elf, Kitsune attack speed; no double counts); `MIN(2.5, …)` caps on explosion (per slot) and smite damage; Smash / Fox Claws / Foxfire DPS rows; totals, berserk, Moon Stone and Max Burst updated — Python + MediaWiki | ⏳ |
+| 3 | **MediaWiki UI** — DPS Breakdown + clipboard rows for the three new procs | ⏳ |
+| 4 | **Tests** — new-race engine tests, constants guards for the new cells, fuzz regenerated | ⏳ |
+| 5 | **Docs** — CLAUDE.md workbook pointer, deviations, cell addresses, quirks | ⏳ |

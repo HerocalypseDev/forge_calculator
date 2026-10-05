@@ -19,7 +19,7 @@ from forge_calculator.engine import (
 )
 
 ROOT = DEFAULT_DATA_DIR.parent
-WORKBOOK = ROOT / "reference" / "Extended.xlsx"
+WORKBOOK = ROOT / "reference" / "UpdatedSpreadsheet.xlsx"
 
 
 @pytest.fixture(scope="module")
@@ -81,7 +81,7 @@ def test_workbook_cached_golden(game):
             blast_dmg=c("C37") or 0.0, blast_chance=c("D37") or 0.0,
         ),
         berserk=c("C54") or 0.0,
-        achievement=c("C85") or "None",
+        achievement=c("C98") or "None",
     )
     r = calculate(build, game)
 
@@ -101,21 +101,21 @@ def test_workbook_cached_golden(game):
         ("C67", r.poison_dmg), ("C68", r.poison_chance), ("C69", r.poison_duration),
         ("C72", r.smite_dmg), ("C73", r.smite_chance), ("C76", r.blackhole_dmg),
         ("C77", r.blackhole_chance), ("C80", r.lightning_dmg), ("C81", r.lightning_chance),
-        ("C89", r.weapon_dps), ("C90", r.explosion_dps), ("C91", r.fire_dps),
-        ("C92", r.poison_dps), ("C93", r.smite_dps), ("C94", r.blackhole_dps),
-        ("E94", r.lightning_dps), ("C96", r.total_dps), ("C100", r.min_dps),
-        ("E96", r.ttk_25k), ("E97", r.ttk_75k),
+        ("C102", r.weapon_dps), ("C103", r.explosion_dps), ("C104", r.fire_dps),
+        ("C105", r.poison_dps), ("C106", r.smite_dps), ("C107", r.blackhole_dps),
+        ("E107", r.lightning_dps), ("C111", r.total_dps), ("C115", r.min_dps),
+        ("E111", r.ttk_25k), ("E112", r.ttk_75k),
     ]:
         assert val == pytest.approx(c(cell) or 0.0, rel=1e-9), f"{cell}: {val} vs cached {c(cell)}"
 
-    assert r.max_dps == pytest.approx(c("C101"), rel=1e-9)
+    assert r.max_dps == pytest.approx(c("C116"), rel=1e-9)
 
     # C97/C98 fall back to C96 in the sheet when the bonus is 0; the engine uses None
     assert (r.berserk if r.berserk is not None else r.total_dps) == pytest.approx(
-        c("C97"), rel=1e-9
+        c("C112"), rel=1e-9
     )
     assert (r.moonstone if r.moonstone is not None else r.total_dps) == pytest.approx(
-        c("C98"), rel=1e-9
+        c("C113"), rel=1e-9
     )
 
 
@@ -241,7 +241,7 @@ def _load_formulas():
         pytest.skip(f"workbook not available: {WORKBOOK.name}")
     ws = openpyxl.load_workbook(WORKBOOK, data_only=False)["DPS Calculator"]
     out = {}
-    for row in ws.iter_rows(min_row=1, max_row=110, min_col=1, max_col=12):
+    for row in ws.iter_rows(min_row=1, max_row=125, min_col=1, max_col=12):
         for cell in row:
             val = cell.value
             val = getattr(val, "text", val)  # unwrap ArrayFormula
@@ -287,7 +287,7 @@ def test_engine_constants_match_source():
     _guard(formulas, "C47", "+C43", "armor CD wired into C47")
 
     # ability wiring -- one row per ability, DMG/Chance/Time in C/D/E
-    _guard(formulas, "C58", "+C37", "blast dmg input")
+    _guard(formulas, "C58", "+ C37", "blast dmg input")
     _guard(formulas, "C59", "D37", "blast chance input")
     _guard(formulas, "C62", "+C34", "fire dmg input")
     _guard(formulas, "C63", "D34", "fire chance input")
@@ -319,14 +319,14 @@ def test_engine_constants_match_source():
     # berserk
     _guard(formulas, "E54", "30%", "Minotaur berserk")
     _guard(formulas, "E54", "C54", "berserk input")
-    _guard(formulas, "C97", "C54", "berserk multiplies the physical hit")
+    _guard(formulas, "C112", "E54", "berserk multiplies the physical hit")
 
     # procs on unforged A18; C89/C101 on forged C18.
     # (E58/E72 are not usable here -- _OptionsCrafter has same-named trait
     # cells -- so the pattern is proven via E59, E76 and C101.)
     _guard(formulas, "E59", "A18", "explosion dps on A18")
     _guard(formulas, "E76", "A18", "black hole dps on A18")
-    _guard(formulas, "C101", "C18", "max-burst on C18")
+    _guard(formulas, "C116", "C18", "max-burst on C18")
 
     # E10 drops Fichilliumorite from both halves of the weighted average
     _guard(formulas, "E10", "Fichilliumorite", "E10 excludes Fichilliumorite")

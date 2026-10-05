@@ -1,4 +1,4 @@
-"""Diff Extended.xlsx per-ore stat ranges against Web/mediawiki/Data-Ores.json.
+"""Diff UpdatedSpreadsheet.xlsx per-ore stat ranges against Web/mediawiki/Data-Ores.json.
 
 Dev-only audit helper. Parses the slot-1 (C6/D6) branch of each DPS Calculator
 stat formula -- all four slots repeat identical ranges -- and reports any ore
