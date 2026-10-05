@@ -64,6 +64,9 @@ CELL_ATTRS = [
     ("C116 max burst DPS", "max_dps", "C116"),
     ("E111 TTK 25k", "ttk_25k", "E111"),
     ("E112 TTK 75k", "ttk_75k", "E112"),
+    ("C108 smash DPS", "smash_dps", "C108"),
+    ("E108 fox claws DPS", "fox_claws_dps", "E108"),
+    ("C109 foxfire DPS", "foxfire_dps", "C109"),
 ]
 
 

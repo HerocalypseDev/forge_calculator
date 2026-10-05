@@ -1,6 +1,6 @@
 """DPS engine, ported cell-for-cell from the workbook's "DPS Calculator" sheet.
 
-Every constant below cites its source cell in ``reference/Extended.xlsx``.  The
+Every constant below cites its source cell in ``reference/UpdatedSpreadsheet.xlsx``.  The
 workbook's quirks are preserved rather than fixed: procs scale on the unforged
 A18 while C89/C101 use the forged C18, fire/poison durations subtract 1 and 2,
 poison duration reads only the FIRST Malachite slot, C77 treats "Select Ore" as
@@ -69,6 +69,7 @@ FORGE_MULT = {
 RACE_LETHALITY = {
     "Archangel": 0.20, "Demon": 0.20, "Orc": 0.10,
     "Shadow": 0.05, "Dragonborn": 0.12,
+    "Orc Lord": 0.40, "Kitsune": 0.20,
 }
 # E45 class lethality addends (IFS in E45).  The sheet writes the Felynx test
 # with the plural "Gauntlets" (the only spelling its C23 dropdown offers); the
@@ -77,10 +78,12 @@ CLASS_LETHALITY = {
     ("Felynx", "Gauntlet"): 0.20,
     ("Felynx", "Gauntlets"): 0.20,
     ("Vampire", "Straight Sword"): 0.10,
+    ("Fairy", "Spear"): 0.15,
 }
 # E48 race atk-speed addends (SWITCH in E48)
 RACE_ATK_SPEED = {
     "Shadow": 0.10, "Demon": 0.20, "Archangel": 0.20,
+    "Elf": 0.05, "Kitsune": 0.20,
 }
 # E48 class atk-speed addends (IFS in E48), same Felynx test as CLASS_LETHALITY.
 CLASS_ATK_SPEED = {
@@ -89,6 +92,11 @@ CLASS_ATK_SPEED = {
     ("Golem", "Great Axe"): 0.15,
     ("Felynx", "Gauntlet"): 0.20,
     ("Felynx", "Gauntlets"): 0.20,
+    ("Fairy", "Spear"): 0.15,
+    ("Shadow", "Great Sword"): 0.15,
+    ("Shadow", "Colossal Sword"): 0.15,
+    ("Shadow", "Great Axe"): 0.15,
+    ("Shadow", "Mace"): 0.15,
 }
 # C62/C63/C64 Dragonborn fire bonuses
 RACE_FIRE_DMG = {"Dragonborn": 0.30}
@@ -100,6 +108,18 @@ RACE_SMITE_DMG = {"Angel": 0.30}
 RACE_SMITE_CHANCE = {"Angel": 0.50, "Archangel": 0.33}
 # E54 berserk addend (Minotaur)
 RACE_BERSERK = {"Minotaur": 0.30}
+RACE_SMASH_DMG = {"Orc Lord": 1.0}
+RACE_SMASH_COOLDOWN = {"Orc Lord": 10.0}
+RACE_SMASH_CHANCE = {"Orc Lord": 0.25}
+RACE_FOX_CLAWS_STEP = {"Kitsune": 0.075}
+RACE_FOX_CLAWS_CAP = {"Kitsune": 0.75}
+RACE_FOX_CLAWS_CHANCE = {"Kitsune": 0.5}
+RACE_FOXFIRE_DMG = {"Kitsune": 0.3}
+RACE_FOXFIRE_CHANCE = {"Kitsune": 0.5}
+RACE_FOXFIRE_TIME = {"Kitsune": 2.0}
+EXPLOSION_SLOT_CAP = 2.5
+SMITE_DMG_CAP = 2.5
+FOXFIRE_TIME_CAP = 5.0
 
 # Ores excluded from the E10 weighted average ore power.
 AVG_POWER_EXCLUDED = ("Fichilliumorite",)
@@ -378,6 +398,21 @@ class ProcComponents:
     lightning_dmg: float         # C80
     lightning_cooldown: float    # E80
     lightning_chance: float      # C81
+    smash_dmg: float = 0.0
+    smash_cooldown: float = 0.0
+    smash_chance: float = 0.0
+    fox_claws_dmg: float = 0.0
+    fox_claws_chance: float = 0.0
+    foxfire_dmg: float = 0.0
+    foxfire_chance: float = 0.0
+    foxfire_duration: float = 0.0
+
+
+def _fox_claws_dmg(race: str, atk_rate: float) -> float:
+    step = RACE_FOX_CLAWS_STEP.get(race, 0.0)
+    if not step:
+        return 0.0
+    return min(math.floor(atk_rate) * step, RACE_FOX_CLAWS_CAP[race])
 
 
 def _duration(ore_terms, race_time: float, ability_time: float, minus: int) -> float:
@@ -489,7 +524,7 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
         moon=slot_sum("moon"),
         # C58 SUMS across the slots and adds the Blast ability (C37/D37);
         # C59 MAXes across the slots and the ability instead
-        explosion_dmg=slot_sum("explosion_dmg") + build.abilities.blast_dmg,
+        explosion_dmg=sum(min(EXPLOSION_SLOT_CAP, v) for v in slot_vals("explosion_dmg")) + build.abilities.blast_dmg,
         explosion_chance=max(slot_max("explosion_chance"), build.abilities.blast_chance),
         fire_dmg=slot_sum("fire_dmg") + RACE_FIRE_DMG.get(build.race, 0.0) + build.abilities.fire_dmg,  # +C34
         fire_chance=max(slot_max("fire_chance"), build.abilities.fire_chance) + RACE_FIRE_CHANCE.get(build.race, 0.0),  # MAX(...,D34)+0.4
@@ -499,7 +534,7 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
         poison_duration=_duration([first_slot_val("Malachite", "poison_duration")], 0, build.abilities.poison_time, minus=2),
         # C72/C73: the ore terms SUM for damage and MAX for chance, and in both
         # cases the race addend is ADDED on top rather than maxed against.
-        smite_dmg=slot_sum("smite_dmg") + _smite_race_dmg(build.race, atk_rate),
+        smite_dmg=min(SMITE_DMG_CAP, slot_sum("smite_dmg") + _smite_race_dmg(build.race, atk_rate)),
         smite_chance=slot_max("smite_chance") + RACE_SMITE_CHANCE.get(build.race, 0.0),
         blackhole_dmg=slot_sum("blackhole_dmg"),
         blackhole_chance=_blackhole_chance(build.slots, game),
@@ -509,6 +544,14 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
             slot_vals("lightning_cooldown"), build.abilities.lightning_cooldown
         ),
         lightning_chance=max(slot_max("lightning_chance"), build.abilities.lightning_chance),
+        smash_dmg=RACE_SMASH_DMG.get(build.race, 0.0),
+        smash_cooldown=RACE_SMASH_COOLDOWN.get(build.race, 0.0),
+        smash_chance=RACE_SMASH_CHANCE.get(build.race, 0.0),
+        fox_claws_dmg=_fox_claws_dmg(build.race, atk_rate),
+        fox_claws_chance=RACE_FOX_CLAWS_CHANCE.get(build.race, 0.0),
+        foxfire_dmg=RACE_FOXFIRE_DMG.get(build.race, 0.0),
+        foxfire_chance=RACE_FOXFIRE_CHANCE.get(build.race, 0.0),
+        foxfire_duration=RACE_FOXFIRE_TIME.get(build.race, 0.0),
     )
 
 
@@ -582,6 +625,16 @@ class CalculateResult:
     ttk_25k: float | None         # E96 (None -> "∞")
     ttk_75k: float | None         # E97 (None -> "∞")
     active_traits: str            # C14
+    smash_dmg: float = 0.0
+    smash_chance: float = 0.0
+    fox_claws_dmg: float = 0.0
+    fox_claws_chance: float = 0.0
+    foxfire_dmg: float = 0.0
+    foxfire_chance: float = 0.0
+    foxfire_duration: float = 0.0
+    smash_dps: float = 0.0
+    fox_claws_dps: float = 0.0
+    foxfire_dps: float = 0.0
 
 
 def calculate(build: Build, game: GameData) -> CalculateResult:
@@ -627,18 +680,23 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         unforged * procs.lightning_dmg * procs.lightning_chance * lightning_rate
         if atk_rate else 0.0
     )
+    smash_dps = (
+        unforged * procs.smash_dmg * procs.smash_chance * min(atk_rate, 1.0 / procs.smash_cooldown)
+        if procs.smash_cooldown > 0 else 0.0
+    )
+    fox_claws_dps = unforged * atk_rate * procs.fox_claws_dmg * min(procs.fox_claws_chance, 1)
+    foxfire_dps = (
+        unforged * procs.foxfire_dmg
+        * min(1, procs.foxfire_chance * atk_rate * min(procs.foxfire_duration, FOXFIRE_TIME_CAP))
+        if atk_rate else 0.0
+    )
     total = (
         weapon_dps + explosion_dps + fire_dps + poison_dps
         + smite_dps + blackhole_dps + lightning_dps
+        + smash_dps + fox_claws_dps + foxfire_dps
     )
     proc_total = total - weapon_dps
 
-    # C97 -- ((E19 * (1 + E54)) * E21) + SUM(C90:C94) + E94, once the sheet is
-    # fixed to read E54 = MIN(200%, C54 + IF(Minotaur,30%,0)) instead of
-    # recomputing the addend inline (which is what it does today -- see
-    # "Approved deviation: berserk 200% cap" in CLAUDE.md).  E19*E21 is exactly
-    # C89, so berserk is one clean multiplier on the physical hit; it does NOT
-    # boost lethality.
     berserk_level = min(build.berserk + RACE_BERSERK.get(build.race, 0.0), CAPS["berserk"])
     berserk = None if berserk_level == 0 else weapon_dps * (1 + berserk_level) + proc_total
 
@@ -656,6 +714,7 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         + procs.smite_dmg * forged
         + procs.blackhole_dmg * forged
         + forged * procs.lightning_dmg * procs.lightning_chance * atk_rate
+        + procs.smash_dmg * forged
     )
 
     # E96/E97 TTK
@@ -703,4 +762,14 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         ttk_25k=ttk_25k,
         ttk_75k=ttk_75k,
         active_traits=active_traits(build, shares, game),
+        smash_dmg=procs.smash_dmg,
+        smash_chance=procs.smash_chance,
+        fox_claws_dmg=procs.fox_claws_dmg,
+        fox_claws_chance=procs.fox_claws_chance,
+        foxfire_dmg=procs.foxfire_dmg,
+        foxfire_chance=procs.foxfire_chance,
+        foxfire_duration=procs.foxfire_duration,
+        smash_dps=smash_dps,
+        fox_claws_dps=fox_claws_dps,
+        foxfire_dps=foxfire_dps,
     )

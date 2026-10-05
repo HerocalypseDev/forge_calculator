@@ -23,6 +23,7 @@ weapon_names = [w.name for w in game.weapons]
 race_names = [r.name for r in game.races]
 rune_names = [r.name for r in game.runes if r.name != "None"]
 ach_names = [a.name for a in game.achievements if a.name != "None"]
+bonus_types = list(dict.fromkeys([*game.race_bonus_types, *game.weapon_types]))
 
 
 def rand_float(maxv):
@@ -46,7 +47,7 @@ def gen_build():
         quality=random.choice([0, 25, 50, 100, 150, 200]),
         forge_level=random.choice(list(range(10))),
         race=random.choice(race_names),
-        bonus_weapon_type=random.choice(game.race_bonus_types),
+        bonus_weapon_type=random.choice(bonus_types),
         rune_cells=tuple(rune_cells),
         base_crit_chance=rand_float(0.3),
         base_crit_dmg=rand_float(0.5),
@@ -133,6 +134,16 @@ def result_to_dict(r):
         "smite_dps": r.smite_dps,
         "blackhole_dps": r.blackhole_dps,
         "lightning_dps": r.lightning_dps,
+        "smash_dmg": r.smash_dmg,
+        "smash_chance": r.smash_chance,
+        "fox_claws_dmg": r.fox_claws_dmg,
+        "fox_claws_chance": r.fox_claws_chance,
+        "foxfire_dmg": r.foxfire_dmg,
+        "foxfire_chance": r.foxfire_chance,
+        "foxfire_duration": r.foxfire_duration,
+        "smash_dps": r.smash_dps,
+        "fox_claws_dps": r.fox_claws_dps,
+        "foxfire_dps": r.foxfire_dps,
         "total_dps": r.total_dps,
         "berserk": r.berserk,
         "moonstone": r.moonstone,

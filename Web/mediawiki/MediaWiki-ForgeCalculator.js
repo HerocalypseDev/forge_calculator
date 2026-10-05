@@ -26,19 +26,24 @@
     'Demon': 0.20,
     'Orc': 0.10,
     'Shadow': 0.05,
-    'Dragonborn': 0.12
+    'Dragonborn': 0.12,
+    'Orc Lord': 0.40,
+    'Kitsune': 0.20
   };
 
   var CLASS_LETHALITY = {
     'Felynx,Gauntlet': 0.20,
     'Felynx,Gauntlets': 0.20,
-    'Vampire,Straight Sword': 0.10
+    'Vampire,Straight Sword': 0.10,
+    'Fairy,Spear': 0.15
   };
 
   var RACE_ATK_SPEED = {
     'Shadow': 0.10,
     'Demon': 0.20,
-    'Archangel': 0.20
+    'Archangel': 0.20,
+    'Elf': 0.05,
+    'Kitsune': 0.20
   };
 
   var CLASS_ATK_SPEED = {
@@ -46,7 +51,12 @@
     'Golem,Colossal Sword': 0.15,
     'Golem,Great Axe': 0.15,
     'Felynx,Gauntlet': 0.20,
-    'Felynx,Gauntlets': 0.20
+    'Felynx,Gauntlets': 0.20,
+    'Fairy,Spear': 0.15,
+    'Shadow,Great Sword': 0.15,
+    'Shadow,Colossal Sword': 0.15,
+    'Shadow,Great Axe': 0.15,
+    'Shadow,Mace': 0.15
   };
 
   var RACE_FIRE_DMG = { 'Dragonborn': 0.30 };
@@ -57,6 +67,22 @@
   var RACE_SMITE_CHANCE = { 'Angel': 0.50, 'Archangel': 0.33 };
 
   var RACE_BERSERK = { 'Minotaur': 0.30 };
+
+  var RACE_SMASH_DMG = { 'Orc Lord': 1.0 };
+  var RACE_SMASH_COOLDOWN = { 'Orc Lord': 10.0 };
+  var RACE_SMASH_CHANCE = { 'Orc Lord': 0.25 };
+
+  var RACE_FOX_CLAWS_STEP = { 'Kitsune': 0.075 };
+  var RACE_FOX_CLAWS_CAP = { 'Kitsune': 0.75 };
+  var RACE_FOX_CLAWS_CHANCE = { 'Kitsune': 0.5 };
+
+  var RACE_FOXFIRE_DMG = { 'Kitsune': 0.3 };
+  var RACE_FOXFIRE_CHANCE = { 'Kitsune': 0.5 };
+  var RACE_FOXFIRE_TIME = { 'Kitsune': 2.0 };
+
+  var EXPLOSION_SLOT_CAP = 2.5;
+  var SMITE_DMG_CAP = 2.5;
+  var FOXFIRE_TIME_CAP = 5.0;
 
   var CAPS = {
     lethality: 1.5,
@@ -604,6 +630,23 @@
     return RACE_SMITE_DMG[race] !== undefined ? RACE_SMITE_DMG[race] : 0.0;
   }
 
+  function raceValue(table, race) {
+    return table[race] !== undefined ? table[race] : 0.0;
+  }
+
+  function foxClawsDmg(race, atkRate) {
+    var step = raceValue(RACE_FOX_CLAWS_STEP, race);
+    if (!step) { return 0.0; }
+    return Math.min(Math.floor(atkRate) * step, RACE_FOX_CLAWS_CAP[race]);
+  }
+
+  function cappedSlotSum(slots, shares, game, stat, cap) {
+    var vals = slotVals(slots, shares, game, stat);
+    var total = 0.0;
+    for (var i = 0; i < vals.length; i++) { total += Math.min(cap, vals[i]); }
+    return total;
+  }
+
   function lightningCooldown(oreTerms, abilityCooldown) {
     var terms = oreTerms.slice();
     if (abilityCooldown) { terms.push(abilityCooldown); }
@@ -618,7 +661,7 @@
 
     return {
       moon: slotSum(build.slots, shares, game, 'moon'),
-      explosion_dmg: slotSum(build.slots, shares, game, 'explosion_dmg') + build.abilities.blast_dmg,
+      explosion_dmg: cappedSlotSum(build.slots, shares, game, 'explosion_dmg', EXPLOSION_SLOT_CAP) + build.abilities.blast_dmg,
       explosion_chance: Math.max(slotMax(build.slots, shares, game, 'explosion_chance'), build.abilities.blast_chance),
       fire_dmg: slotSum(build.slots, shares, game, 'fire_dmg')
         + (RACE_FIRE_DMG[build.race] !== undefined ? RACE_FIRE_DMG[build.race] : 0.0)
@@ -629,7 +672,7 @@
       poison_dmg: slotSum(build.slots, shares, game, 'poison_dmg') + build.abilities.poison_dmg,
       poison_chance: Math.max(slotMax(build.slots, shares, game, 'poison_chance'), build.abilities.poison_chance),
       poison_duration: duration([firstSlotVal(build.slots, shares, game, 'Malachite', 'poison_duration')], 0, build.abilities.poison_time, 2),
-      smite_dmg: slotSum(build.slots, shares, game, 'smite_dmg') + smiteRaceDmg(build.race, atkRate),
+      smite_dmg: Math.min(SMITE_DMG_CAP, slotSum(build.slots, shares, game, 'smite_dmg') + smiteRaceDmg(build.race, atkRate)),
       smite_chance: slotMax(build.slots, shares, game, 'smite_chance')
         + (RACE_SMITE_CHANCE[build.race] !== undefined ? RACE_SMITE_CHANCE[build.race] : 0.0),
       blackhole_dmg: slotSum(build.slots, shares, game, 'blackhole_dmg'),
@@ -639,7 +682,15 @@
       lightning_cooldown: lightningCooldown(
         slotVals(build.slots, shares, game, 'lightning_cooldown'),
         build.abilities.lightning_cooldown
-      )
+      ),
+      smash_dmg: raceValue(RACE_SMASH_DMG, build.race),
+      smash_cooldown: raceValue(RACE_SMASH_COOLDOWN, build.race),
+      smash_chance: raceValue(RACE_SMASH_CHANCE, build.race),
+      fox_claws_dmg: foxClawsDmg(build.race, atkRate),
+      fox_claws_chance: raceValue(RACE_FOX_CLAWS_CHANCE, build.race),
+      foxfire_dmg: raceValue(RACE_FOXFIRE_DMG, build.race),
+      foxfire_chance: raceValue(RACE_FOXFIRE_CHANCE, build.race),
+      foxfire_duration: raceValue(RACE_FOXFIRE_TIME, build.race)
     };
   }
 
@@ -726,7 +777,15 @@
     var blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * Math.max(1, atkRate);
     var lightningProcCap = procs.lightning_cooldown > 0 ? Math.min(atkRate, 1.0 / procs.lightning_cooldown) : atkRate;
     var lightning_dps = atkRate ? unforged * procs.lightning_dmg * procs.lightning_chance * lightningProcCap : 0.0;
-    var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps;
+    var smash_dps = procs.smash_cooldown > 0
+      ? unforged * procs.smash_dmg * procs.smash_chance * Math.min(atkRate, 1.0 / procs.smash_cooldown)
+      : 0.0;
+    var fox_claws_dps = unforged * atkRate * procs.fox_claws_dmg * Math.min(procs.fox_claws_chance, 1);
+    var foxfire_dps = atkRate
+      ? unforged * procs.foxfire_dmg * Math.min(1, procs.foxfire_chance * atkRate * Math.min(procs.foxfire_duration, FOXFIRE_TIME_CAP))
+      : 0.0;
+    var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
+      + smash_dps + fox_claws_dps + foxfire_dps;
     var proc_total = total_dps - weapon_dps;
 
     var berserkLevel = Math.min(build.berserk + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0), CAPS.berserk);
@@ -741,7 +800,8 @@
       + forged * procs.poison_dmg
       + procs.smite_dmg * forged
       + procs.blackhole_dmg * forged
-      + forged * procs.lightning_dmg * procs.lightning_chance * atkRate;
+      + forged * procs.lightning_dmg * procs.lightning_chance * atkRate
+      + procs.smash_dmg * forged;
 
     var ttk_25k = total_dps > 0 ? 25000 / total_dps : null;
     var ttk_75k = total_dps > 0 ? 75000 / total_dps : null;
@@ -787,7 +847,17 @@
       max_dps: max_dps,
       ttk_25k: ttk_25k,
       ttk_75k: ttk_75k,
-      active_traits: activeTraits(build, shares, game)
+      active_traits: activeTraits(build, shares, game),
+      smash_dmg: procs.smash_dmg,
+      smash_chance: procs.smash_chance,
+      fox_claws_dmg: procs.fox_claws_dmg,
+      fox_claws_chance: procs.fox_claws_chance,
+      foxfire_dmg: procs.foxfire_dmg,
+      foxfire_chance: procs.foxfire_chance,
+      foxfire_duration: procs.foxfire_duration,
+      smash_dps: smash_dps,
+      fox_claws_dps: fox_claws_dps,
+      foxfire_dps: foxfire_dps
     };
   }
 

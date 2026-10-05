@@ -44,18 +44,17 @@ const game = FC.buildGameData({
   achievements: loadJSON('Data-Achievements.json')
 });
 
-// The workbook's own saved default build (DPS Calculator, reference/Extended.xlsx).
 const build = {
   slots: [
-    { name: 'Fierce Jade', amount: 15 },
-    { name: 'Kitsunite', amount: 15 },
-    { name: 'Galaxite', amount: 15 },
-    { name: 'Supermassive Black Hole', amount: 15 }
+    { name: 'Prismatic Heart', amount: 12 },
+    { name: 'Malachite', amount: 11 },
+    { name: 'Fireite', amount: 10 },
+    { name: 'Galaxite', amount: 10 }
   ],
-  weapon_name: 'Excalibur',
+  weapon_name: 'Sharktooth Odachi',
   quality: 100,
-  forge_level: 9,
-  race: 'Human',
+  forge_level: 0,
+  race: 'Kitsune',
   bonus_weapon_type: 'Dagger',
   rune_cells: ['None', 'None', 'None', 'None', 'None', 'None', 'None', 'None', 'None'],
   base_crit_chance: 0,
@@ -77,43 +76,52 @@ const build = {
 const r = FC.calculate(build, game);
 
 const expected = [
-  ['E10  avg ore power',     'avg_power',        21.875],
-  ['A18  unforged dmg',      'unforged_damage',  1312.5],
-  ['C18  forged dmg',        'forged_damage',    1968.75],
-  ['E21  eff. hits/sec',     'attack_rate',      0.7973214286],
-  ['E45  lethality',         'lethality',        0.155],
-  ['E46  crit chance',       'crit_chance',      0.62],
-  ['E47  crit dmg',          'crit_dmg',         0.31],
-  ['E48  atk speed',         'atk_speed',        0.11625],
+  ['E10  avg ore power',     'avg_power',        9.697674419],
+  ['A18  unforged dmg',      'unforged_damage',  523.6744186],
+  ['C18  forged dmg',        'forged_damage',    523.6744186],
+  ['E21  eff. hits/sec',     'attack_rate',      0.8571428571],
+  ['E45  lethality',         'lethality',        0.2],
+  ['E46  crit chance',       'crit_chance',      0.4945930233],
+  ['E47  crit dmg',          'crit_dmg',         0.1845930233],
+  ['E48  atk speed',         'atk_speed',        0.2],
   ['C53  moon',              'moon',             0],
-  ['C58  explosion dmg',     'explosion_dmg',    1.04625],
-  ['C59  explosion chance',  'explosion_chance', 0.34875],
-  ['C62  fire dmg',          'fire_dmg',         0.6975],
-  ['C63  fire chance',       'fire_chance',      0.3875],
-  ['C64  fire duration',     'fire_duration',    2.875],
-  ['C67  poison dmg',        'poison_dmg',       0],
-  ['C68  poison chance',     'poison_chance',    0],
-  ['C69  poison duration',   'poison_duration',  0],
-  ['C72  smite dmg',         'smite_dmg',        0.38125],
-  ['C73  smite chance',      'smite_chance',     0.3875],
-  ['C76  black hole dmg',    'blackhole_dmg',    0.465],
+  ['C58  explosion dmg',     'explosion_dmg',    0],
+  ['C59  explosion chance',  'explosion_chance', 0],
+  ['C62  fire dmg',          'fire_dmg',         0.1393023256],
+  ['C63  fire chance',       'fire_chance',      0.1393023256],
+  ['C64  fire duration',     'fire_duration',    0.3930232558],
+  ['C67  poison dmg',        'poison_dmg',       0.08011627907],
+  ['C68  poison chance',     'poison_chance',    0.2643837209],
+  ['C69  poison duration',   'poison_duration',  0.4034883721],
+  ['C72  smite dmg',         'smite_dmg',        0],
+  ['C73  smite chance',      'smite_chance',     0],
+  ['C76  black hole dmg',    'blackhole_dmg',    0.4179069767],
   ['C77  black hole chance', 'blackhole_chance', 0.3],
-  ['C80  lightning dmg',     'lightning_dmg',    0.62],
-  ['C81  lightning chance',  'lightning_chance', 0.465],
-  ['C89  physical hit DPS',  'weapon_dps',       2667.335885],
-  ['C90  explosion DPS',     'explosion_dps',    381.8408917],
-  ['C91  fire DoT DPS',      'fire_dps',         813.1796768],
-  ['C92  poison DoT DPS',    'poison_dps',       0],
-  ['C93  smite DPS',         'smite_dps',        154.6017151],
-  ['C94  black hole DPS',    'blackhole_dps',    183.09375],
-  ['E94  lightning DPS',     'lightning_dps',    162.75],
-  ['C96  TOTAL DPS',         'total_dps',        4362.801919],
-  ['C97  berserk DPS',       'berserk',          4362.801919],
-  ['C98  moon stone DPS',    'moonstone',        4362.801919],
-  ['C100 min DPS',           'min_dps',          1813.03418],
-  ['C101 max burst DPS',     'max_dps',          8325.076553],
-  ['E96  TTK 25k',           'ttk_25k',          5.730262447],
-  ['E97  TTK 75k',           'ttk_75k',          17.19078734]
+  ['C80  lightning dmg',     'lightning_dmg',    0],
+  ['C81  lightning chance',  'lightning_chance', 0],
+  ['C84  smash dmg',         'smash_dmg',        0],
+  ['C88  fox claws dmg',     'fox_claws_dmg',    0],
+  ['C89  fox claws chance',  'fox_claws_chance', 0.5],
+  ['C92  foxfire dmg',       'foxfire_dmg',      0.3],
+  ['C93  foxfire chance',    'foxfire_chance',   0.5],
+  ['C94  foxfire duration',  'foxfire_duration', 2],
+  ['C102 physical hit DPS',  'weapon_dps',       707.6958558],
+  ['C103 explosion DPS',     'explosion_dps',    0],
+  ['C104 fire DoT DPS',      'fire_dps',         3.423336198],
+  ['C105 poison DoT DPS',    'poison_dps',       3.836198528],
+  ['C106 smite DPS',         'smite_dps',        0],
+  ['C107 black hole DPS',    'blackhole_dps',    65.65415792],
+  ['E107 lightning DPS',     'lightning_dps',    0],
+  ['C108 smash DPS',         'smash_dps',        0],
+  ['E108 fox claws DPS',     'fox_claws_dps',    0],
+  ['C109 foxfire DPS',       'foxfire_dps',      134.6591362],
+  ['C111 TOTAL DPS',         'total_dps',        915.2686847],
+  ['C112 berserk DPS',       'berserk',          915.2686847],
+  ['C113 moon stone DPS',    'moonstone',        915.2686847],
+  ['C115 min DPS',           'min_dps',          538.6365449],
+  ['C116 max burst DPS',     'max_dps',          1214.202642],
+  ['E111 TTK 25k',           'ttk_25k',          27.31438365],
+  ['E112 TTK 75k',           'ttk_75k',          81.94315096]
 ];
 
 const TOL = 1e-6;
@@ -135,6 +143,6 @@ for (const [label, key, want] of expected) {
 }
 console.log('-'.repeat(78));
 console.log(fails === 0
-  ? 'Extended.xlsx PARITY PASSED'
-  : fails + ' of ' + expected.length + ' cells diverge from Extended.xlsx');
+  ? 'UpdatedSpreadsheet.xlsx PARITY PASSED'
+  : fails + ' of ' + expected.length + ' cells diverge from UpdatedSpreadsheet.xlsx');
 process.exit(fails ? 1 : 0);

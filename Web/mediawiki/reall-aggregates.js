@@ -81,8 +81,6 @@ function check(label, workbook, engine) {
 }
 
 {
-  // manual 500% + Minotaur 30% = 530% uncapped, clamped to 200% (E54's
-  // MIN(200%,...) applied engine-side since C97 doesn't read E54 in the sheet yet)
   const r = FC.calculate(mk({ race: 'Minotaur', bonus_weapon_type: 'Dagger', berserk: 5.0 }), game);
   const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
                   r.blackhole_dps + r.lightning_dps;
@@ -162,6 +160,6 @@ for (const [label, w, e, ok] of rows) {
     Number(e).toFixed(6).padStart(14), ok ? '  ok' : '  <-- MISMATCH');
 }
 console.log('-'.repeat(78));
-console.log(fails === 0 ? 'AGGREGATES MATCH Extended.xlsx'
+console.log(fails === 0 ? 'AGGREGATES MATCH UpdatedSpreadsheet.xlsx'
   : fails + ' of ' + rows.length + ' aggregate formulas diverge');
 process.exit(fails ? 1 : 0);

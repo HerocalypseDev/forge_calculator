@@ -105,6 +105,10 @@ def test_workbook_cached_golden(game):
         ("C105", r.poison_dps), ("C106", r.smite_dps), ("C107", r.blackhole_dps),
         ("E107", r.lightning_dps), ("C111", r.total_dps), ("C115", r.min_dps),
         ("E111", r.ttk_25k), ("E112", r.ttk_75k),
+        ("C84", r.smash_dmg), ("C85", r.smash_chance), ("C108", r.smash_dps),
+        ("C88", r.fox_claws_dmg), ("C89", r.fox_claws_chance), ("E108", r.fox_claws_dps),
+        ("C92", r.foxfire_dmg), ("C93", r.foxfire_chance), ("C94", r.foxfire_duration),
+        ("C109", r.foxfire_dps),
     ]:
         assert val == pytest.approx(c(cell) or 0.0, rel=1e-9), f"{cell}: {val} vs cached {c(cell)}"
 
