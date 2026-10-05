@@ -41,10 +41,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Zero invented mechanics (hard requirement)
 - Every formula, stat, and rule is ported **verbatim** from the source workbook:
-  `reference/Extended.xlsx` — authoritative workbook (openpyxl, build-time only).
-  `reference/reall.xlsx` and `reference/new.xlsx` are prior workbooks, kept only
-  for git history; no script reads either one any more (see "Extended.xlsx
-  Adoption" below).
+  `reference/UpdatedSpreadsheet.xlsx` — authoritative workbook (openpyxl, build-time only).
+  Every older workbook (`Extended.xlsx`, `reall.xlsx`, `new.xlsx`, `Version2.xlsx`,
+  `Newchnages*.xlsx`) was deleted from `reference/`; they survive only in git history
+  (see "UpdatedSpreadsheet.xlsx Adoption" below).
 - Never hand-type a number that the workbook computes. Stat matrices are derived from formula strings; constants are guarded by `tests/test_golden.py::test_engine_constants_match_source`.
 - **Verify against the workbook, not against the old data.** `scripts/audit_reall.py`
   diffs every per-ore range in `data/ores.json` against the sheet, and the three
@@ -82,8 +82,40 @@ cap, is a live deviation again — see below.)
 was also fixed at the source — `Extended.xlsx`'s `C64` reads `E34`, matching what
 the engines always did via `fire_time`.
 
-### Approved deviation (current, live): berserk's 200% cap
-`Extended.xlsx`'s `C97` computes berserk DPS as
+### Approved deviation (current, live): race bonuses double-counted by the sheet
+`UpdatedSpreadsheet.xlsx` appends race terms to the end of `C45` (ore lethality) and `C48`
+(ore attack speed). Some of them repeat a term the sheet already has in the `E45`/`E48`
+race switches, so the sheet counts them twice:
+
+| Race | `C45`/`C48` term | Already in | Sheet total | Engines |
+|------|------------------|------------|-------------|---------|
+| Orc | `IF(C22="Orc", 0.1, 0)` in `C45` | `E45` SWITCH 10% | 20% lethality | **10%** |
+| Dragonborn | `IF(C22="Dragonborn", 0.12, 0)` in `C45` | `E45` SWITCH 12% | 24% lethality | **12%** |
+| Goblin + Dagger | `AND(C22="Goblin", C23="Dagger"), 0.1` in `C48` | `E48` IFS 10% | 20% atk speed | **10%** |
+
+The user confirmed these are spreadsheet bugs and will fix the sheet later; until then
+both engines count each bonus **once** (the existing `RACE_LETHALITY`/`CLASS_ATK_SPEED`
+entries are simply not duplicated). Felynx is *not* a double count: `C45`/`C48` test the
+singular `Gauntlet` and `E45`/`E48` the plural `Gauntlets`, so only one ever fires for a
+given `C23`; both spellings stay registered at 20%. Locked by
+`tests/test_races.py::test_sheet_double_counts_are_not_ported` and the matching checks in
+`Web/mediawiki/new-races-test.js`. **When the sheet is fixed**, delete this section — no
+engine change is needed as long as the fix removes the duplicate terms rather than the
+`E45`/`E48` ones.
+
+The genuinely new terms are ported verbatim: Fairy + Spear (+15% lethality, +15% atk
+speed), Orc Lord (+40% lethality), Kitsune (+20% lethality, +20% atk speed), Elf (+5% atk
+speed) and Shadow + Great Sword / Colossal Sword / Great Axe / Mace (+15% atk speed, on top
+of Shadow's flat `E48` 10%). They live in `RACE_*`/`CLASS_*` alongside the old entries —
+additive, so which cell the sheet writes them in doesn't change the total.
+
+### Resolved deviation (historical): berserk's 200% cap
+**Resolved at the source in `UpdatedSpreadsheet.xlsx`:** Total Berserk DPS (`C112`) is now
+`=((E19 * (1 + E54)) * E21) + SUM(C103:C107) + E107+C108+E108+C109` — it reads the capped
+`E54` exactly as proposed below, so the engines' `CAPS.berserk = 2.0` clamp is now verbatim,
+not a deviation. History follows.
+
+`Extended.xlsx`'s `C97` computed berserk DPS as
 `((E19 * (1 + C54 + IF(C22="Minotaur",30%,0))) * E21) + SUM(C90:C94) + E94` — an
 inline, **uncapped** recomputation of the addend. `E54` right next to it already
 computes `MIN(200%, C54 + IF(C22="Minotaur",30%,0))`, the same expression capped —
@@ -132,7 +164,7 @@ Maintained:
   `calculate(build, game)` → every workbook cell (E10…E101). Not part of any shipped UI:
   it exists so `fuzz_verify.js` can differentially verify the MediaWiki engine against it.
 - **Data** (`forge_calculator/data.py`, `data/*.json`) — committed JSON is the source of
-  truth; counts validated against the workbook (147 ores / 80 weapons / 16 races /
+  truth; counts validated against the workbook (147 ores / 80 weapons / 20 races /
   47 runes / 16 achievements). Copied to `Web/data/` and `Web/mediawiki/Data-*.json`.
 - **Build** (`build_data/`, `scripts/build_data.py`) — openpyxl extraction → JSON.
   Dev-only; never imported at runtime.
@@ -144,10 +176,10 @@ Retired — do not maintain:
   `scripts/smoke_gui.py`).
 
 Workbook sheets:
-- **DPS Calculator** — the main calculation sheet (cells C6–E101).
+- **DPS Calculator** — the main calculation sheet (cells C6–E116).
 - **_Weapon** — weapon lookup (`C2:E81`, types `C12` via `F12:F21`, race-bonus types `C23`).
 - **_OptionsCrafter** — ore catalog (`A56:F202`; `A55` is the Select Ore sentinel).
-- **_Options** — races matrix + rune pool (`A1:A48`).
+- **_Options** — races (`B1:C20` dropdown + descriptions, availability matrix `E1:AA21`) + rune pool (`A1:A48`).
 - **IGNORE REF CALC** — ignore.
 
 ## Domain model (engine)
@@ -156,14 +188,17 @@ Workbook sheets:
 - **Weapon** (`D12` key, quality `E12`, forge `C13`): forged damage `C18` = base × ore power × `FORGE_MULT[level]` × `(1+quality/100)`; unforged `A18` is the same without the forge term.
 - **Stats** (E45–E48): lethality / crit chance / crit dmg / atk speed totals from ores + runes + race/class combos + armor/base inputs, each capped (1.5 / 1.0 / 1.0 / 1.5).
 - **Ore power** `E10` — weighted average of the slot multipliers, with **Fichilliumorite excluded from both halves** of the division, so it is filler that never dilutes.
-- **Weapon DPS** `C89` = `C18 × (1+E45) × crit_blend × E21`; the seven proc rows (`C90`–`C94`, `E94`) scale on **unforged A18**; **Total** `C96` = sum; TTK `E96/E97` = 25k/75k ÷ total; `C100` min, `C101` max-burst (procs on **forged C18**).
+- **Results block is rows 102–116** in `UpdatedSpreadsheet.xlsx` (it was 89–101 in `Extended.xlsx`; cell references elsewhere in this file and in old code comments may still use the old numbers). **Weapon DPS** `C102` = `C18 × (1+E45) × crit_blend × E21`; the proc rows (`C103`–`C107`, `E107`, plus the race procs `C108`/`E108`/`C109`) scale on **unforged A18**; **Total** `C111` = sum; TTK `E111/E112` = 25k/75k ÷ total; `C115` min, `C116` max-burst (procs on **forged C18**).
+- **Race procs** (rows 83–94): **Smash** (Orc Lord, "Titanic Earthquake") `E85 = E13 × C84 × C85 × MIN(E21, 1/E84)` — 100% dmg, 25% chance, 10 s cooldown, the same shape as lightning; also added to Max Burst as `+C84×C18`. **Fox Claws** (Kitsune) `C88 = MIN(FLOOR(E21,1)×7.5%, 75%)`, `E89 = A18 × E21 × C88 × MIN(C89,1)` with `C89` = 50% — steps on *whole* attacks per second like Archangel smite, so 0 below 1 hit/sec. **Foxfire** (Kitsune) `E93 = IF(E21=0, 0, A18 × C92 × MIN(1, C93 × E21 × MIN(C94,5)))` — 30%/s, 50% chance, 2 s, the fire/poison uptime model; `E94` is display-only. All three feed Total, Berserk and Moon Stone; only Smash feeds Max Burst. **Dryad** is in the race dropdown but no formula references it.
+- **Explosion damage** (`C58`) caps each slot's ramp at 250% (`MIN(2.5, slot)`) before summing and adding the Blast ability; **smite damage** (`C72`) caps the whole sum, race addends included, at 250%. Neither cap is reachable with current ore values.
+- **Achievements** moved from `C85` to `C98` (`E45`/`E46`/`E48` read `C98`).
 - **Aggregation differs per proc.** Explosion damage (`C58`) **sums** across the four slots, while explosion chance (`C59`) — like fire, poison, smite and lightning **chance** — takes a `MAX` (see "Explosion Chance SUM→MAX Fix" below). Smite adds its race bonus *on top of* the slot max rather than maxing against it.
-- **Berserk** `C97` = `C89 × (1 + C54 + IF(Minotaur,30%,0))` + the six proc rows: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. **Capped at 200% total in `forge_calculator/engine.py` and MediaWiki JS** (see "Approved deviation (current, live): berserk's 200% cap") — the sheet's own cap lives on `E54` but nothing, including `C97`, reads it, so the sheet itself stays uncapped until that's fixed. Ore `phys_dmg` traits are **display-only** ("when HP < 35%") and must not feed it. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
+- **Berserk** `C112` = `C102 × (1 + E54)` + every proc row, with `E54 = MIN(200%, C54 + IF(Minotaur,30%,0))`: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. The 200% cap is now read by the sheet itself (see "Resolved deviation (historical): berserk's 200% cap"). Ore `phys_dmg` traits are **display-only** ("when HP < 35%") and must not feed it. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
 - **Lightning** (`C80`/`E80`/`C81`, DPS `E81`): damage sums, chance maxes, and the cooldown is the `MIN` across slots — the sheet uses `99` as its "no lightning" sentinel and maps a surviving 99 back to 0. Procs are rate-capped by `MIN(E21, 1/E80)`.
 
 ## Preserved workbook quirks (do not "fix")
 
-- `E45` and `E48` both test the plural `Gauntlets` (the only spelling `C23`'s dropdown offers) — see "Formerly-approved deviations" #4. The singular `Gauntlet` stays registered in `CLASS_LETHALITY`/`CLASS_ATK_SPEED` too, harmless dead weight from an older workbook. `Tigers Eye` (no apostrophe) is **gone**: the workbook spells it consistently as `Tiger's Eye`, so the one ore carries both lethality and attack speed straight from its own formulas.
+- `E45` and `E48` test the plural `Gauntlets` (the spelling `C23`'s dropdown offers); the new `C45`/`C48` race terms test the singular `Gauntlet` (the weapon data's actual type, which the MediaWiki UI derives `C23` from). Both spellings stay registered at 20% in `CLASS_LETHALITY`/`CLASS_ATK_SPEED`, which matches the sheet: only one of the two branches can fire for a given `C23`. `Tigers Eye` (no apostrophe) is **gone**: the workbook spells it consistently as `Tiger's Eye`, so the one ore carries both lethality and attack speed straight from its own formulas.
 - Armor stats feed `E45`/`E46`/`E47` via **C44/C42/C43** (`E42`–`E44` are dead cells).
 - Fire/poison duration offsets `-1` / `-2`. The outer `MAX(ore)=0` gate was removed (user workbook edit): a fire/poison ability time alone now counts, even without a matching ore and for fire without Dragonborn. Poison duration takes only the **first** Malachite slot (`C69` XLOOKUP), not the max.
 - `C77` (black hole chance) = 0.3 when `COUNTIF("Galaxite")/COUNTA(slots) ≥ 0.1`; COUNTA counts "Select Ore" as non-blank, so **any** Galaxite slot triggers it.
@@ -222,9 +257,9 @@ carries no comments.
 ## Commands
 
 ```bash
-python -m pytest tests/               # 82 tests (engine/golden/parser/data)
+python -m pytest tests/               # 106 tests (engine/golden/parser/data/races)
 pip install -e .[build]               # dev: add openpyxl
-python -m scripts.build_data          # regenerate data/*.json from Extended.xlsx
+python -m scripts.build_data          # regenerate data/*.json from UpdatedSpreadsheet.xlsx
 ```
 
 After a data rebuild, copy `data/*.json` to `Web/data/` and to
@@ -234,18 +269,19 @@ Workbook verification — the engines replay the workbook's own saved build and 
 against its cached values:
 
 ```bash
-node Web/mediawiki/reall-golden.js                    # MediaWiki IIFE  -> 37 cells
-node Web/mediawiki/reall-aggregates.js                # C97/C98/C101/C59/C73
+node Web/mediawiki/reall-golden.js                    # MediaWiki IIFE  -> 46 cells of the saved Kitsune build
+node Web/mediawiki/reall-aggregates.js                # berserk/moon stone/max burst/explosion/smite aggregates
 node Web/mediawiki/verify-engine.js                   # goldens vs tests/test_golden.py
 node Web/mediawiki/fuzz_verify.js                     # 250 builds JS <-> Python
 python Web/mediawiki/fuzz_gen.py                      # regenerate fuzz-cases.json
-python scripts/reall_parity.py                        # reference engine -> 37 cells, reads reference/Extended.xlsx's own cache
-python scripts/audit_reall.py reference/Extended.xlsx data/ores.json
+python scripts/reall_parity.py                        # reference engine -> saved-build cells, read from the workbook's own cache
+python scripts/audit_reall.py reference/UpdatedSpreadsheet.xlsx data/ores.json
 ```
 
 (`reall_parity.py`, `reall-golden.js`, `audit_reall.py` etc. kept their names from the
-`reall.xlsx` era — they now target `Extended.xlsx`; renaming them wasn't worth the
-churn.)
+`reall.xlsx` era — they now target `UpdatedSpreadsheet.xlsx`; renaming them wasn't worth
+the churn. The saved-build harnesses are only as strong as the build saved in the
+workbook: keep a real build — ideally one using a recently added mechanic — saved in it.)
 
 Every MediaWiki UI change should also keep the focused tests green:
 
@@ -254,14 +290,17 @@ node Web/mediawiki/ability-inputs-test.js   node Web/mediawiki/results-panel-tes
 node Web/mediawiki/ore-slot-test.js         node Web/mediawiki/bonus-derive-test.js
 node Web/mediawiki/armor-stats-test.js      node Web/mediawiki/berserk-input-test.js
 node Web/mediawiki/no-ore-weapon-test.js    node Web/mediawiki/berserk-trait-test.js
-node Web/mediawiki/generic-trait-ramp-test.js
+node Web/mediawiki/generic-trait-ramp-test.js  node Web/mediawiki/new-races-test.js
 ```
+
+`copy-stat-test.js` (expects the pre-`fc-is-capped` inline cap colour) and `icon-test.js`
+(4 failures) were already red before the UpdatedSpreadsheet.xlsx adoption and are not in
+the list above.
 
 After changing either engine, rerun `fuzz_gen.py` *then* `fuzz_verify.js` — the
 cases file stores reference-engine results, so a stale one compares against the old engine.
 
-A rebuild is only trustworthy if `audit_reall.py` comes back with just the four
-intended ore `atk_speed` rows (approved deviation 1).
+A rebuild is only trustworthy if `audit_reall.py` comes back with **0 ore-range problems**.
 
 Retired, kept only as parity harnesses: `node Web/js/engine/reall-golden.test.mjs`,
 `node Web/js/engine/normalize.test.mjs`. `scripts/smoke_gui.py` drives the retired
@@ -652,7 +691,7 @@ underlying `calculate()` math and its caps are untouched); `python scripts/smoke
 SMOKE OK.
 
 
-### UpdatedSpreadsheet.xlsx Adoption + Four New Races — IN PROGRESS
+### UpdatedSpreadsheet.xlsx Adoption + Four New Races — COMPLETED ✅
 **Goal:** `reference/UpdatedSpreadsheet.xlsx` replaces `Extended.xlsx` as the authoritative
 workbook (all older workbooks deleted from `reference/`). It adds four races — **Fairy**,
 **Orc Lord**, **Dryad**, **Kitsune** — three new race proc rows (Smash 83–85, Fox Claws
@@ -669,4 +708,10 @@ Goblin+Dagger attack speed); **by the user's decision those double counts are no
 | 2 | **Engines** — new race stat bonuses (Fairy+Spear, Orc Lord, Kitsune lethality; Fairy+Spear, Shadow+heavy, Elf, Kitsune attack speed; no double counts); `MIN(2.5, …)` caps on explosion (per slot) and smite damage; Smash / Fox Claws / Foxfire DPS rows; totals, berserk, Moon Stone and Max Burst updated — Python + MediaWiki; saved-build parity (`reall_parity.py`, `reall-golden.js`, `test_workbook_cached_golden`) retargeted to the workbook's saved Kitsune build incl. the new proc cells; fuzz now also draws weapon types from `C12` and compares the new fields | ✅ Done |
 | 3 | **MediaWiki UI** — DPS Breakdown (now 13 rows: Smash / Fox Claws / Foxfire after Lightning, with `fc-sv-smash`/`-foxclaws`/`-foxfire` colours) + clipboard rows; `results-panel-test.js` updated | ✅ Done |
 | 4 | **Tests** — `tests/test_races.py` (22 cases) + `Web/mediawiki/new-races-test.js`: every new race bonus, Smash/Fox Claws/Foxfire maths, no double counts, Dryad inert; `test_engine_constants_match_source` guards every new constant and the 2.5 caps; fuzz regenerated | ✅ Done |
-| 5 | **Docs** — CLAUDE.md workbook pointer, deviations, cell addresses, quirks | ⏳ |
+| 5 | **Docs** — CLAUDE.md workbook pointer, double-count deviation, berserk deviation marked resolved, results-block/race-proc/achievement cell addresses, Gauntlet spelling quirk, commands | ✅ Done |
+
+**Verification:** `pytest tests/` → 106 passed; `audit_reall.py` → 0 ore-range problems;
+`reall_parity.py` / `reall-golden.js` → PARITY PASSED against the workbook's saved Kitsune
+build (incl. Foxfire 134.66 of Total 915.27); `reall-aggregates.js` → AGGREGATES MATCH;
+`verify-engine.js` → ALL GOLDEN CHECKS PASSED; `fuzz_verify.js` → DIFFERENTIAL FUZZ PASSED
+(250 builds, 12,005 fields); all focused MediaWiki tests incl. `new-races-test.js` PASSED.
