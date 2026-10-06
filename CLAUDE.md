@@ -82,6 +82,17 @@ defensive code in the engines still makes sense on read. (The fifth, berserk's 2
 was also fixed at the source — `Extended.xlsx`'s `C64` reads `E34`, matching what
 the engines always did via `fire_time`.
 
+### Approved deviation (current, live): lethality cap 300%
+The user confirmed the game's lethality cap is now **300%**, but `UpdatedSpreadsheet.xlsx`'s
+`E45` still ends `…,150%)`. Until the sheet is updated, both engines cap lethality at 300%:
+`CAPS["lethality"] = 3.0` in `forge_calculator/engine.py` and `CAPS.lethality = 3.0` in
+`MediaWiki-ForgeCalculator.js`; the Armor Lethality input's max rose 150 → 300 to match. The
+Stats (Capped) card's red highlight follows `CAPS.lethality` automatically. Locked by
+`tests/test_engine.py::test_stat_totals_caps`, `tests/test_races.py::test_lethality_caps_at_300_percent`,
+`new-races-test.js` and `armor-stats-test.js`. `test_engine_constants_match_source` no longer
+guards `E45`'s `150%`. **When the sheet is fixed** (`E45`'s last argument → `300%`), add a
+`_guard(formulas, "E45", "300%", "lethality cap")` line back and delete this section.
+
 ### Resolved deviation (historical): race bonuses double-counted by the sheet
 The first `UpdatedSpreadsheet.xlsx` appended race terms to the ends of `C45`/`C48` that
 repeated `E45`/`E48` (Orc and Dragonborn lethality, Goblin + Dagger attack speed counted
@@ -185,7 +196,7 @@ Workbook sheets:
 
 - **4 forge slots** (`C6:C9` ore, `D6:D9` weight). An ore contributes a stat only when its share ≥10%; value ramps `base → max` as share goes 10% → 30% (`(base + (max-base)*MIN((share-0.1)/0.2, 1))/divisor`; `divisor` 100 for percents, 1 for durations). Below 10% → 0.
 - **Weapon** (`D12` key, quality `E12`, forge `C13`): forged damage `C18` = base × ore power × `FORGE_MULT[level]` × `(1+quality/100)`; unforged `A18` is the same without the forge term.
-- **Stats** (E45–E48): lethality / crit chance / crit dmg / atk speed totals from ores + runes + race/class combos + armor/base inputs, each capped (1.5 / 1.0 / 1.0 / 1.5).
+- **Stats** (E45–E48): lethality / crit chance / crit dmg / atk speed totals from ores + runes + race/class combos + armor/base inputs, each capped (3.0 / 1.0 / 1.0 / 1.5) — lethality's 3.0 is the approved deviation above; the sheet's `E45` still says 150%.
 - **Ore power** `E10` — weighted average of the slot multipliers, with **Fichilliumorite excluded from both halves** of the division, so it is filler that never dilutes.
 - **Results block is rows 102–116** in `UpdatedSpreadsheet.xlsx` (it was 89–101 in `Extended.xlsx`; cell references elsewhere in this file and in old code comments may still use the old numbers). **Weapon DPS** `C102` = `C18 × (1+E45) × crit_blend × E21`; the proc rows (`C103`–`C107`, `E107`, plus the race procs `C108`/`E108`/`C109`) scale on **unforged A18**; **Total** `C111` = sum; TTK `E111/E112` = 25k/75k ÷ total; `C115` min, `C116` max-burst (procs on **forged C18**).
 - **Race procs** (rows 83–94): **Smash** (Orc Lord, "Titanic Earthquake") `E85 = E13 × C84 × C85 × MIN(E21, 1/E84)` — 100% dmg, 25% chance, 10 s cooldown, the same shape as lightning; also added to Max Burst as `+C84×C18`. **Fox Claws** (Kitsune) `C88 = MIN(FLOOR(E21,1)×7.5%, 75%)`, `E89 = A18 × E21 × C88 × MIN(C89,1)` with `C89` = 50% — steps on *whole* attacks per second like Archangel smite, so 0 below 1 hit/sec. **Foxfire** (Kitsune) `E93 = IF(E21=0, 0, A18 × C92 × MIN(1, C93 × E21 × MIN(C94,5)))` — 30%/s, 50% chance, 2 s, the fire/poison uptime model; `E94` is display-only. All three feed Total, Berserk and Moon Stone; only Smash feeds Max Burst. **Dryad** is in the race dropdown but no formula references it.
@@ -256,7 +267,7 @@ carries no comments.
 ## Commands
 
 ```bash
-python -m pytest tests/               # 108 tests (engine/golden/parser/data/races)
+python -m pytest tests/               # 109 tests (engine/golden/parser/data/races)
 pip install -e .[build]               # dev: add openpyxl
 python -m scripts.build_data          # regenerate data/*.json from UpdatedSpreadsheet.xlsx
 ```

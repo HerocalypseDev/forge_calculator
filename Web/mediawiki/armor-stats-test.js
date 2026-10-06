@@ -160,7 +160,7 @@ console.log('== Input attributes ==');
 assert(byId.armorLethality.getAttribute('step') === '1', 'lethality step=1 (whole percent)');
 assert(byId.armorCritChance.getAttribute('step') === '1', 'crit chance step=1');
 assert(byId.armorCritDmg.getAttribute('step') === '1', 'crit dmg step=1');
-assert(byId.armorLethality.getAttribute('max') === '150', 'lethality max=150 (cap)');
+assert(byId.armorLethality.getAttribute('max') === '300', 'lethality max=300 (cap)');
 assert(byId.armorCritChance.getAttribute('max') === '100', 'crit chance max=100 (cap)');
 assert(byId.armorCritDmg.getAttribute('max') === '150', 'crit dmg max=150 (cap)');
 assert(byId.armorCritChance.getAttribute('min') === '0', 'crit chance min=0');
@@ -171,8 +171,8 @@ function commit(el, value) {
   el.dispatchEvent({ type: 'change' });
 }
 
-commit(byId.armorLethality, '200');
-assert(stat.getValues().armorLethality === 150, 'lethality 200 -> clamped to 150');
+commit(byId.armorLethality, '400');
+assert(stat.getValues().armorLethality === 300, 'lethality 400 -> clamped to 300');
 commit(byId.armorCritChance, '-5');
 assert(stat.getValues().armorCritChance === 0, 'crit chance -5 -> clamped to 0');
 commit(byId.armorCritDmg, '30');

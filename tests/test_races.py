@@ -108,6 +108,13 @@ def test_demon_straight_sword_lethality(game):
     assert run(game, "Demon", bonus="Dagger").lethality == pytest.approx(0.20)
 
 
+def test_lethality_caps_at_300_percent(game):
+    over = calculate(Build(weapon_name="Dagger", race="Orc Lord", armor_lethality=2.8), game)
+    assert over.lethality == pytest.approx(3.0)
+    under = calculate(Build(weapon_name="Dagger", race="Orc Lord", armor_lethality=2.5), game)
+    assert under.lethality == pytest.approx(2.9)
+
+
 def test_dryad_has_no_dps_effect(game):
     assert run(game, "Dryad") == run(game, "")
 

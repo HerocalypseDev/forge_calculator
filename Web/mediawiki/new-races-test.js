@@ -94,6 +94,9 @@ approx(run('Minotaur').lethality, 0.30, 'Minotaur lethality');
 approx(run('Demon', 'Dagger', 'Straight Sword').lethality, 0.30, 'Demon + Straight Sword lethality');
 approx(run('Demon', 'Dagger', 'Dagger').lethality, 0.20, 'Demon without a straight sword');
 
+approx(FC.calculate({ slots: [], weapon_name: 'Dagger', race: 'Orc Lord', armor_lethality: 2.8 }, game).lethality, 3.0, 'lethality caps at 300%');
+approx(FC.calculate({ slots: [], weapon_name: 'Dagger', race: 'Orc Lord', armor_lethality: 2.5 }, game).lethality, 2.9, 'lethality under the cap is untouched');
+
 const dryad = run('Dryad');
 const noRace = run('');
 assert(JSON.stringify(dryad) === JSON.stringify(noRace), 'Dryad has no DPS effect');

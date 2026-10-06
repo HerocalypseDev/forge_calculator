@@ -188,7 +188,7 @@ def test_stat_totals_caps(game):
     build = Build(base_lethality=10.0, armor_crit_chance=2.0, armor_crit_dmg=2.0)
     ore = {"lethality": 0.0, "crit_chance": 0.0, "crit_dmg": 0.0, "atk_speed": 0.0}
     totals = stat_totals(build, game, ore)
-    assert totals["lethality"] == 1.5
+    assert totals["lethality"] == 3.0
     assert totals["crit_chance"] == 1.0
     assert totals["crit_dmg"] == 1.0
 

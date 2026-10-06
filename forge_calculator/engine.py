@@ -127,7 +127,7 @@ AVG_POWER_EXCLUDED = ("Fichilliumorite",)
 
 # E45/E46/E47/E48 caps
 CAPS = {
-    "lethality": 1.5,
+    "lethality": 3.0,
     "crit_chance": 1.0,
     "crit_dmg": 1.0,
     "atk_speed": 1.5,
@@ -337,7 +337,7 @@ def stat_totals(build: Build, game: GameData, ore_contribs: Mapping[str, float])
     """E44-E47 capped totals.
 
     ``ore_contribs`` is the C44-C47 sum, already including the C41/C42/C43
-    armor addends.  Caps: 1.5 lethality, 1.0 crit chance/dmg, 1.5 atk speed.
+    armor addends.  Caps: 3.0 lethality, 1.0 crit chance/dmg, 1.5 atk speed.
     """
     runes = rune_totals(build.rune_cells)
     ach = parse_trait(build.achievement)

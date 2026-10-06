@@ -87,7 +87,7 @@
   var FOXFIRE_TIME_CAP = 5.0;
 
   var CAPS = {
-    lethality: 1.5,
+    lethality: 3.0,
     crit_chance: 1.0,
     crit_dmg: 1.0,
     atk_speed: 1.5,
@@ -1585,7 +1585,7 @@
 
 
     var fields = [
-      { key: 'armorLethality', label: 'Armor Lethality', placeholder: '0', min: 0, max: 150, step: 1 },
+      { key: 'armorLethality', label: 'Armor Lethality', placeholder: '0', min: 0, max: 300, step: 1 },
       { key: 'armorCritChance', label: 'Armor Crit Chance', placeholder: '0', min: 0, max: 100, step: 1 },
       { key: 'armorCritDmg', label: 'Armor Crit Damage', placeholder: '0', min: 0, max: 150, step: 1 }
     ];
