@@ -82,16 +82,13 @@ defensive code in the engines still makes sense on read. (The fifth, berserk's 2
 was also fixed at the source — `Extended.xlsx`'s `C64` reads `E34`, matching what
 the engines always did via `fire_time`.
 
-### Approved deviation (current, live): lethality cap 300%
-The user confirmed the game's lethality cap is now **300%**, but `UpdatedSpreadsheet.xlsx`'s
-`E45` still ends `…,150%)`. Until the sheet is updated, both engines cap lethality at 300%:
-`CAPS["lethality"] = 3.0` in `forge_calculator/engine.py` and `CAPS.lethality = 3.0` in
-`MediaWiki-ForgeCalculator.js`; the Armor Lethality input's max rose 150 → 300 to match. The
-Stats (Capped) card's red highlight follows `CAPS.lethality` automatically. Locked by
-`tests/test_engine.py::test_stat_totals_caps`, `tests/test_races.py::test_lethality_caps_at_300_percent`,
-`new-races-test.js` and `armor-stats-test.js`. `test_engine_constants_match_source` no longer
-guards `E45`'s `150%`. **When the sheet is fixed** (`E45`'s last argument → `300%`), add a
-`_guard(formulas, "E45", "300%", "lethality cap")` line back and delete this section.
+### Resolved deviation (historical): lethality cap 300%
+The user confirmed the game's lethality cap rose to **300%** before the sheet did, so the
+engines briefly capped at 300% while `E45` still said 150%. The user then updated the
+workbook: `E45`'s last argument is now `300%` (the only change in that upload), so
+`CAPS["lethality"] = 3.0` / `CAPS.lethality = 3.0` are verbatim again and
+`test_engine_constants_match_source` guards `E45`'s `300%`. The Armor Lethality input's max
+is 300 to match.
 
 ### Resolved deviation (historical): race bonuses double-counted by the sheet
 The first `UpdatedSpreadsheet.xlsx` appended race terms to the ends of `C45`/`C48` that
@@ -196,7 +193,7 @@ Workbook sheets:
 
 - **4 forge slots** (`C6:C9` ore, `D6:D9` weight). An ore contributes a stat only when its share ≥10%; value ramps `base → max` as share goes 10% → 30% (`(base + (max-base)*MIN((share-0.1)/0.2, 1))/divisor`; `divisor` 100 for percents, 1 for durations). Below 10% → 0.
 - **Weapon** (`D12` key, quality `E12`, forge `C13`): forged damage `C18` = base × ore power × `FORGE_MULT[level]` × `(1+quality/100)`; unforged `A18` is the same without the forge term.
-- **Stats** (E45–E48): lethality / crit chance / crit dmg / atk speed totals from ores + runes + race/class combos + armor/base inputs, each capped (3.0 / 1.0 / 1.0 / 1.5) — lethality's 3.0 is the approved deviation above; the sheet's `E45` still says 150%.
+- **Stats** (E45–E48): lethality / crit chance / crit dmg / atk speed totals from ores + runes + race/class combos + armor/base inputs, each capped (3.0 / 1.0 / 1.0 / 1.5).
 - **Ore power** `E10` — weighted average of the slot multipliers, with **Fichilliumorite excluded from both halves** of the division, so it is filler that never dilutes.
 - **Results block is rows 102–116** in `UpdatedSpreadsheet.xlsx` (it was 89–101 in `Extended.xlsx`; cell references elsewhere in this file and in old code comments may still use the old numbers). **Weapon DPS** `C102` = `C18 × (1+E45) × crit_blend × E21`; the proc rows (`C103`–`C107`, `E107`, plus the race procs `C108`/`E108`/`C109`) scale on **unforged A18**; **Total** `C111` = sum; TTK `E111/E112` = 25k/75k ÷ total; `C115` min, `C116` max-burst (procs on **forged C18**).
 - **Race procs** (rows 83–94): **Smash** (Orc Lord, "Titanic Earthquake") `E85 = E13 × C84 × C85 × MIN(E21, 1/E84)` — 100% dmg, 25% chance, 10 s cooldown, the same shape as lightning; also added to Max Burst as `+C84×C18`. **Fox Claws** (Kitsune) `C88 = MIN(FLOOR(E21,1)×7.5%, 75%)`, `E89 = A18 × E21 × C88 × MIN(C89,1)` with `C89` = 50% — steps on *whole* attacks per second like Archangel smite, so 0 below 1 hit/sec. **Foxfire** (Kitsune) `E93 = IF(E21=0, 0, A18 × C92 × MIN(1, C93 × E21 × MIN(C94,5)))` — 30%/s, 50% chance, 2 s, the fire/poison uptime model; `E94` is display-only. All three feed Total, Berserk and Moon Stone; only Smash feeds Max Burst. **Dryad** is in the race dropdown but no formula references it.
@@ -208,7 +205,7 @@ Workbook sheets:
 
 ## Preserved workbook quirks (do not "fix")
 
-- `E45` and `E48` now test the singular `Gauntlet` (the weapon data's real type, which the MediaWiki UI derives `C23` from), but the sheet's own `C23` dropdown still offers only the plural `Gauntlets` — so **inside the spreadsheet** Felynx's gauntlet bonus can't fire from the dropdown, while in the MediaWiki calculator it always does. Both spellings stay registered at 20% in `CLASS_LETHALITY`/`CLASS_ATK_SPEED`; the plural is harmless dead weight. `Tigers Eye` (no apostrophe) is **gone**: the workbook spells it consistently as `Tiger's Eye`, so the one ore carries both lethality and attack speed straight from its own formulas.
+- `E45` and `E48` test the singular `Gauntlet`, and the sheet's `C23` dropdown now offers the singular too (the user fixed it alongside the 300% lethality cap), matching the weapon data's real type that the MediaWiki UI derives `C23` from. Both spellings stay registered at 20% in `CLASS_LETHALITY`/`CLASS_ATK_SPEED`; the plural is harmless dead weight. `Tigers Eye` (no apostrophe) is **gone**: the workbook spells it consistently as `Tiger's Eye`, so the one ore carries both lethality and attack speed straight from its own formulas.
 - Armor stats feed `E45`/`E46`/`E47` via **C44/C42/C43** (`E42`–`E44` are dead cells).
 - Fire/poison duration offsets `-1` / `-2`. The outer `MAX(ore)=0` gate was removed (user workbook edit): a fire/poison ability time alone now counts, even without a matching ore and for fire without Dragonborn. Poison duration takes only the **first** Malachite slot (`C69` XLOOKUP), not the max.
 - `C77` (black hole chance) = 0.3 when `COUNTIF("Galaxite")/COUNTA(slots) ≥ 0.1`; COUNTA counts "Select Ore" as non-blank, so **any** Galaxite slot triggers it.

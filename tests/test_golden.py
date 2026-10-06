@@ -267,6 +267,7 @@ def test_engine_constants_match_source():
     for frag in ["20%", "10%", "5%", "12%"]:
         _guard(formulas, "E45", frag, "race lethality")
     _guard(formulas, "E45", 'AND(C22="Felynx",C23="Gauntlet")', "E45 Felynx gauntlet")
+    _guard(formulas, "E45", "300%", "lethality cap")
 
     # E48 race/class atk-speed addends (plural Gauntlets)
     _guard(formulas, "E48", 'AND(C22="Felynx",C23="Gauntlet")', "E48 Felynx gauntlet")

@@ -46,7 +46,7 @@ def test_weapon_type_lists(data):
     assert data.race_bonus_types == (
         "Dagger",
         "Straight Sword",
-        "Gauntlets",
+        "Gauntlet",
         "Great Axe",
         "Colossal Sword",
         "Spear",
