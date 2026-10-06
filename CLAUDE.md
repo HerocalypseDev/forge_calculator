@@ -82,17 +82,18 @@ defensive code in the engines still makes sense on read. (The fifth, berserk's 2
 was also fixed at the source — `Extended.xlsx`'s `C64` reads `E34`, matching what
 the engines always did via `fire_time`.
 
-### Approved deviation (current, live): no Demon + Straight Sword bonus
-`UpdatedSpreadsheet.xlsx`'s `E45` contains `AND(C22="Demon",C23="Straight Sword"),10%`, added
-in the user's double-count-fix edit (no earlier workbook in git history had it; only the
-`_Options` description text "Physical Damage +10% (Straight Sword Only)" did). The user
-confirmed it is **wrong**: Demon gets a flat 20% lethality with any weapon. Both engines drop
-the branch (`CLASS_LETHALITY` has no `("Demon", "Straight Sword")` entry) and
-`test_engine_constants_match_source` no longer guards it. Locked by
-`tests/test_races.py::test_demon_gets_no_straight_sword_bonus` and `new-races-test.js`.
-**When the user's corrected sheet arrives** (branch removed from `E45`), add
-`assert 'C22="Demon",C23="Straight Sword"' not in formulas["E45"]`-style coverage if wanted
-and delete this section.
+### Resolved deviation (historical): no Demon + Straight Sword bonus
+One `UpdatedSpreadsheet.xlsx` revision's `E45` contained `AND(C22="Demon",C23="Straight Sword"),10%`
+(added in the user's double-count-fix edit; no earlier workbook had it). The user confirmed it
+was wrong, so the engines dropped it ahead of the sheet; the next upload removed it from `E45`
+too, so the engines are verbatim again. `test_engine_constants_match_source` asserts `E45` has no
+`AND(C22="Demon"` branch.
+
+That same upload also **removed two attack-speed bonuses from `E48`**, both ported:
+**Golem + Great Axe** (Golem now gets its +15% only with a Colossal Sword) and **Shadow + Great
+Sword / Colossal Sword / Great Axe / Mace +15%** (Shadow is back to a flat 10%). `E45` was also
+rewritten with decimal constants (`0.2` instead of `20%`, cap `3` instead of `300%`) and a more
+defensive Damage Boost parse — same values, no engine change.
 
 ### Resolved deviation (historical): lethality cap 300%
 The user confirmed the game's lethality cap rose to **300%** before the sheet did, so the
@@ -118,16 +119,16 @@ Current race/class terms (all in `E45` lethality / `E48` attack speed):
 |------|-------------------|----------------------|
 | Orc Lord | 40% | — |
 | Minotaur | 30% | — |
-| Archangel, Kitsune, Demon | 20% (the sheet's Demon + Straight Sword +10% is **not** ported — see the deviation above) | 20% |
+| Archangel, Kitsune, Demon | 20% | 20% |
 | Dragonborn | 12% | — |
 | Orc | 10% | — |
-| Shadow | 5% | 10%, +15% with Great Sword / Colossal Sword / Great Axe / Mace |
+| Shadow | 5% | 10% |
 | Elf | — | 5% |
 | Fairy + Spear | 15% | 15% |
 | Felynx + Gauntlet | 20% | 20% |
 | Vampire + Straight Sword | 10% | — |
 | Goblin + Dagger | — | 10% |
-| Golem + Colossal Sword / Great Axe | — | 15% |
+| Golem + Colossal Sword | — | 15% |
 
 ### Resolved deviation (historical): berserk's 200% cap
 **Resolved at the source in `UpdatedSpreadsheet.xlsx`:** Total Berserk DPS (`C112`) is now
@@ -277,7 +278,7 @@ carries no comments.
 ## Commands
 
 ```bash
-python -m pytest tests/               # 109 tests (engine/golden/parser/data/races)
+python -m pytest tests/               # 110 tests (engine/golden/parser/data/races)
 pip install -e .[build]               # dev: add openpyxl
 python -m scripts.build_data          # regenerate data/*.json from UpdatedSpreadsheet.xlsx
 ```

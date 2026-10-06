@@ -50,14 +50,9 @@
   var CLASS_ATK_SPEED = {
     'Goblin,Dagger': 0.10,
     'Golem,Colossal Sword': 0.15,
-    'Golem,Great Axe': 0.15,
     'Felynx,Gauntlet': 0.20,
     'Felynx,Gauntlets': 0.20,
-    'Fairy,Spear': 0.15,
-    'Shadow,Great Sword': 0.15,
-    'Shadow,Colossal Sword': 0.15,
-    'Shadow,Great Axe': 0.15,
-    'Shadow,Mace': 0.15
+    'Fairy,Spear': 0.15
   };
 
   var RACE_FIRE_DMG = { 'Dragonborn': 0.30 };

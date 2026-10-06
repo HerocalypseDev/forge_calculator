@@ -112,8 +112,8 @@ assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Goblin', weaponName: 
   'Goblin + Dagger -> +10% atk speed (E48)');
 assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Great Sword' }))) === 0.15,
   'Golem + Colossal Sword -> +15% atk speed (E48)');
-assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Double Battle Axe' }))) === 0.15,
-  'Golem + Great Axe -> +15% atk speed (E47)');
+assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Double Battle Axe' }))) === 0,
+  'Golem + Great Axe -> no atk speed bonus (E48)');
 
 console.log('== Source checks ==');
 assert(SRC.indexOf('Select Bonus Type') === -1, 'no "Select Bonus Type" prompt remains');

@@ -81,9 +81,10 @@ approx(run('Fairy', 'Spear', 'Spear').lethality, 0.15, 'Fairy spear lethality');
 approx(run('Fairy', 'Spear', 'Spear').atk_speed, 0.15, 'Fairy spear atk speed');
 approx(run('Fairy', 'Dagger', 'Dagger').atk_speed, 0, 'Fairy without a spear');
 
-['Great Sword', 'Colossal Sword', 'Great Axe', 'Mace'].forEach((heavy) =>
-  approx(run('Shadow', 'Dagger', heavy).atk_speed, 0.25, 'Shadow + ' + heavy + ' atk speed'));
-approx(run('Shadow', 'Dagger', 'Dagger').atk_speed, 0.10, 'Shadow light weapon atk speed');
+['Dagger', 'Great Sword', 'Colossal Sword', 'Great Axe', 'Mace'].forEach((weaponType) =>
+  approx(run('Shadow', 'Dagger', weaponType).atk_speed, 0.10, 'Shadow + ' + weaponType + ' atk speed stays flat'));
+approx(run('Golem', 'Dagger', 'Colossal Sword').atk_speed, 0.15, 'Golem + Colossal Sword atk speed');
+approx(run('Golem', 'Dagger', 'Great Axe').atk_speed, 0, 'Golem + Great Axe gets nothing');
 approx(run('Elf').atk_speed, 0.05, 'Elf atk speed');
 
 approx(run('Orc').lethality, 0.10, 'Orc lethality counted once');

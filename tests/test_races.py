@@ -76,15 +76,16 @@ def test_fairy_bonuses_need_a_spear(game):
     assert dagger.atk_speed == 0.0
 
 
-@pytest.mark.parametrize("heavy", ["Great Sword", "Colossal Sword", "Great Axe", "Mace"])
-def test_shadow_heavy_weapon_attack_speed(game, heavy):
-    r = run(game, "Shadow", bonus=heavy)
-    assert r.atk_speed == pytest.approx(0.25)
+@pytest.mark.parametrize("weapon_type", ["Dagger", "Great Sword", "Colossal Sword", "Great Axe", "Mace"])
+def test_shadow_attack_speed_is_flat_for_every_weapon(game, weapon_type):
+    r = run(game, "Shadow", bonus=weapon_type)
+    assert r.atk_speed == pytest.approx(0.10)
     assert r.lethality == pytest.approx(0.05)
 
 
-def test_shadow_light_weapon_keeps_flat_bonus_only(game):
-    assert run(game, "Shadow", bonus="Dagger").atk_speed == pytest.approx(0.10)
+def test_golem_attack_speed_needs_a_colossal_sword(game):
+    assert run(game, "Golem", bonus="Colossal Sword").atk_speed == pytest.approx(0.15)
+    assert run(game, "Golem", bonus="Great Axe").atk_speed == 0.0
 
 
 def test_elf_attack_speed(game):

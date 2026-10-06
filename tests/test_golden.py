@@ -264,14 +264,17 @@ def test_engine_constants_match_source():
     _guard(formulas, "C18", "SWITCH", "forge uses SWITCH")
 
     # E45 race/class lethality addends
-    for frag in ["20%", "10%", "5%", "12%"]:
+    for frag in ['"Archangel", 0.2', '"Demon", 0.2', '"Orc", 0.1', '"Shadow", 0.05', '"Dragonborn", 0.12']:
         _guard(formulas, "E45", frag, "race lethality")
-    _guard(formulas, "E45", 'AND(C22="Felynx",C23="Gauntlet")', "E45 Felynx gauntlet")
-    _guard(formulas, "E45", "300%", "lethality cap")
+    _guard(formulas, "E45", 'AND(C22="Felynx", C23="Gauntlet")', "E45 Felynx gauntlet")
+    _guard(formulas, "E45", "0), 3)", "lethality cap")
+    assert 'AND(C22="Demon"' not in formulas["E45"].replace(" ", ""), "Demon has no weapon-type bonus"
 
-    # E48 race/class atk-speed addends (plural Gauntlets)
+    # E48 race/class atk-speed addends
     _guard(formulas, "E48", 'AND(C22="Felynx",C23="Gauntlet")', "E48 Felynx gauntlet")
-    _guard(formulas, "E48", "15%", "Golem class atk speed")
+    _guard(formulas, "E48", 'AND(C22="Golem",C23="Colossal Sword"),15%', "Golem class atk speed")
+    assert "Great Axe" not in formulas["E48"], "Golem/Shadow Great Axe bonus removed"
+    assert "Mace" not in formulas["E48"], "Shadow heavy-weapon bonus removed"
     _guard(formulas, "E48", "150%", "atk speed cap")
 
     # E46/E47 caps
@@ -329,15 +332,13 @@ def test_engine_constants_match_source():
     _guard(formulas, "E76", "A18", "black hole dps on A18")
     _guard(formulas, "C116", "C18", "max-burst on C18")
 
-    _guard(formulas, "E45", '"Orc Lord",40%', "Orc Lord lethality")
-    _guard(formulas, "E45", '"Minotaur",30%', "Minotaur lethality")
-    _guard(formulas, "E45", '"Kitsune",20%', "Kitsune lethality")
-    _guard(formulas, "E45", 'AND(C22="Fairy",C23="Spear"),15%', "Fairy spear lethality")
+    _guard(formulas, "E45", '"Orc Lord", 0.4', "Orc Lord lethality")
+    _guard(formulas, "E45", '"Minotaur", 0.3', "Minotaur lethality")
+    _guard(formulas, "E45", '"Kitsune", 0.2', "Kitsune lethality")
+    _guard(formulas, "E45", 'AND(C22="Fairy", C23="Spear"), 0.15', "Fairy spear lethality")
     _guard(formulas, "E48", 'AND(C22="Fairy",C23="Spear"),15%', "Fairy spear atk speed")
     _guard(formulas, "E48", '"Elf",5%', "Elf atk speed")
     _guard(formulas, "E48", '"Kitsune",20%', "Kitsune atk speed")
-    for heavy in ["Great Sword", "Colossal Sword", "Great Axe", "Mace"]:
-        _guard(formulas, "E48", f'C23="{heavy}"', "Shadow heavy-weapon atk speed")
     for cell in ["C45", "C48"]:
         assert "C22" not in formulas[cell], f"{cell} must hold ore terms only"
     _guard(formulas, "C58", "MIN(2.5,", "explosion dmg per-slot cap")
