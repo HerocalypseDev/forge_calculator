@@ -79,7 +79,6 @@ CLASS_LETHALITY = {
     ("Felynx", "Gauntlets"): 0.20,
     ("Vampire", "Straight Sword"): 0.10,
     ("Fairy", "Spear"): 0.15,
-    ("Demon", "Straight Sword"): 0.10,
 }
 # E48 race atk-speed addends (SWITCH in E48)
 RACE_ATK_SPEED = {

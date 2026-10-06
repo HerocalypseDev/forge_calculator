@@ -333,7 +333,6 @@ def test_engine_constants_match_source():
     _guard(formulas, "E45", '"Minotaur",30%', "Minotaur lethality")
     _guard(formulas, "E45", '"Kitsune",20%', "Kitsune lethality")
     _guard(formulas, "E45", 'AND(C22="Fairy",C23="Spear"),15%', "Fairy spear lethality")
-    _guard(formulas, "E45", 'AND(C22="Demon",C23="Straight Sword"),10%', "Demon straight sword lethality")
     _guard(formulas, "E48", 'AND(C22="Fairy",C23="Spear"),15%', "Fairy spear atk speed")
     _guard(formulas, "E48", '"Elf",5%', "Elf atk speed")
     _guard(formulas, "E48", '"Kitsune",20%', "Kitsune atk speed")

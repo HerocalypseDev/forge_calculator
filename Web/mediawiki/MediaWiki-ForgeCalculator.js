@@ -36,8 +36,7 @@
     'Felynx,Gauntlet': 0.20,
     'Felynx,Gauntlets': 0.20,
     'Vampire,Straight Sword': 0.10,
-    'Fairy,Spear': 0.15,
-    'Demon,Straight Sword': 0.10
+    'Fairy,Spear': 0.15
   };
 
   var RACE_ATK_SPEED = {

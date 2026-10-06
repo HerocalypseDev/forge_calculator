@@ -103,8 +103,8 @@ def test_minotaur_lethality(game):
     assert run(game, "Minotaur").lethality == pytest.approx(0.30)
 
 
-def test_demon_straight_sword_lethality(game):
-    assert run(game, "Demon", bonus="Straight Sword").lethality == pytest.approx(0.30)
+def test_demon_gets_no_straight_sword_bonus(game):
+    assert run(game, "Demon", bonus="Straight Sword").lethality == pytest.approx(0.20)
     assert run(game, "Demon", bonus="Dagger").lethality == pytest.approx(0.20)
 
 

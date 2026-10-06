@@ -82,6 +82,18 @@ defensive code in the engines still makes sense on read. (The fifth, berserk's 2
 was also fixed at the source — `Extended.xlsx`'s `C64` reads `E34`, matching what
 the engines always did via `fire_time`.
 
+### Approved deviation (current, live): no Demon + Straight Sword bonus
+`UpdatedSpreadsheet.xlsx`'s `E45` contains `AND(C22="Demon",C23="Straight Sword"),10%`, added
+in the user's double-count-fix edit (no earlier workbook in git history had it; only the
+`_Options` description text "Physical Damage +10% (Straight Sword Only)" did). The user
+confirmed it is **wrong**: Demon gets a flat 20% lethality with any weapon. Both engines drop
+the branch (`CLASS_LETHALITY` has no `("Demon", "Straight Sword")` entry) and
+`test_engine_constants_match_source` no longer guards it. Locked by
+`tests/test_races.py::test_demon_gets_no_straight_sword_bonus` and `new-races-test.js`.
+**When the user's corrected sheet arrives** (branch removed from `E45`), add
+`assert 'C22="Demon",C23="Straight Sword"' not in formulas["E45"]`-style coverage if wanted
+and delete this section.
+
 ### Resolved deviation (historical): lethality cap 300%
 The user confirmed the game's lethality cap rose to **300%** before the sheet did, so the
 engines briefly capped at 300% while `E45` still said 150%. The user then updated the
@@ -96,7 +108,8 @@ repeated `E45`/`E48` (Orc and Dragonborn lethality, Goblin + Dagger attack speed
 twice); the engines counted each once. **The user fixed the sheet:** `C45`/`C48` are pure
 ore cells again and every race/class bonus lives once in `E45`/`E48`, so the engines are
 verbatim. That fix also added **Minotaur +30% lethality** (on top of its `E54` +30%
-berserk) and **Demon + Straight Sword +10% lethality**, both ported.
+berserk), ported, and **Demon + Straight Sword +10% lethality**, which the user later
+confirmed is wrong and is not ported.
 `test_engine_constants_match_source` asserts `C45`/`C48` no longer reference `C22`.
 
 Current race/class terms (all in `E45` lethality / `E48` attack speed):
@@ -105,7 +118,7 @@ Current race/class terms (all in `E45` lethality / `E48` attack speed):
 |------|-------------------|----------------------|
 | Orc Lord | 40% | — |
 | Minotaur | 30% | — |
-| Archangel, Kitsune, Demon | 20% (Demon +10% more with Straight Sword) | 20% |
+| Archangel, Kitsune, Demon | 20% (the sheet's Demon + Straight Sword +10% is **not** ported — see the deviation above) | 20% |
 | Dragonborn | 12% | — |
 | Orc | 10% | — |
 | Shadow | 5% | 10%, +15% with Great Sword / Colossal Sword / Great Axe / Mace |
