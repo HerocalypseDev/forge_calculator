@@ -73,9 +73,16 @@ const kitsune = run('Kitsune');
 const kitsuneRate = 1.2 / DAGGER_INTERVAL;
 approx(kitsune.lethality, 0.20, 'Kitsune lethality');
 approx(kitsune.atk_speed, 0.20, 'Kitsune atk speed');
-approx(kitsune.fox_claws_dps, DAGGER_DMG * kitsuneRate * Math.floor(kitsuneRate) * 0.075 * 0.5, 'Kitsune fox claws dps');
+approx(kitsune.crit_dmg, 0.15, 'Kitsune crit dmg');
+approx(kitsune.fox_claws_dmg, 0.75, 'Kitsune fox claws dmg is flat');
+approx(kitsune.fox_claws_dps, DAGGER_DMG * 0.75 * 0.5 / 3, 'Kitsune fox claws dps');
 approx(kitsune.foxfire_dps, DAGGER_DMG * 0.3 * Math.min(1, 0.5 * kitsuneRate * 2), 'Kitsune foxfire dps');
-approx(run('Kitsune', 'Long Sword').fox_claws_dps, 0, 'fox claws needs a whole hit per second');
+const slowKitsune = run('Kitsune', 'Long Sword');
+assert(slowKitsune.attack_rate < 1, 'Long Sword is below one hit per second');
+approx(slowKitsune.fox_claws_dps, slowKitsune.unforged_damage * 0.75 * 0.5 / 3, 'fox claws ignores attack rate');
+
+const slowArchangel = run('Archangel', 'Long Sword');
+approx(slowArchangel.smite_dmg, 0.5 * slowArchangel.attack_rate, 'Archangel smite scales linearly below one hit per second');
 
 approx(run('Fairy', 'Spear', 'Spear').lethality, 0.15, 'Fairy spear lethality');
 approx(run('Fairy', 'Spear', 'Spear').atk_speed, 0.15, 'Fairy spear atk speed');
@@ -85,13 +92,13 @@ approx(run('Fairy', 'Dagger', 'Dagger').atk_speed, 0, 'Fairy without a spear');
   approx(run('Shadow', 'Dagger', weaponType).atk_speed, 0.10, 'Shadow + ' + weaponType + ' atk speed stays flat'));
 approx(run('Golem', 'Dagger', 'Colossal Sword').atk_speed, 0.15, 'Golem + Colossal Sword atk speed');
 approx(run('Golem', 'Dagger', 'Great Axe').atk_speed, 0, 'Golem + Great Axe gets nothing');
-approx(run('Elf').atk_speed, 0.05, 'Elf atk speed');
+approx(run('Elf').atk_speed, 0, 'Elf has no atk speed');
 
 approx(run('Orc').lethality, 0.10, 'Orc lethality counted once');
 approx(run('Dragonborn').lethality, 0.12, 'Dragonborn lethality counted once');
 approx(run('Goblin', 'Dagger', 'Dagger').atk_speed, 0.10, 'Goblin dagger atk speed counted once');
 
-approx(run('Minotaur').lethality, 0.30, 'Minotaur lethality');
+approx(run('Minotaur').lethality, 0, 'Minotaur has no lethality');
 approx(run('Demon', 'Dagger', 'Straight Sword').lethality, 0.20, 'Demon gets no straight sword bonus');
 approx(run('Demon', 'Dagger', 'Dagger').lethality, 0.20, 'Demon without a straight sword');
 

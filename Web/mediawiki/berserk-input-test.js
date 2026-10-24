@@ -280,8 +280,8 @@ function uiBuild(overrides) {
   const r = FC.calculate(FC.transformBuildForEngine(
     uiBuild({ race: 'Minotaur', berserk: 30 })
   ), game);
-  approx(r.berserk, 8.6 * 1.3 * 1.6 / 0.47, 'Minotaur + 30% berserk DPS');
-  assert(r.berserk !== null && r.berserk > r.weapon_dps, 'berserk > weapon DPS (lethality boosted)');
+  approx(r.berserk, 8.6 * 1.6 / 0.47, 'Minotaur + 30% berserk DPS');
+  assert(r.berserk !== null && r.berserk > r.weapon_dps, 'berserk > weapon DPS');
 
   const r2 = FC.calculate(FC.transformBuildForEngine(
     uiBuild({ race: 'None', berserk: 30 })

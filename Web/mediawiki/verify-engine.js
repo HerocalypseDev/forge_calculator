@@ -132,15 +132,15 @@ approx(r.blackhole_chance, 0.0, 'blackhole requires galaxite');
 
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger', race: 'Minotaur' }), game);
 approx(r.berserk, r.weapon_dps * 1.30, 'minotaur berserk == weapon_dps * 1.3');
-approx(r.berserk, 288.32125787234037, 'minotaur berserk');
+approx(r.berserk, 228.6685838297872, 'minotaur berserk');
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.berserk === null ? 0 : 1, 0, 'no-race berserk is null');
 
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger', achievement: 'Damage Boost +20%' }), game);
 approx(r.lethality, Math.min(0.15 + 0.20, 1.5), 'achievement lethality');
 
-approx(game.ores.length, 147, 'ore count');
-approx(game.weapons.length, 80, 'weapon count');
+approx(game.ores.length, 149, 'ore count');
+approx(game.weapons.length, 87, 'weapon count');
 approx(game.races.length, 20, 'race count');
 approx(game.runes.length, 47, 'rune count');
 approx(game.achievements.length, 16, 'achievement count');
