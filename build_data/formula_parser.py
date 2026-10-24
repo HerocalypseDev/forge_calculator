@@ -109,11 +109,11 @@ def _normalize(s):
 
 
 # A single slot test, e.g.  C6="Kitsunite"
-_ORE_TEST = re.compile(r'C[0-9]+\s*=\s*"([^"]+)"')
+_ORE_TEST = re.compile(r'\bC[6-9]\s*=\s*"([^"]+)"')
 
 # An OR(...) group of slot tests sharing one payload, e.g.
 #   OR(C6="Gargantuan",C6="Fireite")
-_OR_GROUP = re.compile(r'OR\(\s*(?:C[0-9]+\s*=\s*"[^"]+"\s*,?\s*)+\)')
+_OR_GROUP = re.compile(r'OR\(\s*(?:C[6-9]\s*=\s*"[^"]+"\s*,?\s*)+\)')
 
 # The shared ramp.  ``share`` is either ``Dn/SUM($D$6:$D$9)`` (reall.xlsx),
 # ``Dn/SUM($D$6:$D$10)`` (new.xlsx had a 5th slot row) or ``row/SUM(...)``
@@ -141,6 +141,18 @@ _CLAMP = re.compile(r"MAX\(\s*(?P<floor>\d+(?:\.\d+)?)\s*,\s*MIN\(\s*(?P<ceil>\d
 # C69-style: XLOOKUP("Ore", $C$6:$C$9, BYROW($D$6:$D$9, LAMBDA(row, ...)))
 _XLOOKUP_NAME = re.compile(r'XLOOKUP\(\s*"([^"]+)"')
 
+_FLAT_PAYLOAD = re.compile(r"^\s*,\s*(?P<value>\d+(?:\.\d+)?)\s*(?P<pct>/\s*100)?\s*(?:,|\)|$)")
+
+_COUNTIF_FLAT = re.compile(
+    r'COUNTIF\(\s*\$?C\$?6:\$?C\$?9\s*,\s*"(?P<name>[^"]+)"\s*\)\s*,\s*'
+    r"(?P<value>\d+(?:\.\d+)?)\s*(?P<pct>/\s*100)?\s*,"
+)
+
+
+def _flat_entry(value, pct):
+    value = float(value)
+    return {"base": value, "max": value, "divisor": 100 if pct else 1, "gated": False}
+
 
 def _divisor_after(text, end):
     """100 if a ``/100`` follows the ramp (allowing the closing paren), else 1."""
@@ -151,7 +163,8 @@ def _entry_from_payload(payload):
     """Return ``{base, max, divisor[, gated, floor, ceiling]}`` or ``None``."""
     m = _RAMP.search(payload)
     if not m:
-        return None
+        flat = _FLAT_PAYLOAD.match(payload)
+        return _flat_entry(flat.group("value"), flat.group("pct")) if flat else None
     base = float(m.group("base"))
     if m.group("max") is not None:
         top = float(m.group("max"))
@@ -230,5 +243,8 @@ def parse_stat_matrix(formulas, stat_cells=None):
             if entry is None:
                 continue
             matrix.setdefault(m.group(1), {})[stat] = dict(entry)
+
+        for m in _COUNTIF_FLAT.finditer(s):
+            matrix.setdefault(m.group("name"), {})[stat] = _flat_entry(m.group("value"), m.group("pct"))
 
     return matrix

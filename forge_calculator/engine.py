@@ -21,7 +21,6 @@ Pure stdlib -- no tkinter, no openpyxl.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from typing import Mapping
 
@@ -69,7 +68,7 @@ FORGE_MULT = {
 RACE_LETHALITY = {
     "Archangel": 0.20, "Demon": 0.20, "Orc": 0.10,
     "Shadow": 0.05, "Dragonborn": 0.12,
-    "Orc Lord": 0.40, "Kitsune": 0.20, "Minotaur": 0.30,
+    "Orc Lord": 0.40, "Kitsune": 0.20,
 }
 # E45 class lethality addends (IFS in E45).  The sheet writes the Felynx test
 # with the plural "Gauntlets" (the only spelling its C23 dropdown offers); the
@@ -83,7 +82,7 @@ CLASS_LETHALITY = {
 # E48 race atk-speed addends (SWITCH in E48)
 RACE_ATK_SPEED = {
     "Shadow": 0.10, "Demon": 0.20, "Archangel": 0.20,
-    "Elf": 0.05, "Kitsune": 0.20,
+    "Kitsune": 0.20,
 }
 # E48 class atk-speed addends (IFS in E48), same Felynx test as CLASS_LETHALITY.
 CLASS_ATK_SPEED = {
@@ -93,6 +92,7 @@ CLASS_ATK_SPEED = {
     ("Felynx", "Gauntlets"): 0.20,
     ("Fairy", "Spear"): 0.15,
 }
+RACE_CRIT_DMG = {"Kitsune": 0.15}
 # C62/C63/C64 Dragonborn fire bonuses
 RACE_FIRE_DMG = {"Dragonborn": 0.30}
 RACE_FIRE_CHANCE = {"Dragonborn": 0.40}
@@ -106,18 +106,23 @@ RACE_BERSERK = {"Minotaur": 0.30}
 RACE_SMASH_DMG = {"Orc Lord": 1.0}
 RACE_SMASH_COOLDOWN = {"Orc Lord": 10.0}
 RACE_SMASH_CHANCE = {"Orc Lord": 0.25}
-RACE_FOX_CLAWS_STEP = {"Kitsune": 0.075}
-RACE_FOX_CLAWS_CAP = {"Kitsune": 0.75}
+RACE_FOX_CLAWS_DMG = {"Kitsune": 0.75}
 RACE_FOX_CLAWS_CHANCE = {"Kitsune": 0.5}
+FOX_CLAWS_DIVISOR = 3.0
+ARCHANGEL_SMITE_PER_HIT = 0.5
+ARCHANGEL_SMITE_CAP = 1.5
 RACE_FOXFIRE_DMG = {"Kitsune": 0.3}
 RACE_FOXFIRE_CHANCE = {"Kitsune": 0.5}
 RACE_FOXFIRE_TIME = {"Kitsune": 2.0}
 EXPLOSION_SLOT_CAP = 2.5
 SMITE_DMG_CAP = 2.5
 FOXFIRE_TIME_CAP = 5.0
+GALAXITE_BISMUTH_WAVE = 1.25
+POISON_DURATION_ORES = ("Bismuth", "Malachite")
 
 # Ores excluded from the E10 weighted average ore power.
-AVG_POWER_EXCLUDED = ("Fichilliumorite",)
+AVG_POWER_EXCLUDED = ("Fichilliumorite", "Bismuth")
+SOLO_ORE_POWER = {"Bismuth": 8.0, "Fichilliumorite": 1.0}
 
 # E45/E46/E47/E48 caps
 CAPS = {
@@ -249,18 +254,20 @@ def slot_power(slot: OreSlot, game: GameData) -> float:
 
 
 def avg_ore_power(slots, game: GameData) -> float:
-    """E10 -- the weighted average ore power, excluding Fichilliumorite.
+    """E10 -- the weighted average ore power, excluding Fichilliumorite and Bismuth.
 
-    ``IFERROR(IFERROR(SUMPRODUCT(D6:D9, E6:E9, (C6:C9<>"Fichilliumorite")*1)
-    / SUMIFS(D6:D9, C6:C9, "<>Fichilliumorite"),
-    AVERAGEIFS(E6:E9, C6:C9, "<>Fichilliumorite")), 1)``
-
-    Fichilliumorite drops out of both the numerator and the denominator, so it
-    is filler that never dilutes the average.  When the remaining total amount is
+    A build of nothing but Bismuth is a flat 8 and nothing but Fichilliumorite a
+    flat 1.  Otherwise Fichilliumorite, Bismuth, "Select Ore" and blank slots drop
+    out of both the numerator and the denominator, so they never dilute the
+    average.  When the remaining total amount is
     0 the division is 0/0 and the AVERAGEIFS fallback applies; with nothing left
     at all the outer IFERROR yields 1.
     """
-    kept = [s for s in slots if s.name not in AVG_POWER_EXCLUDED]
+    filled = [s.name for s in slots if s.name and s.name != game.select_ore]
+    for name, power in SOLO_ORE_POWER.items():
+        if name in filled and all(n == name for n in filled):
+            return power
+    kept = [s for s in slots if s.name and s.name != game.select_ore and s.name not in AVG_POWER_EXCLUDED]
     powers = [slot_power(s, game) for s in kept]
     total = sum(s.amount for s in kept)
     if total != 0:
@@ -355,7 +362,12 @@ def stat_totals(build: Build, game: GameData, ore_contribs: Mapping[str, float])
         + runes["crit_chance"]
         + (ach_value if ach_stat == "crit_chance" else 0.0)
     )
-    crit_dmg = ore_contribs["crit_dmg"] + build.armor_crit_dmg + runes["crit_dmg"]
+    crit_dmg = (
+        ore_contribs["crit_dmg"]
+        + build.armor_crit_dmg
+        + runes["crit_dmg"]
+        + RACE_CRIT_DMG.get(build.race, 0.0)
+    )
     atk_speed = (
         ore_contribs["atk_speed"]
         + runes["atk_speed"]
@@ -403,13 +415,6 @@ class ProcComponents:
     foxfire_duration: float = 0.0
 
 
-def _fox_claws_dmg(race: str, atk_rate: float) -> float:
-    step = RACE_FOX_CLAWS_STEP.get(race, 0.0)
-    if not step:
-        return 0.0
-    return min(math.floor(atk_rate) * step, RACE_FOX_CLAWS_CAP[race])
-
-
 def _duration(ore_terms, race_time: float, ability_time: float, minus: int) -> float:
     """C63/C68 duration: ``MAX(MAX(ore,race,ability)-N, 0)``.
 
@@ -423,14 +428,13 @@ def _duration(ore_terms, race_time: float, ability_time: float, minus: int) -> f
 def _smite_race_dmg(race: str, atk_rate: float) -> float:
     """C72's race addends.
 
-    ``IF(C22="Angel",0.3,0) + IF(C22="Archangel", MIN(FLOOR(E21,1)*0.5, 1.5), 0)``
+    ``IF(C22="Angel",0.3,0) + IF(C22="Archangel", MIN(50% * E21, 150%), 0)``
 
-    Angel is a flat 30%; Archangel instead scales with attack speed -- half a
-    point per WHOLE attack per second (``FLOOR``, so it steps rather than ramps),
-    capped at 150%.  Below 1 hit/sec an Archangel gets nothing.
+    Angel is a flat 30%; Archangel instead scales linearly with attack speed --
+    half a point per attack per second, capped at 150%.
     """
     if race == "Archangel":
-        return min(math.floor(atk_rate) * 0.5, 1.5)
+        return min(ARCHANGEL_SMITE_PER_HIT * atk_rate, ARCHANGEL_SMITE_CAP)
     return RACE_SMITE_DMG.get(race, 0.0)
 
 
@@ -513,6 +517,15 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
             return scale_range(rng, share)
         return 0.0
 
+    def poison_duration_term() -> float:
+        names = [slot.name for slot in build.slots]
+        for name in POISON_DURATION_ORES:
+            if name in names:
+                return first_slot_val(name, "poison_duration")
+        return 0.0
+
+    names = {slot.name for slot in build.slots}
+    galaxite_wave = GALAXITE_BISMUTH_WAVE if {"Galaxite", "Bismuth"} <= names else 0.0
     fire_terms = slot_vals("fire_duration")
 
     return ProcComponents(
@@ -526,12 +539,12 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
         fire_duration=_duration(fire_terms, RACE_FIRE_TIME.get(build.race, 0), build.abilities.fire_time, minus=1),
         poison_dmg=slot_sum("poison_dmg") + build.abilities.poison_dmg,  # +C35
         poison_chance=max(slot_max("poison_chance"), build.abilities.poison_chance),  # MAX(...,D35)
-        poison_duration=_duration([first_slot_val("Malachite", "poison_duration")], 0, build.abilities.poison_time, minus=2),
+        poison_duration=_duration([poison_duration_term()], 0, build.abilities.poison_time, minus=2),
         # C72/C73: the ore terms SUM for damage and MAX for chance, and in both
         # cases the race addend is ADDED on top rather than maxed against.
         smite_dmg=min(SMITE_DMG_CAP, slot_sum("smite_dmg") + _smite_race_dmg(build.race, atk_rate)),
         smite_chance=slot_max("smite_chance") + RACE_SMITE_CHANCE.get(build.race, 0.0),
-        blackhole_dmg=slot_sum("blackhole_dmg"),
+        blackhole_dmg=slot_sum("blackhole_dmg") + galaxite_wave,
         blackhole_chance=_blackhole_chance(build.slots, game),
         # C80/E80/C81 -- the Lightning ability feeds all three (C36/E36/D36)
         lightning_dmg=slot_sum("lightning_dmg") + build.abilities.lightning_dmg,
@@ -542,12 +555,19 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
         smash_dmg=RACE_SMASH_DMG.get(build.race, 0.0),
         smash_cooldown=RACE_SMASH_COOLDOWN.get(build.race, 0.0),
         smash_chance=RACE_SMASH_CHANCE.get(build.race, 0.0),
-        fox_claws_dmg=_fox_claws_dmg(build.race, atk_rate),
+        fox_claws_dmg=RACE_FOX_CLAWS_DMG.get(build.race, 0.0),
         fox_claws_chance=RACE_FOX_CLAWS_CHANCE.get(build.race, 0.0),
         foxfire_dmg=RACE_FOXFIRE_DMG.get(build.race, 0.0),
         foxfire_chance=RACE_FOXFIRE_CHANCE.get(build.race, 0.0),
         foxfire_duration=RACE_FOXFIRE_TIME.get(build.race, 0.0),
     )
+
+
+def _dot_dps(unforged: float, dmg: float, chance: float, dur: float, atk_rate: float) -> float:
+    refreshing = unforged * dmg * min(1, chance * atk_rate * min(dur, 5)) if atk_rate else 0.0
+    if refreshing != 0:
+        return refreshing
+    return max(unforged * dmg * (dur + 1), 0.0)
 
 
 def crit_blend(cc_total: float, cd_total: float) -> float:
@@ -655,14 +675,8 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
     # C89-C94 + E94
     weapon_dps = forged * (1 + totals["lethality"]) * blend * atk_rate
     explosion_dps = unforged * procs.explosion_dmg * procs.explosion_chance * atk_rate
-    fire_dps = (
-        unforged * procs.fire_dmg * min(1, procs.fire_chance * atk_rate * min(procs.fire_duration, 5))
-        if atk_rate else 0.0
-    )
-    poison_dps = (
-        unforged * procs.poison_dmg * min(1, procs.poison_chance * atk_rate * min(procs.poison_duration, 5))
-        if atk_rate else 0.0
-    )
+    fire_dps = _dot_dps(unforged, procs.fire_dmg, procs.fire_chance, procs.fire_duration, atk_rate)
+    poison_dps = _dot_dps(unforged, procs.poison_dmg, procs.poison_chance, procs.poison_duration, atk_rate)
     smite_dps = unforged * atk_rate * procs.smite_dmg * min(procs.smite_chance, 1)
     # E77 floors the rate term at 1 -- MAX(1,E21), not MIN
     blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * max(1.0, atk_rate)
@@ -679,7 +693,7 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         unforged * procs.smash_dmg * procs.smash_chance * min(atk_rate, 1.0 / procs.smash_cooldown)
         if procs.smash_cooldown > 0 else 0.0
     )
-    fox_claws_dps = unforged * atk_rate * procs.fox_claws_dmg * min(procs.fox_claws_chance, 1)
+    fox_claws_dps = unforged * procs.fox_claws_dmg * procs.fox_claws_chance / FOX_CLAWS_DIVISOR
     foxfire_dps = (
         unforged * procs.foxfire_dmg
         * min(1, procs.foxfire_chance * atk_rate * min(procs.foxfire_duration, FOXFIRE_TIME_CAP))

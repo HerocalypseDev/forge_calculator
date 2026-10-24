@@ -1,13 +1,15 @@
 {
   "workbook": "UpdatedSpreadsheet.xlsx",
-  "built_at": "2026-10-06T19:10:22+00:00",
+  "built_at": "2026-10-24T17:46:07+00:00",
   "counts": {
-    "ores": 147,
-    "weapons": 80,
+    "ores": 149,
+    "weapons": 87,
     "races": 20,
     "runes": 47,
     "achievements": 16
   },
-  "stat_formulas_sha256": "d267de3ca0cbaf5a10c010f15ced94753cc7b137cb198b199273fbf08c004c64",
-  "formula_only_ores": []
+  "stat_formulas_sha256": "39cbb59689ffcb434811aa3ec1c4683d9b000107b3673aacc182094d35d6f230",
+  "formula_only_ores": [
+    "Tiger s Eye"
+  ]
 }

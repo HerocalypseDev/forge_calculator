@@ -208,7 +208,7 @@ def test_minotaur_berserk(game):
                   weapon_name="Dagger", race="Minotaur")
     r = calculate(build, game)
     assert r.berserk == pytest.approx(r.weapon_dps * 1.30)
-    assert r.berserk == pytest.approx(288.32125787234037)
+    assert r.berserk == pytest.approx(228.6685838297872)
     # same build without the race -> N/A
     plain = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger")
@@ -264,22 +264,22 @@ def test_engine_constants_match_source():
     _guard(formulas, "C18", "SWITCH", "forge uses SWITCH")
 
     # E45 race/class lethality addends
-    for frag in ['"Archangel", 0.2', '"Demon", 0.2', '"Orc", 0.1', '"Shadow", 0.05', '"Dragonborn", 0.12']:
+    for frag in ['"Archangel", 0.2', '"Demon", 0.2', '"Dragonborn", 0.12', '"Orc", 0.1', '"Shadow", 0.05']:
         _guard(formulas, "E45", frag, "race lethality")
-    _guard(formulas, "E45", 'AND(C22="Felynx", C23="Gauntlet")', "E45 Felynx gauntlet")
+    _guard(formulas, "E45", 'AND(C22="Felynx", C23="Gauntlet"), 0.2', "E45 Felynx gauntlet")
+    _guard(formulas, "E45", 'AND(C22="Vampire", C23="Straight Sword"), 0.1', "Vampire straight sword lethality")
     _guard(formulas, "E45", "0), 3)", "lethality cap")
-    assert 'AND(C22="Demon"' not in formulas["E45"].replace(" ", ""), "Demon has no weapon-type bonus"
 
-    # E48 race/class atk-speed addends
+    # E48 race/class atk-speed addends (plural Gauntlets)
     _guard(formulas, "E48", 'AND(C22="Felynx",C23="Gauntlet")', "E48 Felynx gauntlet")
     _guard(formulas, "E48", 'AND(C22="Golem",C23="Colossal Sword"),15%', "Golem class atk speed")
-    assert "Great Axe" not in formulas["E48"], "Golem/Shadow Great Axe bonus removed"
-    assert "Mace" not in formulas["E48"], "Shadow heavy-weapon bonus removed"
+    _guard(formulas, "E48", 'AND(C22="Goblin",C23="Dagger"),10%', "Goblin class atk speed")
     _guard(formulas, "E48", "150%", "atk speed cap")
 
     # E46/E47 caps
     _guard(formulas, "E46", "100%", "crit chance cap")
     _guard(formulas, "E47", "100%", "crit dmg cap")
+    _guard(formulas, "E47", '"Kitsune",15%', "Kitsune crit dmg")
 
     # share gate and ramp
     _guard(formulas, "C45", "0.1", "share gate")
@@ -302,16 +302,19 @@ def test_engine_constants_match_source():
     _guard(formulas, "C68", "D35", "poison chance input")
     _guard(formulas, "C69", "- 2", "poison duration -2")
     _guard(formulas, "C69", "XLOOKUP", "poison duration reads the first Malachite")
+    _guard(formulas, "C69", 'COUNTIF($C$6:$C$9, "Bismuth"), 1.5, COUNTIF($C$6:$C$9, "Malachite")', "Bismuth poison duration beats Malachite")
+    _guard(formulas, "C104", "IF(E63=0, E64, E63)", "fire DoT falls back to E64")
+    _guard(formulas, "C105", "IF(E68=0, E69, E68)", "poison DoT falls back to E69")
+    _guard(formulas, "E64", "A18*C62*(C64+1)", "fire DoT fallback")
+    _guard(formulas, "E69", "A18*C67*(C69+1)", "poison DoT fallback")
     _guard(formulas, "C80", "+C36", "lightning dmg input")
     _guard(formulas, "C81", "D36", "lightning chance input")
     _guard(formulas, "E80", "E36", "lightning cooldown input")
 
-    # explosion aggregates additively (C58 via "+", C59 via SUM)
-    _guard(formulas, "C59", "SUM(", "explosion chance sums across slots")
+    _guard(formulas, "C59", "MAX(", "explosion chance maxes across slots")
 
     # smite: Archangel damage steps with attack speed, chance is an added IFS
-    _guard(formulas, "C72", "FLOOR(E21,1)*0.5", "Archangel smite dmg steps on E21")
-    _guard(formulas, "C72", "1.5", "Archangel smite dmg cap")
+    _guard(formulas, "C72", 'IF(C22="Archangel", MIN(50% * E21, 150%), 0)', "Archangel smite dmg scales with E21")
     _guard(formulas, "C73", "0.5", "Angel smite chance")
     _guard(formulas, "C73", "0.33", "Archangel smite chance")
 
@@ -319,6 +322,7 @@ def test_engine_constants_match_source():
     _guard(formulas, "C77", "0.3", "black hole threshold value")
     _guard(formulas, "C77", "0.1", "black hole threshold ratio")
     _guard(formulas, "E77", "MAX(1,E21)", "black hole DPS floors its rate at 1")
+    _guard(formulas, "C76", 'IF(AND(COUNTIF(C6:C9,"Galaxite")>0,COUNTIF(C6:C9,"Bismuth")>0),1.25,0)', "Galaxite + Bismuth rainbow wave")
 
     # berserk
     _guard(formulas, "E54", "30%", "Minotaur berserk")
@@ -333,12 +337,14 @@ def test_engine_constants_match_source():
     _guard(formulas, "C116", "C18", "max-burst on C18")
 
     _guard(formulas, "E45", '"Orc Lord", 0.4', "Orc Lord lethality")
-    _guard(formulas, "E45", '"Minotaur", 0.3', "Minotaur lethality")
     _guard(formulas, "E45", '"Kitsune", 0.2', "Kitsune lethality")
     _guard(formulas, "E45", 'AND(C22="Fairy", C23="Spear"), 0.15', "Fairy spear lethality")
+    assert "Minotaur" not in formulas["E45"], "Minotaur lethality was removed"
+    assert "Demon\", C23" not in formulas["E45"], "Demon straight sword lethality was removed"
     _guard(formulas, "E48", 'AND(C22="Fairy",C23="Spear"),15%', "Fairy spear atk speed")
-    _guard(formulas, "E48", '"Elf",5%', "Elf atk speed")
     _guard(formulas, "E48", '"Kitsune",20%', "Kitsune atk speed")
+    for gone in ['"Elf"', "Great Axe", "Mace", "Great Sword"]:
+        assert gone not in formulas["E48"], f"{gone} atk speed was removed"
     for cell in ["C45", "C48"]:
         assert "C22" not in formulas[cell], f"{cell} must hold ore terms only"
     _guard(formulas, "C58", "MIN(2.5,", "explosion dmg per-slot cap")
@@ -348,9 +354,9 @@ def test_engine_constants_match_source():
     _guard(formulas, "E84", '"Orc Lord",10', "smash cooldown")
     _guard(formulas, "C85", '"Orc Lord",0.25', "smash chance")
     _guard(formulas, "E85", "E13 * C84 * C85 * MIN(E21, 1/E84)", "smash dps")
-    _guard(formulas, "C88", "MIN(FLOOR(E21,1)*0.075,0.75)", "fox claws dmg steps on E21")
+    _guard(formulas, "C88", 'IF(C22="Kitsune", 0.75, 0)', "fox claws dmg is flat")
     _guard(formulas, "C89", '"Kitsune",0.5', "fox claws chance")
-    _guard(formulas, "E89", "A18*E21*C88*MIN(C89,1)", "fox claws dps")
+    _guard(formulas, "E89", "((E13*C88*C89)/3)", "fox claws dps")
     _guard(formulas, "C92", '"Kitsune",0.3', "foxfire dmg")
     _guard(formulas, "C93", '"Kitsune",0.5', "foxfire chance")
     _guard(formulas, "C94", '"Kitsune",2', "foxfire duration")
@@ -362,6 +368,9 @@ def test_engine_constants_match_source():
 
     # E10 drops Fichilliumorite from both halves of the weighted average
     _guard(formulas, "E10", "Fichilliumorite", "E10 excludes Fichilliumorite")
+    _guard(formulas, "E10", '"<>Bismuth")=0), 8', "E10 Bismuth-only power")
+    _guard(formulas, "E10", '"<>Fichilliumorite")=0), 1', "E10 Fichilliumorite-only power")
+    _guard(formulas, "E10", '(C6:C9<>"Bismuth")*(C6:C9<>"Select Ore")', "E10 excludes Bismuth and Select Ore")
 
     # active-trait power slope and weapon test
     _guard(formulas, "K6", "4.5", "trait power slope")

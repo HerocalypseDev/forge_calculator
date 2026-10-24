@@ -41,8 +41,8 @@ def test_every_ore_has_a_multiplier(data):
 
 
 def test_weapon_type_lists(data):
-    # C12: 10 weapon types
-    assert len(data.weapon_types) == 10
+    assert len(data.weapon_types) == 11
+    assert "Halberd" in data.weapon_types
     assert data.race_bonus_types == (
         "Dagger",
         "Straight Sword",
@@ -74,19 +74,12 @@ def test_stone_has_no_stats_and_is_not_weapon(data):
     assert ore.is_weapon is False
 
 
-def test_tigers_eye_apostrophe_quirk_is_gone(data):
-    """The workbook spells Tiger's Eye consistently, so the old quirk is resolved.
-
-    An older workbook's lethality ramp said "Tigers Eye" (no apostrophe), which
-    matched no catalog row and so was dead.  The current workbook uses the
-    apostrophe in both C45 (lethality) and C48 (attack speed), so the one ore
-    carries both stats straight from its own formulas.
-    """
+def test_tigers_eye_attack_speed_spelling_quirk(data):
     ore = data.ore("Tiger's Eye")
     assert ore is not None
     assert ore.stat("lethality") is not None
-    assert ore.stat("atk_speed") is not None
-    assert data.ore("Tigers Eye") is None
+    assert ore.stat("atk_speed") is None
+    assert data.ore("Tiger s Eye") is None
 
 
 def test_berserk_group_traits_parsed_from_trait_text(data):

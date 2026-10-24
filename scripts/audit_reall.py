@@ -49,6 +49,7 @@ NAME_RE = re.compile(r'C6\s*=\s*"([^"]+)"')
 RAMP_RE = re.compile(
     r'[(,]\s*(-?[\d.]+)\s*\+\s*(?:\(\s*(-?[\d.]+)\s*-\s*-?[\d.]+\s*\)|(-?[\d.]+))\s*\*\s*MIN\('
 )
+FLAT_RE = re.compile(r'^\s*,\s*(-?[\d.]+)\s*(?:/\s*100)?\s*,')
 
 
 def parse_cell(formula):
@@ -59,6 +60,10 @@ def parse_cell(formula):
         name = m.group(1)
         end = hits[idx + 1].start() if idx + 1 < len(hits) else len(formula)
         seg = formula[m.end():end]
+        flat = FLAT_RE.match(seg)
+        if flat:
+            out[name] = (float(flat.group(1)), float(flat.group(1)))
+            continue
         r = RAMP_RE.search(seg)
         if not r:
             continue
@@ -111,6 +116,8 @@ def main(xlsx, json_path):
     if r:
         b = float(r.group(1))
         book["poison_duration"] = {"Malachite": (b, b + float(r.group(2)), 1)}
+    for name, value in re.findall(r'COUNTIF\(\$C\$6:\$C\$9,\s*"([^"]+)"\),\s*(-?[\d.]+)\s*,', c69):
+        book.setdefault("poison_duration", {})[name] = (float(value), float(value), 1)
 
     # berserk-group traits: independently re-derive from _OptionsCrafter's own
     # trait10 (D) / trait30 (E) text, cross-checking build_data's extraction
@@ -118,7 +125,7 @@ def main(xlsx, json_path):
     book.setdefault("phys_dmg", {})
     book.setdefault("move_speed", {})
     book.setdefault("berserk_duration", {})
-    for row in wsv.iter_rows(min_row=56, max_row=202):
+    for row in wsv.iter_rows(min_row=61, max_row=209):
         name = (row[0].value or "").strip()
         if not name:
             continue
@@ -140,6 +147,11 @@ def main(xlsx, json_path):
             js.setdefault(stat, {})[o["name"]] = (
                 float(rng["base"]), float(rng["max"]), int(rng.get("divisor", 100))
             )
+
+    catalog = {o["name"] for o in ores}
+    for stat, ranges in book.items():
+        for ore in sorted(set(ranges) - catalog):
+            print("FORMULA-ONLY     %-20s %-26s workbook=%s (no catalog ore has this name)" % (stat, ore, ranges.pop(ore)))
 
     problems = 0
     for stat in sorted(set(book) | set(js)):

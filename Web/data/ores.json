@@ -1,7 +1,9 @@
 {
-  "source": "_OptionsCrafter!A56:F202 + DPS stat formulas (C45..E80)",
+  "source": "_OptionsCrafter!A61:F209 + DPS stat formulas (C45..E80)",
   "select_ore": "Select Ore",
-  "formula_only_ores": [],
+  "formula_only_ores": [
+    "Tiger s Eye"
+  ],
   "ores": [
     {
       "name": "Graphite",
@@ -458,11 +460,6 @@
         "lethality": {
           "base": 0.5,
           "max": 5.0,
-          "divisor": 100
-        },
-        "atk_speed": {
-          "base": 0.75,
-          "max": 7.5,
           "divisor": 100
         }
       }
@@ -1819,6 +1816,96 @@
       "trait30": null,
       "comments": null,
       "stats": {}
+    },
+    {
+      "name": "Pumpkinite",
+      "equipment": null,
+      "multiplier": 1.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Bismuth",
+      "equipment": "Weapons",
+      "multiplier": 8.0,
+      "trait10": "1.8% increase to attack speed | On hit, unleash a random T3 attack rune for 10 seconds | When your Galaxite black hole triggers, unleash a rainbow wave that deals 125% of your weapon damage Increases critical chance by 1.5% | Increases Critical Damage by 1.5% | Increases Lethality by 1.5% | Fire, Poison, Black Hole and Resonance DMG +0.1% per 500 HP up to +2% | Regen 0.6 health per second | Whenever you trigger a Galaxite Black Hole, restore 0.25% of your max health",
+      "trait30": "18% increase to attack speed | On hit, unleash a random T3 attack rune (Venom Crumb, Blast Chip, Flame Spark or Thunder Shard) for 10 seconds | When your Galaxite black hole triggers, unleash a rainbow wave that deals 125% of your weapon damage Increases critical chance by 15% | Increases Critical Damage by 15% | Increases Lethality by 15% | Fire, Poison, Black Hole and Resonance DMG +1% per 500 HP up to +20% | Regen 6 health per second | Whenever you trigger a Galaxite Black Hole, restore 2.5% of your max health",
+      "comments": null,
+      "stats": {
+        "atk_speed": {
+          "base": 1.8,
+          "max": 18.0,
+          "divisor": 100
+        },
+        "explosion_dmg": {
+          "base": 8.75,
+          "max": 8.75,
+          "divisor": 100,
+          "gated": false
+        },
+        "explosion_chance": {
+          "base": 5.25,
+          "max": 5.25,
+          "divisor": 100,
+          "gated": false
+        },
+        "fire_dmg": {
+          "base": 3.25,
+          "max": 3.25,
+          "divisor": 100,
+          "gated": false
+        },
+        "fire_chance": {
+          "base": 7.5,
+          "max": 7.5,
+          "divisor": 100,
+          "gated": false
+        },
+        "fire_duration": {
+          "base": 0.5,
+          "max": 0.5,
+          "divisor": 1,
+          "gated": false
+        },
+        "poison_dmg": {
+          "base": 2.0,
+          "max": 2.0,
+          "divisor": 100,
+          "gated": false
+        },
+        "poison_chance": {
+          "base": 9.625,
+          "max": 9.625,
+          "divisor": 100,
+          "gated": false
+        },
+        "poison_duration": {
+          "base": 1.5,
+          "max": 1.5,
+          "divisor": 1,
+          "gated": false
+        },
+        "lightning_dmg": {
+          "base": 10.0,
+          "max": 10.0,
+          "divisor": 100,
+          "gated": false
+        },
+        "lightning_cooldown": {
+          "base": 0.375,
+          "max": 0.375,
+          "divisor": 1,
+          "gated": false
+        },
+        "lightning_chance": {
+          "base": 5.875,
+          "max": 5.875,
+          "divisor": 100,
+          "gated": false
+        }
+      }
     }
   ]
 }

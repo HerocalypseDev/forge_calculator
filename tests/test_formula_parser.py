@@ -117,9 +117,21 @@ EXPECTED = {
         "fire_chance": (4.5, 45.0, 100),
         "fire_duration": (0.5, 5.0, 1),
     },
-    "Tiger's Eye": {
-        "lethality": (0.5, 5.0, 100),
-        "atk_speed": (0.75, 7.5, 100),
+    "Tiger's Eye": {"lethality": (0.5, 5.0, 100)},
+    "Tiger s Eye": {"atk_speed": (0.75, 7.5, 100)},
+    "Bismuth": {
+        "atk_speed": (1.8, 18.0, 100),
+        "explosion_dmg": (8.75, 8.75, 100, {"gated": False}),
+        "explosion_chance": (5.25, 5.25, 100, {"gated": False}),
+        "fire_dmg": (3.25, 3.25, 100, {"gated": False}),
+        "fire_chance": (7.5, 7.5, 100, {"gated": False}),
+        "fire_duration": (0.5, 0.5, 1, {"gated": False}),
+        "poison_dmg": (2.0, 2.0, 100, {"gated": False}),
+        "poison_chance": (9.625, 9.625, 100, {"gated": False}),
+        "poison_duration": (1.5, 1.5, 1, {"gated": False}),
+        "lightning_dmg": (10.0, 10.0, 100, {"gated": False}),
+        "lightning_cooldown": (0.375, 0.375, 1, {"gated": False}),
+        "lightning_chance": (5.875, 5.875, 100, {"gated": False}),
     },
     "Vanegos": {"lethality": (4.0, 40.0, 100)},
     "Voidstar": {
@@ -196,15 +208,16 @@ def test_every_expected_stat_has_a_divisor_of_1_or_100():
             assert entry[2] in (1, 100), f"{ore}.{stat} divisor {entry[2]}"
 
 
-def test_only_kitsunite_smite_is_ungated_and_clamped(matrix):
-    """The ungated/clamped ramp is unique to C72's Kitsunite branch."""
+def test_only_kitsunite_smite_and_bismuth_flats_are_ungated(matrix):
     odd = {
         (ore, stat)
         for ore, stats in matrix.items()
         for stat, e in stats.items()
         if e.get("gated") is False or e.get("floor") is not None or e.get("ceiling") is not None
     }
-    assert odd == {("Kitsunite", "smite_dmg")}
+    bismuth_flats = {("Bismuth", stat) for stat, e in matrix["Bismuth"].items() if e["base"] == e["max"]}
+    assert len(bismuth_flats) == 11
+    assert odd == {("Kitsunite", "smite_dmg")} | bismuth_flats
     entry = matrix["Kitsunite"]["smite_dmg"]
     assert entry["gated"] is False
     assert entry["floor"] == 0.05

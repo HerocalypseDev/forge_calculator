@@ -91,10 +91,24 @@ def test_avg_ore_power_all_select_ore_is_one(game):
     assert avg_ore_power(slots, game) == pytest.approx(1.0)
 
 
-def test_avg_ore_power_select_ore_slot_is_one(game):
-    # A "Select Ore" slot with a nonzero amount pulls power toward 1 (E6 = 1)
+def test_avg_ore_power_ignores_select_ore_slots(game):
     slots = (OreSlot("Ancienite", 10), OreSlot("Select Ore", 10), OreSlot("Select Ore", 0), OreSlot("Select Ore", 0))
-    assert avg_ore_power(slots, game) == pytest.approx((10 * 13.33 + 10 * 1.0) / 20)
+    assert avg_ore_power(slots, game) == pytest.approx(13.33)
+
+
+def test_avg_ore_power_bismuth_alone_is_eight(game):
+    slots = (OreSlot("Bismuth", 5), OreSlot("Bismuth", 3), OreSlot("Select Ore", 0), OreSlot("Select Ore", 0))
+    assert avg_ore_power(slots, game) == pytest.approx(8.0)
+
+
+def test_avg_ore_power_bismuth_never_dilutes(game):
+    slots = (OreSlot("Ancienite", 10), OreSlot("Bismuth", 30), OreSlot("Select Ore", 0), OreSlot("Select Ore", 0))
+    assert avg_ore_power(slots, game) == pytest.approx(13.33)
+
+
+def test_avg_ore_power_bismuth_with_fichilliumorite_falls_back_to_one(game):
+    slots = (OreSlot("Fichilliumorite", 10), OreSlot("Bismuth", 10), OreSlot("Select Ore", 0), OreSlot("Select Ore", 0))
+    assert avg_ore_power(slots, game) == pytest.approx(1.0)
 
 
 # --- forge_multiplier (C18 SWITCH) ---
@@ -124,16 +138,15 @@ def test_forge_multiplier_out_of_range_defaults_to_one():
 def test_weapon_bases_golden_unforged_equals_forged(game):
     weapon = game.weapon("Demonic Spear")
     unforged, forged = weapon_bases(weapon, 7.94, quality=100, forge_level=0)
-    # 9.0 * 7.94 * 2.0 = 142.92
-    assert unforged == pytest.approx(142.92)
-    assert forged == pytest.approx(142.92)
+    assert unforged == pytest.approx(14.1 * 7.94 * 2.0)
+    assert forged == pytest.approx(14.1 * 7.94 * 2.0)
 
 
 def test_weapon_bases_forge_scales_forged_only(game):
     weapon = game.weapon("Demonic Spear")
     unforged, forged = weapon_bases(weapon, 7.94, quality=100, forge_level=9)
-    assert unforged == pytest.approx(142.92)
-    assert forged == pytest.approx(142.92 * 1.5)
+    assert unforged == pytest.approx(14.1 * 7.94 * 2.0)
+    assert forged == pytest.approx(14.1 * 7.94 * 2.0 * 1.5)
 
 
 def test_weapon_bases_missing_weapon_is_one():
@@ -145,12 +158,12 @@ def test_weapon_bases_missing_weapon_is_one():
 
 def test_attack_rate_golden(game):
     weapon = game.weapon("Demonic Spear")
-    assert attack_rate(weapon, atk_speed_total=0.0) == pytest.approx(1 / 0.79)
+    assert attack_rate(weapon, atk_speed_total=0.0) == pytest.approx(1 / 0.73)
 
 
 def test_attack_rate_with_atk_speed(game):
     weapon = game.weapon("Demonic Spear")
-    assert attack_rate(weapon, atk_speed_total=0.5) == pytest.approx(1.5 / 0.79)
+    assert attack_rate(weapon, atk_speed_total=0.5) == pytest.approx(1.5 / 0.73)
 
 
 def test_attack_rate_missing_weapon_interval_one():

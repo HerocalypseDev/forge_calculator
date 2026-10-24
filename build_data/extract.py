@@ -27,9 +27,9 @@ CRAFTER_SHEET = "_OptionsCrafter"
 OPTIONS_SHEET = "_Options"
 
 # Sheet ranges, as laid out in UpdatedSpreadsheet.xlsx.
-WEAPON_ROWS = (2, 81)          # _Weapon!B2:E81   (row 1 is the header)
-CRAFTER_ROWS = (56, 202)       # _OptionsCrafter!A56:F202
-#                              # (53 banner, 54 header, 55 the "Select Ore" sentinel)
+WEAPON_ROWS = (2, 88)          # _Weapon!B2:E88   (row 1 is the header)
+CRAFTER_ROWS = (61, 209)       # _OptionsCrafter!A61:F209
+#                              # (58 banner, 59 header, 60 the "Select Ore" sentinel)
 ACHIEVEMENT_CELL = "C98"       # DPS Calculator achievement selector
 
 
@@ -144,7 +144,7 @@ def _filter_literal_list(ws_f, coord):
 
 
 def extract_weapons(ws_v):
-    """_Weapon!B2:E81 -> (weapons, types)."""
+    """_Weapon!B2:E88 -> (weapons, types)."""
     weapons = []
     types_ordered = []
     for row in ws_v.iter_rows(min_row=WEAPON_ROWS[0], max_row=WEAPON_ROWS[1]):
@@ -166,7 +166,7 @@ def extract_weapons(ws_v):
 
 
 def extract_ores(ws_v):
-    """_OptionsCrafter!A56:F202 -> ore records (banner, header and sentinel skipped)."""
+    """_OptionsCrafter!A61:F209 -> ore records (banner, header and sentinel skipped)."""
     ores = []
     for row in ws_v.iter_rows(min_row=CRAFTER_ROWS[0], max_row=CRAFTER_ROWS[1]):
         name = (row[0].value or "").strip()
@@ -347,7 +347,7 @@ def extract(workbook_path, out_dir, source_name=None):
     (out / "weapons.json").write_text(
         json.dumps(
             {
-                "source": f"{WEAPON_SHEET}!C2:E81 (+ DPS C12/C23 validation lists)",
+                "source": f"{WEAPON_SHEET}!C2:E88 (+ DPS C12/C23 validation lists)",
                 "types": types_from_c12,
                 "race_bonus_types": race_bonus_types,
                 "weapons": weapons,
@@ -360,7 +360,7 @@ def extract(workbook_path, out_dir, source_name=None):
     (out / "ores.json").write_text(
         json.dumps(
             {
-                "source": f"{CRAFTER_SHEET}!A56:F202 + DPS stat formulas "
+                "source": f"{CRAFTER_SHEET}!A61:F209 + DPS stat formulas "
                 f"({min(STAT_CELLS)}..{max(STAT_CELLS)})",
                 "select_ore": "Select Ore",
                 "formula_only_ores": formula_only,

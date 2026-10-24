@@ -1,5 +1,3 @@
-import math
-
 import pytest
 
 from forge_calculator.data import DEFAULT_DATA_DIR, load_game_data
@@ -39,19 +37,19 @@ def test_kitsune_stat_bonuses(game):
     r = run(game, "Kitsune")
     assert r.lethality == pytest.approx(0.20)
     assert r.atk_speed == pytest.approx(0.20)
+    assert r.crit_dmg == pytest.approx(0.15)
 
 
-def test_kitsune_fox_claws_steps_with_whole_attacks(game):
+def test_kitsune_fox_claws_is_flat(game):
     r = run(game, "Kitsune")
-    rate = 1.20 / DAGGER_INTERVAL
-    assert r.fox_claws_dmg == pytest.approx(math.floor(rate) * 0.075)
-    assert r.fox_claws_dps == pytest.approx(DAGGER_DMG * rate * math.floor(rate) * 0.075 * 0.5)
+    assert r.fox_claws_dmg == pytest.approx(0.75)
+    assert r.fox_claws_dps == pytest.approx(DAGGER_DMG * 0.75 * 0.5 / 3)
 
 
-def test_kitsune_fox_claws_is_zero_below_one_hit_per_second(game):
+def test_kitsune_fox_claws_ignores_attack_rate(game):
     r = run(game, "Kitsune", weapon="Long Sword")
     assert r.attack_rate < 1
-    assert r.fox_claws_dps == 0.0
+    assert r.fox_claws_dps == pytest.approx(r.unforged_damage * 0.75 * 0.5 / 3)
 
 
 def test_kitsune_foxfire_uptime(game):
@@ -76,11 +74,15 @@ def test_fairy_bonuses_need_a_spear(game):
     assert dagger.atk_speed == 0.0
 
 
-@pytest.mark.parametrize("weapon_type", ["Dagger", "Great Sword", "Colossal Sword", "Great Axe", "Mace"])
-def test_shadow_attack_speed_is_flat_for_every_weapon(game, weapon_type):
+@pytest.mark.parametrize("weapon_type", ["Great Sword", "Colossal Sword", "Great Axe", "Mace", "Dagger"])
+def test_shadow_attack_speed_is_flat(game, weapon_type):
     r = run(game, "Shadow", bonus=weapon_type)
     assert r.atk_speed == pytest.approx(0.10)
     assert r.lethality == pytest.approx(0.05)
+
+
+def test_elf_has_no_attack_speed(game):
+    assert run(game, "Elf").atk_speed == 0.0
 
 
 def test_golem_attack_speed_needs_a_colossal_sword(game):
@@ -88,8 +90,15 @@ def test_golem_attack_speed_needs_a_colossal_sword(game):
     assert run(game, "Golem", bonus="Great Axe").atk_speed == 0.0
 
 
-def test_elf_attack_speed(game):
-    assert run(game, "Elf").atk_speed == pytest.approx(0.05)
+def test_archangel_smite_scales_linearly_with_attack_rate(game):
+    r = run(game, "Archangel", weapon="Long Sword")
+    assert r.smite_dmg == pytest.approx(min(0.5 * r.attack_rate, 1.5))
+    assert 0 < r.smite_dmg < 0.5
+    fast = run(game, "Archangel")
+    assert fast.smite_dmg == pytest.approx(0.5 * 1.20 / DAGGER_INTERVAL)
+    capped = calculate(Build(weapon_name="Dagger", race="Archangel", rune_cells=("Atk Speed +100%",) + ("None",) * 8), game)
+    assert 0.5 * capped.attack_rate > 1.5
+    assert capped.smite_dmg == pytest.approx(1.5)
 
 
 def test_race_bonuses_are_counted_once(game):
@@ -100,20 +109,13 @@ def test_race_bonuses_are_counted_once(game):
     assert run(game, "Felynx", bonus="Gauntlet").atk_speed == pytest.approx(0.20)
 
 
-def test_minotaur_lethality(game):
-    assert run(game, "Minotaur").lethality == pytest.approx(0.30)
+def test_minotaur_has_no_lethality(game):
+    assert run(game, "Minotaur").lethality == 0.0
 
 
-def test_demon_gets_no_straight_sword_bonus(game):
+def test_demon_lethality_ignores_weapon_type(game):
     assert run(game, "Demon", bonus="Straight Sword").lethality == pytest.approx(0.20)
     assert run(game, "Demon", bonus="Dagger").lethality == pytest.approx(0.20)
-
-
-def test_lethality_caps_at_300_percent(game):
-    over = calculate(Build(weapon_name="Dagger", race="Orc Lord", armor_lethality=2.8), game)
-    assert over.lethality == pytest.approx(3.0)
-    under = calculate(Build(weapon_name="Dagger", race="Orc Lord", armor_lethality=2.5), game)
-    assert under.lethality == pytest.approx(2.9)
 
 
 def test_dryad_has_no_dps_effect(game):

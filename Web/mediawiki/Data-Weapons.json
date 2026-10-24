@@ -1,5 +1,5 @@
 {
-  "source": "_Weapon!C2:E81 (+ DPS C12/C23 validation lists)",
+  "source": "_Weapon!C2:E88 (+ DPS C12/C23 validation lists)",
   "types": [
     "Dagger",
     "Straight Sword",
@@ -10,6 +10,7 @@
     "Great Sword",
     "Spear",
     "Great Axe",
+    "Halberd",
     "Colossal Sword"
   ],
   "race_bonus_types": [
@@ -160,6 +161,12 @@
       "damage": 10.5
     },
     {
+      "name": "Thornspine",
+      "type": "Straight Sword",
+      "interval": 0.58,
+      "damage": 10.9
+    },
+    {
       "name": "Mace",
       "type": "Mace",
       "interval": 1.17,
@@ -262,6 +269,12 @@
       "damage": 8.4
     },
     {
+      "name": "Duskwing Cleaver",
+      "type": "Axe",
+      "interval": 0.88,
+      "damage": 8.4
+    },
+    {
       "name": "Uchigatana",
       "type": "Katana",
       "interval": 0.69,
@@ -328,6 +341,18 @@
       "damage": 14.4
     },
     {
+      "name": "The Carver",
+      "type": "Great Sword",
+      "interval": 1.02,
+      "damage": 13.8
+    },
+    {
+      "name": "Jack's Crest",
+      "type": "Great Sword",
+      "interval": 1.26,
+      "damage": 14.9
+    },
+    {
       "name": "Spear",
       "type": "Spear",
       "interval": 0.73,
@@ -348,8 +373,8 @@
     {
       "name": "Demonic Spear",
       "type": "Spear",
-      "interval": 0.79,
-      "damage": 9.0
+      "interval": 0.73,
+      "damage": 14.1
     },
     {
       "name": "Knight Spear",
@@ -436,6 +461,18 @@
       "damage": 19.5
     },
     {
+      "name": "Batwing Reaver",
+      "type": "Great Axe",
+      "interval": 1.35,
+      "damage": 20.0
+    },
+    {
+      "name": "Halberd",
+      "type": "Halberd",
+      "interval": 0.91,
+      "damage": 16.8
+    },
+    {
       "name": "Great Sword",
       "type": "Colossal Sword",
       "interval": 1.4,
@@ -500,6 +537,12 @@
       "type": "Colossal Sword",
       "interval": 1.4,
       "damage": 27.0
+    },
+    {
+      "name": "Coffin Lid",
+      "type": "Colossal Sword",
+      "interval": 1.28,
+      "damage": 25.0
     }
   ]
 }

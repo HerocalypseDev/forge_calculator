@@ -27,8 +27,8 @@ __all__ = [
 
 # Counts from the source workbook (UpdatedSpreadsheet.xlsx); loading rejects data/ that drifted.
 EXPECTED_COUNTS = {
-    "ores": 147,
-    "weapons": 80,
+    "ores": 149,
+    "weapons": 87,
     "races": 20,
     "runes": 47,
     "achievements": 16,
