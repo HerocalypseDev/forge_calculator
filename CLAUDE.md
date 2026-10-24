@@ -228,7 +228,7 @@ Workbook sheets:
 - `C77` (black hole chance) = 0.3 when `COUNTIF("Galaxite")/COUNTA(slots) ≥ 0.1`; COUNTA counts "Select Ore" as non-blank, so **any** Galaxite slot triggers it.
 - Black-hole DPS `E77` **floors** its rate term: `MAX(1,E21)`, not `MIN`.
 - Archangel smite damage scales linearly with attack speed: `MIN(50% * E21, 150%)` (no `FLOOR` any more). Angel's is a flat 30%.
-- **`C48` spells Tiger's Eye as `"Tiger s Eye"`** (space, no apostrophe) while the catalog and `C45` say `Tiger's Eye`, so **Tiger's Eye has no attack speed** — ported verbatim. `Tiger s Eye` shows up in `formula_only_ores`, and `audit_reall.py` reports it as FORMULA-ONLY instead of counting it as a problem. Fixing the sheet's `C48` spelling and rebuilding restores the stat.
+- Tiger's Eye carries both lethality (`C45`) and attack speed (`C48`). Two workbook uploads misspelled it in `C48` (`"Tiger s Eye"`, then `"Tiger,s Eye"` in the `C8` branch only); the second one was fixed by an XML patch to `reference/UpdatedSpreadsheet.xlsx` at the user's request (same technique as the `C59` fix). `audit_reall.py` prints any such misspelled name as FORMULA-ONLY, and a rebuild lists it in `formula_only_ores`.
 - Kitsunite's smite damage is the one ramp with **no 10% share gate**, clamped instead by `MAX(0.05, MIN(0.5, ramp))`. Carried as `gated`/`floor`/`ceiling` on its `StatRange`.
 - Ability inputs are **one row per ability**: Fire 34, Poison 35, Lightning 36, Blast 37, with DMG/Chance/Time in columns C/D/E (Blast has no time). The old transposed layout is gone.
 - C20 (base crit chance) enters **only** the crit blend, not `E45`.
@@ -263,6 +263,7 @@ carries no comments.
 - **`setValue` deliberately does not fire `onChange`.** That is why a state restore or
   Reset keeps a slot's typed amount, while actually changing the ore in the dropdown
   zeroes it (`createOreSlot`). Changing this breaks `ore-slot-test.js`.
+- **Weapon types need a minimum total ore amount** (sheet `F12`: `FILTER(types, thresholds <= D10)`, `D10` = sum of the four slot amounts). The thresholds are extracted into `weapons.json` as `type_min_ore` (Dagger 3, Straight Sword 4, Mace/Gauntlet 7, Axe/Katana 10, Great Sword/Spear 13, Great Axe/Halberd 16, Colossal Sword 21) plus the `not_enough_ore` fallback text. The weapon-type and weapon dropdowns only offer unlocked types (below 3 total the type list is just "Not enough Ore"); `setOreTotal` refreshes them on every ore-amount change and on `setBuild`. Like the sheet, an already-chosen weapon is **not** cleared when the total drops; `computeWarnings` adds "`<Type>` weapons need at least N total ore (you have M)." instead. UI-only, no engine change.
 - Ore `atk_speed` is **not** reachable from the MediaWiki UI — there is no attack-speed
   input, so it only ever arrives from ores, runes, race and achievements.
 - **Active Traits' free-text clauses are computed when they safely can be, approximated
@@ -763,6 +764,7 @@ change was ported verbatim to both engines.
 | 1 | **Data + Python** — extractor ranges moved (`_Weapon` 2..88, `_OptionsCrafter` 61..209); parser restricted to slot tests `C6`–`C9` and taught flat literals (`C6="Bismuth", 8.75/100`) and `COUNTIF(...,"Bismuth"), 1.5`; data rebuilt (149 ores, 87 weapons, 11 weapon types); engine: Bismuth/Fichilliumorite solo ore power, Bismuth excluded from `E10`, Bismuth poison time priority, Galaxite+Bismuth +125% black hole, DoT `E64`/`E69` fallback, flat Fox Claws ÷3, linear Archangel smite, Kitsune +15% crit dmg, Minotaur lethality / Elf attack speed removed; `audit_reall.py` reads flat values; `tests/test_bismuth.py` | ✅ Done |
 | 2 | **MediaWiki** — same engine changes in `MediaWiki-ForgeCalculator.js`, `EXPECTED_COUNTS` 149/87/20; fuzz regenerated; `reall-golden.js` retargeted to the workbook's (empty) saved build; `bismuth-test.js` | ✅ Done |
 | 3 | **Docs** — this file | ✅ Done |
+| 4 | **Re-upload fixes** — Tiger's Eye `C48` re-checked (C8 branch still misspelled, patched in the reference copy); weapon-type ore thresholds from `F12` extracted and enforced in the MediaWiki dropdowns + warning; `no-ore-weapon-test.js` updated for the rule | ✅ Done |
 
 **Verification:** `pytest tests/` → 125 passed; `audit_reall.py` → 0 ore-range problems (1
 FORMULA-ONLY note: `Tiger s Eye`); `reall_parity.py` / `reall-golden.js` / `reall-aggregates.js`

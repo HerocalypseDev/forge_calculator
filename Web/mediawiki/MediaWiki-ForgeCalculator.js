@@ -1048,6 +1048,8 @@
       achievements: achievements,
       weapon_types: rawWeapons.types || [],
       race_bonus_types: rawWeapons.race_bonus_types || [],
+      weapon_type_min_ore: rawWeapons.type_min_ore || {},
+      not_enough_ore: rawWeapons.not_enough_ore || 'Not enough Ore',
       select_ore: rawOres.select_ore || SELECT_ORE,
       none_label: rawRunes.none || NONE_LABEL,
       constants: {
@@ -1378,6 +1380,11 @@
     container.getValue = function () { return currentValue; };
     container.open = open;
     container.close = close;
+    container.setOptions = function (newOptions) {
+      options = newOptions;
+      filteredOptions = filterOptions('');
+      renderList();
+    };
     container.updateOptions = function (newOptions) {
       options = newOptions;
       filteredOptions = filterOptions(input.value === currentValue ? '' : input.value);
@@ -1493,8 +1500,35 @@
 
     var QUALITY_MAX = 100;
 
+    var typeMinOre = opts.typeMinOre || {};
+    var notEnoughOre = opts.notEnoughOre || 'Not enough Ore';
+    var oreTotal = Number(opts.oreTotal) || 0;
     var currentType = opts.weaponType || noneLabel;
     var currentWeapon = opts.weaponName || noneLabel;
+
+    function allowedTypes() {
+      return weaponTypes.filter(function (t) {
+        return typeMinOre[t] === undefined || typeMinOre[t] <= oreTotal;
+      });
+    }
+
+    function typeOptionList() {
+      var allowed = allowedTypes();
+      if (!allowed.length) { return [weaponTypePrompt, notEnoughOre]; }
+      return [weaponTypePrompt, 'All Types'].concat(allowed);
+    }
+
+    function weaponsForType(type) {
+      var allowed = allowedTypes();
+      return weapons.filter(function (w) {
+        if (allowed.indexOf(w.type) === -1) { return false; }
+        return type === noneLabel || type === 'All Types' || w.type === type;
+      });
+    }
+
+    function weaponOptionList(type) {
+      return [weaponPrompt].concat(weaponsForType(type).map(function (w) { return w.name; }));
+    }
     var currentQuality = (opts.quality !== undefined && opts.quality !== null) ? opts.quality : 100;
     var currentEnhancement = (opts.enhancement !== undefined && opts.enhancement !== null) ? opts.enhancement : 0;
 
@@ -1502,22 +1536,16 @@
 
     var typeWrapper = createEl('div', { class: 'fc-weapon-type-wrapper' });
     var typeLabel = createEl('label', { for: 'weapon-type' }, ['Weapon Type']);
-    var typeOptions = [weaponTypePrompt, 'All Types'].concat(weaponTypes);
     var typeDropdown = createSearchableDropdown({
-      options: typeOptions,
+      options: typeOptionList(),
       value: toUI(currentType, noneLabel, weaponTypePrompt),
       placeholder: weaponTypePrompt,
       id: 'weapon-type',
       onChange: function (newType) {
-        currentType = fromUI(newType, noneLabel, weaponTypePrompt);
-        var filteredWeapons;
-        if (currentType === noneLabel || currentType === 'All Types') {
-          filteredWeapons = weapons;
-        } else {
-          filteredWeapons = weapons.filter(function (w) { return w.type === currentType; });
-        }
-        var weaponNames = filteredWeapons.map(function (w) { return w.name; });
-        weaponDropdown.updateOptions([weaponPrompt].concat(weaponNames));
+        currentType = newType === notEnoughOre ? noneLabel : fromUI(newType, noneLabel, weaponTypePrompt);
+        if (newType === notEnoughOre) { typeDropdown.setValue(weaponTypePrompt); }
+        var weaponNames = weaponOptionList(currentType);
+        weaponDropdown.updateOptions(weaponNames);
         if (weaponNames.indexOf(currentWeapon) === -1) {
           currentWeapon = noneLabel;
           weaponDropdown.setValue(weaponPrompt);
@@ -1529,15 +1557,8 @@
 
     var weaponWrapper = createEl('div', { class: 'fc-weapon-wrapper' });
     var weaponLabel = createEl('label', { for: 'weapon-name' }, ['Weapon']);
-    var initialWeapons;
-    if (currentType === noneLabel || currentType === 'All Types') {
-      initialWeapons = weapons;
-    } else {
-      initialWeapons = weapons.filter(function (w) { return w.type === currentType; });
-    }
-    var weaponNames = [weaponPrompt].concat(initialWeapons.map(function (w) { return w.name; }));
     var weaponDropdown = createSearchableDropdown({
-      options: weaponNames,
+      options: weaponOptionList(currentType),
       value: toUI(currentWeapon, noneLabel, weaponPrompt),
       placeholder: weaponPrompt,
       id: 'weapon-name',
@@ -1602,6 +1623,15 @@
       qualityInput.value = qual;
       enhancementDropdown.setValue(String(enh));
     };
+
+    container.setOreTotal = function (total) {
+      oreTotal = Number(total) || 0;
+      typeDropdown.setOptions(typeOptionList());
+      weaponDropdown.setOptions(weaponOptionList(currentType));
+    };
+
+    container.getTypeOptions = typeOptionList;
+    container.getWeaponOptions = function () { return weaponOptionList(currentType); };
 
     return container;
   }
@@ -2275,6 +2305,7 @@
             var slots = getBuild().oreSlots.slice();
             slots[idx] = { name: name, amount: amount };
             patch({ oreSlots: slots });
+            weaponSelector.setOreTotal(oreTotalOf(getBuild()));
           }
         });
         oreSlots.push(slot);
@@ -2286,7 +2317,16 @@
     var weaponSection = createEl('div', { class: 'fc-input-section fc-input-section--flat' });
     weaponSection.appendChild(sectionTitle('Weapon', 'weapon'));
 
+    function oreTotalOf(build) {
+      var total = 0;
+      for (var t = 0; t < build.oreSlots.length; t++) { total += Number(build.oreSlots[t].amount) || 0; }
+      return total;
+    }
+
     var weaponSelector = createWeaponSelector({
+      typeMinOre: data.weapon_type_min_ore,
+      notEnoughOre: data.not_enough_ore,
+      oreTotal: oreTotalOf(getBuild()),
       weaponTypes: data.weapon_types,
       weapons: data.weapons,
       noneLabel: noneLabel,
@@ -2456,6 +2496,7 @@
         var slot = newBuild.oreSlots[s] || { name: noneLabel, amount: 0 };
         oreSlots[s].setValue(slot.name, slot.amount || 0);
       }
+      weaponSelector.setOreTotal(oreTotalOf(newBuild));
       weaponSelector.setValues(
         newBuild.weaponType || noneLabel,
         newBuild.weaponName || noneLabel,
@@ -2565,6 +2606,11 @@
       } else if (total > 0 && amt / total < SHARE_GATE) {
         warnings.push('Slot ' + (j + 1) + ': ' + slot.name + ' is below 10% share — it contributes no stats.');
       }
+    }
+    var weapon = state.gameData && build.weaponName ? state.gameData._weapon_index.get(build.weaponName) : null;
+    var minOre = weapon && state.gameData.weapon_type_min_ore ? state.gameData.weapon_type_min_ore[weapon.type] : undefined;
+    if (minOre !== undefined && total < minOre) {
+      warnings.push(weapon.type + ' weapons need at least ' + minOre + ' total ore (you have ' + total + ').');
     }
     if (!(Number(build.quality) > 0)) {
       warnings.push('Quality is 0% — damage is at base (1.0x), not the usual 2x from 100%.');

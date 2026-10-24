@@ -17,7 +17,9 @@ const instrumented = SRC.slice(0, blockStart) +
   '    buildGameData: buildGameData,\n' +
   '    transformBuildForEngine: transformBuildForEngine,\n' +
   '    createInputPanel: createInputPanel,\n' +
-  '    createResultsPanel: createResultsPanel\n' +
+  '    createResultsPanel: createResultsPanel,\n' +
+  '    computeWarnings: computeWarnings,\n' +
+  '    getState: function () { return state; }\n' +
   '  };\n' +
   SRC.slice(blockStart);
 
@@ -230,6 +232,46 @@ console.log('== Initial state (no weapon, no ores) ==');
   assert(r.weapon_name === 'None' || build.weaponName === 'None', 'no weapon in build');
 }
 
+console.log('== Weapon types need total ore (sheet F12) ==');
+{
+  const selector = inputPanel.querySelectorAll('.fc-weapon-selector')[0];
+  assert(!!selector, 'weapon selector rendered');
+  assert(JSON.stringify(selector.getTypeOptions()) === JSON.stringify(['Select Weapon Type', 'Not enough Ore']), 'no ore -> only Not enough Ore');
+  assert(selector.getWeaponOptions().indexOf('Dagger') === -1, 'Dagger is not offered with 0 ore');
+  build = Object.assign({}, build, {
+    oreSlots: [
+      { name: 'None', amount: 3 },
+      { name: 'None', amount: 0 },
+      { name: 'None', amount: 0 },
+      { name: 'None', amount: 0 }
+    ]
+  });
+  inputPanel.setBuild(build);
+  assert(JSON.stringify(selector.getTypeOptions()) === JSON.stringify(['Select Weapon Type', 'All Types', 'Dagger']), '3 ore unlocks Dagger only');
+  assert(selector.getWeaponOptions().indexOf('Dagger') !== -1, 'Dagger is offered with 3 ore');
+  assert(selector.getWeaponOptions().indexOf('Falchion') === -1, 'Straight Sword needs 4 ore');
+  build = Object.assign({}, build, { oreSlots: build.oreSlots.map((s, i) => (i === 0 ? { name: 'None', amount: 21 } : s)) });
+  inputPanel.setBuild(build);
+  assert(selector.getTypeOptions().indexOf('Colossal Sword') !== -1, '21 ore unlocks Colossal Sword');
+  assert(selector.getTypeOptions().indexOf('Halberd') !== -1, '21 ore unlocks Halberd');
+  build = Object.assign({}, build, { oreSlots: build.oreSlots.map((s, i) => (i === 0 ? { name: 'None', amount: 3 } : s)) });
+  inputPanel.setBuild(build);
+}
+
+console.log('== Under-threshold weapon gets a warning ==');
+{
+  FC.getState().gameData = game;
+  const halberd = Object.assign({}, build, {
+    weaponName: 'Halberd',
+    oreSlots: [{ name: 'Wolfarite', amount: 10 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }]
+  });
+  const w = FC.computeWarnings(halberd);
+  assert(w.indexOf('Halberd weapons need at least 16 total ore (you have 10).') !== -1, 'Halberd under 16 ore warns (got ' + JSON.stringify(w) + ')');
+  halberd.oreSlots = [{ name: 'Wolfarite', amount: 16 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }];
+  assert(FC.computeWarnings(halberd).every((m) => m.indexOf('total ore') === -1), 'Halberd at 16 ore has no ore warning');
+  FC.getState().gameData = null;
+}
+
 console.log('== Select Dagger via the real weapon dropdown ==');
 {
   let weaponInput = null;
@@ -256,7 +298,7 @@ console.log('== Select Dagger via the real weapon dropdown ==');
   assert(!!clicked, 'found and clicked Dagger item');
   assert(build.weaponName === 'Dagger', 'build.weaponName = Dagger (got ' + build.weaponName + ')');
   assert(build.quality === 100, 'quality stays 100');
-  assert(build.oreSlots.every((s) => s.name === 'None' && s.amount === 0), 'all 4 ore slots still empty');
+  assert(build.oreSlots.every((s) => s.name === 'None'), 'no ore selected in any slot');
 }
 
 console.log('== Calculate with weapon + empty ores ==');

@@ -140,6 +140,20 @@ def _filter_literal_list(ws_f, coord):
     return items or None
 
 
+_FILTER_THRESHOLDS = re.compile(r'FILTER\(\s*\{([^}]*)\}\s*,\s*\{([^}]*)\}\s*<=\s*[^)]*D10\)\s*,\s*"([^"]+)"')
+
+
+def _weapon_type_ore_rule(ws_f, coord):
+    m = _FILTER_THRESHOLDS.search(_formula_text(ws_f, coord).replace('""', '"'))
+    if not m:
+        return {}, None
+    types = re.findall(r'"([^"]+)"', m.group(1))
+    thresholds = [float(t) for t in re.findall(r"\d+(?:\.\d+)?", m.group(2))]
+    if len(types) != len(thresholds):
+        raise ValueError(f"{coord}: {len(types)} weapon types but {len(thresholds)} ore thresholds")
+    return dict(zip(types, thresholds)), m.group(3)
+
+
 # --- extraction sections ---
 
 
@@ -327,6 +341,7 @@ def extract(workbook_path, out_dir, source_name=None):
     # weapon-type validation lists (C12 / C23) -- preserved verbatim
     types_from_c12 = _filter_literal_list(dps, "F12") or _validation_list(dps, "C12", wb_v)
     race_bonus_types = _validation_list(dps, "C23", wb_v)
+    type_min_ore, not_enough_ore = _weapon_type_ore_rule(dps, "F12")
     if not types_from_c12:
         types_from_c12 = derived_types
     if not race_bonus_types:
@@ -350,6 +365,8 @@ def extract(workbook_path, out_dir, source_name=None):
                 "source": f"{WEAPON_SHEET}!C2:E88 (+ DPS C12/C23 validation lists)",
                 "types": types_from_c12,
                 "race_bonus_types": race_bonus_types,
+                "type_min_ore": type_min_ore,
+                "not_enough_ore": not_enough_ore,
                 "weapons": weapons,
             },
             indent=2,

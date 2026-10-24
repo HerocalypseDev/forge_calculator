@@ -1,9 +1,7 @@
 {
   "source": "_OptionsCrafter!A61:F209 + DPS stat formulas (C45..E80)",
   "select_ore": "Select Ore",
-  "formula_only_ores": [
-    "Tiger s Eye"
-  ],
+  "formula_only_ores": [],
   "ores": [
     {
       "name": "Graphite",
@@ -460,6 +458,11 @@
         "lethality": {
           "base": 0.5,
           "max": 5.0,
+          "divisor": 100
+        },
+        "atk_speed": {
+          "base": 0.75,
+          "max": 7.5,
           "divisor": 100
         }
       }

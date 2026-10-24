@@ -74,12 +74,11 @@ def test_stone_has_no_stats_and_is_not_weapon(data):
     assert ore.is_weapon is False
 
 
-def test_tigers_eye_attack_speed_spelling_quirk(data):
+def test_tigers_eye_carries_lethality_and_attack_speed(data):
     ore = data.ore("Tiger's Eye")
     assert ore is not None
     assert ore.stat("lethality") is not None
-    assert ore.stat("atk_speed") is None
-    assert data.ore("Tiger s Eye") is None
+    assert ore.stat("atk_speed") is not None
 
 
 def test_berserk_group_traits_parsed_from_trait_text(data):
@@ -165,3 +164,15 @@ def test_select_ore_label(data):
 def test_load_missing_dir_raises(tmp_path):
     with pytest.raises(Exception):
         load_game_data(tmp_path / "nope")
+
+
+def test_weapon_type_ore_thresholds_from_f12():
+    from pathlib import Path
+    import json
+    raw = json.loads((Path(__file__).resolve().parent.parent / "data" / "weapons.json").read_text(encoding="utf-8"))
+    assert raw["type_min_ore"] == {
+        "Dagger": 3, "Straight Sword": 4, "Mace": 7, "Gauntlet": 7, "Axe": 10, "Katana": 10,
+        "Great Sword": 13, "Spear": 13, "Great Axe": 16, "Halberd": 16, "Colossal Sword": 21,
+    }
+    assert raw["not_enough_ore"] == "Not enough Ore"
+    assert set(raw["type_min_ore"]) == set(raw["types"])

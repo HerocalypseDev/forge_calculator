@@ -1,6 +1,6 @@
 {
   "workbook": "UpdatedSpreadsheet.xlsx",
-  "built_at": "2026-10-24T17:46:07+00:00",
+  "built_at": "2026-10-24T18:17:30+00:00",
   "counts": {
     "ores": 149,
     "weapons": 87,
@@ -8,8 +8,6 @@
     "runes": 47,
     "achievements": 16
   },
-  "stat_formulas_sha256": "39cbb59689ffcb434811aa3ec1c4683d9b000107b3673aacc182094d35d6f230",
-  "formula_only_ores": [
-    "Tiger s Eye"
-  ]
+  "stat_formulas_sha256": "c30b9fbb060c6f99bf1c826630dba54332d9c44940e98b69542b7475234c5edc",
+  "formula_only_ores": []
 }

@@ -117,8 +117,10 @@ EXPECTED = {
         "fire_chance": (4.5, 45.0, 100),
         "fire_duration": (0.5, 5.0, 1),
     },
-    "Tiger's Eye": {"lethality": (0.5, 5.0, 100)},
-    "Tiger s Eye": {"atk_speed": (0.75, 7.5, 100)},
+    "Tiger's Eye": {
+        "lethality": (0.5, 5.0, 100),
+        "atk_speed": (0.75, 7.5, 100),
+    },
     "Bismuth": {
         "atk_speed": (1.8, 18.0, 100),
         "explosion_dmg": (8.75, 8.75, 100, {"gated": False}),
