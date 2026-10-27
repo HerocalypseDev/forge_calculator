@@ -2483,7 +2483,6 @@
       situationalSection.style.display = isOrcLord || isDryad ? '' : 'none';
     }
     syncSituational(getBuild().race);
-    metaWrap.appendChild(situationalSection);
 
     var statSection = createEl('div', { class: 'fc-input-section' });
     statSection.appendChild(sectionTitle('Armor Stats', 'armor'));
@@ -2554,10 +2553,13 @@
     achievementSection.appendChild(achievementWrapper);
     metaWrap.appendChild(achievementSection);
 
+    var metaRow = createEl('div', { class: 'fc-meta-row' });
+    metaRow.append(metaWrap, situationalSection);
+
     container.append(
       weaponSection,
       oreSection,
-      metaWrap,
+      metaRow,
       runeSection,
       statSection,
       abilitySection

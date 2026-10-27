@@ -260,13 +260,25 @@
   max-width: 70%;
 }
 
-.fc-meta-wrap .fc-input-section {
+.fc-meta-row {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.fc-meta-row > .fc-meta-wrap {
+  flex: 0 0 70%;
+}
+
+.fc-meta-wrap .fc-input-section,
+.fc-meta-row > .fc-situational-section {
   flex: 1 1 0;
   min-width: 0;
   padding: 16px;
 }
 
-.fc-meta-wrap .fc-input-section-title {
+.fc-meta-wrap .fc-input-section-title,
+.fc-meta-row > .fc-situational-section .fc-input-section-title {
   font-size: 0.95rem;
   font-weight: 800;
   margin-bottom: 10px;
@@ -1073,6 +1085,15 @@
 
   .fc-meta-wrap {
     grid-template-columns: 1fr;
+  }
+
+  .fc-meta-row {
+    flex-direction: column;
+  }
+
+  .fc-meta-row > .fc-meta-wrap {
+    flex: 0 0 auto;
+    max-width: 100%;
   }
 
   .fc-stat-input {
