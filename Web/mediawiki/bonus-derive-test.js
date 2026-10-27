@@ -94,6 +94,14 @@ assert(eng.bonus_weapon_type === '', 'no weapon -> empty bonus type');
 eng = FC.transformBuildForEngine(uiBuild({ weaponName: 'Not A Real Weapon' }));
 assert(eng.bonus_weapon_type === '', 'unknown weapon -> empty bonus type');
 
+console.log('== Situational race inputs reach the engine ==');
+eng = FC.transformBuildForEngine(uiBuild({ race: 'Orc Lord', orcLordHpMissing: 45, orcLordKillStacks: 3 }));
+assert(eng.orc_lord_hp_missing === 0.45 && eng.orc_lord_kill_stacks === 3, 'Orc Lord HP missing % and kill stacks');
+eng = FC.transformBuildForEngine(uiBuild({ race: 'Dryad', dryadInGrove: true, dryadMaxHp: 4200 }));
+assert(eng.dryad_in_grove === true && eng.dryad_max_hp === 4200, 'Dryad grove toggle and max HP');
+eng = FC.transformBuildForEngine(uiBuild({}));
+assert(eng.dryad_in_grove === false && eng.orc_lord_hp_missing === 0, 'situational inputs default to off');
+
 console.log('== Engine class bonuses (race + derived weapon type) ==');
 function calcLeth(build) { return FC.calculate(build, game).lethality; }
 function calcAtk(build) { return FC.calculate(build, game).atk_speed; }
@@ -112,8 +120,8 @@ assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Goblin', weaponName: 
   'Goblin + Dagger -> +10% atk speed (E48)');
 assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Great Sword' }))) === 0.15,
   'Golem + Colossal Sword -> +15% atk speed (E48)');
-assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Double Battle Axe' }))) === 0,
-  'Golem + Great Axe -> no atk speed bonus (E48)');
+assert(calcAtk(FC.transformBuildForEngine(uiBuild({ race: 'Golem', weaponName: 'Double Battle Axe' }))) === 0.15,
+  'Golem + Great Axe -> +15% atk speed (E48)');
 
 console.log('== Source checks ==');
 assert(SRC.indexOf('Select Bonus Type') === -1, 'no "Select Bonus Type" prompt remains');

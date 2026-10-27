@@ -66,7 +66,7 @@ const raceNames = loadJSON('Data-Races.json').races.map((r) => r.name);
 
 const orcLord = run('Orc Lord');
 approx(orcLord.lethality, 0.40, 'Orc Lord lethality');
-approx(orcLord.smash_dps, DAGGER_DMG * 1.0 * 0.25 * Math.min(1 / DAGGER_INTERVAL, 1 / 10), 'Orc Lord smash dps');
+approx(orcLord.smash_dps, DAGGER_DMG * 1.0 / (10 + 1 / (0.25 / DAGGER_INTERVAL)), 'Orc Lord smash waits out its cooldown');
 approx(orcLord.total_dps, orcLord.weapon_dps + orcLord.smash_dps, 'smash adds to total');
 
 const kitsune = run('Kitsune');
@@ -75,14 +75,15 @@ approx(kitsune.lethality, 0.20, 'Kitsune lethality');
 approx(kitsune.atk_speed, 0.20, 'Kitsune atk speed');
 approx(kitsune.crit_dmg, 0.15, 'Kitsune crit dmg');
 approx(kitsune.fox_claws_dmg, 0.75, 'Kitsune fox claws dmg is flat');
-approx(kitsune.fox_claws_dps, DAGGER_DMG * 0.75 * 0.5 / 3, 'Kitsune fox claws dps');
-approx(kitsune.foxfire_dps, DAGGER_DMG * 0.3 * Math.min(1, 0.5 * kitsuneRate * 2), 'Kitsune foxfire dps');
+approx(kitsune.fox_claws_dps, DAGGER_DMG * 0.75 * Math.min(0.25 * kitsuneRate, 3 / 2.22), 'Kitsune fox claws spirits');
+approx(kitsune.foxfire_dps, DAGGER_DMG * 1.2 * 0.3 * (1 - Math.exp(-0.5 * kitsuneRate * 3)), 'Kitsune foxfire on boosted damage');
 const slowKitsune = run('Kitsune', 'Long Sword');
 assert(slowKitsune.attack_rate < 1, 'Long Sword is below one hit per second');
-approx(slowKitsune.fox_claws_dps, slowKitsune.unforged_damage * 0.75 * 0.5 / 3, 'fox claws ignores attack rate');
+approx(slowKitsune.fox_claws_dps, slowKitsune.unforged_damage * 0.75 * 0.25 * slowKitsune.attack_rate, 'fox claws follow attack rate');
 
 const slowArchangel = run('Archangel', 'Long Sword');
-approx(slowArchangel.smite_dmg, 0.5 * slowArchangel.attack_rate, 'Archangel smite scales linearly below one hit per second');
+approx(slowArchangel.smite_dmg, 0, 'Archangel adds nothing to ore smite');
+approx(slowArchangel.archangel_smite_dps, 1.5 * slowArchangel.unforged_damage / (10 + 1 / (0.33 * slowArchangel.attack_rate)), 'Archangel smite beam');
 
 approx(run('Fairy', 'Spear', 'Spear').lethality, 0.15, 'Fairy spear lethality');
 approx(run('Fairy', 'Spear', 'Spear').atk_speed, 0.15, 'Fairy spear atk speed');
@@ -91,7 +92,7 @@ approx(run('Fairy', 'Dagger', 'Dagger').atk_speed, 0, 'Fairy without a spear');
 ['Dagger', 'Great Sword', 'Colossal Sword', 'Great Axe', 'Mace'].forEach((weaponType) =>
   approx(run('Shadow', 'Dagger', weaponType).atk_speed, 0.10, 'Shadow + ' + weaponType + ' atk speed stays flat'));
 approx(run('Golem', 'Dagger', 'Colossal Sword').atk_speed, 0.15, 'Golem + Colossal Sword atk speed');
-approx(run('Golem', 'Dagger', 'Great Axe').atk_speed, 0, 'Golem + Great Axe gets nothing');
+approx(run('Golem', 'Dagger', 'Great Axe').atk_speed, 0.15, 'Golem + Great Axe atk speed');
 approx(run('Elf').atk_speed, 0, 'Elf has no atk speed');
 
 approx(run('Orc').lethality, 0.10, 'Orc lethality counted once');

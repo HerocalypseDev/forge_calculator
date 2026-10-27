@@ -62,8 +62,12 @@ def gen_build():
             lightning_cooldown=random.choice([0, 0.3, 1, 2, 3, 5]),
             blast_dmg=rand_float(0.4), blast_chance=rand_float(0.5),
         ),
-        berserk=rand_float(0.3),
+        berserk=random.choice([0.0, rand_float(0.3), rand_float(2.5)]),
         achievement=random.choice(ach_names + ["None"]),
+        dryad_in_grove=random.random() < 0.5,
+        dryad_max_hp=random.choice([0, 999, 1000, 4500, 12000]),
+        orc_lord_hp_missing=random.choice([0, 0.1, 0.35, 0.99, 1.2]),
+        orc_lord_kill_stacks=random.choice([0, 1, 3, 5, 8]),
     )
 
 
@@ -97,6 +101,10 @@ def build_to_dict(b):
         },
         "berserk": b.berserk,
         "achievement": b.achievement,
+        "dryad_in_grove": b.dryad_in_grove,
+        "dryad_max_hp": b.dryad_max_hp,
+        "orc_lord_hp_missing": b.orc_lord_hp_missing,
+        "orc_lord_kill_stacks": b.orc_lord_kill_stacks,
     }
 
 
@@ -144,6 +152,12 @@ def result_to_dict(r):
         "smash_dps": r.smash_dps,
         "fox_claws_dps": r.fox_claws_dps,
         "foxfire_dps": r.foxfire_dps,
+        "prismatic_shift_dps": r.prismatic_shift_dps,
+        "archangel_smite_dps": r.archangel_smite_dps,
+        "cursed_aura_dps": r.cursed_aura_dps,
+        "lightning_cooldown": r.lightning_cooldown,
+        "trait_damage_multiplier": r.trait_damage_multiplier,
+        "berserk_level": r.berserk_level,
         "total_dps": r.total_dps,
         "berserk": r.berserk,
         "moonstone": r.moonstone,

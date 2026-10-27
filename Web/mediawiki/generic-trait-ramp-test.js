@@ -160,8 +160,8 @@ console.log('\n== Stats (Capped) card: Berserk row + red cap color ==');
 
 {
   const r = FC.calculate(mk('Wolfarite', 30, { race: 'Minotaur', berserk: 190 }), game);
-  check('berserk_level field is exposed on the result and capped at 2.0 (200%)',
-    r.berserk_level === 2.0);
+  check('berserk_level field is exposed: input capped at 200%, Minotaur 30% on top',
+    Math.abs(r.berserk_level - 2.3) < 1e-12);
 }
 
 {

@@ -972,6 +972,16 @@
   color: #4dd0e1 !important;
 }
 
+.fc-stat-val.fc-sv-prismatic,
+.fc-stat-label.fc-sv-prismatic {
+  color: #ce7bf0 !important;
+}
+
+.fc-stat-val.fc-sv-aura,
+.fc-stat-label.fc-sv-aura {
+  color: #e57373 !important;
+}
+
 .fc-stat-val.fc-sv-mult,
 .fc-stat-label.fc-sv-mult {
   color: #d4af6a !important;

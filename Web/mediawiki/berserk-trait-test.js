@@ -122,10 +122,11 @@ console.log('== Berserk-group trait text now computed like every other stat ==')
   // display-only and must never feed the real berserk_level calculation
   const withRace = FC.calculate(Object.assign(mk('Fierce Jade', 30), { race: 'Minotaur', berserk: 0 }), game);
   const withoutOre = FC.calculate(Object.assign(mk('None', 0), { race: 'Minotaur', berserk: 0 }), game);
-  check('Fierce Jade\'s phys_dmg trait does not change berserkLevel (still exactly weapon_dps * 1.3)',
-    Math.abs(withRace.berserk - withRace.weapon_dps * 1.3) < 1e-9);
-  check('sanity: an unrelated build also gets exactly weapon_dps * 1.3 from Minotaur alone',
-    withoutOre.berserk === null || Math.abs(withoutOre.berserk - withoutOre.weapon_dps * 1.3) < 1e-9);
+  const minotaurOnly = (r) => r.forged_damage * (1 + r.lethality + 0.3) * r.crit_blend * r.attack_rate;
+  check('Fierce Jade\'s phys_dmg trait does not change the berserk level (Minotaur 30% only)',
+    withRace.berserk_level === 0.3 && Math.abs(withRace.berserk - minotaurOnly(withRace)) < 1e-9);
+  check('sanity: an unrelated build gets the same 30% from Minotaur alone',
+    withoutOre.berserk === null || Math.abs(withoutOre.berserk - minotaurOnly(withoutOre)) < 1e-9);
 }
 
 console.log(fails === 0 ? '\nALL BERSERK-TRAIT CHECKS PASSED ✓' : '\n' + fails + ' CHECK(S) FAILED ✗');

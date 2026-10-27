@@ -27,40 +27,49 @@
     'Orc': 0.10,
     'Shadow': 0.05,
     'Dragonborn': 0.12,
-    'Orc Lord': 0.40,
-    'Kitsune': 0.20
+    'Orc Lord': 0.40
   };
 
   var CLASS_LETHALITY = {
     'Felynx,Gauntlet': 0.20,
     'Felynx,Gauntlets': 0.20,
-    'Vampire,Straight Sword': 0.10,
-    'Fairy,Spear': 0.15
+    'Vampire,Straight Sword': 0.10
   };
 
   var RACE_ATK_SPEED = {
     'Shadow': 0.10,
     'Demon': 0.20,
-    'Archangel': 0.20,
-    'Kitsune': 0.20
+    'Archangel': 0.20
   };
 
   var CLASS_ATK_SPEED = {
     'Goblin,Dagger': 0.10,
     'Golem,Colossal Sword': 0.15,
+    'Golem,Great Axe': 0.15,
     'Felynx,Gauntlet': 0.20,
-    'Felynx,Gauntlets': 0.20,
-    'Fairy,Spear': 0.15
+    'Felynx,Gauntlets': 0.20
   };
 
-  var RACE_CRIT_DMG = { 'Kitsune': 0.15 };
+  var UNCAPPED_RACE_LETHALITY = { 'Kitsune': 0.20 };
+  var UNCAPPED_CLASS_LETHALITY = { 'Fairy,Spear': 0.15 };
+  var UNCAPPED_RACE_ATK_SPEED = { 'Kitsune': 0.20 };
+  var UNCAPPED_CLASS_ATK_SPEED = { 'Fairy,Spear': 0.15 };
+  var UNCAPPED_RACE_CRIT_DMG = { 'Kitsune': 0.15 };
+  var DRYAD_GROVE_CRIT_CHANCE = 0.15;
+  var DRYAD_GROVE_CRIT_DMG = 0.15;
+  var DRYAD_VITAL_POWER_STEP_HP = 1000;
+  var DRYAD_VITAL_POWER_PER_STEP = 0.05;
+  var DRYAD_VITAL_POWER_MAX_STEPS = 10;
+  var ORC_LORD_WARBRINGER_PER_TENTH = 0.075;
+  var ORC_LORD_LORD_OF_WAR_PER_STACK = 0.075;
+  var ORC_LORD_LORD_OF_WAR_MAX_STACKS = 5;
 
-  var RACE_FIRE_DMG = { 'Dragonborn': 0.30 };
+  var RACE_FIRE_DMG = { 'Dragonborn': 0.30, 'Demon': 0.20 };
   var RACE_FIRE_CHANCE = { 'Dragonborn': 0.40 };
-  var RACE_FIRE_TIME = { 'Dragonborn': 3 };
+  var RACE_FIRE_TIME = { 'Dragonborn': 3, 'Demon': 3 };
 
   var RACE_SMITE_DMG = { 'Angel': 0.30 };
-  var RACE_SMITE_CHANCE = { 'Angel': 0.50, 'Archangel': 0.33 };
+  var RACE_SMITE_CHANCE = { 'Angel': 0.50 };
 
   var RACE_BERSERK = { 'Minotaur': 0.30 };
 
@@ -69,20 +78,37 @@
   var RACE_SMASH_CHANCE = { 'Orc Lord': 0.25 };
 
   var RACE_FOX_CLAWS_DMG = { 'Kitsune': 0.75 };
-  var RACE_FOX_CLAWS_CHANCE = { 'Kitsune': 0.5 };
-  var FOX_CLAWS_DIVISOR = 3.0;
-  var ARCHANGEL_SMITE_PER_HIT = 0.5;
-  var ARCHANGEL_SMITE_CAP = 1.5;
+  var RACE_FOX_CLAWS_CHANCE = { 'Kitsune': 0.25 };
+  var FOX_CLAWS_SPIRITS = 3;
+  var FOX_CLAWS_SPIRIT_TIME = 2.22;
 
   var RACE_FOXFIRE_DMG = { 'Kitsune': 0.3 };
   var RACE_FOXFIRE_CHANCE = { 'Kitsune': 0.5 };
-  var RACE_FOXFIRE_TIME = { 'Kitsune': 2.0 };
+  var RACE_FOXFIRE_TIME = { 'Kitsune': 3.0 };
 
-  var EXPLOSION_SLOT_CAP = 2.5;
+  var ARCHANGEL_SMITE_DMG = 1.5;
+  var ARCHANGEL_SMITE_CHANCE = 0.33;
+  var ARCHANGEL_SMITE_COOLDOWN = 10.0;
+  var DEMON_CURSED_AURA_DMG = 0.1;
+
+  var EXPLOSION_DMG_CAP = 2.5;
   var SMITE_DMG_CAP = 2.5;
-  var FOXFIRE_TIME_CAP = 5.0;
+  var BLACKHOLE_DMG_CAP = 2.5;
+  var MOON_CAP = 1.5;
+  var FIRE_TIME_RANGE = [1.0, 5.0];
+  var POISON_TIME_RANGE = [1.0, 15.0];
+  var DEFAULT_LIGHTNING_COOLDOWN = 10.0;
+  var BLACKHOLE_CHANCE = 0.3;
+  var BLACKHOLE_COOLDOWN = 1.0;
   var GALAXITE_BISMUTH_WAVE = 1.25;
-  var POISON_DURATION_ORES = ['Bismuth', 'Malachite'];
+  var PROC_ROLL_SIDES = 101;
+
+  var PRISMATIC_SHIFT_RUNES = 4;
+  var PRISMATIC_VENOM = [0.16, 0.77, 12.0];
+  var PRISMATIC_BLAST = [0.70, 0.42];
+  var PRISMATIC_FLAME = [0.26, 0.60, 4.0];
+  var PRISMATIC_THUNDER = [0.80, 0.47, 3.0];
+
   var AVG_POWER_EXCLUDED = ['Fichilliumorite', 'Bismuth'];
   var SOLO_ORE_POWER = { 'Bismuth': 8.0, 'Fichilliumorite': 1.0 };
 
@@ -534,41 +560,85 @@
     return totals;
   }
 
+  function raceValue(table, race) {
+    return table[race] !== undefined ? table[race] : 0.0;
+  }
+
+  function oreShare(slots, shares, name) {
+    var total = 0.0;
+    for (var i = 0; i < slots.length; i++) { if (slots[i].name === name) { total += shares[i]; } }
+    return total;
+  }
+
+  function roundHalfUp(value, digits) {
+    var scale = Math.pow(10, digits);
+    return Math.floor(Math.abs(value) * scale + 0.5) / scale * (value >= 0 ? 1 : -1);
+  }
+
+  function gameChance(chance, exists) {
+    if (!exists) { return 0.0; }
+    return Math.min(1.0, (Math.floor(roundHalfUp(chance * 100, 2)) + 1) / PROC_ROLL_SIDES);
+  }
+
+  function traitDamageMultiplier(build) {
+    if (build.race !== 'Dryad') { return 1.0; }
+    var steps = Math.min(Math.floor(Math.max(0, build.dryad_max_hp) / DRYAD_VITAL_POWER_STEP_HP), DRYAD_VITAL_POWER_MAX_STEPS);
+    return 1.0 + steps * DRYAD_VITAL_POWER_PER_STEP;
+  }
+
   function statTotals(build, game, oreContribs) {
     var runes = runeTotals(build.rune_cells);
     var ach = parseTrait(build.achievement);
     var achStat = ach ? ach.stat : null;
     var achValue = ach ? ach.value : 0.0;
+    var race = build.race;
+    var cls = build.race + ',' + build.bonus_weapon_type;
+    var inGrove = race === 'Dryad' && build.dryad_in_grove;
 
     var lethality = oreContribs.lethality
       + build.armor_lethality
       + runes.lethality
       + build.base_lethality
-      + (RACE_LETHALITY[build.race] !== undefined ? RACE_LETHALITY[build.race] : 0.0)
-      + (CLASS_LETHALITY[build.race + ',' + build.bonus_weapon_type] !== undefined ? CLASS_LETHALITY[build.race + ',' + build.bonus_weapon_type] : 0.0)
+      + raceValue(RACE_LETHALITY, race)
+      + raceValue(CLASS_LETHALITY, cls)
       + (achStat === 'lethality' ? achValue : 0.0);
+    var warbringer = 0.0;
+    if (race === 'Orc Lord') {
+      var missing = Math.min(1.0, Math.max(0.0, build.orc_lord_hp_missing));
+      warbringer = Math.floor(missing * 10 + 1e-6) * ORC_LORD_WARBRINGER_PER_TENTH;
+    }
 
     var crit_chance = oreContribs.crit_chance
       + build.armor_crit_chance
       + runes.crit_chance
       + (achStat === 'crit_chance' ? achValue : 0.0);
 
-    var crit_dmg = oreContribs.crit_dmg
-      + build.armor_crit_dmg
-      + runes.crit_dmg
-      + raceValue(RACE_CRIT_DMG, build.race);
+    var crit_dmg = oreContribs.crit_dmg + build.armor_crit_dmg + runes.crit_dmg;
 
     var atk_speed = oreContribs.atk_speed
       + runes.atk_speed
-      + (RACE_ATK_SPEED[build.race] !== undefined ? RACE_ATK_SPEED[build.race] : 0.0)
-      + (CLASS_ATK_SPEED[build.race + ',' + build.bonus_weapon_type] !== undefined ? CLASS_ATK_SPEED[build.race + ',' + build.bonus_weapon_type] : 0.0)
+      + raceValue(RACE_ATK_SPEED, race)
+      + raceValue(CLASS_ATK_SPEED, cls)
       + (achStat === 'atk_speed' ? achValue : 0.0);
+    var lordOfWar = 0.0;
+    if (race === 'Orc Lord') {
+      var stacks = Math.min(ORC_LORD_LORD_OF_WAR_MAX_STACKS, Math.max(0, Math.floor(build.orc_lord_kill_stacks)));
+      lordOfWar = stacks * ORC_LORD_LORD_OF_WAR_PER_STACK;
+    }
 
     return {
-      lethality: Math.min(lethality, CAPS.lethality),
-      crit_chance: Math.min(crit_chance, CAPS.crit_chance),
-      crit_dmg: Math.min(crit_dmg, CAPS.crit_dmg),
+      lethality: Math.min(lethality, CAPS.lethality)
+        + raceValue(UNCAPPED_RACE_LETHALITY, race)
+        + raceValue(UNCAPPED_CLASS_LETHALITY, cls)
+        + warbringer,
+      crit_chance: Math.min(crit_chance, CAPS.crit_chance) + (inGrove ? DRYAD_GROVE_CRIT_CHANCE : 0.0),
+      crit_dmg: Math.min(crit_dmg, CAPS.crit_dmg)
+        + raceValue(UNCAPPED_RACE_CRIT_DMG, race)
+        + (inGrove ? DRYAD_GROVE_CRIT_DMG : 0.0),
       atk_speed: Math.min(atk_speed, CAPS.atk_speed)
+        + raceValue(UNCAPPED_RACE_ATK_SPEED, race)
+        + raceValue(UNCAPPED_CLASS_ATK_SPEED, cls)
+        + lordOfWar
     };
   }
 
@@ -578,25 +648,6 @@
       contribs[CORE_STATS[i]] = oreStatSum(slots, shares, game, CORE_STATS[i]);
     }
     return contribs;
-  }
-
-  function duration(oreTerms, raceTime, abilityTime, minus) {
-    var top = 0;
-    for (var i = 0; i < oreTerms.length; i++) { if (oreTerms[i] > top) { top = oreTerms[i]; } }
-    if (raceTime > top) { top = raceTime; }
-    if (abilityTime > top) { top = abilityTime; }
-    return Math.max(top - minus, 0.0);
-  }
-
-  function blackholeChance(slots, game) {
-    var galaxite = 0;
-    var nonblank = 0;
-    for (var i = 0; i < slots.length; i++) {
-      if (slots[i].name === 'Galaxite') { galaxite++; }
-      if (slots[i].name) { nonblank++; }
-    }
-    if (nonblank === 0) { return 0.0; }
-    return galaxite / nonblank >= 0.1 ? 0.3 : 0.0;
   }
 
   function slotVals(slots, shares, game, stat) {
@@ -615,20 +666,14 @@
     return vals;
   }
 
-  function slotMax(slots, shares, game, stat) {
-    var vals = slotVals(slots, shares, game, stat);
-    if (!vals.length) { return 0.0; }
-    var m = vals[0];
-    for (var i = 1; i < vals.length; i++) { if (vals[i] > m) { m = vals[i]; } }
+  function maxOf(vals) {
+    var m = 0.0;
+    for (var i = 0; i < vals.length; i++) { if (vals[i] > m) { m = vals[i]; } }
     return m;
   }
 
-  function slotMin(slots, shares, game, stat) {
-    var vals = slotVals(slots, shares, game, stat);
-    if (!vals.length) { return 0.0; }
-    var m = vals[0];
-    for (var i = 1; i < vals.length; i++) { if (vals[i] < m) { m = vals[i]; } }
-    return m;
+  function slotMax(slots, shares, game, stat) {
+    return maxOf(slotVals(slots, shares, game, stat));
   }
 
   function slotSum(slots, shares, game, stat) {
@@ -638,100 +683,78 @@
     return total;
   }
 
-  function firstSlotVal(slots, shares, game, name, stat) {
-    for (var i = 0; i < slots.length; i++) {
-      if (slots[i].name !== name) { continue; }
-      var ore = game._ore_index.get(name);
-      var rng = ore ? ore.stats[stat] : null;
-      if (!rng) { return 0.0; }
-      return scaleRange(rng, shares[i]);
+  function dotDuration(dmg, terms, range) {
+    if (dmg <= 0) { return 0.0; }
+    return Math.min(range[1], Math.max(range[0], maxOf(terms)));
+  }
+
+  function procComponents(build, shares, game) {
+    var ab = build.abilities;
+    var race = build.race;
+    var galaxite = oreShare(build.slots, shares, 'Galaxite') >= SHARE_GATE;
+    var bismuth = oreShare(build.slots, shares, 'Bismuth') >= SHARE_GATE;
+
+    var fireDmg = slotSum(build.slots, shares, game, 'fire_dmg') + raceValue(RACE_FIRE_DMG, race) + ab.fire_dmg;
+    var poisonDmg = slotSum(build.slots, shares, game, 'poison_dmg') + ab.poison_dmg;
+    var lightningDmg = slotSum(build.slots, shares, game, 'lightning_dmg') + ab.lightning_dmg;
+    var cooldowns = slotVals(build.slots, shares, game, 'lightning_cooldown');
+    if (ab.lightning_cooldown) { cooldowns.push(ab.lightning_cooldown); }
+    var lightningCooldown = 0.0;
+    if (lightningDmg > 0) {
+      lightningCooldown = cooldowns.length ? Math.min.apply(null, cooldowns) : DEFAULT_LIGHTNING_COOLDOWN;
     }
-    return 0.0;
-  }
-
-  function smiteRaceDmg(race, atkRate) {
-    if (race === 'Archangel') { return Math.min(ARCHANGEL_SMITE_PER_HIT * atkRate, ARCHANGEL_SMITE_CAP); }
-    return RACE_SMITE_DMG[race] !== undefined ? RACE_SMITE_DMG[race] : 0.0;
-  }
-
-  function raceValue(table, race) {
-    return table[race] !== undefined ? table[race] : 0.0;
-  }
-
-  function poisonDurationTerm(slots, shares, game) {
-    for (var i = 0; i < POISON_DURATION_ORES.length; i++) {
-      var name = POISON_DURATION_ORES[i];
-      if (hasOre(slots, name)) { return firstSlotVal(slots, shares, game, name, 'poison_duration'); }
-    }
-    return 0.0;
-  }
-
-  function hasOre(slots, name) {
-    for (var i = 0; i < slots.length; i++) { if (slots[i].name === name) { return true; } }
-    return false;
-  }
-
-  function dotDps(unforged, dmg, chance, dur, atkRate) {
-    var refreshing = atkRate ? unforged * dmg * Math.min(1, chance * atkRate * Math.min(dur, 5)) : 0.0;
-    if (refreshing !== 0) { return refreshing; }
-    return Math.max(unforged * dmg * (dur + 1), 0.0);
-  }
-
-  function cappedSlotSum(slots, shares, game, stat, cap) {
-    var vals = slotVals(slots, shares, game, stat);
-    var total = 0.0;
-    for (var i = 0; i < vals.length; i++) { total += Math.min(cap, vals[i]); }
-    return total;
-  }
-
-  function lightningCooldown(oreTerms, abilityCooldown) {
-    var terms = oreTerms.slice();
-    if (abilityCooldown) { terms.push(abilityCooldown); }
-    if (!terms.length) { return 0.0; }
-    var m = terms[0];
-    for (var i = 1; i < terms.length; i++) { if (terms[i] < m) { m = terms[i]; } }
-    return m;
-  }
-
-  function procComponents(build, shares, game, atkRate) {
-    var fireTerms = slotVals(build.slots, shares, game, 'fire_duration');
 
     return {
-      moon: slotSum(build.slots, shares, game, 'moon'),
-      explosion_dmg: cappedSlotSum(build.slots, shares, game, 'explosion_dmg', EXPLOSION_SLOT_CAP) + build.abilities.blast_dmg,
-      explosion_chance: Math.max(slotMax(build.slots, shares, game, 'explosion_chance'), build.abilities.blast_chance),
-      fire_dmg: slotSum(build.slots, shares, game, 'fire_dmg')
-        + (RACE_FIRE_DMG[build.race] !== undefined ? RACE_FIRE_DMG[build.race] : 0.0)
-        + build.abilities.fire_dmg,
-      fire_chance: Math.max(slotMax(build.slots, shares, game, 'fire_chance'), build.abilities.fire_chance)
-        + (RACE_FIRE_CHANCE[build.race] !== undefined ? RACE_FIRE_CHANCE[build.race] : 0.0),
-      fire_duration: duration(fireTerms, RACE_FIRE_TIME[build.race] !== undefined ? RACE_FIRE_TIME[build.race] : 0, build.abilities.fire_time, 1),
-      poison_dmg: slotSum(build.slots, shares, game, 'poison_dmg') + build.abilities.poison_dmg,
-      poison_chance: Math.max(slotMax(build.slots, shares, game, 'poison_chance'), build.abilities.poison_chance),
-      poison_duration: duration([poisonDurationTerm(build.slots, shares, game)], 0, build.abilities.poison_time, 2),
-      smite_dmg: Math.min(SMITE_DMG_CAP, slotSum(build.slots, shares, game, 'smite_dmg') + smiteRaceDmg(build.race, atkRate)),
-      smite_chance: slotMax(build.slots, shares, game, 'smite_chance')
-        + (RACE_SMITE_CHANCE[build.race] !== undefined ? RACE_SMITE_CHANCE[build.race] : 0.0),
-      blackhole_dmg: slotSum(build.slots, shares, game, 'blackhole_dmg')
-        + (hasOre(build.slots, 'Galaxite') && hasOre(build.slots, 'Bismuth') ? GALAXITE_BISMUTH_WAVE : 0.0),
-      blackhole_chance: blackholeChance(build.slots, game),
-      lightning_dmg: slotSum(build.slots, shares, game, 'lightning_dmg') + build.abilities.lightning_dmg,
-      lightning_chance: Math.max(slotMax(build.slots, shares, game, 'lightning_chance'), build.abilities.lightning_chance),
-      lightning_cooldown: lightningCooldown(
-        slotVals(build.slots, shares, game, 'lightning_cooldown'),
-        build.abilities.lightning_cooldown
-      ),
-      smash_dmg: raceValue(RACE_SMASH_DMG, build.race),
-      smash_cooldown: raceValue(RACE_SMASH_COOLDOWN, build.race),
-      smash_chance: raceValue(RACE_SMASH_CHANCE, build.race),
-      fox_claws_dmg: raceValue(RACE_FOX_CLAWS_DMG, build.race),
-      fox_claws_chance: raceValue(RACE_FOX_CLAWS_CHANCE, build.race),
-      foxfire_dmg: raceValue(RACE_FOXFIRE_DMG, build.race),
-      foxfire_chance: raceValue(RACE_FOXFIRE_CHANCE, build.race),
-      foxfire_duration: raceValue(RACE_FOXFIRE_TIME, build.race)
+      moon: Math.min(MOON_CAP, slotSum(build.slots, shares, game, 'moon')),
+      explosion_dmg: Math.min(EXPLOSION_DMG_CAP, slotSum(build.slots, shares, game, 'explosion_dmg') + ab.blast_dmg),
+      explosion_chance: Math.max(slotMax(build.slots, shares, game, 'explosion_chance'), ab.blast_chance),
+      fire_dmg: fireDmg,
+      fire_chance: Math.max(slotMax(build.slots, shares, game, 'fire_chance'), ab.fire_chance, raceValue(RACE_FIRE_CHANCE, race)),
+      fire_duration: dotDuration(fireDmg,
+        slotVals(build.slots, shares, game, 'fire_duration').concat([raceValue(RACE_FIRE_TIME, race), ab.fire_time]),
+        FIRE_TIME_RANGE),
+      poison_dmg: poisonDmg,
+      poison_chance: Math.max(slotMax(build.slots, shares, game, 'poison_chance'), ab.poison_chance),
+      poison_duration: dotDuration(poisonDmg,
+        slotVals(build.slots, shares, game, 'poison_duration').concat([ab.poison_time]),
+        POISON_TIME_RANGE),
+      smite_dmg: Math.min(SMITE_DMG_CAP, slotSum(build.slots, shares, game, 'smite_dmg') + raceValue(RACE_SMITE_DMG, race)),
+      smite_chance: Math.max(slotMax(build.slots, shares, game, 'smite_chance'), raceValue(RACE_SMITE_CHANCE, race)),
+      blackhole_dmg: Math.min(BLACKHOLE_DMG_CAP, slotSum(build.slots, shares, game, 'blackhole_dmg'))
+        + (galaxite && bismuth ? GALAXITE_BISMUTH_WAVE : 0.0),
+      blackhole_chance: galaxite ? BLACKHOLE_CHANCE : 0.0,
+      lightning_dmg: lightningDmg,
+      lightning_chance: Math.max(slotMax(build.slots, shares, game, 'lightning_chance'), ab.lightning_chance),
+      lightning_cooldown: lightningCooldown,
+      smash_dmg: raceValue(RACE_SMASH_DMG, race),
+      smash_cooldown: raceValue(RACE_SMASH_COOLDOWN, race),
+      smash_chance: raceValue(RACE_SMASH_CHANCE, race),
+      fox_claws_dmg: raceValue(RACE_FOX_CLAWS_DMG, race),
+      fox_claws_chance: raceValue(RACE_FOX_CLAWS_CHANCE, race),
+      foxfire_dmg: raceValue(RACE_FOXFIRE_DMG, race),
+      foxfire_chance: raceValue(RACE_FOXFIRE_CHANCE, race),
+      foxfire_duration: raceValue(RACE_FOXFIRE_TIME, race)
     };
   }
 
+  function dotUptime(chance, atkRate, duration) {
+    var load = chance * atkRate * duration;
+    return Math.min(1.0, load / (1 + load / 2));
+  }
+
+  function cooldownRate(chance, atkRate, cooldown) {
+    if (chance <= 0 || atkRate <= 0) { return 0.0; }
+    return 1.0 / (cooldown + 1.0 / (chance * atkRate));
+  }
+
+  function prismaticShiftDps(unforged, atkRate, tdm) {
+    if (atkRate <= 0) { return 0.0; }
+    var venom = unforged * PRISMATIC_VENOM[0] * tdm * dotUptime(gameChance(PRISMATIC_VENOM[1], true), atkRate, PRISMATIC_VENOM[2]);
+    var blast = unforged * PRISMATIC_BLAST[0] * gameChance(PRISMATIC_BLAST[1], true) * atkRate;
+    var flame = unforged * PRISMATIC_FLAME[0] * tdm * dotUptime(gameChance(PRISMATIC_FLAME[1], true), atkRate, PRISMATIC_FLAME[2]);
+    var thunder = unforged * PRISMATIC_THUNDER[0] * tdm * cooldownRate(gameChance(PRISMATIC_THUNDER[1], true), atkRate, PRISMATIC_THUNDER[2]);
+    return (venom + blast + flame + thunder) / PRISMATIC_SHIFT_RUNES;
+  }
 
   function num(v) {
     var n = Number(v);
@@ -777,7 +800,11 @@
         lightning_cooldown: num(b.abilities && b.abilities.lightning_cooldown)
       },
       berserk: num(b.berserk),
-      achievement: typeof b.achievement === 'string' ? b.achievement : ''
+      achievement: typeof b.achievement === 'string' ? b.achievement : '',
+      dryad_in_grove: b.dryad_in_grove === true,
+      dryad_max_hp: num(b.dryad_max_hp),
+      orc_lord_hp_missing: num(b.orc_lord_hp_missing),
+      orc_lord_kill_stacks: num(b.orc_lord_kill_stacks)
     };
   }
 
@@ -801,29 +828,45 @@
       build.base_crit_dmg + totals.crit_dmg
     );
 
-    var procs = procComponents(build, shares, game, atkRate);
+    var procs = procComponents(build, shares, game);
+    var tdm = traitDamageMultiplier(build);
+    var race = build.race;
 
     var weapon_dps = forged * (1 + totals.lethality) * blend * atkRate;
-    var explosion_dps = unforged * procs.explosion_dmg * procs.explosion_chance * atkRate;
-    var fire_dps = dotDps(unforged, procs.fire_dmg, procs.fire_chance, procs.fire_duration, atkRate);
-    var poison_dps = dotDps(unforged, procs.poison_dmg, procs.poison_chance, procs.poison_duration, atkRate);
-    var smite_dps = unforged * atkRate * procs.smite_dmg * Math.min(procs.smite_chance, 1);
-    var blackhole_dps = unforged * procs.blackhole_dmg * procs.blackhole_chance * Math.max(1, atkRate);
-    var lightningProcCap = procs.lightning_cooldown > 0 ? Math.min(atkRate, 1.0 / procs.lightning_cooldown) : atkRate;
-    var lightning_dps = atkRate ? unforged * procs.lightning_dmg * procs.lightning_chance * lightningProcCap : 0.0;
-    var smash_dps = procs.smash_cooldown > 0
-      ? unforged * procs.smash_dmg * procs.smash_chance * Math.min(atkRate, 1.0 / procs.smash_cooldown)
+    var explosion_dps = unforged * procs.explosion_dmg * gameChance(procs.explosion_chance, procs.explosion_dmg > 0) * atkRate;
+    var fire_dps = atkRate && procs.fire_dmg > 0
+      ? unforged * procs.fire_dmg * tdm * dotUptime(gameChance(procs.fire_chance, true), atkRate, procs.fire_duration)
       : 0.0;
-    var fox_claws_dps = unforged * procs.fox_claws_dmg * procs.fox_claws_chance / FOX_CLAWS_DIVISOR;
+    var poison_dps = atkRate && procs.poison_dmg > 0
+      ? unforged * procs.poison_dmg * tdm * dotUptime(gameChance(procs.poison_chance, true), atkRate, procs.poison_duration)
+      : 0.0;
+    var smite_dps = unforged * atkRate * procs.smite_dmg * gameChance(procs.smite_chance, procs.smite_dmg > 0);
+    var blackhole_dps = procs.blackhole_dmg > 0 && procs.blackhole_chance > 0
+      ? unforged * procs.blackhole_dmg * tdm * cooldownRate(gameChance(procs.blackhole_chance, true), atkRate, BLACKHOLE_COOLDOWN)
+      : 0.0;
+    var lightning_dps = procs.lightning_dmg > 0
+      ? unforged * procs.lightning_dmg * tdm * cooldownRate(gameChance(procs.lightning_chance, true), atkRate, procs.lightning_cooldown)
+      : 0.0;
+    var smash_dps = unforged * procs.smash_dmg * cooldownRate(procs.smash_chance, atkRate, procs.smash_cooldown);
+    var fox_claws_dps = unforged * procs.fox_claws_dmg
+      * Math.min(procs.fox_claws_chance * atkRate, FOX_CLAWS_SPIRITS / FOX_CLAWS_SPIRIT_TIME);
     var foxfire_dps = atkRate
-      ? unforged * procs.foxfire_dmg * Math.min(1, procs.foxfire_chance * atkRate * Math.min(procs.foxfire_duration, FOXFIRE_TIME_CAP))
+      ? unforged * (1 + totals.lethality) * procs.foxfire_dmg * (1 - Math.exp(-procs.foxfire_chance * atkRate * procs.foxfire_duration))
       : 0.0;
-    var total_dps = weapon_dps + explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
-      + smash_dps + fox_claws_dps + foxfire_dps;
-    var proc_total = total_dps - weapon_dps;
+    var prismatic_shift_dps = oreShare(build.slots, shares, 'Bismuth') >= SHARE_GATE ? prismaticShiftDps(unforged, atkRate, tdm) : 0.0;
+    var archangel_smite_dps = race === 'Archangel' && atkRate > 0
+      ? ARCHANGEL_SMITE_DMG * unforged * cooldownRate(ARCHANGEL_SMITE_CHANCE, atkRate, ARCHANGEL_SMITE_COOLDOWN)
+      : 0.0;
+    var cursed_aura_dps = race === 'Demon' ? DEMON_CURSED_AURA_DMG * unforged : 0.0;
 
-    var berserkLevel = Math.min(build.berserk + (RACE_BERSERK[build.race] !== undefined ? RACE_BERSERK[build.race] : 0.0), CAPS.berserk);
-    var berserk = berserkLevel !== 0 ? weapon_dps * (1 + berserkLevel) + proc_total : null;
+    var proc_total = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
+      + smash_dps + fox_claws_dps + foxfire_dps + prismatic_shift_dps + archangel_smite_dps + cursed_aura_dps;
+    var total_dps = weapon_dps + proc_total;
+
+    var berserkLevel = Math.min(build.berserk, CAPS.berserk) + raceValue(RACE_BERSERK, race);
+    var berserk = berserkLevel !== 0
+      ? forged * (1 + totals.lethality + berserkLevel) * blend * atkRate + proc_total
+      : null;
 
     var moonstone = procs.moon !== 0 ? weapon_dps * (1 + procs.moon) + proc_total : null;
 
@@ -866,6 +909,7 @@
       blackhole_chance: procs.blackhole_chance,
       lightning_dmg: procs.lightning_dmg,
       lightning_chance: procs.lightning_chance,
+      lightning_cooldown: procs.lightning_cooldown,
       weapon_dps: weapon_dps,
       explosion_dps: explosion_dps,
       fire_dps: fire_dps,
@@ -891,7 +935,11 @@
       foxfire_duration: procs.foxfire_duration,
       smash_dps: smash_dps,
       fox_claws_dps: fox_claws_dps,
-      foxfire_dps: foxfire_dps
+      foxfire_dps: foxfire_dps,
+      prismatic_shift_dps: prismatic_shift_dps,
+      archangel_smite_dps: archangel_smite_dps,
+      cursed_aura_dps: cursed_aura_dps,
+      trait_damage_multiplier: tdm
     };
   }
 
@@ -2131,6 +2179,9 @@
         { label: 'Smash DPS', value: '0', valueClass: 'fc-sv-smash', labelClass: 'fc-sv-smash' },
         { label: 'Fox Claws DPS', value: '0', valueClass: 'fc-sv-foxclaws', labelClass: 'fc-sv-foxclaws' },
         { label: 'Foxfire DPS', value: '0', valueClass: 'fc-sv-foxfire', labelClass: 'fc-sv-foxfire' },
+        { label: 'Prismatic Shift DPS', value: '0', valueClass: 'fc-sv-prismatic', labelClass: 'fc-sv-prismatic' },
+        { label: 'Archangel Smite DPS', value: '0', valueClass: 'fc-sv-smite', labelClass: 'fc-sv-smite' },
+        { label: 'Cursed Aura DPS', value: '0', valueClass: 'fc-sv-aura', labelClass: 'fc-sv-aura' },
         { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold', labelClass: 'fc-sv-dmg' },
         { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-berserk', labelClass: 'fc-sv-berserk' },
         { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-moonstone', labelClass: 'fc-sv-moonstone' }
@@ -2197,7 +2248,7 @@
       }
 
       var dpsRows = dpsCard.querySelectorAll('.fc-stat-row');
-      if (dpsRows.length >= 13) {
+      if (dpsRows.length >= 16) {
         updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
         updateStatRow(dpsRows[1], fmtDps(result.explosion_dps), false);
         updateStatRow(dpsRows[2], fmtDps(result.fire_dps), false);
@@ -2208,9 +2259,12 @@
         updateStatRow(dpsRows[7], fmtDps(result.smash_dps), false);
         updateStatRow(dpsRows[8], fmtDps(result.fox_claws_dps), false);
         updateStatRow(dpsRows[9], fmtDps(result.foxfire_dps), false);
-        updateStatRow(dpsRows[10], fmtDps(result.total_dps), false);
-        updateStatRow(dpsRows[11], fmtDps(result.berserk), false);
-        updateStatRow(dpsRows[12], fmtDps(result.moonstone), false);
+        updateStatRow(dpsRows[10], fmtDps(result.prismatic_shift_dps), false);
+        updateStatRow(dpsRows[11], fmtDps(result.archangel_smite_dps), false);
+        updateStatRow(dpsRows[12], fmtDps(result.cursed_aura_dps), false);
+        updateStatRow(dpsRows[13], fmtDps(result.total_dps), false);
+        updateStatRow(dpsRows[14], fmtDps(result.berserk), false);
+        updateStatRow(dpsRows[15], fmtDps(result.moonstone), false);
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
@@ -2358,7 +2412,11 @@
       value: toUI(getBuild().race, RACE_PROMPT),
       placeholder: RACE_PROMPT,
       id: 'race-select',
-      onChange: function (race) { patch({ race: fromUI(race, RACE_PROMPT) }); }
+      onChange: function (race) {
+        var picked = fromUI(race, RACE_PROMPT);
+        patch({ race: picked });
+        syncSituational(picked);
+      }
     });
     raceWrapper.append(raceLabel, raceDropdown);
 
@@ -2392,6 +2450,59 @@
     berserkWrapper.append(berserkLabel, berserkInput);
     berserkSection.appendChild(berserkWrapper);
     metaWrap.appendChild(berserkSection);
+
+    var situationalSection = createEl('div', { class: 'fc-input-section fc-situational-section' });
+    situationalSection.appendChild(sectionTitle('Race Situational', 'race'));
+    situationalSection.appendChild(createEl('div', { class: 'fc-input-section-subtext' },
+      ['Conditional race effects from the game. Leave at 0 / unticked for a full-health fight.']));
+
+    function numberField(key, labelText, max, toNumber) {
+      var wrapper = createEl('div', { class: 'fc-berserk-wrapper' });
+      var label = createEl('label', { for: 'fc-' + key }, [labelText]);
+      var attrs = {
+        type: 'number', class: 'fc-stat-input-input', id: 'fc-' + key,
+        value: getBuild()[key] !== undefined ? getBuild()[key] : 0,
+        min: '0', step: 1, placeholder: '0', inputmode: 'numeric'
+      };
+      if (max !== null) { attrs.max = String(max); }
+      var input = createEl('input', attrs);
+      function commit() {
+        var v = Math.max(0, toNumber(parseFloat(input.value) || 0));
+        if (max !== null) { v = Math.min(v, max); }
+        input.value = v;
+        var change = {};
+        change[key] = v;
+        patch(change);
+      }
+      input.addEventListener('input', debounce(commit, 150));
+      input.addEventListener('change', commit);
+      wrapper.append(label, input);
+      situationalSection.appendChild(wrapper);
+      return { wrapper: wrapper, input: input };
+    }
+
+    var orcHpField = numberField('orcLordHpMissing', 'Orc Lord: HP missing (%)', 100, function (v) { return v; });
+    var orcKillsField = numberField('orcLordKillStacks', 'Orc Lord: kill stacks (0-5)', 5, Math.floor);
+    var groveWrapper = createEl('div', { class: 'fc-berserk-wrapper' });
+    var groveLabel = createEl('label', { for: 'fc-dryadInGrove' }, ['Dryad: in Healing Grove']);
+    var groveInput = createEl('input', { type: 'checkbox', id: 'fc-dryadInGrove' });
+    groveInput.checked = getBuild().dryadInGrove === true;
+    groveInput.addEventListener('change', function () { patch({ dryadInGrove: groveInput.checked }); });
+    groveWrapper.append(groveLabel, groveInput);
+    situationalSection.appendChild(groveWrapper);
+    var dryadHpField = numberField('dryadMaxHp', 'Dryad: max HP', null, Math.floor);
+
+    function syncSituational(race) {
+      var isOrcLord = race === 'Orc Lord';
+      var isDryad = race === 'Dryad';
+      orcHpField.wrapper.style.display = isOrcLord ? '' : 'none';
+      orcKillsField.wrapper.style.display = isOrcLord ? '' : 'none';
+      groveWrapper.style.display = isDryad ? '' : 'none';
+      dryadHpField.wrapper.style.display = isDryad ? '' : 'none';
+      situationalSection.style.display = isOrcLord || isDryad ? '' : 'none';
+    }
+    syncSituational(getBuild().race);
+    metaWrap.appendChild(situationalSection);
 
     var statSection = createEl('div', { class: 'fc-input-section' });
     statSection.appendChild(sectionTitle('Armor Stats', 'armor'));
@@ -2507,6 +2618,11 @@
       if (berserkInput) {
         berserkInput.value = newBuild.berserk !== undefined ? newBuild.berserk : 0;
       }
+      orcHpField.input.value = newBuild.orcLordHpMissing || 0;
+      orcKillsField.input.value = newBuild.orcLordKillStacks || 0;
+      groveInput.checked = newBuild.dryadInGrove === true;
+      dryadHpField.input.value = newBuild.dryadMaxHp || 0;
+      syncSituational(newBuild.race);
       statInput.setValues({
         armorLethality: newBuild.armorLethality,
         armorCritChance: newBuild.armorCritChance,
@@ -2563,6 +2679,10 @@
     blastDmg: 0,
     blastChance: 0,
     berserk: 0,
+    orcLordHpMissing: 0,
+    orcLordKillStacks: 0,
+    dryadInGrove: false,
+    dryadMaxHp: 0,
     runes: [NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL],
     achievement: NONE_LABEL
   };
@@ -2652,7 +2772,11 @@
 
 
       berserk: (Number(build.berserk) || 0) / 100,
-      achievement: build.achievement || NONE_LABEL
+      achievement: build.achievement || NONE_LABEL,
+      dryad_in_grove: build.dryadInGrove === true,
+      dryad_max_hp: Number(build.dryadMaxHp) || 0,
+      orc_lord_hp_missing: (Number(build.orcLordHpMissing) || 0) / 100,
+      orc_lord_kill_stacks: Number(build.orcLordKillStacks) || 0
     };
   }
 
@@ -2748,6 +2872,9 @@
       'Smash DPS: ' + result.smash_dps.toFixed(2),
       'Fox Claws DPS: ' + result.fox_claws_dps.toFixed(2),
       'Foxfire DPS: ' + result.foxfire_dps.toFixed(2),
+      'Prismatic Shift DPS: ' + result.prismatic_shift_dps.toFixed(2),
+      'Archangel Smite DPS: ' + result.archangel_smite_dps.toFixed(2),
+      'Cursed Aura DPS: ' + result.cursed_aura_dps.toFixed(2),
       'Total DPS: ' + result.total_dps.toFixed(2),
       '',
       '--- Time to Kill ---',

@@ -59,22 +59,25 @@ approx(run([['Ancienite', 10], ['Bismuth', 30]]).avg_power, 13.33, 'Bismuth neve
 approx(run([['Fichilliumorite', 10], ['Bismuth', 10]]).avg_power, 1, 'Bismuth with Fichilliumorite falls back to 1');
 approx(run([['Ancienite', 10], ['Select Ore', 10]]).avg_power, 13.33, 'Select Ore slots are ignored');
 
-const flat = run([['Bismuth', 1], ['Ancienite', 100]]);
-approx(flat.explosion_dmg, 0.0875, 'Bismuth explosion dmg is flat');
-approx(flat.explosion_chance, 0.0525, 'Bismuth explosion chance is flat');
-approx(flat.fire_dmg, 0.0325, 'Bismuth fire dmg is flat');
-approx(flat.poison_chance, 0.09625, 'Bismuth poison chance is flat');
-approx(flat.lightning_dmg, 0.10, 'Bismuth lightning dmg is flat');
-approx(flat.lightning_chance, 0.05875, 'Bismuth lightning chance is flat');
-approx(run([['Bismuth', 30], ['Ancienite', 70]]).atk_speed, 0.18, 'Bismuth atk speed ramps');
+const low = run([['Bismuth', 9], ['Ancienite', 91]]);
+approx(low.atk_speed, 0, 'Bismuth below 10% gives no attack speed');
+approx(low.prismatic_shift_dps, 0, 'Bismuth below 10% gives no Prismatic Shift');
+const gated = run([['Bismuth', 10], ['Ancienite', 90]]);
+approx(gated.atk_speed, 0.18, 'Bismuth attack speed is a flat 18% from 10% share');
+approx(gated.explosion_dmg + gated.fire_dmg + gated.poison_dmg + gated.lightning_dmg, 0, 'Bismuth has no ordinary proc stats');
+const rate = gated.attack_rate, a = gated.unforged_damage;
+const uptime = (c, d) => { const load = c * rate * d; return Math.min(1, load / (1 + load / 2)); };
+const expected = (a * 0.16 * uptime(78 / 101, 12) + a * 0.7 * 43 / 101 * rate +
+  a * 0.26 * uptime(61 / 101, 4) + a * 0.8 / (3 + 1 / (48 / 101 * rate))) / 4;
+approx(gated.prismatic_shift_dps, expected, 'Prismatic Shift is a quarter of each full T3 rune');
 
-const galaxite = run([['Galaxite', 30]]);
-approx(run([['Galaxite', 30], ['Bismuth', 0]]).blackhole_dmg, galaxite.blackhole_dmg + 1.25, 'Galaxite + Bismuth rainbow wave');
-approx(run([['Malachite', 30], ['Bismuth', 30]]).poison_duration, 0, 'Bismuth poison duration beats Malachite');
-approx(run([['Malachite', 30]]).poison_duration, 1, 'Malachite poison duration');
+const galaxite = run([['Galaxite', 30], ['Ancienite', 60]]);
+approx(run([['Galaxite', 30], ['Bismuth', 10], ['Ancienite', 50]]).blackhole_dmg, galaxite.blackhole_dmg + 1.25, 'Galaxite + Bismuth rainbow wave');
+approx(run([['Galaxite', 30], ['Bismuth', 0], ['Ancienite', 60]]).blackhole_dmg, galaxite.blackhole_dmg, 'rainbow wave needs 10% Bismuth');
+approx(run([['Malachite', 30]]).poison_duration, 3, 'Malachite poison duration');
 
 const dot = run([], { abilities: { fire_dmg: 0.1, fire_time: 3 } });
-approx(dot.fire_dps, dot.unforged_damage * 0.1 * 3, 'fire DoT falls back to whole-duration damage');
+approx(dot.fire_dps, dot.unforged_damage * 0.1 * Math.min(1, (dot.attack_rate * 3 / 101) / (1 + dot.attack_rate * 3 / 101 / 2)), 'fire with 0% chance still burns 1 in 101 hits');
 
 console.log(failures === 0 ? 'ALL BISMUTH CHECKS PASSED ✓' : failures + ' CHECK(S) FAILED ✗');
 process.exit(failures ? 1 : 0);

@@ -107,32 +107,32 @@ r = FC.calculate(build({ slots: [ { name: 'Gargantuan', amount: 30 }, { name: 'N
 approx(r.explosion_dmg, 0.5, 'garg explosion_dmg');
 approx(r.explosion_chance, 0.35, 'garg explosion_chance');
 approx(r.fire_dmg, 0.2, 'garg fire_dmg');
-approx(r.fire_chance, 0.2, 'garg fire_chance');
-approx(r.fire_duration, 1.0, 'garg fire_duration');
-approx(r.explosion_dps, 24.01595744680851, 'garg explosion_dps');
-approx(r.fire_dps, 5.48936170212766, 'garg fire_dps');
-approx(r.total_dps, 166.73936170212767, 'garg total_dps');
+approx(r.fire_chance, 0.3, 'garg fire_chance');
+approx(r.fire_duration, 2.0, 'garg fire_duration');
+approx(r.explosion_dps, 24.45755213819254, 'garg explosion_dps');
+approx(r.fire_dps, 10.192430228112654, 'garg fire_dps');
+approx(r.total_dps, 171.8840249194967, 'garg total_dps');
 approx(r.max_dps, 280.50638297872337, 'garg max_dps');
 
 r = FC.calculate(build({ slots: [ { name: 'Malachite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.poison_dmg, 0.1, 'malachite poison_dmg');
 approx(r.poison_chance, 0.33, 'malachite poison_chance');
-approx(r.poison_duration, 1.0, 'malachite poison_duration');
-approx(r.poison_dps, 1.9322553191489364, 'malachite poison_dps');
+approx(r.poison_duration, 3.0, 'malachite poison_duration');
+approx(r.poison_dps, 2.7520000000000002, 'malachite poison_dps');
 
 r = FC.calculate(build({ slots: [ { name: 'Galaxite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.blackhole_dmg, 0.6, 'galaxite blackhole_dmg');
 approx(r.blackhole_chance, 0.3, 'galaxite blackhole_chance');
 approx(r.crit_chance, 0.45, 'galaxite crit_chance');
 approx(r.crit_dmg, 0.2, 'galaxite crit_dmg');
-approx(r.blackhole_dps, 41.170212765957444, 'galaxite blackhole_dps');
+approx(r.blackhole_dps, 25.481075570281636, 'galaxite blackhole_dps');
 
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.blackhole_chance, 0.0, 'blackhole requires galaxite');
 
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger', race: 'Minotaur' }), game);
-approx(r.berserk, r.weapon_dps * 1.30, 'minotaur berserk == weapon_dps * 1.3');
-approx(r.berserk, 228.6685838297872, 'minotaur berserk');
+approx(r.berserk, r.weapon_dps * 1.45 / 1.15, 'minotaur berserk adds 30% to lethality');
+approx(r.berserk, 221.78558297872337, 'minotaur berserk');
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.berserk === null ? 0 : 1, 0, 'no-race berserk is null');
 
@@ -145,10 +145,10 @@ approx(game.races.length, 20, 'race count');
 approx(game.runes.length, 46, 'rune count');
 approx(game.achievements.length, 16, 'achievement count');
 
-r = FC.calculate(build({ weapon_name: 'Dagger', abilities: { fire_dmg: 0, fire_chance: 0, fire_time: 5, poison_dmg: 0, poison_chance: 0, poison_time: 0, blast_dmg: 0, blast_chance: 0 } }), game);
-approx(r.fire_duration, 4.0, 'fire time alone');
-r = FC.calculate(build({ weapon_name: 'Dagger', abilities: { fire_dmg: 0, fire_chance: 0, fire_time: 0, poison_dmg: 0, poison_chance: 0, poison_time: 5, blast_dmg: 0, blast_chance: 0 } }), game);
-approx(r.poison_duration, 3.0, 'poison time alone');
+r = FC.calculate(build({ weapon_name: 'Dagger', abilities: { fire_dmg: 0.1, fire_chance: 0, fire_time: 5, poison_dmg: 0, poison_chance: 0, poison_time: 0, blast_dmg: 0, blast_chance: 0 } }), game);
+approx(r.fire_duration, 5.0, 'fire time with fire damage');
+r = FC.calculate(build({ weapon_name: 'Dagger', abilities: { fire_dmg: 0, fire_chance: 0, fire_time: 0, poison_dmg: 0.1, poison_chance: 0, poison_time: 5, blast_dmg: 0, blast_chance: 0 } }), game);
+approx(r.poison_duration, 5.0, 'poison time with poison damage');
 
 r = FC.calculate(build({ weapon_name: 'Dagger', abilities: {}, armor_crit_chance: undefined }), game);
 let nanFail = 0;

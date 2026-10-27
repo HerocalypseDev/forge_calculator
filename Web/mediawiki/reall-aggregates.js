@@ -61,31 +61,28 @@ function check(label, workbook, engine) {
   rows.push([label, workbook, engine, ok]);
 }
 
-{
-  const C54 = 0.30;
-  const r = FC.calculate(mk({ berserk: C54 }), game);
-  const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
-                  r.blackhole_dps + r.lightning_dps;
-  const workbook = r.weapon_dps * (1 + C54) + procSum;
-  check('C97  berserk DPS (C54=30%)', workbook, r.berserk);
+function procSum(r) {
+  return r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps + r.blackhole_dps + r.lightning_dps +
+    r.smash_dps + r.fox_claws_dps + r.foxfire_dps + r.prismatic_shift_dps + r.archangel_smite_dps + r.cursed_aura_dps;
+}
+
+function berserkHit(r, level) {
+  return r.forged_damage * (1 + r.lethality + level) * r.crit_blend * r.attack_rate;
 }
 
 {
-  const MINOTAUR = 0.30;
+  const r = FC.calculate(mk({ berserk: 0.30 }), game);
+  check('C112 berserk DPS (C54=30%)', berserkHit(r, 0.30) + procSum(r), r.berserk);
+}
+
+{
   const r = FC.calculate(mk({ race: 'Minotaur', bonus_weapon_type: 'Dagger', berserk: 0 }), game);
-  const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
-                  r.blackhole_dps + r.lightning_dps;
-  const expected = r.weapon_dps * (1 + MINOTAUR) + procSum;
-  check('C97  berserk DPS (Minotaur, E54)', expected,
-        r.berserk === null ? expected : r.berserk);
+  check('C112 berserk DPS (Minotaur)', berserkHit(r, 0.30) + procSum(r), r.berserk);
 }
 
 {
   const r = FC.calculate(mk({ race: 'Minotaur', bonus_weapon_type: 'Dagger', berserk: 5.0 }), game);
-  const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
-                  r.blackhole_dps + r.lightning_dps;
-  const expected = r.weapon_dps * (1 + 2.0) + procSum;
-  check('E54  berserk caps at 200% total', expected, r.berserk);
+  check('E54  berserk input caps at 200%', berserkHit(r, 2.0 + 0.30) + procSum(r), r.berserk);
 }
 
 {
@@ -95,12 +92,7 @@ function check(label, workbook, engine) {
       { name: 'Galaxite', amount: 10 }, { name: 'Select Ore', amount: 0 }
     ]
   }), game);
-  const procSum = r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps +
-                  r.blackhole_dps + r.lightning_dps;
-  const workbook = r.moon === 0
-    ? r.total_dps
-    : r.weapon_dps * (1 + r.moon) + procSum;
-  check('C98  moon stone DPS', workbook, r.moonstone === null ? r.total_dps : r.moonstone);
+  check('C113 moon stone DPS', r.weapon_dps * (1 + r.moon) + procSum(r), r.moonstone);
 }
 
 {
@@ -114,7 +106,7 @@ function check(label, workbook, engine) {
     r.smite_dmg * C18 +
     r.blackhole_dmg * C18 +
     C18 * r.lightning_dmg * r.lightning_chance * E21;
-  check('C101 max burst DPS', expected, r.max_dps);
+  check('C116 max burst DPS', expected, r.max_dps);
 }
 
 {
@@ -139,16 +131,16 @@ function ORES_stat(name, stat) {
 }
 
 {
-  const r = FC.calculate(mk({
+  const heaven = (race) => FC.calculate(mk({
     slots: [
       { name: 'Heavenite', amount: 30 },
       { name: 'Select Ore', amount: 0 }, { name: 'Select Ore', amount: 0 },
       { name: 'Select Ore', amount: 0 }
     ],
-    race: 'Archangel'
+    race: race
   }), game);
-  check('C73  smite chance (Heavenite + Archangel)',
-        ORES_stat('Heavenite', 'smite_chance') + 0.33, r.smite_chance);
+  check('C73  smite chance (Heavenite + Archangel)', ORES_stat('Heavenite', 'smite_chance'), heaven('Archangel').smite_chance);
+  check('C73  smite chance (Heavenite + Angel)', Math.max(ORES_stat('Heavenite', 'smite_chance'), 0.5), heaven('Angel').smite_chance);
 }
 
 console.log('cell / formula                          workbook         engine    status');
