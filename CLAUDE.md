@@ -792,7 +792,7 @@ until the user re-saves the workbook through Google Sheets.
 | Phase | Work | Status |
 |-------|------|--------|
 | 1 | **Workbook swap** — new file in `reference/`, `C48` ore-name typos fixed (`FierceJade`, `Tiger'sEye`, `YetiHeart`), data rebuilt (unchanged), `reall-golden.js` retargeted to the new saved build (Snowite 12 / Kitsunite 15 / Moon Stone 15 / Bismuth 15, Colossal Terrorblade, Human): 46 cells PARITY PASSED | ✅ |
-| 2 | **Sheet data** — ore multipliers / names / trait text, weapon damage / interval / names, rune crit chance 6% minimum, `F12` ore thresholds 3/4/6/6/8/8/11/11/15/15/19 | ⏳ |
+| 2 | **Sheet data** — Aite 1.1x, Arcane Crystal 9x; ore renames Evil Eye / Lgarite / Aurelia-no-Ki / Heart Of The Island and weapon renames Shark's Fangs / Boxing Gloves / Dark Knight's Gauntlets / Ornate Short Axe / Washi-maru / Dark Knight's Greatsword (shared strings only, no formula referenced them); 10 weapon damage / interval fixes (`_Weapon` F ratios re-cached); Berserker clause dropped from Sealed Curse / Yin / Kokorite text; Aetherit → Weapons with attack-speed text; Bismuth text rewritten to the game; `Crit Chance +5%` rune removed (46 runes); `F12` thresholds 3/4/6/6/8/8/11/11/15/15/19. Data rebuilt, tests updated | ✅ |
 | 3 | **Sheet formulas** — every mechanic change above plus the new rows and inputs | ⏳ |
 | 4 | **Data rebuild** — parser / extractor / audit updated for the new cells | ⏳ |
 | 5 | **Python engine + tests** | ⏳ |

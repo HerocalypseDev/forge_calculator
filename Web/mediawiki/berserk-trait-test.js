@@ -92,17 +92,22 @@ console.log('== Berserk-group trait text now computed like every other stat ==')
 }
 
 {
-  // Sealed Curse has both the berserk clause AND a separate, unrelated
-  // "-X% Movement Speed" line -- both are now computed exactly (the generic
-  // simple-percentage-clause ramp, see generic-trait-ramp-test.js), just via
-  // two different mechanisms (this one from structured build-time data, that
-  // one from generic runtime pairing). Neither should show [X% power].
-  const r = FC.calculate(mk('Sealed Curse', 25), game);
+  // Yin-Yang has the berserk clause next to plain percentage clauses -- the
+  // berserk clause comes from structured build-time data, the rest from the
+  // generic runtime pairing. Neither should show [X% power].
+  const r = FC.calculate(mk('Yin-Yang', 25), game);
   check('the berserk clause itself is computed, not shown as [X% power] raw text',
     r.active_traits.indexOf('Physical DMG & ') !== -1 &&
     !/\[[\d.]+% power\][^\n]*Physical Damage and/.test(r.active_traits));
   check('no [X% power] fallback left anywhere for this ore',
     !/% power\]/.test(r.active_traits));
+}
+
+{
+  // Sealed Curse's Berserker trait is armor-only in the game, so a weapon never shows it
+  const r = FC.calculate(mk('Sealed Curse', 25), game);
+  check('armor-only Berserker (Sealed Curse) is not shown on a weapon',
+    r.active_traits.indexOf('Physical DMG') === -1);
 }
 
 {

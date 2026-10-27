@@ -14,11 +14,11 @@
     },
     {
       "name": "Aetherit",
-      "equipment": "Armor",
+      "equipment": "Weapons",
       "multiplier": 2.55,
-      "trait10": null,
-      "trait30": null,
-      "comments": null,
+      "trait10": "+0.8% Attack Speed",
+      "trait30": "+8% Attack Speed",
+      "comments": "Armor only: +0.5% / +5% Movement Speed",
       "stats": {}
     },
     {
@@ -247,7 +247,7 @@
       "stats": {}
     },
     {
-      "name": "Evil Eye Ore",
+      "name": "Evil Eye",
       "equipment": null,
       "multiplier": 9.5,
       "trait10": null,
@@ -265,7 +265,7 @@
       "stats": {}
     },
     {
-      "name": "Heart of the Island",
+      "name": "Heart Of The Island",
       "equipment": "Armor",
       "multiplier": 13.0,
       "trait10": null,
@@ -412,7 +412,7 @@
       "stats": {}
     },
     {
-      "name": "Aurelia-No-Ki",
+      "name": "Aurelia-no-Ki",
       "equipment": null,
       "multiplier": 9.5,
       "trait10": null,
@@ -516,29 +516,14 @@
       "name": "Sealed Curse",
       "equipment": "Weapons",
       "multiplier": 12.0,
-      "trait10": "+3% Lethality | -2% Vitality | -1% Stamina | -1.5% Movement Speed | (Armor only) +2% Physical Damage and +2% Movement Speed for 0.6 seconds when HP drops below 35%",
-      "trait30": "+30% Lethality | -20% Vitality | -10% Stamina | -15% Movement Speed | +20% Physical Damage and +20% Movement Speed for 6 seconds when HP drops below 35%",
+      "trait10": "+3% Lethality | -2% Vitality | -1% Stamina | -1.5% Movement Speed",
+      "trait30": "+30% Lethality | -20% Vitality | -10% Stamina | -15% Movement Speed",
       "comments": "All effects stack with similar effects, \"Physical Damage & Movement Speed\" = berserk",
       "stats": {
         "lethality": {
           "base": 3.0,
           "max": 30.0,
           "divisor": 100
-        },
-        "phys_dmg": {
-          "base": 2.0,
-          "max": 20.0,
-          "divisor": 100
-        },
-        "move_speed": {
-          "base": 2.0,
-          "max": 20.0,
-          "divisor": 100
-        },
-        "berserk_duration": {
-          "base": 0.6,
-          "max": 6.0,
-          "divisor": 1
         }
       }
     },
@@ -807,7 +792,7 @@
     {
       "name": "Aite",
       "equipment": null,
-      "multiplier": 1.0,
+      "multiplier": 1.1,
       "trait10": null,
       "trait30": null,
       "comments": null,
@@ -1152,7 +1137,7 @@
     {
       "name": "Arcane Crystal",
       "equipment": null,
-      "multiplier": 7.5,
+      "multiplier": 9.0,
       "trait10": null,
       "trait30": null,
       "comments": null,
@@ -1240,7 +1225,7 @@
       "stats": {}
     },
     {
-      "name": "Lagarite",
+      "name": "Lgarite",
       "equipment": null,
       "multiplier": 5.7,
       "trait10": null,
@@ -1324,26 +1309,10 @@
       "name": "Yin",
       "equipment": "Armor",
       "multiplier": 13.0,
-      "trait10": "+0.8% Vitality | +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%",
-      "trait30": "+8% Vitality | +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%",
+      "trait10": "+0.8% Vitality",
+      "trait30": "+8% Vitality",
       "comments": "Vitality stacks infinitely\nBerserker Damage/Movespeed stacks, rest does not",
-      "stats": {
-        "phys_dmg": {
-          "base": 2.5,
-          "max": 25.0,
-          "divisor": 100
-        },
-        "move_speed": {
-          "base": 2.5,
-          "max": 25.0,
-          "divisor": 100
-        },
-        "berserk_duration": {
-          "base": 0.8,
-          "max": 8.0,
-          "divisor": 1
-        }
-      }
+      "stats": {}
     },
     {
       "name": "Yang",
@@ -1405,29 +1374,14 @@
       "name": "Kokorite",
       "equipment": "Weapons",
       "multiplier": 14.75,
-      "trait10": "Both: +3% Lethality | -0.5% Vitality | -0.5% Endurance | -0.5% Swiftness\nArmor only: +2.5% Physical Damage and +2.5% Movement Speed for 0.8 seconds when HP drops below 35%",
-      "trait30": "Both: +30% Lethality | -5% Vitality | -5% Endurance | -5% Swiftness\nArmor only: +25% Physical Damage and +25% Movement Speed for 8 seconds when HP drops below 35%",
+      "trait10": "Both: +3% Lethality | -0.5% Vitality | -0.5% Endurance | -0.5% Swiftness",
+      "trait30": "Both: +30% Lethality | -5% Vitality | -5% Endurance | -5% Swiftness",
       "comments": "Lethality stacks up to 150%\nNegative traits stack with the same effects\nBerserker Damage/Movespeed stacks, rest does not",
       "stats": {
         "lethality": {
           "base": 3.0,
           "max": 30.0,
           "divisor": 100
-        },
-        "phys_dmg": {
-          "base": 2.5,
-          "max": 25.0,
-          "divisor": 100
-        },
-        "move_speed": {
-          "base": 2.5,
-          "max": 25.0,
-          "divisor": 100
-        },
-        "berserk_duration": {
-          "base": 0.8,
-          "max": 8.0,
-          "divisor": 1
         }
       }
     },
@@ -1833,9 +1787,9 @@
       "name": "Bismuth",
       "equipment": "Weapons",
       "multiplier": 8.0,
-      "trait10": "1.8% increase to attack speed | On hit, unleash a random T3 attack rune for 10 seconds | When your Galaxite black hole triggers, unleash a rainbow wave that deals 125% of your weapon damage Increases critical chance by 1.5% | Increases Critical Damage by 1.5% | Increases Lethality by 1.5% | Fire, Poison, Black Hole and Resonance DMG +0.1% per 500 HP up to +2% | Regen 0.6 health per second | Whenever you trigger a Galaxite Black Hole, restore 0.25% of your max health",
-      "trait30": "18% increase to attack speed | On hit, unleash a random T3 attack rune (Venom Crumb, Blast Chip, Flame Spark or Thunder Shard) for 10 seconds | When your Galaxite black hole triggers, unleash a rainbow wave that deals 125% of your weapon damage Increases critical chance by 15% | Increases Critical Damage by 15% | Increases Lethality by 15% | Fire, Poison, Black Hole and Resonance DMG +1% per 500 HP up to +20% | Regen 6 health per second | Whenever you trigger a Galaxite Black Hole, restore 2.5% of your max health",
-      "comments": null,
+      "trait10": "+18% Attack Speed (flat once Bismuth is at least 10% of the ores) | Prismatic Shift: on hit, one random T3 attack rune (Venom Crumb, Blast Chip, Flame Spark or Thunder Shard) is active at full strength for 10 seconds, then a new one is rolled | Resonance: when your Galaxite black hole triggers, a rainbow wave deals 125% of your weapon damage (max 200%)",
+      "trait30": "+18% Attack Speed (flat once Bismuth is at least 10% of the ores) | Prismatic Shift: on hit, one random T3 attack rune (Venom Crumb, Blast Chip, Flame Spark or Thunder Shard) is active at full strength for 10 seconds, then a new one is rolled | Resonance: when your Galaxite black hole triggers, a rainbow wave deals 125% of your weapon damage (max 200%)",
+      "comments": "Every Bismuth trait is flat: full value from 10% share, nothing below.\nArmor only: +15% Critical Chance | +15% Critical Damage | +15% Lethality | Fire, Poison, Black Hole and Resonance DMG +1% per 500 HP up to +20% | Regen 6 health per second | Galaxite Black Hole restores 2.5% of max health | Unshaken: -30% stun buildup and -35% stun duration taken (-45% / -50% with Galaxite armor)",
       "stats": {
         "atk_speed": {
           "base": 1.8,

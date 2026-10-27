@@ -45,7 +45,7 @@ Expected shapes (validation counts are enforced at runtime by
 | `Data:Ores.json` | `{source, select_ore, formula_only_ores[], ores[140]}` | 140 ores |
 | `Data:Weapons.json` | `{source, types[10], race_bonus_types[5], weapons[79]}` | 79 weapons |
 | `Data:Races.json` | `{source, trait_headers[15], races[16]}` | 16 races |
-| `Data:Runes.json` | `{source, none, runes[47]}` | 47 runes |
+| `Data:Runes.json` | `{source, none, runes[46]}` | 46 runes |
 | `Data:Achievements.json` | `{source, achievements[16]}` | 16 achievements |
 
 ### 2. Upload the TemplateStyles sheet

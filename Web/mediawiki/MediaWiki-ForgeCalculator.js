@@ -105,7 +105,7 @@
     ores: 149,
     weapons: 87,
     races: 20,
-    runes: 47,
+    runes: 46,
     achievements: 16
   };
 

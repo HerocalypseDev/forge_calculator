@@ -266,9 +266,9 @@ console.log('== Under-threshold weapon gets a warning ==');
     oreSlots: [{ name: 'Wolfarite', amount: 10 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }]
   });
   const w = FC.computeWarnings(halberd);
-  assert(w.indexOf('Halberd weapons need at least 16 total ore (you have 10).') !== -1, 'Halberd under 16 ore warns (got ' + JSON.stringify(w) + ')');
-  halberd.oreSlots = [{ name: 'Wolfarite', amount: 16 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }];
-  assert(FC.computeWarnings(halberd).every((m) => m.indexOf('total ore') === -1), 'Halberd at 16 ore has no ore warning');
+  assert(w.indexOf('Halberd weapons need at least 15 total ore (you have 10).') !== -1, 'Halberd under 15 ore warns (got ' + JSON.stringify(w) + ')');
+  halberd.oreSlots = [{ name: 'Wolfarite', amount: 15 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }];
+  assert(FC.computeWarnings(halberd).every((m) => m.indexOf('total ore') === -1), 'Halberd at 15 ore has no ore warning');
   FC.getState().gameData = null;
 }
 

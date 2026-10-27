@@ -142,7 +142,7 @@ approx(r.lethality, Math.min(0.15 + 0.20, 1.5), 'achievement lethality');
 approx(game.ores.length, 149, 'ore count');
 approx(game.weapons.length, 87, 'weapon count');
 approx(game.races.length, 20, 'race count');
-approx(game.runes.length, 47, 'rune count');
+approx(game.runes.length, 46, 'rune count');
 approx(game.achievements.length, 16, 'achievement count');
 
 r = FC.calculate(build({ weapon_name: 'Dagger', abilities: { fire_dmg: 0, fire_chance: 0, fire_time: 5, poison_dmg: 0, poison_chance: 0, poison_time: 0, blast_dmg: 0, blast_chance: 0 } }), game);

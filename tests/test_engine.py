@@ -158,12 +158,12 @@ def test_weapon_bases_missing_weapon_is_one():
 
 def test_attack_rate_golden(game):
     weapon = game.weapon("Demonic Spear")
-    assert attack_rate(weapon, atk_speed_total=0.0) == pytest.approx(1 / 0.73)
+    assert attack_rate(weapon, atk_speed_total=0.0) == pytest.approx(1 / 0.91)
 
 
 def test_attack_rate_with_atk_speed(game):
     weapon = game.weapon("Demonic Spear")
-    assert attack_rate(weapon, atk_speed_total=0.5) == pytest.approx(1.5 / 0.73)
+    assert attack_rate(weapon, atk_speed_total=0.5) == pytest.approx(1.5 / 0.91)
 
 
 def test_attack_rate_missing_weapon_interval_one():

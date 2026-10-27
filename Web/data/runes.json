@@ -3,11 +3,6 @@
   "none": "None",
   "runes": [
     {
-      "name": "Crit Chance +5%",
-      "stat": "crit_chance",
-      "value": 0.05
-    },
-    {
       "name": "Crit Chance +6%",
       "stat": "crit_chance",
       "value": 0.06

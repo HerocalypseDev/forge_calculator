@@ -89,8 +89,8 @@ console.log('== Generic single-number trait clauses (Vitality, Swiftness, ...) c
   const msStr = '-' + (Math.round(Math.abs(ms) * 10) / 10) + '% Movement Speed';
   check('standalone Movement Speed (distinct from the berserk clause) computed: ' + msStr,
     r.active_traits.indexOf(msStr) !== -1);
-  check('the berserk-clause Movement Speed is still separately present',
-    r.active_traits.indexOf('Physical DMG & ') !== -1);
+  check('the armor-only berserk clause is no longer shown on the weapon',
+    r.active_traits.indexOf('Physical DMG & ') === -1);
 }
 
 {

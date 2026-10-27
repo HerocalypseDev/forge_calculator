@@ -1,7 +1,7 @@
 """The committed data/*.json loads cleanly and matches the workbook's shape.
 
 These tests pin the extraction counts (140 ores / 79 weapons / 16 races /
-47 runes / 16 achievements) and the preserved quirks.  They run against the
+46 runes / 16 achievements) and the preserved quirks.  They run against the
 committed JSON only -- no workbook, no openpyxl.
 """
 
@@ -88,12 +88,10 @@ def test_berserk_group_traits_parsed_from_trait_text(data):
     ("+X% Physical Damage and +Y% Movement Speed for Z second(s) when HP drops
     below 35%"), since every ore carrying this trait phrases it identically and
     the numbers follow the same base-at-10%-share -> max-at-30%-share ramp every
-    formula-backed stat uses. Exactly 5 ores in the catalog have it.
+    formula-backed stat uses. Only the two ores whose Berserker trait reaches
+    weapons in the game keep it; Sealed Curse, Yin and Kokorite are armor-only.
     """
     expected = {
-        "Sealed Curse": (2.0, 20.0, 0.6, 6.0),
-        "Yin": (2.5, 25.0, 0.8, 8.0),
-        "Kokorite": (2.5, 25.0, 0.8, 8.0),
         "Yin-Yang": (2.5, 25.0, 0.8, 8.0),
         "Fierce Jade": (3.5, 35.0, 1.0, 10.0),
     }
@@ -114,6 +112,7 @@ def test_berserk_group_traits_parsed_from_trait_text(data):
 
     # an ore with no such trait sentence at all gets nothing invented
     assert data.ore("Wolfarite").stat("phys_dmg") is None
+    assert data.ore("Sealed Curse").stat("phys_dmg") is None
 
 
 def test_fire_duration_divisor_is_one(data):
@@ -171,8 +170,8 @@ def test_weapon_type_ore_thresholds_from_f12():
     import json
     raw = json.loads((Path(__file__).resolve().parent.parent / "data" / "weapons.json").read_text(encoding="utf-8"))
     assert raw["type_min_ore"] == {
-        "Dagger": 3, "Straight Sword": 4, "Mace": 7, "Gauntlet": 7, "Axe": 10, "Katana": 10,
-        "Great Sword": 13, "Spear": 13, "Great Axe": 16, "Halberd": 16, "Colossal Sword": 21,
+        "Dagger": 3, "Straight Sword": 4, "Mace": 6, "Gauntlet": 6, "Axe": 8, "Katana": 8,
+        "Great Sword": 11, "Spear": 11, "Great Axe": 15, "Halberd": 15, "Colossal Sword": 19,
     }
     assert raw["not_enough_ore"] == "Not enough Ore"
     assert set(raw["type_min_ore"]) == set(raw["types"])

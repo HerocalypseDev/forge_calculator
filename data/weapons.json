@@ -24,15 +24,15 @@
   "type_min_ore": {
     "Dagger": 3.0,
     "Straight Sword": 4.0,
-    "Mace": 7.0,
-    "Gauntlet": 7.0,
-    "Axe": 10.0,
-    "Katana": 10.0,
-    "Great Sword": 13.0,
-    "Spear": 13.0,
-    "Great Axe": 16.0,
-    "Halberd": 16.0,
-    "Colossal Sword": 21.0
+    "Mace": 6.0,
+    "Gauntlet": 6.0,
+    "Axe": 8.0,
+    "Katana": 8.0,
+    "Great Sword": 11.0,
+    "Spear": 11.0,
+    "Great Axe": 15.0,
+    "Halberd": 15.0,
+    "Colossal Sword": 19.0
   },
   "not_enough_ore": "Not enough Ore",
   "weapons": [
@@ -67,7 +67,7 @@
       "damage": 5.25
     },
     {
-      "name": "Shark's Fang",
+      "name": "Shark's Fangs",
       "type": "Dagger",
       "interval": 0.36,
       "damage": 3.87
@@ -177,8 +177,8 @@
     {
       "name": "Thornspine",
       "type": "Straight Sword",
-      "interval": 0.58,
-      "damage": 10.9
+      "interval": 0.7,
+      "damage": 10.875
     },
     {
       "name": "Mace",
@@ -229,7 +229,7 @@
       "damage": 7.6
     },
     {
-      "name": "Boxing Glove",
+      "name": "Boxing Gloves",
       "type": "Gauntlet",
       "interval": 0.63,
       "damage": 8.0
@@ -247,7 +247,7 @@
       "damage": 8.0
     },
     {
-      "name": "DKG",
+      "name": "Dark Knight's Gauntlets",
       "type": "Gauntlet",
       "interval": 0.51,
       "damage": 10.0
@@ -277,7 +277,7 @@
       "damage": 8.05
     },
     {
-      "name": "Ornate short axe",
+      "name": "Ornate Short Axe",
       "type": "Axe",
       "interval": 0.88,
       "damage": 8.4
@@ -307,7 +307,7 @@
       "damage": 9.35
     },
     {
-      "name": "Washimaru",
+      "name": "Washi-maru",
       "type": "Katana",
       "interval": 0.58,
       "damage": 10.2
@@ -337,7 +337,7 @@
       "damage": 12.0
     },
     {
-      "name": "Dark Knight Greatsword",
+      "name": "Dark Knight's Greatsword",
       "type": "Great Sword",
       "interval": 1.33,
       "damage": 15.0
@@ -357,13 +357,13 @@
     {
       "name": "The Carver",
       "type": "Great Sword",
-      "interval": 1.02,
+      "interval": 1.08,
       "damage": 13.8
     },
     {
       "name": "Jack's Crest",
       "type": "Great Sword",
-      "interval": 1.26,
+      "interval": 1.08,
       "damage": 14.9
     },
     {
@@ -387,14 +387,14 @@
     {
       "name": "Demonic Spear",
       "type": "Spear",
-      "interval": 0.73,
+      "interval": 0.91,
       "damage": 14.1
     },
     {
       "name": "Knight Spear",
       "type": "Spear",
       "interval": 0.6,
-      "damage": 7.5
+      "damage": 10.125
     },
     {
       "name": "Compass Spear",
@@ -460,7 +460,7 @@
       "name": "Executioner's Greataxe",
       "type": "Great Axe",
       "interval": 1.7,
-      "damage": 19.5
+      "damage": 20.0
     },
     {
       "name": "Anchored Straight Blade",
@@ -477,13 +477,13 @@
     {
       "name": "Batwing Reaver",
       "type": "Great Axe",
-      "interval": 1.35,
-      "damage": 20.0
+      "interval": 1.7,
+      "damage": 19.5
     },
     {
       "name": "Halberd",
       "type": "Halberd",
-      "interval": 0.91,
+      "interval": 1.07,
       "damage": 16.8
     },
     {
@@ -532,7 +532,7 @@
       "name": "Colossal Gemblade",
       "type": "Colossal Sword",
       "interval": 1.4,
-      "damage": 23.0
+      "damage": 25.0
     },
     {
       "name": "Otsuchi",
@@ -555,8 +555,8 @@
     {
       "name": "Coffin Lid",
       "type": "Colossal Sword",
-      "interval": 1.28,
-      "damage": 25.0
+      "interval": 1.4,
+      "damage": 23.0
     }
   ]
 }
