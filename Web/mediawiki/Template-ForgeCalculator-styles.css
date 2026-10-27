@@ -263,18 +263,44 @@
 .fc-meta-row {
   display: flex;
   gap: 4px;
-  align-items: stretch;
+  position: relative;
 }
 
 .fc-meta-row > .fc-meta-wrap {
   flex: 0 0 70%;
 }
 
-.fc-meta-wrap .fc-input-section,
-.fc-meta-row > .fc-situational-section {
+.fc-meta-wrap .fc-input-section {
   flex: 1 1 0;
   min-width: 0;
   padding: 16px;
+}
+
+.fc-meta-row > .fc-situational-section {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(70% + 16px);
+  right: 0;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.fc-situational-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.fc-situational-grid .fc-berserk-wrapper label {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.fc-situational-grid input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 8px 0;
 }
 
 .fc-meta-wrap .fc-input-section-title,
@@ -1094,6 +1120,10 @@
   .fc-meta-row > .fc-meta-wrap {
     flex: 0 0 auto;
     max-width: 100%;
+  }
+
+  .fc-meta-row > .fc-situational-section {
+    position: static;
   }
 
   .fc-stat-input {

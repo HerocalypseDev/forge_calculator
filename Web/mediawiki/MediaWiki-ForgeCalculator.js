@@ -2433,9 +2433,9 @@
     metaWrap.appendChild(berserkSection);
 
     var situationalSection = createEl('div', { class: 'fc-input-section fc-situational-section' });
-    situationalSection.appendChild(sectionTitle('Race Situational', 'race'));
-    situationalSection.appendChild(createEl('div', { class: 'fc-input-section-subtext' },
-      ['Conditional race effects from the game. Leave at 0 / unticked for a full-health fight.']));
+    situationalSection.appendChild(sectionTitle('Situational', 'race'));
+    var situationalGrid = createEl('div', { class: 'fc-situational-grid' });
+    situationalSection.appendChild(situationalGrid);
 
     function numberField(key, labelText, max, toNumber) {
       var wrapper = createEl('div', { class: 'fc-berserk-wrapper' });
@@ -2458,20 +2458,20 @@
       input.addEventListener('input', debounce(commit, 150));
       input.addEventListener('change', commit);
       wrapper.append(label, input);
-      situationalSection.appendChild(wrapper);
+      situationalGrid.appendChild(wrapper);
       return { wrapper: wrapper, input: input };
     }
 
-    var orcHpField = numberField('orcLordHpMissing', 'Orc Lord: HP missing (%)', 100, function (v) { return v; });
-    var orcKillsField = numberField('orcLordKillStacks', 'Orc Lord: kill stacks (0-5)', 5, Math.floor);
+    var orcHpField = numberField('orcLordHpMissing', 'HP missing %', 100, function (v) { return v; });
+    var orcKillsField = numberField('orcLordKillStacks', 'Kill stacks', 5, Math.floor);
     var groveWrapper = createEl('div', { class: 'fc-berserk-wrapper' });
-    var groveLabel = createEl('label', { for: 'fc-dryadInGrove' }, ['Dryad: in Healing Grove']);
+    var groveLabel = createEl('label', { for: 'fc-dryadInGrove' }, ['In grove']);
     var groveInput = createEl('input', { type: 'checkbox', id: 'fc-dryadInGrove' });
     groveInput.checked = getBuild().dryadInGrove === true;
     groveInput.addEventListener('change', function () { patch({ dryadInGrove: groveInput.checked }); });
     groveWrapper.append(groveLabel, groveInput);
-    situationalSection.appendChild(groveWrapper);
-    var dryadHpField = numberField('dryadMaxHp', 'Dryad: max HP', null, Math.floor);
+    situationalGrid.appendChild(groveWrapper);
+    var dryadHpField = numberField('dryadMaxHp', 'Max HP', null, Math.floor);
 
     function syncSituational(race) {
       var isOrcLord = race === 'Orc Lord';
