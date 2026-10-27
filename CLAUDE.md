@@ -771,3 +771,30 @@ FORMULA-ONLY note: `Tiger s Eye`); `reall_parity.py` / `reall-golden.js` / `real
 → PASSED; `verify-engine.js` → ALL GOLDEN CHECKS PASSED; `fuzz_verify.js` → DIFFERENTIAL FUZZ
 PASSED (250 builds, 12,003 fields); all focused MediaWiki tests incl. `bismuth-test.js` PASSED.
 
+
+### Game (.rbxlx) Alignment of the Workbook — IN PROGRESS
+**Goal:** `Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (4).xlsx` replaces
+`reference/UpdatedSpreadsheet.xlsx` (same file name kept), then the workbook is edited to match
+the game's own code as extracted from the `.rbxlx` (see `Forge_Game_vs_Calculator_Report.docx`),
+and the calculator follows it verbatim. Decisions confirmed by the user: everything in the report
+except Candy Ore / North Star (not added) and Asura's Incarnate (stays 75,000 HP, two phases).
+Bismuth = Prismatic Shift expected value (¼ × each full T3 rune, own row, ≥10% share); cooldown
+procs (lightning, Smash, black hole 1 s) use `1/(cd + 1/(chance × hits/s))`; fire/poison DoT use
+game durations (fire 1–5 s, poison 1–15 s, default 1 s, no −1/−2 offsets); every integer-rolled
+proc chance is game-exact `(FLOOR(chance%)+1)/101`; Archangel smite is its own beam row; berserk
+is additive with lethality; Fox Claws `0.75 × A18 × MIN(0.25 × hits/s, 3/2.22)`; caps apply to the
+item/race-trait pool and Kitsune Trickery / Fae's Reach add after; moon capped 150%; Demon Cursed
+Aura row; Orc Lord (HP missing %, kill stacks) and Dryad (in grove, max HP) inputs near Berserk;
+one achievement dropdown kept; game spellings for renamed ores/weapons; Berserker text removed
+from armor-only ores; Bismuth and Aetherit text updated. Edited cells lose their cached values
+until the user re-saves the workbook through Google Sheets.
+
+| Phase | Work | Status |
+|-------|------|--------|
+| 1 | **Workbook swap** — new file in `reference/`, `C48` ore-name typos fixed, data rebuilt, saved-build harnesses retargeted to the new saved build | ⏳ |
+| 2 | **Sheet data** — ore multipliers / names / trait text, weapon damage / interval / names, rune crit chance 6% minimum, `F12` ore thresholds 3/4/6/6/8/8/11/11/15/15/19 | ⏳ |
+| 3 | **Sheet formulas** — every mechanic change above plus the new rows and inputs | ⏳ |
+| 4 | **Data rebuild** — parser / extractor / audit updated for the new cells | ⏳ |
+| 5 | **Python engine + tests** | ⏳ |
+| 6 | **MediaWiki engine + UI + tests + fuzz** | ⏳ |
+| 7 | **Docs** — CLAUDE.md domain model / quirks rewritten | ⏳ |
