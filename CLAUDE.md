@@ -113,23 +113,26 @@ berserk), ported, and **Demon + Straight Sword +10% lethality**, which the user 
 confirmed is wrong and is not ported.
 `test_engine_constants_match_source` asserts `C45`/`C48` no longer reference `C22`.
 
-Current race/class terms (all in `E45` lethality / `E48` attack speed):
+Current race/class terms. The **pool** terms sit inside the `E45`/`E48` caps; the **after-cap**
+terms are separate race tags in the game (Kitsune's Trickery, Fae's Reach, Warbringer, Lord of War)
+and are added after the cap:
 
 | Race | Lethality (`E45`) | Attack speed (`E48`) |
 |------|-------------------|----------------------|
-| Orc Lord | 40% | — |
-| Archangel, Kitsune, Demon | 20% | 20% |
+| Orc Lord | 40% pool + Warbringer 7.5% per full 10% HP missing (`C55`) | Lord of War 7.5% per kill stack, max 5 (`E55`) |
+| Archangel, Demon | 20% pool | 20% pool |
+| Kitsune | 20% after cap | 20% after cap (+15% crit dmg after cap in `E47`) |
 | Dragonborn | 12% | — |
 | Orc | 10% | — |
 | Shadow | 5% | 10% |
-| Fairy + Spear | 15% | 15% |
+| Fairy + Spear | 15% after cap | 15% after cap |
 | Felynx + Gauntlet | 20% | 20% |
 | Vampire + Straight Sword | 10% | — |
 | Goblin + Dagger | — | 10% |
-| Golem + Colossal Sword | — | 15% |
+| Golem + Colossal Sword or Great Axe | — | 15% |
+| Dryad in Healing Grove (`C49`) | +15% crit chance and +15% crit dmg after cap | — |
 
-Minotaur's +30% lethality and Elf's +5% attack speed were removed in the October 2026 workbook
-(Minotaur keeps its `E54` +30% berserk). **Kitsune** also gets **+15% crit damage** in `E47`.
+Minotaur has no lethality; its Bull's Fury +30% sits in the berserk pool (`E54`).
 
 ### Resolved deviation (historical): berserk's 200% cap
 **Resolved at the source in `UpdatedSpreadsheet.xlsx`:** Total Berserk DPS (`C112`) is now
@@ -187,7 +190,7 @@ Maintained:
   it exists so `fuzz_verify.js` can differentially verify the MediaWiki engine against it.
 - **Data** (`forge_calculator/data.py`, `data/*.json`) — committed JSON is the source of
   truth; counts validated against the workbook (149 ores / 87 weapons / 20 races /
-  47 runes / 16 achievements). Copied to `Web/data/` and `Web/mediawiki/Data-*.json`.
+  46 runes / 16 achievements). Copied to `Web/data/` and `Web/mediawiki/Data-*.json`.
 - **Build** (`build_data/`, `scripts/build_data.py`) — openpyxl extraction → JSON.
   Dev-only; never imported at runtime.
 
@@ -206,37 +209,37 @@ Workbook sheets:
 
 ## Domain model (engine)
 
-- **4 forge slots** (`C6:C9` ore, `D6:D9` weight). An ore contributes a stat only when its share ≥10%; value ramps `base → max` as share goes 10% → 30% (`(base + (max-base)*MIN((share-0.1)/0.2, 1))/divisor`; `divisor` 100 for percents, 1 for durations). Below 10% → 0.
-- **Weapon** (`D12` key, quality `E12`, forge `C13`): forged damage `C18` = base × ore power × `FORGE_MULT[level]` × `(1+quality/100)`; unforged `A18` is the same without the forge term.
-- **Stats** (E45–E48): lethality / crit chance / crit dmg / atk speed totals from ores + runes + race/class combos + armor/base inputs, each capped (3.0 / 1.0 / 1.0 / 1.5).
-- **Ore power** `E10` — a build of only Bismuth is a flat **8**, only Fichilliumorite a flat **1**; otherwise the weighted average of the slot multipliers with **Fichilliumorite, Bismuth, Select Ore and blank slots excluded from both halves** of the division (fallback `AVERAGEIFS`, then 1). `SOLO_ORE_POWER` / `AVG_POWER_EXCLUDED` in both engines.
-- **Bismuth** (8x, weapon ore): attack speed ramps normally (1.8% → 18%), but every proc stat is a **flat literal with no share gate** — explosion dmg 8.75% / chance 5.25%, fire dmg 3.25% / chance 7.5% / time 0.5 s, poison dmg 2% / chance 9.625% / time 1.5 s, lightning dmg 10% / chance 5.875% / cooldown 0.375 s. The parser stores these as `base == max` with `gated: false`, so they apply at any share, even 0 amount. Bismuth's poison time **beats** Malachite (`C69` `IFS(COUNTIF(Bismuth),1.5, COUNTIF(Malachite), XLOOKUP(...))`, `POISON_DURATION_ORES`). **Galaxite + Bismuth** together add a flat **+125%** to black-hole damage (`C76`, `GALAXITE_BISMUTH_WAVE`).
-- **DoT fallback** (`C104`/`C105`): `IF(E63=0, E64, E63)` — when the refreshing DoT is 0 (no chance, no rate or no duration) the row shows `E64 = A18 × dmg × (duration + 1)` instead (`_dot_dps` / `dotDps`).
-- **Results block is rows 102–116** in `UpdatedSpreadsheet.xlsx` (it was 89–101 in `Extended.xlsx`; cell references elsewhere in this file and in old code comments may still use the old numbers). **Weapon DPS** `C102` = `C18 × (1+E45) × crit_blend × E21`; the proc rows (`C103`–`C107`, `E107`, plus the race procs `C108`/`E108`/`C109`) scale on **unforged A18**; **Total** `C111` = sum; TTK `E111/E112` = 25k/75k ÷ total; `C115` min, `C116` max-burst (procs on **forged C18**).
-- **Race procs** (rows 83–94): **Smash** (Orc Lord, "Titanic Earthquake") `E85 = E13 × C84 × C85 × MIN(E21, 1/E84)` — 100% dmg, 25% chance, 10 s cooldown, the same shape as lightning; also added to Max Burst as `+C84×C18`. **Fox Claws** (Kitsune) `C88` = flat 75%, `E89 = (E13 × C88 × C89) / 3` with `C89` = 50% — no attack-rate term at all. **Foxfire** (Kitsune) `E93 = IF(E21=0, 0, A18 × C92 × MIN(1, C93 × E21 × MIN(C94,5)))` — 30%/s, 50% chance, 2 s, the fire/poison uptime model; `E94` is display-only. All three feed Total, Berserk and Moon Stone; only Smash feeds Max Burst. **Dryad** is in the race dropdown but no formula references it.
-- **Explosion damage** (`C58`) caps each slot's ramp at 250% (`MIN(2.5, slot)`) before summing and adding the Blast ability; **smite damage** (`C72`) caps the whole sum, race addends included, at 250%. Neither cap is reachable with current ore values.
-- **Achievements** moved from `C85` to `C98` (`E45`/`E46`/`E48` read `C98`).
-- **Aggregation differs per proc.** Explosion damage (`C58`) **sums** across the four slots, while explosion chance (`C59`) — like fire, poison, smite and lightning **chance** — takes a `MAX` (see "Explosion Chance SUM→MAX Fix" below). Smite adds its race bonus *on top of* the slot max rather than maxing against it.
-- **Berserk** `C112` = `C102 × (1 + E54)` + every proc row, with `E54 = MIN(200%, C54 + IF(Minotaur,30%,0))`: one clean multiplier on the physical hit, **not** a lethality boost, so the 150% lethality cap never applies to it. The 200% cap is now read by the sheet itself (see "Resolved deviation (historical): berserk's 200% cap"). Ore `phys_dmg` traits are **display-only** ("when HP < 35%") and must not feed it. **Moon Stone** `C98` lifts the physical hit the same way and adds every proc back.
-- **Lightning** (`C80`/`E80`/`C81`, DPS `E81`): damage sums, chance maxes, and the cooldown is the `MIN` across slots — the sheet uses `99` as its "no lightning" sentinel and maps a surviving 99 back to 0. Procs are rate-capped by `MIN(E21, 1/E80)`.
+The workbook follows the game's own code as extracted from the `.rbxlx` (see
+`Forge_Game_vs_Calculator_Report.docx` and the "Game (.rbxlx) Alignment" plan below). Where the
+game has a cooldown, a refresh rule or a random roll, the sheet uses its expected value.
+
+- **4 forge slots** (`C6:C9` ore, `D6:D9` weight). An ore contributes a stat only when its share ≥10%; value ramps `base → max` as share goes 10% → 30% (`(base + (max-base)*MIN((share-0.1)/0.2, 1))/divisor`; `divisor` 100 for percents, 1 for durations). Below 10% → 0. A **gated flat** `IF(share<0.1, 0, value)` (Bismuth attack speed 18%, Kitsunite 3 s / Marblite 5 s lightning cooldown — `{Value = X}` traits in the game) parses as `base == max`.
+- **Weapon** (`D12` key, quality `E12`, forge `C13`): forged damage `C18` = base × ore power × `FORGE_MULT[level]` × `(1+quality/100)`; unforged `A18` is the same without the forge term. Weapon intervals are the average combo `HitCooldown` of the base type ÷ the variant's `AttackSpeedMultiplier`.
+- **Stats** (`E45`–`E48`): the item/race-trait pool (ores, runes, armor inputs, achievements, pool race terms) is capped at 3.0 / 1.0 / 1.0 / 1.5; the after-cap race terms above are added on top.
+- **Ore power** `E10` — a build of only Bismuth is a flat **8**, only Fichilliumorite a flat **1**; otherwise the weighted average of the slot multipliers with **Fichilliumorite, Bismuth, Select Ore and blank slots excluded from both halves** (fallback `AVERAGEIFS`, then 1).
+- **Proc chances roll on integers** (game: `chance < math.random(0,100)` fails): every DPS cell uses `IF(proc exists, MIN(1,(INT(ROUND(chance*100,2))+1)/101), 0)` — `game_chance`/`gameChance`. A proc with 0% chance still fires 1 time in 101 (Demon's own burn). Not used for Smash, Fox Claws, Foxfire or the Archangel beam, which roll `math.random()` floats.
+- **Cooldown procs** (lightning `E81`, Smash `E85`, black hole `E77` with its hard 1 s cooldown, Thunder Shard, Archangel beam): procs/s = `1/(cooldown + 1/(chance × E21))` — `cooldown_rate`/`cooldownRate`. Lightning with no cooldown source uses the game default 10 s (`E80`).
+- **DoTs** (fire `E63`, poison `E68`): a re-proc adds half the duration, so uptime = `MIN(1, L/(1+L/2))` with `L = chance × E21 × duration` — `dot_uptime`/`dotUptime`. Duration (`C64`/`C69`) is 0 without a DoT, otherwise the longest source clamped to fire 1–5 s / poison 1–15 s (default 1 s). Poison takes the best Malachite slot, no first-slot rule.
+- **Caps on damage**: explosion `C58` = `MIN(2.5, Σslots + Blast)`; smite `C72` = `MIN(2.5, Σslots + Angel 30%)`; black hole `C76` = `MIN(2.5, Galaxite)`, plus the Resonance +125% when Galaxite **and** Bismuth are each ≥10% of the ores; moon `C53` = `MIN(1.5, Σ)`.
+- **Chance stacking**: chances and durations take the `MAX` across slots, abilities and race (Dragonborn burn 40% and Angel smite 50% are maxed, not added); damage sums; lightning cooldown takes the `MIN`.
+- **Trait-damage multiplier** (Dryad Vital Power, `E49` max HP): `1 + MIN(INT(HP/1000),10) × 5%` on fire, poison, lightning, black hole (incl. Resonance) and the Prismatic Shift fire/poison/lightning parts.
+- **Bismuth**: flat 18% attack speed from 10% share and **no ordinary proc stats**. Its **Prismatic Shift** (`E109`) is ¼ × (Venom Crumb poison 16%/77%/12 s + Blast Chip explosion 70%/42% + Flame Spark fire 26%/60%/4 s + Thunder Shard lightning 80%/47%/3 s cooldown), each at full T3 strength and on its own, gated by ≥10% Bismuth.
+- **Race procs**: Smash (Orc Lord) 100% × `1/(10 + 1/(0.25×E21))`; Fox Claws (Kitsune) `0.75 × A18 × MIN(0.25 × E21, 3/2.22)` (max 3 spirits of ~2.22 s); Foxfire (Kitsune) `A18 × (1+E45) × 30% × (1 − e^(−0.5 × E21 × 3))` (reset-to-3 s refresh, boosted damage); Archangel beam (`C110`) `1.5 × A18 / (10 + 1/(0.33×E21))`, separate from ore smite; Cursed Aura (Demon, `E110`) `10% × A18` per second; Demon also gets +20% fire damage and a 3 s burn time.
+- **Results block rows 102–116**: physical hit `C102` = `C18 × (1+E45) × crit_blend × E21`; every proc row scales on **unforged A18**; Total `C111` = all rows incl. `E109`/`C110`/`E110`; TTK `E111/E112` = 25k / 75k ÷ total (Asura stays 75k for its two phases); `C115` min, `C116` max burst (procs on **forged C18**).
+- **Berserk** `C112` = `C18 × (1 + E45 + E54) × crit_blend × E21` + every proc row, `E54 = MIN(200%, C54) + Minotaur 30%` — berserk is **additive with lethality** (same damage-boost pool in the game). **Moon Stone** `C113` = `C102 × (1+C53)` + every proc row.
+- **Situational inputs**: Dryad `C49` (in Healing Grove, Yes/No) and `E49` (max HP); Orc Lord `C55` (HP missing %) and `E55` (kill stacks 0–5). All default to off/0.
 
 ## Preserved workbook quirks (do not "fix")
 
-- `E45` and `E48` test the singular `Gauntlet`, and the sheet's `C23` dropdown now offers the singular too (the user fixed it alongside the 300% lethality cap), matching the weapon data's real type that the MediaWiki UI derives `C23` from. Both spellings stay registered at 20% in `CLASS_LETHALITY`/`CLASS_ATK_SPEED`; the plural is harmless dead weight. `Tigers Eye` (no apostrophe) is **gone**: the workbook spells it consistently as `Tiger's Eye`, so the one ore carries both lethality and attack speed straight from its own formulas.
+- `E45` and `E48` test the singular `Gauntlet` (the weapon data's real type). Both spellings stay registered at 20% in `CLASS_LETHALITY`/`CLASS_ATK_SPEED`; the plural is harmless dead weight.
 - Armor stats feed `E45`/`E46`/`E47` via **C44/C42/C43** (`E42`–`E44` are dead cells).
-- Fire/poison duration offsets `-1` / `-2`. The outer `MAX(ore)=0` gate was removed (user workbook edit): a fire/poison ability time alone now counts, even without a matching ore and for fire without Dragonborn. Poison duration takes only the **first** Malachite slot (`C69` XLOOKUP), not the max.
-- `C77` (black hole chance) = 0.3 when `COUNTIF("Galaxite")/COUNTA(slots) ≥ 0.1`; COUNTA counts "Select Ore" as non-blank, so **any** Galaxite slot triggers it.
-- Black-hole DPS `E77` **floors** its rate term: `MAX(1,E21)`, not `MIN`.
-- Archangel smite damage scales linearly with attack speed: `MIN(50% * E21, 150%)` (no `FLOOR` any more). Angel's is a flat 30%.
-- Tiger's Eye carries both lethality (`C45`) and attack speed (`C48`). Two workbook uploads misspelled it in `C48` (`"Tiger s Eye"`, then `"Tiger,s Eye"` in the `C8` branch only); the second one was fixed by an XML patch to `reference/UpdatedSpreadsheet.xlsx` at the user's request (same technique as the `C59` fix). `audit_reall.py` prints any such misspelled name as FORMULA-ONLY, and a rebuild lists it in `formula_only_ores`.
-- Kitsunite's smite damage is the one ramp with **no 10% share gate**, clamped instead by `MAX(0.05, MIN(0.5, ramp))`. Carried as `gated`/`floor`/`ceiling` on its `StatRange`.
-- Ability inputs are **one row per ability**: Fire 34, Poison 35, Lightning 36, Blast 37, with DMG/Chance/Time in columns C/D/E (Blast has no time). The old transposed layout is gone.
+- Each slot is ramped on its own share; the same ore in two slots is not merged into one share (the game keys shares by ore). Only the black-hole / Resonance / Prismatic Shift gates sum an ore's slots (`SUMIF`).
+- Ability inputs are **one row per ability**: Fire 34, Poison 35, Lightning 36, Blast 37, with DMG/Chance/Time in columns C/D/E (Blast has no time).
 - C20 (base crit chance) enters **only** the crit blend, not `E45`.
-- "Damage Boost" achievement feeds lethality (`E45`).
+- "Damage Boost" achievement feeds lethality (`E45`); one achievement dropdown is kept (`C98`) by request although the game stacks all earned ones.
 - Forge level 9 = 1.5× (breaks the 0.05 step pattern); level outside 0–9 → 1.0.
 - Percent inputs store **decimals** (0.30 = 30%); ability time cells are plain seconds.
-- `rng.gated === false` on a `StatRange` means "no 10% share guard" and exists solely for
-  Kitsunite smite damage; `floor`/`ceiling` carry that cell's `MAX(0.05, MIN(0.5, ramp))`.
+- The workbook is a Google Sheets export: formulas use bare `IFS`/`SWITCH`/`FILTER` and `__xludf.DUMMYFUNCTION`. Edit it by patching the sheet XML (openpyxl strips cached values); to evaluate it in Excel, make a copy with `_xlfn.` prefixes first.
 
 ## UI invariants (MediaWiki)
 
@@ -263,7 +266,7 @@ carries no comments.
 - **`setValue` deliberately does not fire `onChange`.** That is why a state restore or
   Reset keeps a slot's typed amount, while actually changing the ore in the dropdown
   zeroes it (`createOreSlot`). Changing this breaks `ore-slot-test.js`.
-- **Weapon types need a minimum total ore amount** (sheet `F12`: `FILTER(types, thresholds <= D10)`, `D10` = sum of the four slot amounts). The thresholds are extracted into `weapons.json` as `type_min_ore` (Dagger 3, Straight Sword 4, Mace/Gauntlet 7, Axe/Katana 10, Great Sword/Spear 13, Great Axe/Halberd 16, Colossal Sword 21) plus the `not_enough_ore` fallback text. The weapon-type and weapon dropdowns only offer unlocked types (below 3 total the type list is just "Not enough Ore"); `setOreTotal` refreshes them on every ore-amount change and on `setBuild`. Like the sheet, an already-chosen weapon is **not** cleared when the total drops; `computeWarnings` adds "`<Type>` weapons need at least N total ore (you have M)." instead. UI-only, no engine change.
+- **Weapon types need a minimum total ore amount** (sheet `F12`: `FILTER(types, thresholds <= D10)`, `D10` = sum of the four slot amounts). The thresholds are extracted into `weapons.json` as `type_min_ore` (Dagger 3, Straight Sword 4, Mace/Gauntlet 6, Axe/Katana 8, Great Sword/Spear 11, Great Axe/Halberd 15, Colossal Sword 19 — the game's `ItemRarity.lua` `min_ores`) plus the `not_enough_ore` fallback text. The weapon-type and weapon dropdowns only offer unlocked types (below 3 total the type list is just "Not enough Ore"); `setOreTotal` refreshes them on every ore-amount change and on `setBuild`. Like the sheet, an already-chosen weapon is **not** cleared when the total drops; `computeWarnings` adds "`<Type>` weapons need at least N total ore (you have M)." instead. UI-only, no engine change.
 - Ore `atk_speed` is **not** reachable from the MediaWiki UI — there is no attack-speed
   input, so it only ever arrives from ores, runes, race and achievements.
 - **Active Traits' free-text clauses are computed when they safely can be, approximated
@@ -283,7 +286,7 @@ carries no comments.
 ## Commands
 
 ```bash
-python -m pytest tests/               # 125 tests (engine/golden/parser/data/races/bismuth)
+python -m pytest tests/               # 129 tests (engine/golden/parser/data/races/bismuth)
 pip install -e .[build]               # dev: add openpyxl
 python -m scripts.build_data          # regenerate data/*.json from UpdatedSpreadsheet.xlsx
 ```
@@ -291,26 +294,25 @@ python -m scripts.build_data          # regenerate data/*.json from UpdatedSprea
 After a data rebuild, copy `data/*.json` to `Web/data/` and to
 `Web/mediawiki/Data-*.json` (capitalised names) — the MediaWiki calculator ships those.
 
-Workbook verification — the engines replay the workbook's own saved build and diff
-against its cached values:
+Workbook verification:
 
 ```bash
-node Web/mediawiki/reall-golden.js                    # MediaWiki IIFE  -> 46 cells of the saved Kitsune build
+node Web/mediawiki/reall-golden.js                    # MediaWiki IIFE  -> 46 cells of the saved build
 node Web/mediawiki/reall-aggregates.js                # berserk/moon stone/max burst/explosion/smite aggregates
 node Web/mediawiki/verify-engine.js                   # goldens vs tests/test_golden.py
 node Web/mediawiki/fuzz_verify.js                     # 250 builds JS <-> Python
 python Web/mediawiki/fuzz_gen.py                      # regenerate fuzz-cases.json
 python scripts/reall_parity.py                        # reference engine -> saved-build cells, read from the workbook's own cache
 python scripts/audit_reall.py reference/UpdatedSpreadsheet.xlsx data/ores.json
+python -m scripts.excel_fuzz gen builds.json 80 7     # random builds for Excel (Windows + Excel only)
+powershell scripts/excel_batch.ps1 -Path <_xlfn copy>.xlsx -BuildsJson builds.json -OutJson excel.json
+python -m scripts.excel_fuzz compare builds.json excel.json   # Excel (the workbook itself) vs engine.py, 43 cells
 ```
 
-(`reall_parity.py`, `reall-golden.js`, `audit_reall.py` etc. kept their names from the
-`reall.xlsx` era — they now target `UpdatedSpreadsheet.xlsx`; renaming them wasn't worth
-the churn. The saved-build harnesses are only as strong as the build saved in the
-workbook: keep a real build — ideally one using a recently added mechanic — saved in it.
-**The October 2026 workbook was saved with an empty build** (four `Select Ore` slots, no weapon), so
-`reall_parity.py` / `reall-golden.js` / `test_workbook_cached_golden` currently only prove the empty
-case; save a real build — e.g. Bismuth + Galaxite on a Kitsune — and re-transcribe `reall-golden.js`.)
+The saved build in the workbook is Snowite 12 / Kitsunite 15 / Moon Stone 15 / Bismuth 15 with a
+Colossal Terrorblade on a Human, so the saved-build harnesses exercise Bismuth, Prismatic Shift,
+moon, lightning, smite and fire. After a formula edit, the cached values come from an Excel
+recalculation of an `_xlfn.`-prefixed copy until the user re-saves the workbook through Google Sheets.
 
 Every MediaWiki UI change should also keep the focused tests green:
 
@@ -772,7 +774,7 @@ FORMULA-ONLY note: `Tiger s Eye`); `reall_parity.py` / `reall-golden.js` / `real
 PASSED (250 builds, 12,003 fields); all focused MediaWiki tests incl. `bismuth-test.js` PASSED.
 
 
-### Game (.rbxlx) Alignment of the Workbook — IN PROGRESS
+### Game (.rbxlx) Alignment of the Workbook — COMPLETED ✅
 **Goal:** `Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (4).xlsx` replaces
 `reference/UpdatedSpreadsheet.xlsx` (same file name kept), then the workbook is edited to match
 the game's own code as extracted from the `.rbxlx` (see `Forge_Game_vs_Calculator_Report.docx`),
@@ -797,4 +799,4 @@ until the user re-saves the workbook through Google Sheets.
 | 4 | **Data rebuild** — parser and `audit_reall.py` read the gated flat `IF(share<0.1,miss,value)` form and the plain per-slot `C69`; rebuilt stats differ only where intended (Aetherit AS, 3 burn chances, Kitsunite/Marblite flat cooldown, Kitsunite smite 5→50 gated, Bismuth flat 18% AS and no proc stats); audit 0 problems | ✅ |
 | 5 | **Python engine + tests** — `engine.py` rewritten to the new cells (new `Build` fields `dryad_in_grove`, `dryad_max_hp`, `orc_lord_hp_missing`, `orc_lord_kill_stacks`; new results `prismatic_shift_dps`, `archangel_smite_dps`, `cursed_aura_dps`, `lightning_cooldown`, `trait_damage_multiplier`, `berserk_level`). New `scripts/excel_fuzz.py` + `scripts/excel_batch.ps1`: 80 random builds pushed through Excel (the workbook itself) match the engine on all 43 cells. `pytest` → 129 passed | ✅ |
 | 6 | **MediaWiki engine + UI + tests + fuzz** — JS engine mirrors the Python one; UI gains a "Race Situational" section (Orc Lord HP missing % / kill stacks, Dryad grove checkbox / max HP; shown only for that race) and DPS rows Prismatic Shift / Archangel Smite / Cursed Aura (+ clipboard, `fc-sv-prismatic` / `fc-sv-aura` colours). `fuzz_gen.py` covers the new inputs and fields: 250 builds, 13,426 fields, JS ≡ Python; every focused test updated and passing | ✅ |
-| 7 | **Docs** — CLAUDE.md domain model / quirks rewritten | ⏳ |
+| 7 | **Docs** — CLAUDE.md race table, domain model, quirks and commands rewritten for the game-aligned workbook | ✅ |
