@@ -2466,9 +2466,18 @@
     var orcKillsField = numberField('orcLordKillStacks', 'Kill stacks', 5, Math.floor);
     var groveWrapper = createEl('div', { class: 'fc-berserk-wrapper' });
     var groveLabel = createEl('label', { for: 'fc-dryadInGrove' }, ['In grove']);
-    var groveInput = createEl('input', { type: 'checkbox', id: 'fc-dryadInGrove' });
-    groveInput.checked = getBuild().dryadInGrove === true;
-    groveInput.addEventListener('change', function () { patch({ dryadInGrove: groveInput.checked }); });
+    var groveInput = createEl('button', { type: 'button', class: 'fc-check', id: 'fc-dryadInGrove', role: 'checkbox' });
+    function setGrove(on) {
+      groveInput.setAttribute('aria-checked', on ? 'true' : 'false');
+      groveInput.classList.toggle('fc-check--on', on);
+      groveInput.textContent = on ? '✓' : '';
+    }
+    setGrove(getBuild().dryadInGrove === true);
+    groveInput.addEventListener('click', function () {
+      var on = groveInput.getAttribute('aria-checked') !== 'true';
+      setGrove(on);
+      patch({ dryadInGrove: on });
+    });
     groveWrapper.append(groveLabel, groveInput);
     situationalGrid.appendChild(groveWrapper);
     var dryadHpField = numberField('dryadMaxHp', 'Max HP', null, Math.floor);
@@ -2603,7 +2612,7 @@
       }
       orcHpField.input.value = newBuild.orcLordHpMissing || 0;
       orcKillsField.input.value = newBuild.orcLordKillStacks || 0;
-      groveInput.checked = newBuild.dryadInGrove === true;
+      setGrove(newBuild.dryadInGrove === true);
       dryadHpField.input.value = newBuild.dryadMaxHp || 0;
       syncSituational(newBuild.race);
       statInput.setValues({

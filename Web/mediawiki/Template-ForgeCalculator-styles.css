@@ -297,10 +297,23 @@
   white-space: nowrap;
 }
 
-.fc-situational-grid input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  margin: 8px 0;
+.fc-check {
+  width: 39px;
+  height: 39px;
+  padding: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  color: #c8a85a;
+  background: #0F0F0F;
+  border: 3px solid #231D16;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fc-check.fc-check--on {
+  border-color: #c8a85a;
 }
 
 .fc-meta-wrap .fc-input-section-title,
