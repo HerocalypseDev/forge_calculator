@@ -24,6 +24,7 @@ CELL_STATS = {
     "C64": ("fire_duration", 1),
     "C67": ("poison_dmg", 100),
     "C68": ("poison_chance", 100),
+    "C69": ("poison_duration", 1),
     "C72": ("smite_dmg", 100),
     "C73": ("smite_chance", 100),
     "C76": ("blackhole_dmg", 100),
@@ -50,6 +51,7 @@ RAMP_RE = re.compile(
     r'[(,]\s*(-?[\d.]+)\s*\+\s*(?:\(\s*(-?[\d.]+)\s*-\s*-?[\d.]+\s*\)|(-?[\d.]+))\s*\*\s*MIN\('
 )
 FLAT_RE = re.compile(r'^\s*,\s*(-?[\d.]+)\s*(?:/\s*100)?\s*,')
+GATED_FLAT_RE = re.compile(r'^\s*,\s*IF\(SUM\(\$D\$6:\$D\$9\)=0,[\d.]+,IF\(D6/SUM\(\$D\$6:\$D\$9\)<0\.1,[\d.]+,(-?[\d.]+)(?:/100)?\)\)')
 
 
 def parse_cell(formula):
@@ -60,7 +62,7 @@ def parse_cell(formula):
         name = m.group(1)
         end = hits[idx + 1].start() if idx + 1 < len(hits) else len(formula)
         seg = formula[m.end():end]
-        flat = FLAT_RE.match(seg)
+        flat = FLAT_RE.match(seg) or GATED_FLAT_RE.match(seg)
         if flat:
             out[name] = (float(flat.group(1)), float(flat.group(1)))
             continue
@@ -110,14 +112,6 @@ def main(xlsx, json_path):
         ranges.update({k: r for k, r in parse_cell(v).items() if k not in ranges})
         book[stat] = {n: (b, m, div) for n, (b, m) in ranges.items()}
 
-    # C69 poison duration is an XLOOKUP/LAMBDA, hand-mapped from its literals
-    c69 = getattr(ws["C69"].value, "text", ws["C69"].value) or ""
-    r = re.search(r'(-?[\d.]+)\s*\+\s*(-?[\d.]+)\s*\*\s*MIN\(', c69)
-    if r:
-        b = float(r.group(1))
-        book["poison_duration"] = {"Malachite": (b, b + float(r.group(2)), 1)}
-    for name, value in re.findall(r'COUNTIF\(\$C\$6:\$C\$9,\s*"([^"]+)"\),\s*(-?[\d.]+)\s*,', c69):
-        book.setdefault("poison_duration", {})[name] = (float(value), float(value), 1)
 
     # berserk-group traits: independently re-derive from _OptionsCrafter's own
     # trait10 (D) / trait30 (E) text, cross-checking build_data's extraction

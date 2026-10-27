@@ -159,9 +159,19 @@ def _divisor_after(text, end):
     return 100 if re.match(r"\s*\)?\s*/\s*100", text[end:end + 12]) else 1
 
 
+_GATED_FLAT = re.compile(
+    r"^\s*,\s*IF\(\s*SUM\(\$D\$6:\$D\$9\)\s*=\s*0\s*,\s*\d+(?:\.\d+)?\s*,\s*IF\(\s*D[6-9]\s*/\s*SUM\(\$D\$6:\$D\$9\)"
+    r"\s*<\s*0\.1\s*,\s*\d+(?:\.\d+)?\s*,\s*(?P<value>\d+(?:\.\d+)?)\s*(?P<pct>/\s*100)?\s*\)\s*\)"
+)
+
+
 def _entry_from_payload(payload):
     """Return ``{base, max, divisor[, gated, floor, ceiling]}`` or ``None``."""
     m = _RAMP.search(payload)
+    gated_flat = _GATED_FLAT.match(payload)
+    if gated_flat and (not m or m.start() > gated_flat.end()):
+        value = float(gated_flat.group("value"))
+        return {"base": value, "max": value, "divisor": 100 if gated_flat.group("pct") else 1}
     if not m:
         flat = _FLAT_PAYLOAD.match(payload)
         return _flat_entry(flat.group("value"), flat.group("pct")) if flat else None

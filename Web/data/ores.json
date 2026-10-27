@@ -19,7 +19,13 @@
       "trait10": "+0.8% Attack Speed",
       "trait30": "+8% Attack Speed",
       "comments": "Armor only: +0.5% / +5% Movement Speed",
-      "stats": {}
+      "stats": {
+        "atk_speed": {
+          "base": 0.8,
+          "max": 8.0,
+          "divisor": 100
+        }
+      }
     },
     {
       "name": "Frost Fossil",
@@ -346,8 +352,8 @@
           "divisor": 100
         },
         "fire_chance": {
-          "base": 2.0,
-          "max": 20.0,
+          "base": 3.0,
+          "max": 30.0,
           "divisor": 100
         },
         "fire_duration": {
@@ -679,8 +685,8 @@
           "divisor": 100
         },
         "fire_chance": {
-          "base": 4.5,
-          "max": 45.0,
+          "base": 4.0,
+          "max": 40.0,
           "divisor": 100
         },
         "fire_duration": {
@@ -995,8 +1001,8 @@
           "divisor": 100
         },
         "fire_chance": {
-          "base": 2.0,
-          "max": 20.0,
+          "base": 3.0,
+          "max": 30.0,
           "divisor": 100
         },
         "fire_duration": {
@@ -1453,7 +1459,7 @@
           "divisor": 100
         },
         "lightning_cooldown": {
-          "base": 0.5,
+          "base": 5.0,
           "max": 5.0,
           "divisor": 1
         },
@@ -1736,12 +1742,9 @@
           "divisor": 1
         },
         "smite_dmg": {
-          "base": 2.5,
+          "base": 5.0,
           "max": 50.0,
-          "divisor": 100,
-          "gated": false,
-          "floor": 0.05,
-          "ceiling": 0.5
+          "divisor": 100
         },
         "smite_chance": {
           "base": 5.0,
@@ -1754,7 +1757,7 @@
           "divisor": 100
         },
         "lightning_cooldown": {
-          "base": 0.3,
+          "base": 3.0,
           "max": 3.0,
           "divisor": 1
         },
@@ -1792,75 +1795,9 @@
       "comments": "Every Bismuth trait is flat: full value from 10% share, nothing below.\nArmor only: +15% Critical Chance | +15% Critical Damage | +15% Lethality | Fire, Poison, Black Hole and Resonance DMG +1% per 500 HP up to +20% | Regen 6 health per second | Galaxite Black Hole restores 2.5% of max health | Unshaken: -30% stun buildup and -35% stun duration taken (-45% / -50% with Galaxite armor)",
       "stats": {
         "atk_speed": {
-          "base": 1.8,
+          "base": 18.0,
           "max": 18.0,
           "divisor": 100
-        },
-        "explosion_dmg": {
-          "base": 8.75,
-          "max": 8.75,
-          "divisor": 100,
-          "gated": false
-        },
-        "explosion_chance": {
-          "base": 5.25,
-          "max": 5.25,
-          "divisor": 100,
-          "gated": false
-        },
-        "fire_dmg": {
-          "base": 3.25,
-          "max": 3.25,
-          "divisor": 100,
-          "gated": false
-        },
-        "fire_chance": {
-          "base": 7.5,
-          "max": 7.5,
-          "divisor": 100,
-          "gated": false
-        },
-        "fire_duration": {
-          "base": 0.5,
-          "max": 0.5,
-          "divisor": 1,
-          "gated": false
-        },
-        "poison_dmg": {
-          "base": 2.0,
-          "max": 2.0,
-          "divisor": 100,
-          "gated": false
-        },
-        "poison_chance": {
-          "base": 9.625,
-          "max": 9.625,
-          "divisor": 100,
-          "gated": false
-        },
-        "poison_duration": {
-          "base": 1.5,
-          "max": 1.5,
-          "divisor": 1,
-          "gated": false
-        },
-        "lightning_dmg": {
-          "base": 10.0,
-          "max": 10.0,
-          "divisor": 100,
-          "gated": false
-        },
-        "lightning_cooldown": {
-          "base": 0.375,
-          "max": 0.375,
-          "divisor": 1,
-          "gated": false
-        },
-        "lightning_chance": {
-          "base": 5.875,
-          "max": 5.875,
-          "divisor": 100,
-          "gated": false
         }
       }
     }
