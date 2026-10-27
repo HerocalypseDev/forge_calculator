@@ -103,12 +103,6 @@
   var GALAXITE_BISMUTH_WAVE = 1.25;
   var PROC_ROLL_SIDES = 101;
 
-  var PRISMATIC_SHIFT_RUNES = 4;
-  var PRISMATIC_VENOM = [0.16, 0.77, 12.0];
-  var PRISMATIC_BLAST = [0.70, 0.42];
-  var PRISMATIC_FLAME = [0.26, 0.60, 4.0];
-  var PRISMATIC_THUNDER = [0.80, 0.47, 3.0];
-
   var AVG_POWER_EXCLUDED = ['Fichilliumorite', 'Bismuth'];
   var SOLO_ORE_POWER = { 'Bismuth': 8.0, 'Fichilliumorite': 1.0 };
 
@@ -747,15 +741,6 @@
     return 1.0 / (cooldown + 1.0 / (chance * atkRate));
   }
 
-  function prismaticShiftDps(unforged, atkRate, tdm) {
-    if (atkRate <= 0) { return 0.0; }
-    var venom = unforged * PRISMATIC_VENOM[0] * tdm * dotUptime(gameChance(PRISMATIC_VENOM[1], true), atkRate, PRISMATIC_VENOM[2]);
-    var blast = unforged * PRISMATIC_BLAST[0] * gameChance(PRISMATIC_BLAST[1], true) * atkRate;
-    var flame = unforged * PRISMATIC_FLAME[0] * tdm * dotUptime(gameChance(PRISMATIC_FLAME[1], true), atkRate, PRISMATIC_FLAME[2]);
-    var thunder = unforged * PRISMATIC_THUNDER[0] * tdm * cooldownRate(gameChance(PRISMATIC_THUNDER[1], true), atkRate, PRISMATIC_THUNDER[2]);
-    return (venom + blast + flame + thunder) / PRISMATIC_SHIFT_RUNES;
-  }
-
   function num(v) {
     var n = Number(v);
     return n === n && n !== Infinity && n !== -Infinity ? n : 0;
@@ -853,14 +838,13 @@
     var foxfire_dps = atkRate
       ? unforged * (1 + totals.lethality) * procs.foxfire_dmg * (1 - Math.exp(-procs.foxfire_chance * atkRate * procs.foxfire_duration))
       : 0.0;
-    var prismatic_shift_dps = oreShare(build.slots, shares, 'Bismuth') >= SHARE_GATE ? prismaticShiftDps(unforged, atkRate, tdm) : 0.0;
     var archangel_smite_dps = race === 'Archangel' && atkRate > 0
       ? ARCHANGEL_SMITE_DMG * unforged * cooldownRate(ARCHANGEL_SMITE_CHANCE, atkRate, ARCHANGEL_SMITE_COOLDOWN)
       : 0.0;
     var cursed_aura_dps = race === 'Demon' ? DEMON_CURSED_AURA_DMG * unforged : 0.0;
 
     var proc_total = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
-      + smash_dps + fox_claws_dps + foxfire_dps + prismatic_shift_dps + archangel_smite_dps + cursed_aura_dps;
+      + smash_dps + fox_claws_dps + foxfire_dps + archangel_smite_dps + cursed_aura_dps;
     var total_dps = weapon_dps + proc_total;
 
     var berserkLevel = Math.min(build.berserk, CAPS.berserk) + raceValue(RACE_BERSERK, race);
@@ -936,7 +920,6 @@
       smash_dps: smash_dps,
       fox_claws_dps: fox_claws_dps,
       foxfire_dps: foxfire_dps,
-      prismatic_shift_dps: prismatic_shift_dps,
       archangel_smite_dps: archangel_smite_dps,
       cursed_aura_dps: cursed_aura_dps,
       trait_damage_multiplier: tdm
@@ -2179,7 +2162,6 @@
         { label: 'Smash DPS', value: '0', valueClass: 'fc-sv-smash', labelClass: 'fc-sv-smash' },
         { label: 'Fox Claws DPS', value: '0', valueClass: 'fc-sv-foxclaws', labelClass: 'fc-sv-foxclaws' },
         { label: 'Foxfire DPS', value: '0', valueClass: 'fc-sv-foxfire', labelClass: 'fc-sv-foxfire' },
-        { label: 'Prismatic Shift DPS', value: '0', valueClass: 'fc-sv-prismatic', labelClass: 'fc-sv-prismatic' },
         { label: 'Archangel Smite DPS', value: '0', valueClass: 'fc-sv-smite', labelClass: 'fc-sv-smite' },
         { label: 'Cursed Aura DPS', value: '0', valueClass: 'fc-sv-aura', labelClass: 'fc-sv-aura' },
         { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold', labelClass: 'fc-sv-dmg' },
@@ -2248,7 +2230,7 @@
       }
 
       var dpsRows = dpsCard.querySelectorAll('.fc-stat-row');
-      if (dpsRows.length >= 16) {
+      if (dpsRows.length >= 15) {
         updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
         updateStatRow(dpsRows[1], fmtDps(result.explosion_dps), false);
         updateStatRow(dpsRows[2], fmtDps(result.fire_dps), false);
@@ -2259,12 +2241,11 @@
         updateStatRow(dpsRows[7], fmtDps(result.smash_dps), false);
         updateStatRow(dpsRows[8], fmtDps(result.fox_claws_dps), false);
         updateStatRow(dpsRows[9], fmtDps(result.foxfire_dps), false);
-        updateStatRow(dpsRows[10], fmtDps(result.prismatic_shift_dps), false);
-        updateStatRow(dpsRows[11], fmtDps(result.archangel_smite_dps), false);
-        updateStatRow(dpsRows[12], fmtDps(result.cursed_aura_dps), false);
-        updateStatRow(dpsRows[13], fmtDps(result.total_dps), false);
-        updateStatRow(dpsRows[14], fmtDps(result.berserk), false);
-        updateStatRow(dpsRows[15], fmtDps(result.moonstone), false);
+        updateStatRow(dpsRows[10], fmtDps(result.archangel_smite_dps), false);
+        updateStatRow(dpsRows[11], fmtDps(result.cursed_aura_dps), false);
+        updateStatRow(dpsRows[12], fmtDps(result.total_dps), false);
+        updateStatRow(dpsRows[13], fmtDps(result.berserk), false);
+        updateStatRow(dpsRows[14], fmtDps(result.moonstone), false);
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
@@ -2872,7 +2853,6 @@
       'Smash DPS: ' + result.smash_dps.toFixed(2),
       'Fox Claws DPS: ' + result.fox_claws_dps.toFixed(2),
       'Foxfire DPS: ' + result.foxfire_dps.toFixed(2),
-      'Prismatic Shift DPS: ' + result.prismatic_shift_dps.toFixed(2),
       'Archangel Smite DPS: ' + result.archangel_smite_dps.toFixed(2),
       'Cursed Aura DPS: ' + result.cursed_aura_dps.toFixed(2),
       'Total DPS: ' + result.total_dps.toFixed(2),

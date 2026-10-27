@@ -164,10 +164,10 @@ def test_gargantuan_procs(game):
     assert r.explosion_dmg == pytest.approx(0.5)
     assert r.explosion_chance == pytest.approx(0.35)
     assert r.fire_dmg == pytest.approx(0.2)
-    assert r.fire_chance == pytest.approx(0.3)
+    assert r.fire_chance == pytest.approx(0.2)
     assert r.fire_duration == pytest.approx(2.0)
     assert r.explosion_dps == pytest.approx(a * 0.5 * 36 / 101 * rate)
-    assert r.fire_dps == pytest.approx(a * 0.2 * dot_uptime(31 / 101, rate, 2.0))
+    assert r.fire_dps == pytest.approx(a * 0.2 * dot_uptime(21 / 101, rate, 2.0))
     assert r.total_dps == pytest.approx(r.weapon_dps + r.explosion_dps + r.fire_dps)
     assert r.max_dps == pytest.approx(280.50638297872337)
 
@@ -327,11 +327,11 @@ def test_engine_constants_match_source():
     _guard(formulas, "C93", '"Kitsune",0.5', "foxfire chance")
     _guard(formulas, "C94", '"Kitsune",3', "foxfire duration")
     _guard(formulas, "E93", "A18*(1+E45)*C92*(1-EXP(-C93*E21*C94))", "foxfire uptime")
-    _guard(formulas, "E109", "78/101*E21*12", "Venom Crumb")
-    _guard(formulas, "E109", "A18*0.7*43/101*E21", "Blast Chip")
-    _guard(formulas, "E109", "61/101*E21*4", "Flame Spark")
-    _guard(formulas, "E109", "A18*0.8*", "Thunder Shard")
-    _guard(formulas, "E109", "(3+1/(48/101*E21))", "Thunder Shard cooldown")
+    assert "E109" not in formulas
+    for cell, frag in [("C58", "8.75/100"), ("C59", "5.25/100"), ("C62", "3.25/100"), ("C63", "7.5/100"),
+                       ("C67", "2/100"), ("C68", "9.625/100"), ("C80", "10/100"), ("C81", "5.875/100")]:
+        _guard(formulas, cell, f'C6="Bismuth",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,{frag}))', "Bismuth one-eighth T3 rune")
+    _guard(formulas, "E80", 'C6="Bismuth",IF(SUM($D$6:$D$9)=0,99,IF(D6/SUM($D$6:$D$9)<0.1,99,0.375))', "Bismuth lightning cooldown")
     _guard(formulas, "C110", "1.5*A18/(10+1/(0.33*E21))", "Archangel smite beam")
     _guard(formulas, "E110", '"Demon",0.1*A18', "Cursed Aura")
     _guard(formulas, "E63", '"Dryad",MIN(INT(MAX(0,E49)/1000),10)*0.05', "Vital Power")
@@ -341,7 +341,7 @@ def test_engine_constants_match_source():
     _guard(formulas, "E59", "A18", "explosion dps on A18")
     _guard(formulas, "C116", "C18", "max-burst on C18")
     for cell in ["C111", "C112", "C113"]:
-        _guard(formulas, cell, "C108+E108+C109+E109+C110+E110", f"{cell} includes every proc row")
+        _guard(formulas, cell, "C108+E108+C109+C110+E110", f"{cell} includes every proc row")
     _guard(formulas, "C116", "C84*C18", "max burst adds smash on forged C18")
 
     # E10 drops Fichilliumorite from both halves of the weighted average

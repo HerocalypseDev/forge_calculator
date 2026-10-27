@@ -30,7 +30,7 @@ EXPECTED = {
     "Aetherit": {"atk_speed": (0.8, 8.0, 100)},
     "Fireite": {
         "fire_dmg": (2.0, 20.0, 100),
-        "fire_chance": (3.0, 30.0, 100),
+        "fire_chance": (2.0, 20.0, 100),
         "fire_duration": (0.2, 2.0, 1),
     },
     "Frost Fossil": {"lethality": (1.75, 17.5, 100)},
@@ -43,7 +43,7 @@ EXPECTED = {
         "explosion_dmg": (5.0, 50.0, 100),
         "explosion_chance": (3.5, 35.0, 100),
         "fire_dmg": (2.0, 20.0, 100),
-        "fire_chance": (3.0, 30.0, 100),
+        "fire_chance": (2.0, 20.0, 100),
         "fire_duration": (0.2, 2.0, 1),
     },
     "Golem Heart": {
@@ -60,18 +60,18 @@ EXPECTED = {
         "fire_dmg": (4.0, 40.0, 100),
         "fire_chance": (5.0, 50.0, 100),
         "fire_duration": (0.5, 5.0, 1),
-        "smite_dmg": (5.0, 50.0, 100),
+        "smite_dmg": (2.5, 50.0, 100, {"gated": False, "floor": 0.05, "ceiling": 0.5}),
         "smite_chance": (5.0, 50.0, 100),
         "lightning_dmg": (8.0, 80.0, 100),
         "lightning_chance": (6.0, 60.0, 100),
-        "lightning_cooldown": (3.0, 3.0, 1),
+        "lightning_cooldown": (0.3, 3.0, 1),
     },
     "Kokorite": {"lethality": (3.0, 30.0, 100)},
     "Kyubite": {
         "crit_chance": (4.0, 40.0, 100),
         "crit_dmg": (1.8, 18.0, 100),
         "fire_dmg": (4.5, 45.0, 100),
-        "fire_chance": (4.0, 40.0, 100),
+        "fire_chance": (4.5, 45.0, 100),
         "fire_duration": (0.5, 5.0, 1),
     },
     "Magmaite": {
@@ -86,7 +86,7 @@ EXPECTED = {
     "Marblite": {
         "lightning_dmg": (6.0, 60.0, 100),
         "lightning_chance": (4.0, 40.0, 100),
-        "lightning_cooldown": (5.0, 5.0, 1),
+        "lightning_cooldown": (0.5, 5.0, 1),
     },
     "Meteorite": {
         "explosion_dmg": (6.0, 60.0, 100),
@@ -119,7 +119,20 @@ EXPECTED = {
         "lethality": (0.5, 5.0, 100),
         "atk_speed": (0.75, 7.5, 100),
     },
-    "Bismuth": {"atk_speed": (18.0, 18.0, 100)},
+    "Bismuth": {
+        "atk_speed": (1.8, 18.0, 100),
+        "explosion_dmg": (8.75, 8.75, 100),
+        "explosion_chance": (5.25, 5.25, 100),
+        "fire_dmg": (3.25, 3.25, 100),
+        "fire_chance": (7.5, 7.5, 100),
+        "fire_duration": (0.5, 0.5, 1),
+        "poison_dmg": (2.0, 2.0, 100),
+        "poison_chance": (9.625, 9.625, 100),
+        "poison_duration": (1.5, 1.5, 1),
+        "lightning_dmg": (10.0, 10.0, 100),
+        "lightning_cooldown": (0.375, 0.375, 1),
+        "lightning_chance": (5.875, 5.875, 100),
+    },
     "Vanegos": {"lethality": (4.0, 40.0, 100)},
     "Voidstar": {
         "crit_chance": (3.3, 33.0, 100),
@@ -194,14 +207,16 @@ def test_every_expected_stat_has_a_divisor_of_1_or_100():
             assert entry[2] in (1, 100), f"{ore}.{stat} divisor {entry[2]}"
 
 
-def test_every_ore_stat_is_gated(matrix):
+def test_only_kitsunite_smite_is_ungated(matrix):
     odd = {
         (ore, stat)
         for ore, stats in matrix.items()
         for stat, e in stats.items()
         if e.get("gated") is False or e.get("floor") is not None or e.get("ceiling") is not None
     }
-    assert odd == set()
+    assert odd == {("Kitsunite", "smite_dmg")}
+    entry = matrix["Kitsunite"]["smite_dmg"]
+    assert (entry["floor"], entry["ceiling"]) == (0.05, 0.5)
 
 
 def test_durations_use_divisor_one(matrix):

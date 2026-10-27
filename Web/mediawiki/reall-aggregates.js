@@ -63,7 +63,7 @@ function check(label, workbook, engine) {
 
 function procSum(r) {
   return r.explosion_dps + r.fire_dps + r.poison_dps + r.smite_dps + r.blackhole_dps + r.lightning_dps +
-    r.smash_dps + r.fox_claws_dps + r.foxfire_dps + r.prismatic_shift_dps + r.archangel_smite_dps + r.cursed_aura_dps;
+    r.smash_dps + r.fox_claws_dps + r.foxfire_dps + r.archangel_smite_dps + r.cursed_aura_dps;
 }
 
 function berserkHit(r, level) {

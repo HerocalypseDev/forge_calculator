@@ -107,11 +107,11 @@ r = FC.calculate(build({ slots: [ { name: 'Gargantuan', amount: 30 }, { name: 'N
 approx(r.explosion_dmg, 0.5, 'garg explosion_dmg');
 approx(r.explosion_chance, 0.35, 'garg explosion_chance');
 approx(r.fire_dmg, 0.2, 'garg fire_dmg');
-approx(r.fire_chance, 0.3, 'garg fire_chance');
+approx(r.fire_chance, 0.2, 'garg fire_chance');
 approx(r.fire_duration, 2.0, 'garg fire_duration');
 approx(r.explosion_dps, 24.45755213819254, 'garg explosion_dps');
-approx(r.fire_dps, 10.192430228112654, 'garg fire_dps');
-approx(r.total_dps, 171.8840249194967, 'garg total_dps');
+approx(r.fire_dps, 7.912954578647583, 'garg fire_dps');
+approx(r.total_dps, 169.6045492700316, 'garg total_dps');
 approx(r.max_dps, 280.50638297872337, 'garg max_dps');
 
 r = FC.calculate(build({ slots: [ { name: 'Malachite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);

@@ -1,7 +1,7 @@
 import pytest
 
 from forge_calculator.data import DEFAULT_DATA_DIR, load_game_data
-from forge_calculator.engine import Abilities, Build, OreSlot, calculate, cooldown_rate, dot_uptime, game_chance
+from forge_calculator.engine import Abilities, Build, OreSlot, calculate, dot_uptime, game_chance
 
 
 @pytest.fixture(scope="module")
@@ -30,33 +30,34 @@ def test_pumpkinite_ore_is_in_the_catalog(game):
     assert ore.stats == {}
 
 
-def test_bismuth_has_no_ordinary_proc_stats(game):
-    assert set(game.ore("Bismuth").stats) == {"atk_speed"}
-    r = run(game, ("Bismuth", 30), ("Ancienite", 70))
-    assert (r.explosion_dmg, r.fire_dmg, r.poison_dmg, r.lightning_dmg) == (0.0, 0.0, 0.0, 0.0)
+@pytest.mark.parametrize("amount", [10, 50])
+def test_bismuth_procs_are_one_eighth_of_each_t3_rune(game, amount):
+    r = run(game, ("Bismuth", amount), ("Ancienite", 100 - amount))
+    assert r.explosion_dmg == pytest.approx(0.0875)
+    assert r.explosion_chance == pytest.approx(0.0525)
+    assert r.fire_dmg == pytest.approx(0.0325)
+    assert r.fire_chance == pytest.approx(0.075)
+    assert r.fire_duration == pytest.approx(1.0)
+    assert r.poison_dmg == pytest.approx(0.02)
+    assert r.poison_chance == pytest.approx(0.09625)
+    assert r.poison_duration == pytest.approx(1.5)
+    assert r.lightning_dmg == pytest.approx(0.10)
+    assert r.lightning_chance == pytest.approx(0.05875)
+    assert r.lightning_cooldown == pytest.approx(0.375)
 
 
-def test_bismuth_attack_speed_is_flat_once_gated(game):
-    assert run(game, ("Bismuth", 9), ("Ancienite", 91)).atk_speed == 0.0
-    assert run(game, ("Bismuth", 10), ("Ancienite", 90)).atk_speed == pytest.approx(0.18)
+def test_bismuth_needs_ten_percent_share(game):
+    r = run(game, ("Bismuth", 9), ("Ancienite", 91))
+    assert (r.explosion_dmg, r.fire_dmg, r.poison_dmg, r.lightning_dmg, r.atk_speed) == (0.0, 0.0, 0.0, 0.0, 0.0)
+
+
+def test_bismuth_attack_speed_ramps_like_any_ore(game):
+    assert run(game, ("Bismuth", 10), ("Ancienite", 90)).atk_speed == pytest.approx(0.018)
     assert run(game, ("Bismuth", 30), ("Ancienite", 70)).atk_speed == pytest.approx(0.18)
 
 
-def test_prismatic_shift_needs_ten_percent_share(game):
-    assert run(game, ("Bismuth", 9), ("Ancienite", 91)).prismatic_shift_dps == 0.0
-    assert run(game, ("Bismuth", 0)).prismatic_shift_dps == 0.0
-    assert run(game, ("Bismuth", 10), ("Ancienite", 90)).prismatic_shift_dps > 0
-
-
-def test_prismatic_shift_is_a_quarter_of_each_full_t3_rune(game):
-    r = run(game, ("Bismuth", 20), ("Ancienite", 80))
-    a, rate = r.unforged_damage, r.attack_rate
-    venom = a * 0.16 * dot_uptime(78 / 101, rate, 12)
-    blast = a * 0.70 * 43 / 101 * rate
-    flame = a * 0.26 * dot_uptime(61 / 101, rate, 4)
-    thunder = a * 0.80 * cooldown_rate(48 / 101, rate, 3)
-    assert r.prismatic_shift_dps == pytest.approx((venom + blast + flame + thunder) / 4)
-    assert r.total_dps == pytest.approx(r.weapon_dps + r.prismatic_shift_dps)
+def test_bismuth_poison_duration_is_one_more_term(game):
+    assert run(game, ("Malachite", 30), ("Bismuth", 30)).poison_duration == pytest.approx(3.0)
 
 
 def test_galaxite_and_bismuth_add_the_rainbow_wave_when_both_are_gated(game):
@@ -65,7 +66,6 @@ def test_galaxite_and_bismuth_add_the_rainbow_wave_when_both_are_gated(game):
     assert both.blackhole_dmg == pytest.approx(galaxite.blackhole_dmg + 1.25)
     low = run(game, ("Galaxite", 30), ("Bismuth", 5), ("Ancienite", 65))
     assert low.blackhole_dmg == pytest.approx(run(game, ("Galaxite", 30), ("Ancienite", 70)).blackhole_dmg)
-    assert run(game, ("Bismuth", 30)).blackhole_dmg == 0.0
 
 
 def test_game_chance_rolls_on_integers():

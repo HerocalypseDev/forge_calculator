@@ -152,7 +152,6 @@ def result_to_dict(r):
         "smash_dps": r.smash_dps,
         "fox_claws_dps": r.fox_claws_dps,
         "foxfire_dps": r.foxfire_dps,
-        "prismatic_shift_dps": r.prismatic_shift_dps,
         "archangel_smite_dps": r.archangel_smite_dps,
         "cursed_aura_dps": r.cursed_aura_dps,
         "lightning_cooldown": r.lightning_cooldown,

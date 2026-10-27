@@ -19,7 +19,7 @@ CELL_FIELDS = {
     "C77": "blackhole_chance", "C80": "lightning_dmg", "E80": "lightning_cooldown", "C81": "lightning_chance",
     "C102": "weapon_dps", "C103": "explosion_dps", "C104": "fire_dps", "C105": "poison_dps",
     "C106": "smite_dps", "C107": "blackhole_dps", "E107": "lightning_dps", "C108": "smash_dps",
-    "E108": "fox_claws_dps", "C109": "foxfire_dps", "E109": "prismatic_shift_dps",
+    "E108": "fox_claws_dps", "C109": "foxfire_dps",
     "C110": "archangel_smite_dps", "E110": "cursed_aura_dps", "C111": "total_dps", "C112": "berserk",
     "C113": "moonstone", "C115": "min_dps", "C116": "max_dps",
 }

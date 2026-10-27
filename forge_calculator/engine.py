@@ -122,12 +122,6 @@ BLACKHOLE_COOLDOWN = 1.0
 GALAXITE_BISMUTH_WAVE = 1.25
 PROC_ROLL_SIDES = 101
 
-PRISMATIC_SHIFT_RUNES = 4
-PRISMATIC_VENOM = (0.16, 0.77, 12.0)
-PRISMATIC_BLAST = (0.70, 0.42)
-PRISMATIC_FLAME = (0.26, 0.60, 4.0)
-PRISMATIC_THUNDER = (0.80, 0.47, 3.0)
-
 AVG_POWER_EXCLUDED = ("Fichilliumorite", "Bismuth")
 SOLO_ORE_POWER = {"Bismuth": 8.0, "Fichilliumorite": 1.0}
 
@@ -539,21 +533,6 @@ def cooldown_rate(chance: float, atk_rate: float, cooldown: float) -> float:
     return 1.0 / (cooldown + 1.0 / (chance * atk_rate))
 
 
-def prismatic_shift_dps(unforged: float, atk_rate: float, tdm: float) -> float:
-    """E109 -- Bismuth's Prismatic Shift: each full-strength T3 rune is active a quarter of the time."""
-    if atk_rate <= 0:
-        return 0.0
-    v_dmg, v_chance, v_time = PRISMATIC_VENOM
-    b_dmg, b_chance = PRISMATIC_BLAST
-    f_dmg, f_chance, f_time = PRISMATIC_FLAME
-    t_dmg, t_chance, t_cd = PRISMATIC_THUNDER
-    venom = unforged * v_dmg * tdm * dot_uptime(game_chance(v_chance, True), atk_rate, v_time)
-    blast = unforged * b_dmg * game_chance(b_chance, True) * atk_rate
-    flame = unforged * f_dmg * tdm * dot_uptime(game_chance(f_chance, True), atk_rate, f_time)
-    thunder = unforged * t_dmg * tdm * cooldown_rate(game_chance(t_chance, True), atk_rate, t_cd)
-    return (venom + blast + flame + thunder) / PRISMATIC_SHIFT_RUNES
-
-
 def crit_blend(cc_total: float, cd_total: float) -> float:
     """The crit multiplier: ``MIN(cc,1)*cd + (1-MIN(cc,1))``."""
     cc = min(cc_total, 1.0)
@@ -631,7 +610,6 @@ class CalculateResult:
     smash_dps: float = 0.0
     fox_claws_dps: float = 0.0
     foxfire_dps: float = 0.0
-    prismatic_shift_dps: float = 0.0
     archangel_smite_dps: float = 0.0
     cursed_aura_dps: float = 0.0
     lightning_cooldown: float = 0.0
@@ -687,7 +665,6 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
     if atk_rate:
         foxfire_dps = unforged * (1 + totals["lethality"]) * procs.foxfire_dmg * (
             1 - math.exp(-procs.foxfire_chance * atk_rate * procs.foxfire_duration))
-    prismatic = prismatic_shift_dps(unforged, atk_rate, tdm) if ore_share(build.slots, shares, "Bismuth") >= SHARE_GATE else 0.0
     archangel = 0.0
     if race == "Archangel" and atk_rate > 0:
         archangel = ARCHANGEL_SMITE_DMG * unforged * cooldown_rate(ARCHANGEL_SMITE_CHANCE, atk_rate, ARCHANGEL_SMITE_COOLDOWN)
@@ -695,7 +672,7 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
 
     proc_total = (
         explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
-        + smash_dps + fox_claws_dps + foxfire_dps + prismatic + archangel + cursed_aura
+        + smash_dps + fox_claws_dps + foxfire_dps + archangel + cursed_aura
     )
     total = weapon_dps + proc_total
 
@@ -772,7 +749,6 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         smash_dps=smash_dps,
         fox_claws_dps=fox_claws_dps,
         foxfire_dps=foxfire_dps,
-        prismatic_shift_dps=prismatic,
         archangel_smite_dps=archangel,
         cursed_aura_dps=cursed_aura,
         lightning_cooldown=procs.lightning_cooldown,

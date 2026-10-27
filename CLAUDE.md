@@ -213,7 +213,7 @@ The workbook follows the game's own code as extracted from the `.rbxlx` (see
 `Forge_Game_vs_Calculator_Report.docx` and the "Game (.rbxlx) Alignment" plan below). Where the
 game has a cooldown, a refresh rule or a random roll, the sheet uses its expected value.
 
-- **4 forge slots** (`C6:C9` ore, `D6:D9` weight). An ore contributes a stat only when its share ≥10%; value ramps `base → max` as share goes 10% → 30% (`(base + (max-base)*MIN((share-0.1)/0.2, 1))/divisor`; `divisor` 100 for percents, 1 for durations). Below 10% → 0. A **gated flat** `IF(share<0.1, 0, value)` (Bismuth attack speed 18%, Kitsunite 3 s / Marblite 5 s lightning cooldown — `{Value = X}` traits in the game) parses as `base == max`.
+- **4 forge slots** (`C6:C9` ore, `D6:D9` weight). An ore contributes a stat only when its share ≥10%; value ramps `base → max` as share goes 10% → 30% (`(base + (max-base)*MIN((share-0.1)/0.2, 1))/divisor`; `divisor` 100 for percents, 1 for durations). Below 10% → 0. A **gated flat** `IF(share<0.1, 0, value)` (Bismuth's procs) parses as `base == max`.
 - **Weapon** (`D12` key, quality `E12`, forge `C13`): forged damage `C18` = base × ore power × `FORGE_MULT[level]` × `(1+quality/100)`; unforged `A18` is the same without the forge term. Weapon intervals are the average combo `HitCooldown` of the base type ÷ the variant's `AttackSpeedMultiplier`.
 - **Stats** (`E45`–`E48`): the item/race-trait pool (ores, runes, armor inputs, achievements, pool race terms) is capped at 3.0 / 1.0 / 1.0 / 1.5; the after-cap race terms above are added on top.
 - **Ore power** `E10` — a build of only Bismuth is a flat **8**, only Fichilliumorite a flat **1**; otherwise the weighted average of the slot multipliers with **Fichilliumorite, Bismuth, Select Ore and blank slots excluded from both halves** (fallback `AVERAGEIFS`, then 1).
@@ -222,10 +222,10 @@ game has a cooldown, a refresh rule or a random roll, the sheet uses its expecte
 - **DoTs** (fire `E63`, poison `E68`): a re-proc adds half the duration, so uptime = `MIN(1, L/(1+L/2))` with `L = chance × E21 × duration` — `dot_uptime`/`dotUptime`. Duration (`C64`/`C69`) is 0 without a DoT, otherwise the longest source clamped to fire 1–5 s / poison 1–15 s (default 1 s). Poison takes the best Malachite slot, no first-slot rule.
 - **Caps on damage**: explosion `C58` = `MIN(2.5, Σslots + Blast)`; smite `C72` = `MIN(2.5, Σslots + Angel 30%)`; black hole `C76` = `MIN(2.5, Galaxite)`, plus the Resonance +125% when Galaxite **and** Bismuth are each ≥10% of the ores; moon `C53` = `MIN(1.5, Σ)`.
 - **Chance stacking**: chances and durations take the `MAX` across slots, abilities and race (Dragonborn burn 40% and Angel smite 50% are maxed, not added); damage sums; lightning cooldown takes the `MIN`.
-- **Trait-damage multiplier** (Dryad Vital Power, `E49` max HP): `1 + MIN(INT(HP/1000),10) × 5%` on fire, poison, lightning, black hole (incl. Resonance) and the Prismatic Shift fire/poison/lightning parts.
-- **Bismuth**: flat 18% attack speed from 10% share and **no ordinary proc stats**. Its **Prismatic Shift** (`E109`) is ¼ × (Venom Crumb poison 16%/77%/12 s + Blast Chip explosion 70%/42% + Flame Spark fire 26%/60%/4 s + Thunder Shard lightning 80%/47%/3 s cooldown), each at full T3 strength and on its own, gated by ≥10% Bismuth.
+- **Trait-damage multiplier** (Dryad Vital Power, `E49` max HP): `1 + MIN(INT(HP/1000),10) × 5%` on fire, poison, lightning, black hole (incl. Resonance) 
+- **Bismuth** (user's choice, not the game's Prismatic Shift): attack speed ramps 1.8% → 18%; its procs are every T3 rune ÷ 8 as gated flats in the normal proc cells — explosion 8.75% / 5.25%, fire 3.25% / 7.5% / 0.5 s, poison 2% / 9.625% / 1.5 s, lightning 10% / 5.875% / 0.375 s cooldown — so they stack with other ores' procs and need ≥10% Bismuth. No Prismatic Shift row (`E109` is empty).
 - **Race procs**: Smash (Orc Lord) 100% × `1/(10 + 1/(0.25×E21))`; Fox Claws (Kitsune) `0.75 × A18 × MIN(0.25 × E21, 3/2.22)` (max 3 spirits of ~2.22 s); Foxfire (Kitsune) `A18 × (1+E45) × 30% × (1 − e^(−0.5 × E21 × 3))` (reset-to-3 s refresh, boosted damage); Archangel beam (`C110`) `1.5 × A18 / (10 + 1/(0.33×E21))`, separate from ore smite; Cursed Aura (Demon, `E110`) `10% × A18` per second; Demon also gets +20% fire damage and a 3 s burn time.
-- **Results block rows 102–116**: physical hit `C102` = `C18 × (1+E45) × crit_blend × E21`; every proc row scales on **unforged A18**; Total `C111` = all rows incl. `E109`/`C110`/`E110`; TTK `E111/E112` = 25k / 75k ÷ total (Asura stays 75k for its two phases); `C115` min, `C116` max burst (procs on **forged C18**).
+- **Results block rows 102–116**: physical hit `C102` = `C18 × (1+E45) × crit_blend × E21`; every proc row scales on **unforged A18**; Total `C111` = all rows incl. `C110`/`E110`; TTK `E111/E112` = 25k / 75k ÷ total (Asura stays 75k for its two phases); `C115` min, `C116` max burst (procs on **forged C18**).
 - **Berserk** `C112` = `C18 × (1 + E45 + E54) × crit_blend × E21` + every proc row, `E54 = MIN(200%, C54) + Minotaur 30%` — berserk is **additive with lethality** (same damage-boost pool in the game). **Moon Stone** `C113` = `C102 × (1+C53)` + every proc row.
 - **Situational inputs**: Dryad `C49` (in Healing Grove, Yes/No) and `E49` (max HP); Orc Lord `C55` (HP missing %) and `E55` (kill stacks 0–5). All default to off/0.
 
@@ -233,6 +233,7 @@ game has a cooldown, a refresh rule or a random roll, the sheet uses its expecte
 
 - `E45` and `E48` test the singular `Gauntlet` (the weapon data's real type). Both spellings stay registered at 20% in `CLASS_LETHALITY`/`CLASS_ATK_SPEED`; the plural is harmless dead weight.
 - Armor stats feed `E45`/`E46`/`E47` via **C44/C42/C43** (`E42`–`E44` are dead cells).
+- Kept from the sheet against the game (user's choice): burn chance Fireite / Gargantuan 2→20%, Kyubite 4.5→45%; Kitsunite smite damage is the one ramp with **no 10% share gate**, clamped `MAX(0.05, MIN(0.5, ramp))` (`gated`/`floor`/`ceiling` on its `StatRange`); Kitsunite / Marblite lightning cooldown ramps 0.3→3 s / 0.5→5 s; Bismuth attack speed ramps; Bismuth procs are the ÷8 flats above.
 - Each slot is ramped on its own share; the same ore in two slots is not merged into one share (the game keys shares by ore). Only the black-hole / Resonance / Prismatic Shift gates sum an ore's slots (`SUMIF`).
 - Ability inputs are **one row per ability**: Fire 34, Poison 35, Lightning 36, Blast 37, with DMG/Chance/Time in columns C/D/E (Blast has no time).
 - C20 (base crit chance) enters **only** the crit blend, not `E45`.
@@ -310,7 +311,7 @@ python -m scripts.excel_fuzz compare builds.json excel.json   # Excel (the workb
 ```
 
 The saved build in the workbook is Snowite 12 / Kitsunite 15 / Moon Stone 15 / Bismuth 15 with a
-Colossal Terrorblade on a Human, so the saved-build harnesses exercise Bismuth, Prismatic Shift,
+Colossal Terrorblade on a Human, so the saved-build harnesses exercise Bismuth,
 moon, lightning, smite and fire. After a formula edit, the cached values come from an Excel
 recalculation of an `_xlfn.`-prefixed copy until the user re-saves the workbook through Google Sheets.
 
@@ -800,3 +801,4 @@ until the user re-saves the workbook through Google Sheets.
 | 5 | **Python engine + tests** — `engine.py` rewritten to the new cells (new `Build` fields `dryad_in_grove`, `dryad_max_hp`, `orc_lord_hp_missing`, `orc_lord_kill_stacks`; new results `prismatic_shift_dps`, `archangel_smite_dps`, `cursed_aura_dps`, `lightning_cooldown`, `trait_damage_multiplier`, `berserk_level`). New `scripts/excel_fuzz.py` + `scripts/excel_batch.ps1`: 80 random builds pushed through Excel (the workbook itself) match the engine on all 43 cells. `pytest` → 129 passed | ✅ |
 | 6 | **MediaWiki engine + UI + tests + fuzz** — JS engine mirrors the Python one; UI gains a "Race Situational" section (Orc Lord HP missing % / kill stacks, Dryad grove checkbox / max HP; shown only for that race) and DPS rows Prismatic Shift / Archangel Smite / Cursed Aura (+ clipboard, `fc-sv-prismatic` / `fc-sv-aura` colours). `fuzz_gen.py` covers the new inputs and fields: 250 builds, 13,426 fields, JS ≡ Python; every focused test updated and passing | ✅ |
 | 7 | **Docs** — CLAUDE.md race table, domain model, quirks and commands rewritten for the game-aligned workbook | ✅ |
+| 8 | **Partial rollback (user request)** — report section 1.3 back to the sheet's own values (burn chance Fireite/Gargantuan 20%, Kyubite 45%; Kitsunite smite ungated + clamped; Kitsunite/Marblite cooldown ramps; Bismuth attack speed ramp) and section 1.4 Bismuth back to the ÷8 T3-rune procs (now gated flats in the proc cells); Prismatic Shift row, engine code and UI row removed. Built from the committed workbook — the working copy had been re-saved in desktop Excel (`_xludf.IFS`, `#NAME?`, `C49 = Yes`) and was discarded. Excel 80-build parity re-run | ✅ |
