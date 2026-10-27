@@ -275,34 +275,29 @@ def test_crit_blend_partial():
 # --- fire/poison duration without matching ores (C63/C68, gate removed) ---
 
 
-def test_fire_ability_time_alone_counts(game):
-    # no fire ore, no Dragonborn: fire_time 5 -> max(5,0)-1 = 4
-    assert calculate(Build(abilities=Abilities(fire_time=5)), game).fire_duration == pytest.approx(4.0)
-    # fire_time below the -1 offset stays 0
-    assert calculate(Build(abilities=Abilities(fire_time=0.5)), game).fire_duration == pytest.approx(0.0)
+def test_fire_ability_time_needs_fire_damage(game):
+    assert calculate(Build(abilities=Abilities(fire_time=5)), game).fire_duration == 0.0
+    assert calculate(Build(abilities=Abilities(fire_dmg=0.1, fire_time=5)), game).fire_duration == pytest.approx(5.0)
+    assert calculate(Build(abilities=Abilities(fire_dmg=0.1, fire_time=0.5)), game).fire_duration == pytest.approx(1.0)
 
 
-def test_poison_ability_time_alone_counts(game):
-    # no Malachite: poison_time 5 -> max(5,0)-2 = 3
-    assert calculate(Build(abilities=Abilities(poison_time=5)), game).poison_duration == pytest.approx(3.0)
+def test_poison_ability_time_counts_up_to_fifteen_seconds(game):
+    assert calculate(Build(abilities=Abilities(poison_dmg=0.1, poison_time=12)), game).poison_duration == pytest.approx(12.0)
 
 
-def test_fire_dragonborn_time_combines(game):
-    # Dragonborn time 3 beats a 1s ability: max(3,1)-1 = 2
-    assert calculate(Build(race="Dragonborn", abilities=Abilities(fire_time=1)), game).fire_duration == pytest.approx(2.0)
-    # a longer ability time beats Dragonborn: max(3,5)-1 = 4
-    assert calculate(Build(race="Dragonborn", abilities=Abilities(fire_time=5)), game).fire_duration == pytest.approx(4.0)
+def test_fire_race_time_combines(game):
+    assert calculate(Build(race="Dragonborn", abilities=Abilities(fire_time=1)), game).fire_duration == pytest.approx(3.0)
+    assert calculate(Build(race="Dragonborn", abilities=Abilities(fire_time=5)), game).fire_duration == pytest.approx(5.0)
+    assert calculate(Build(race="Demon"), game).fire_duration == pytest.approx(3.0)
 
 
-def test_poison_first_malachite_slot_wins(game):
-    # first Malachite slot is below the 10% gate, a later one is not; C68's
-    # XLOOKUP returns the FIRST slot only, so its 0 is never overridden.
+def test_poison_duration_takes_the_best_malachite_slot(game):
     slots = (OreSlot("Malachite", 1), OreSlot("Stone", 9), OreSlot("Malachite", 10), OreSlot("Select Ore", 0))
-    assert calculate(Build(slots=slots), game).poison_duration == pytest.approx(0.0)
+    r = calculate(Build(slots=slots), game)
+    assert r.poison_duration == pytest.approx(3.0)
 
 
-def test_poison_first_malachite_combines_with_time(game):
-    # a single high-share Malachite gives 3.0, maxed with poison_time 5 -> 3
+def test_poison_malachite_combines_with_time(game):
     slots = (OreSlot("Malachite", 10), OreSlot("Select Ore", 0), OreSlot("Select Ore", 0), OreSlot("Select Ore", 0))
     r = calculate(Build(slots=slots, abilities=Abilities(poison_time=5)), game)
-    assert r.poison_duration == pytest.approx(3.0)
+    assert r.poison_duration == pytest.approx(5.0)

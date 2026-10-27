@@ -16,6 +16,8 @@ from forge_calculator.engine import (
     Build,
     OreSlot,
     calculate,
+    cooldown_rate,
+    dot_uptime,
 )
 
 ROOT = DEFAULT_DATA_DIR.parent
@@ -155,77 +157,70 @@ def test_wolfarite_exactly_at_gate_is_base_not_zero(game):
 
 
 def test_gargantuan_procs(game):
-    # Gargantuan share 1.0: explosion 50%/35%, fire 20%/20%, duration 2-1=1
     build = Build(slots=(OreSlot("Gargantuan", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger")
     r = calculate(build, game)
+    a, rate = r.unforged_damage, r.attack_rate
     assert r.explosion_dmg == pytest.approx(0.5)
     assert r.explosion_chance == pytest.approx(0.35)
     assert r.fire_dmg == pytest.approx(0.2)
-    assert r.fire_chance == pytest.approx(0.2)
-    assert r.fire_duration == pytest.approx(1.0)        # 2.0 - 1 quirk
-    assert r.explosion_dps == pytest.approx(24.01595744680851)
-    assert r.fire_dps == pytest.approx(5.48936170212766)
-    assert r.total_dps == pytest.approx(166.73936170212767)
-    # max-burst uses FORGED C18 for procs; C21 base crit dmg 1.45 added
+    assert r.fire_chance == pytest.approx(0.3)
+    assert r.fire_duration == pytest.approx(2.0)
+    assert r.explosion_dps == pytest.approx(a * 0.5 * 36 / 101 * rate)
+    assert r.fire_dps == pytest.approx(a * 0.2 * dot_uptime(31 / 101, rate, 2.0))
+    assert r.total_dps == pytest.approx(r.weapon_dps + r.explosion_dps + r.fire_dps)
     assert r.max_dps == pytest.approx(280.50638297872337)
 
 
 def test_malachite_poison(game):
-    # Malachite share 1.0: poison 10%/33%, duration 3-2=1
     build = Build(slots=(OreSlot("Malachite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger")
     r = calculate(build, game)
     assert r.poison_dmg == pytest.approx(0.1)
     assert r.poison_chance == pytest.approx(0.33)
-    assert r.poison_duration == pytest.approx(1.0)      # 3.0 - 2 quirk
-    assert r.poison_dps == pytest.approx(1.9322553191489364)
+    assert r.poison_duration == pytest.approx(3.0)
+    assert r.poison_dps == pytest.approx(r.unforged_damage * 0.1 * dot_uptime(34 / 101, r.attack_rate, 3.0))
 
 
 def test_galaxite_black_hole_c76(game):
-    # Galaxite share 1.0: blackhole 60%, and any Galaxite slot triggers C76=0.3
     build = Build(slots=(OreSlot("Galaxite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger")
     r = calculate(build, game)
     assert r.blackhole_dmg == pytest.approx(0.6)
-    assert r.blackhole_chance == pytest.approx(0.3)     # COUNTIF/COUNTA = 1/4 >= 0.1
+    assert r.blackhole_chance == pytest.approx(0.3)
     assert r.crit_chance == pytest.approx(0.45)
     assert r.crit_dmg == pytest.approx(0.2)
-    assert r.blackhole_dps == pytest.approx(41.170212765957444)
+    assert r.blackhole_dps == pytest.approx(r.unforged_damage * 0.6 * cooldown_rate(31 / 101, r.attack_rate, 1.0))
 
 
-def test_black_hole_chance_requires_galaxite(game):
+def test_black_hole_chance_needs_ten_percent_galaxite(game):
     build = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger")
     assert calculate(build, game).blackhole_chance == 0.0
+    low = Build(slots=(OreSlot("Galaxite", 1), OreSlot("Wolfarite", 29), OreSlot(), OreSlot()),
+                weapon_name="Dagger")
+    assert calculate(low, game).blackhole_chance == 0.0
 
 
-def test_minotaur_berserk(game):
-    # E54 = 0 (C54) + 30% (Minotaur).  C97 multiplies the physical hit once --
-    # C89*(1+E54) + procs -- rather than folding berserk into lethality, so with
-    # no procs this is just weapon_dps * 1.3.
+def test_minotaur_berserk_adds_to_lethality(game):
     build = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger", race="Minotaur")
     r = calculate(build, game)
-    assert r.berserk == pytest.approx(r.weapon_dps * 1.30)
-    assert r.berserk == pytest.approx(228.6685838297872)
-    # same build without the race -> N/A
+    assert r.berserk == pytest.approx(r.weapon_dps * (1 + 0.15 + 0.30) / (1 + 0.15))
     plain = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger")
     assert calculate(plain, game).berserk is None
 
 
-def test_berserk_caps_at_200_percent(game):
+def test_berserk_input_caps_at_200_percent_before_minotaur(game):
     build = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
                   weapon_name="Dagger", race="Minotaur", berserk=5.0)
     r = calculate(build, game)
-    assert r.berserk == pytest.approx(r.weapon_dps * 3.0)
-
-    # just under the cap is untouched
+    assert r.berserk_level == pytest.approx(2.3)
+    assert r.berserk == pytest.approx(r.weapon_dps * (1 + 0.15 + 2.3) / 1.15)
     under = Build(slots=(OreSlot("Wolfarite", 30), OreSlot(), OreSlot(), OreSlot()),
-                  weapon_name="Dagger", race="Minotaur", berserk=1.5)
-    r_under = calculate(under, game)
-    assert r_under.berserk == pytest.approx(r_under.weapon_dps * 2.80)
+                  weapon_name="Dagger", berserk=1.5)
+    assert calculate(under, game).berserk_level == pytest.approx(1.5)
 
 
 # --- engine-vs-source guard: every hardcoded constant must appear in the formulas ---
@@ -259,111 +254,94 @@ def _guard(formulas, cell, fragment, label):
 def test_engine_constants_match_source():
     formulas = _load_formulas()
 
-    # forge SWITCH: level 9 = 1.5 (the pattern-breaking quirk)
     _guard(formulas, "C18", "1.5", "forge level 9")
     _guard(formulas, "C18", "SWITCH", "forge uses SWITCH")
 
-    # E45 race/class lethality addends
-    for frag in ['"Archangel", 0.2', '"Demon", 0.2', '"Dragonborn", 0.12', '"Orc", 0.1', '"Shadow", 0.05']:
+    for frag in ['"Orc Lord", 0.4', '"Archangel", 0.2', '"Demon", 0.2', '"Dragonborn", 0.12', '"Orc", 0.1', '"Shadow", 0.05']:
         _guard(formulas, "E45", frag, "race lethality")
     _guard(formulas, "E45", 'AND(C22="Felynx", C23="Gauntlet"), 0.2', "E45 Felynx gauntlet")
     _guard(formulas, "E45", 'AND(C22="Vampire", C23="Straight Sword"), 0.1', "Vampire straight sword lethality")
     _guard(formulas, "E45", "0), 3)", "lethality cap")
+    _guard(formulas, "E45", '+IF(C22="Kitsune",0.2,0)+IF(AND(C22="Fairy",C23="Spear"),0.15,0)', "Kitsune / Fairy added after the cap")
+    _guard(formulas, "E45", 'IF(C22="Orc Lord",INT(MIN(1,MAX(0,C55))*10+0.000001)*0.075,0)', "Warbringer")
+    assert "Minotaur" not in formulas["E45"]
 
-    # E48 race/class atk-speed addends (plural Gauntlets)
     _guard(formulas, "E48", 'AND(C22="Felynx",C23="Gauntlet")', "E48 Felynx gauntlet")
-    _guard(formulas, "E48", 'AND(C22="Golem",C23="Colossal Sword"),15%', "Golem class atk speed")
+    _guard(formulas, "E48", 'AND(C22="Golem",OR(C23="Colossal Sword",C23="Great Axe")),15%', "Golem heavy weapons")
     _guard(formulas, "E48", 'AND(C22="Goblin",C23="Dagger"),10%', "Goblin class atk speed")
-    _guard(formulas, "E48", "150%", "atk speed cap")
+    _guard(formulas, "E48", ",150%)", "atk speed cap")
+    _guard(formulas, "E48", '+IF(C22="Kitsune",20%,0)+IF(AND(C22="Fairy",C23="Spear"),15%,0)', "Kitsune / Fairy after the cap")
+    _guard(formulas, "E48", 'IF(C22="Orc Lord",MIN(5,MAX(0,INT(E55)))*7.5%,0)', "Lord of War")
+    assert '"Elf"' not in formulas["E48"]
 
-    # E46/E47 caps
     _guard(formulas, "E46", "100%", "crit chance cap")
-    _guard(formulas, "E47", "100%", "crit dmg cap")
-    _guard(formulas, "E47", '"Kitsune",15%', "Kitsune crit dmg")
+    _guard(formulas, "E46", 'IF(AND(C22="Dryad",C49="Yes"),15%,0)', "Barkskin crit chance")
+    _guard(formulas, "E47", 'MIN(A29+C47,100%)+IF(C22="Kitsune",15%,0)+IF(AND(C22="Dryad",C49="Yes"),15%,0)', "crit dmg")
 
-    # share gate and ramp
     _guard(formulas, "C45", "0.1", "share gate")
     _guard(formulas, "C45", "0.2", "share ramp span")
-
-    # armor inputs folded into C45/C46/C47
     _guard(formulas, "C45", "+C44", "armor lethality wired into C45")
     _guard(formulas, "C46", "+C42", "armor CC wired into C46")
     _guard(formulas, "C47", "+C43", "armor CD wired into C47")
-
-    # ability wiring -- one row per ability, DMG/Chance/Time in C/D/E
-    _guard(formulas, "C58", "+ C37", "blast dmg input")
-    _guard(formulas, "C59", "D37", "blast chance input")
-    _guard(formulas, "C62", "+C34", "fire dmg input")
-    _guard(formulas, "C63", "D34", "fire chance input")
-    _guard(formulas, "C63", "0.4", "Dragonborn fire chance")
-    _guard(formulas, "C64", "-1", "fire duration -1")
-    _guard(formulas, "C64", '"Dragonborn",3', "Dragonborn fire time")
-    _guard(formulas, "C67", "+C35", "poison dmg input")
-    _guard(formulas, "C68", "D35", "poison chance input")
-    _guard(formulas, "C69", "- 2", "poison duration -2")
-    _guard(formulas, "C69", "XLOOKUP", "poison duration reads the first Malachite")
-    _guard(formulas, "C69", 'COUNTIF($C$6:$C$9, "Bismuth"), 1.5, COUNTIF($C$6:$C$9, "Malachite")', "Bismuth poison duration beats Malachite")
-    _guard(formulas, "C104", "IF(E63=0, E64, E63)", "fire DoT falls back to E64")
-    _guard(formulas, "C105", "IF(E68=0, E69, E68)", "poison DoT falls back to E69")
-    _guard(formulas, "E64", "A18*C62*(C64+1)", "fire DoT fallback")
-    _guard(formulas, "E69", "A18*C67*(C69+1)", "poison DoT fallback")
-    _guard(formulas, "C80", "+C36", "lightning dmg input")
-    _guard(formulas, "C81", "D36", "lightning chance input")
-    _guard(formulas, "E80", "E36", "lightning cooldown input")
-
-    _guard(formulas, "C59", "MAX(", "explosion chance maxes across slots")
-
-    # smite: Archangel damage steps with attack speed, chance is an added IFS
-    _guard(formulas, "C72", 'IF(C22="Archangel", MIN(50% * E21, 150%), 0)', "Archangel smite dmg scales with E21")
-    _guard(formulas, "C73", "0.5", "Angel smite chance")
-    _guard(formulas, "C73", "0.33", "Archangel smite chance")
-
-    # black hole
-    _guard(formulas, "C77", "0.3", "black hole threshold value")
-    _guard(formulas, "C77", "0.1", "black hole threshold ratio")
-    _guard(formulas, "E77", "MAX(1,E21)", "black hole DPS floors its rate at 1")
-    _guard(formulas, "C76", 'IF(AND(COUNTIF(C6:C9,"Galaxite")>0,COUNTIF(C6:C9,"Bismuth")>0),1.25,0)', "Galaxite + Bismuth rainbow wave")
-
-    # berserk
-    _guard(formulas, "E54", "30%", "Minotaur berserk")
-    _guard(formulas, "E54", "C54", "berserk input")
-    _guard(formulas, "C112", "E54", "berserk multiplies the physical hit")
-
-    # procs on unforged A18; C89/C101 on forged C18.
-    # (E58/E72 are not usable here -- _OptionsCrafter has same-named trait
-    # cells -- so the pattern is proven via E59, E76 and C101.)
-    _guard(formulas, "E59", "A18", "explosion dps on A18")
-    _guard(formulas, "E76", "A18", "black hole dps on A18")
-    _guard(formulas, "C116", "C18", "max-burst on C18")
-
-    _guard(formulas, "E45", '"Orc Lord", 0.4', "Orc Lord lethality")
-    _guard(formulas, "E45", '"Kitsune", 0.2', "Kitsune lethality")
-    _guard(formulas, "E45", 'AND(C22="Fairy", C23="Spear"), 0.15', "Fairy spear lethality")
-    assert "Minotaur" not in formulas["E45"], "Minotaur lethality was removed"
-    assert "Demon\", C23" not in formulas["E45"], "Demon straight sword lethality was removed"
-    _guard(formulas, "E48", 'AND(C22="Fairy",C23="Spear"),15%', "Fairy spear atk speed")
-    _guard(formulas, "E48", '"Kitsune",20%', "Kitsune atk speed")
-    for gone in ['"Elf"', "Great Axe", "Mace", "Great Sword"]:
-        assert gone not in formulas["E48"], f"{gone} atk speed was removed"
     for cell in ["C45", "C48"]:
         assert "C22" not in formulas[cell], f"{cell} must hold ore terms only"
-    _guard(formulas, "C58", "MIN(2.5,", "explosion dmg per-slot cap")
-    _guard(formulas, "C72", "MIN(2.5,", "smite dmg cap")
 
+    _guard(formulas, "C53", "MIN(1.5,", "moon cap")
+    _guard(formulas, "C58", "MIN(2.5,", "explosion total cap")
+    _guard(formulas, "C58", "+C37)", "blast dmg inside the cap")
+    _guard(formulas, "C59", "D37", "blast chance input")
+    _guard(formulas, "C59", "MAX(", "explosion chance maxes")
+    _guard(formulas, "C62", '+IF(C22="Dragonborn",0.3,0)+IF(C22="Demon",0.2,0)+C34', "race fire dmg")
+    _guard(formulas, "C63", 'D34,IF(C22="Dragonborn",0.4,0))', "Dragonborn burn chance maxed")
+    _guard(formulas, "C64", 'IF(C62<=0,0,MIN(5,MAX(1,', "fire duration clamp")
+    _guard(formulas, "C64", 'IF(OR(C22="Dragonborn",C22="Demon"),3,0),E34', "race fire time")
+    _guard(formulas, "C67", "+C35", "poison dmg input")
+    _guard(formulas, "C68", "D35", "poison chance input")
+    _guard(formulas, "C69", "IF(C67<=0,0,MIN(15,MAX(1,", "poison duration clamp")
+    _guard(formulas, "C72", "MIN(2.5,", "smite dmg cap")
+    _guard(formulas, "C72", 'IF(C22="Angel",0.3,0)', "Angel smite dmg")
+    _guard(formulas, "C73", ',IF(C22="Angel",0.5,0))', "Angel smite chance maxed")
+    for cell in ["C72", "C73"]:
+        assert "Archangel" not in formulas[cell]
+    _guard(formulas, "C76", "MIN(2.5,", "black hole dmg cap")
+    _guard(formulas, "C76", ">=0.1),1.25,0)", "rainbow wave")
+    _guard(formulas, "C77", '"Galaxite"', "black hole chance")
+    _guard(formulas, "C77", ">=0.1,0.3,0)", "black hole chance gate")
+    _guard(formulas, "C80", "+C36", "lightning dmg input")
+    _guard(formulas, "C81", "D36", "lightning chance input")
+    _guard(formulas, "E80", "=99,10,MIN(", "default lightning cooldown")
+
+    _guard(formulas, "E59", "MIN(1,(INT(ROUND(C59*100,2))+1)/101)", "integer proc roll")
+    _guard(formulas, "E63", "/(1+(", "DoT uptime")
+    _guard(formulas, "E77", "E13*C76*", "black hole dps")
+    _guard(formulas, "E77", "/(1+1/(", "black hole 1 s cooldown")
+    _guard(formulas, "E81", "/(E80+1/(", "lightning cooldown rate")
+    _guard(formulas, "E85", "E13*C84/(E84+1/(C85*E21))", "smash cooldown rate")
     _guard(formulas, "C84", '"Orc Lord",1', "smash dmg")
     _guard(formulas, "E84", '"Orc Lord",10', "smash cooldown")
     _guard(formulas, "C85", '"Orc Lord",0.25', "smash chance")
-    _guard(formulas, "E85", "E13 * C84 * C85 * MIN(E21, 1/E84)", "smash dps")
-    _guard(formulas, "C88", 'IF(C22="Kitsune", 0.75, 0)', "fox claws dmg is flat")
-    _guard(formulas, "C89", '"Kitsune",0.5', "fox claws chance")
-    _guard(formulas, "E89", "((E13*C88*C89)/3)", "fox claws dps")
+    _guard(formulas, "C88", 'IF(C22="Kitsune", 0.75, 0)', "fox claws dmg")
+    _guard(formulas, "C89", '"Kitsune",0.25', "fox claws chance")
+    _guard(formulas, "E89", "E13*C88*MIN(C89*E21,3/2.22)", "fox claws spirits")
     _guard(formulas, "C92", '"Kitsune",0.3', "foxfire dmg")
     _guard(formulas, "C93", '"Kitsune",0.5', "foxfire chance")
-    _guard(formulas, "C94", '"Kitsune",2', "foxfire duration")
-    _guard(formulas, "E93", "A18*C92*MIN(1,C93*E21*MIN(C94,5))", "foxfire dps uptime")
-    _guard(formulas, "C111", "C108+E108+C109", "total includes the race procs")
-    _guard(formulas, "C112", "C108+E108+C109", "berserk includes the race procs")
-    _guard(formulas, "C113", "C108+E108+C109", "moon stone includes the race procs")
+    _guard(formulas, "C94", '"Kitsune",3', "foxfire duration")
+    _guard(formulas, "E93", "A18*(1+E45)*C92*(1-EXP(-C93*E21*C94))", "foxfire uptime")
+    _guard(formulas, "E109", "78/101*E21*12", "Venom Crumb")
+    _guard(formulas, "E109", "A18*0.7*43/101*E21", "Blast Chip")
+    _guard(formulas, "E109", "61/101*E21*4", "Flame Spark")
+    _guard(formulas, "E109", "A18*0.8*", "Thunder Shard")
+    _guard(formulas, "E109", "(3+1/(48/101*E21))", "Thunder Shard cooldown")
+    _guard(formulas, "C110", "1.5*A18/(10+1/(0.33*E21))", "Archangel smite beam")
+    _guard(formulas, "E110", '"Demon",0.1*A18', "Cursed Aura")
+    _guard(formulas, "E63", '"Dryad",MIN(INT(MAX(0,E49)/1000),10)*0.05', "Vital Power")
+
+    _guard(formulas, "E54", 'MIN(200%,C54)+IF(C22="Minotaur",30%,0)', "berserk")
+    _guard(formulas, "C112", "C18*(1+E45+E54)", "berserk adds to lethality")
+    _guard(formulas, "E59", "A18", "explosion dps on A18")
+    _guard(formulas, "C116", "C18", "max-burst on C18")
+    for cell in ["C111", "C112", "C113"]:
+        _guard(formulas, cell, "C108+E108+C109+E109+C110+E110", f"{cell} includes every proc row")
     _guard(formulas, "C116", "C84*C18", "max burst adds smash on forged C18")
 
     # E10 drops Fichilliumorite from both halves of the weighted average
