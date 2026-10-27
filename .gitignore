@@ -29,3 +29,6 @@ Thumbs.db
 
 # Local Claude Code config
 .claude/
+
+.forgecalc-wiki.env
+%USERPROFILE%*
