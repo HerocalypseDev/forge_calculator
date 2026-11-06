@@ -815,7 +815,7 @@ until the user re-saves the workbook through Google Sheets.
 | 7 | **Docs** — CLAUDE.md race table, domain model, quirks and commands rewritten for the game-aligned workbook | ✅ |
 | 8 | **Partial rollback (user request)** — report section 1.3 back to the sheet's own values (burn chance Fireite/Gargantuan 20%, Kyubite 45%; Kitsunite smite ungated + clamped; Kitsunite/Marblite cooldown ramps; Bismuth attack speed ramp) and section 1.4 Bismuth back to the ÷8 T3-rune procs (now gated flats in the proc cells); Prismatic Shift row, engine code and UI row removed. Built from the committed workbook — the working copy had been re-saved in desktop Excel (`_xludf.IFS`, `#NAME?`, `C49 = Yes`) and was discarded. Excel 80-build parity re-run | ✅ |
 
-### Golemite Workbook Adoption (November 2026)
+### Golemite Workbook Adoption (November 2026) — COMPLETED ✅
 **Goal:** `Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (5).xlsx` replaces
 `reference/UpdatedSpreadsheet.xlsx` (same file name kept). It inserts a **Golemite Stats** block
 (rows 39–64) that pushes every cell below row 38 down (rows 39–49 +27, 50–55 +28, 56–110 +29,
@@ -833,4 +833,4 @@ Golemite smite damage and moon boost stay outside the 250% / 150% caps as in the
 | 1 | **Workbook swap + data** — cell addresses moved in extractor, parser, audit, parity and tests; parser and audit read the `SUMPRODUCT` black-hole ramp; data rebuilt (89 weapons) | ✅ |
 | 2 | **Python engine + tests** — Golemite build inputs, stat/proc wiring, Golemite DPS, black-hole gates; parity + goldens; Excel fuzz (230 builds incl. Golemites) EXCEL PARITY PASSED | ✅ |
 | 3 | **MediaWiki engine + UI + tests + fuzz** — same engine changes in JS, tabbed Golemite input section (level + grouped sub-stats, whole percents), Golemite DPS row + clipboard line, `golemite-ui-test.js`; fuzz 250 builds / 13,537 fields JS ≡ Python; previewed in Chromium on the live wiki skin (desktop / tablet / mobile) with local code swapped in, rune Abilities overflow fixed | ✅ |
-| 4 | **Deploy + docs** — upload to the wiki, CLAUDE.md domain model | ⬜ |
+| 4 | **Deploy + docs** — `deploy_wiki.py --apply`: Data:Ores / Weapons / Achievements, styles.css, ForgeCalculator.js (revs 17134–17138); live page checked in Chromium, Golemite DPS shows, no console errors; CLAUDE.md domain model, deviation, UI invariant and commands updated | ✅ |
