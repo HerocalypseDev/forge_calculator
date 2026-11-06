@@ -24,7 +24,7 @@
   color: #0a0a0a;
 }
 
-.fc-calculator :focus-visible {
+.fc-calculator :focus {
   outline: 2px solid #FFB74D;
   outline-offset: 1px;
 }
