@@ -12,25 +12,25 @@ import openpyxl
 
 # workbook cell -> (engine stat key, divisor)
 CELL_STATS = {
-    "C45": ("lethality", 100),
-    "C46": ("crit_chance", 100),
-    "C47": ("crit_dmg", 100),
-    "C48": ("atk_speed", 100),
-    "C53": ("moon", 100),
-    "C58": ("explosion_dmg", 100),
-    "C59": ("explosion_chance", 100),
-    "C62": ("fire_dmg", 100),
-    "C63": ("fire_chance", 100),
-    "C64": ("fire_duration", 1),
-    "C67": ("poison_dmg", 100),
-    "C68": ("poison_chance", 100),
-    "C69": ("poison_duration", 1),
-    "C72": ("smite_dmg", 100),
-    "C73": ("smite_chance", 100),
-    "C76": ("blackhole_dmg", 100),
-    "C80": ("lightning_dmg", 100),
-    "C81": ("lightning_chance", 100),
-    "E80": ("lightning_cooldown", 1),
+    "C72": ("lethality", 100),
+    "C73": ("crit_chance", 100),
+    "C74": ("crit_dmg", 100),
+    "C75": ("atk_speed", 100),
+    "C81": ("moon", 100),
+    "C87": ("explosion_dmg", 100),
+    "C88": ("explosion_chance", 100),
+    "C91": ("fire_dmg", 100),
+    "C92": ("fire_chance", 100),
+    "C93": ("fire_duration", 1),
+    "C96": ("poison_dmg", 100),
+    "C97": ("poison_chance", 100),
+    "C98": ("poison_duration", 1),
+    "C101": ("smite_dmg", 100),
+    "C102": ("smite_chance", 100),
+    "C105": ("blackhole_dmg", 100),
+    "C109": ("lightning_dmg", 100),
+    "C110": ("lightning_chance", 100),
+    "E109": ("lightning_cooldown", 1),
 }
 
 # phys_dmg/move_speed/berserk_duration have no DPS Calculator formula cell --
@@ -51,6 +51,7 @@ RAMP_RE = re.compile(
     r'[(,]\s*(-?[\d.]+)\s*\+\s*(?:\(\s*(-?[\d.]+)\s*-\s*-?[\d.]+\s*\)|(-?[\d.]+))\s*\*\s*MIN\('
 )
 FLAT_RE = re.compile(r'^\s*,\s*(-?[\d.]+)\s*(?:/\s*100)?\s*,')
+SUMPRODUCT_RE = re.compile(r'SUMPRODUCT\(\s*\(C6:C9\s*=\s*"([^"]+)"\).*?\*\s*\(\s*([\d.]+)\s*\+\s*([\d.]+)\s*\*\s*IF\(')
 GATED_FLAT_RE = re.compile(r'^\s*,\s*IF\(SUM\(\$D\$6:\$D\$9\)=0,[\d.]+,IF\(D6/SUM\(\$D\$6:\$D\$9\)<0\.1,[\d.]+,(-?[\d.]+)(?:/100)?\)\)')
 
 
@@ -83,7 +84,7 @@ def parse_cell(formula):
 
 
 def parse_or_groups(formula):
-    """C64 uses OR(C6="A",C6="B",...) -- map every name in a group to its payload."""
+    """C93 uses OR(C6="A",C6="B",...) -- map every name in a group to its payload."""
     out = {}
     for grp in re.finditer(r'OR\(((?:\s*C6\s*=\s*"[^"]+"\s*,?)+)\)', formula):
         names = NAME_RE.findall(grp.group(1))
@@ -110,6 +111,8 @@ def main(xlsx, json_path):
         v = getattr(v, "text", v)
         ranges = parse_or_groups(v) if "OR(" in v else {}
         ranges.update({k: r for k, r in parse_cell(v).items() if k not in ranges})
+        for sp in SUMPRODUCT_RE.finditer(v):
+            ranges[sp.group(1)] = (float(sp.group(2)), float(sp.group(2)) + float(sp.group(3)))
         book[stat] = {n: (b, m, div) for n, (b, m) in ranges.items()}
 
 

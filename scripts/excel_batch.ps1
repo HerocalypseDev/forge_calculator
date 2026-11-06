@@ -1,5 +1,5 @@
 param([string]$Path, [string]$BuildsJson, [string]$OutJson)
-$cells = @('E10','A18','C18','E21','E45','E46','E47','E48','C53','E54','C58','C59','C62','C63','C64','C67','C68','C69','C72','C73','C76','C77','C80','E80','C81','C102','C103','C104','C105','C106','C107','E107','C108','E108','C109','E109','C110','E110','C111','C112','C113','C115','C116')
+$cells = @('E10','A18','C18','E21','E72','E73','E74','E75','C81','E82','C87','C88','C91','C92','C93','C96','C97','C98','C101','C102','C105','C106','C109','E109','C110','C131','C132','C133','C134','C135','C136','E136','C137','E137','C138','E138','C139','E139','C141','C142','C143','C145','C146')
 $builds = Get-Content -Raw $BuildsJson | ConvertFrom-Json
 $tmp = Join-Path $env:TEMP ("fc_batch_" + [guid]::NewGuid().ToString() + ".xlsx")
 Copy-Item -LiteralPath $Path $tmp

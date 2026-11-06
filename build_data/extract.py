@@ -27,13 +27,18 @@ CRAFTER_SHEET = "_OptionsCrafter"
 OPTIONS_SHEET = "_Options"
 
 # Sheet ranges, as laid out in UpdatedSpreadsheet.xlsx.
-WEAPON_ROWS = (2, 88)          # _Weapon!B2:E88   (row 1 is the header)
+WEAPON_ROWS = (2, 90)          # _Weapon!B2:E90   (row 1 is the header)
 CRAFTER_ROWS = (61, 209)       # _OptionsCrafter!A61:F209
 #                              # (58 banner, 59 header, 60 the "Select Ore" sentinel)
-ACHIEVEMENT_CELL = "C98"       # DPS Calculator achievement selector
+ACHIEVEMENT_CELL = "C127"      # DPS Calculator achievement selector
 
 
 # --- small helpers ---
+
+
+def _cell_row(cell):
+    return int(re.sub(r"^[A-Z]+", "", cell)), cell
+
 
 
 def _in_range(sqref, coord):
@@ -158,7 +163,7 @@ def _weapon_type_ore_rule(ws_f, coord):
 
 
 def extract_weapons(ws_v):
-    """_Weapon!B2:E88 -> (weapons, types)."""
+    """_Weapon!B2:E90 -> (weapons, types)."""
     weapons = []
     types_ordered = []
     for row in ws_v.iter_rows(min_row=WEAPON_ROWS[0], max_row=WEAPON_ROWS[1]):
@@ -362,7 +367,7 @@ def extract(workbook_path, out_dir, source_name=None):
     (out / "weapons.json").write_text(
         json.dumps(
             {
-                "source": f"{WEAPON_SHEET}!C2:E88 (+ DPS C12/C23 validation lists)",
+                "source": f"{WEAPON_SHEET}!C2:E90 (+ DPS C12/C23 validation lists)",
                 "types": types_from_c12,
                 "race_bonus_types": race_bonus_types,
                 "type_min_ore": type_min_ore,
@@ -378,7 +383,7 @@ def extract(workbook_path, out_dir, source_name=None):
         json.dumps(
             {
                 "source": f"{CRAFTER_SHEET}!A61:F209 + DPS stat formulas "
-                f"({min(STAT_CELLS)}..{max(STAT_CELLS)})",
+                f"({min(STAT_CELLS, key=_cell_row)}..{max(STAT_CELLS, key=_cell_row)})",
                 "select_ore": "Select Ore",
                 "formula_only_ores": formula_only,
                 "ores": ores,

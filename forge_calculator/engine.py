@@ -24,6 +24,7 @@ from .parse import parse_trait
 __all__ = [
     "OreSlot",
     "Abilities",
+    "Golemite",
     "Build",
     "ProcComponents",
     "CalculateResult",
@@ -44,6 +45,7 @@ __all__ = [
     "dot_uptime",
     "cooldown_rate",
     "ore_share",
+    "golemite_damage",
     "FORGE_MULT",
     "CAPS",
 ]
@@ -112,7 +114,6 @@ DEMON_CURSED_AURA_DMG = 0.1
 
 EXPLOSION_DMG_CAP = 2.5
 SMITE_DMG_CAP = 2.5
-BLACKHOLE_DMG_CAP = 2.5
 MOON_CAP = 1.5
 FIRE_TIME_RANGE = (1.0, 5.0)
 POISON_TIME_RANGE = (1.0, 15.0)
@@ -121,6 +122,12 @@ BLACKHOLE_CHANCE = 0.3
 BLACKHOLE_COOLDOWN = 1.0
 GALAXITE_BISMUTH_WAVE = 1.25
 PROC_ROLL_SIDES = 101
+GOLEMITE_MIN_LEVEL = 13
+GOLEMITE_MAX_LEVEL = 25
+GOLEMITE_BASE_DMG = 0.02
+GOLEMITE_DMG_RAMP = 0.04
+GOLEMITE_RAMP_LEVELS = 12
+GOLEMITE_HITS_PER_SECOND = 0.66666666666666
 
 AVG_POWER_EXCLUDED = ("Fichilliumorite", "Bismuth")
 SOLO_ORE_POWER = {"Bismuth": 8.0, "Fichilliumorite": 1.0}
@@ -168,6 +175,32 @@ class Abilities:
 
 
 @dataclass(frozen=True)
+class Golemite:
+    level: float = 0.0
+    fire_dmg: float = 0.0
+    fire_chance: float = 0.0
+    fire_time: float = 0.0
+    poison_dmg: float = 0.0
+    poison_chance: float = 0.0
+    poison_time: float = 0.0
+    lightning_dmg: float = 0.0
+    lightning_chance: float = 0.0
+    lightning_cooldown: float = 0.0
+    blast_dmg: float = 0.0
+    blast_chance: float = 0.0
+    smite_dmg: float = 0.0
+    smite_chance: float = 0.0
+    blackhole_dmg: float = 0.0
+    blackhole_chance: float = 0.0
+    resonance_dmg: float = 0.0
+    moon: float = 0.0
+    lethality: float = 0.0
+    crit_chance: float = 0.0
+    crit_dmg: float = 0.0
+    atk_speed: float = 0.0
+
+
+@dataclass(frozen=True)
 class Build:
     """A build configuration (workbook input cells)."""
     slots: tuple = (OreSlot(), OreSlot(), OreSlot(), OreSlot())
@@ -190,6 +223,7 @@ class Build:
     dryad_max_hp: float = 0.0
     orc_lord_hp_missing: float = 0.0
     orc_lord_kill_stacks: float = 0.0
+    golemites: tuple = (Golemite(), Golemite())
 
 
 
@@ -349,6 +383,21 @@ def game_chance(chance: float, exists: bool) -> float:
     return min(1.0, (math.floor(_round_half_up(chance * 100, 2)) + 1) / PROC_ROLL_SIDES)
 
 
+def golemite_sum(build: Build, field: str) -> float:
+    return sum(getattr(g, field) for g in build.golemites)
+
+
+def golemite_values(build: Build, field: str) -> list:
+    return [getattr(g, field) for g in build.golemites]
+
+
+def golemite_damage(level: float, unforged: float) -> float:
+    if level < GOLEMITE_MIN_LEVEL:
+        return 0.0
+    steps = min(GOLEMITE_MAX_LEVEL, level) - GOLEMITE_MIN_LEVEL
+    return unforged * (GOLEMITE_BASE_DMG + steps * (GOLEMITE_DMG_RAMP / GOLEMITE_RAMP_LEVELS))
+
+
 def trait_damage_multiplier(build: Build) -> float:
     """Dryad Vital Power: +5% fire/poison/lightning/black-hole damage per 1,000 max HP, max +50%."""
     if build.race != "Dryad":
@@ -369,6 +418,7 @@ def stat_totals(build: Build, game: GameData, ore_contribs: Mapping[str, float])
     lethality = (
         ore_contribs["lethality"]
         + build.armor_lethality
+        + golemite_sum(build, "lethality")
         + runes["lethality"]
         + build.base_lethality
         + RACE_LETHALITY.get(race, 0.0)
@@ -382,12 +432,14 @@ def stat_totals(build: Build, game: GameData, ore_contribs: Mapping[str, float])
     crit_chance = (
         ore_contribs["crit_chance"]
         + build.armor_crit_chance
+        + golemite_sum(build, "crit_chance")
         + runes["crit_chance"]
         + (ach_value if ach_stat == "crit_chance" else 0.0)
     )
-    crit_dmg = ore_contribs["crit_dmg"] + build.armor_crit_dmg + runes["crit_dmg"]
+    crit_dmg = ore_contribs["crit_dmg"] + build.armor_crit_dmg + golemite_sum(build, "crit_dmg") + runes["crit_dmg"]
     atk_speed = (
         ore_contribs["atk_speed"]
+        + golemite_sum(build, "atk_speed")
         + runes["atk_speed"]
         + RACE_ATK_SPEED.get(race, 0.0)
         + CLASS_ATK_SPEED.get(cls, 0.0)
@@ -478,37 +530,47 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
 
     ab = build.abilities
     race = build.race
-    galaxite = ore_share(build.slots, shares, "Galaxite") >= SHARE_GATE
-    bismuth = ore_share(build.slots, shares, "Bismuth") >= SHARE_GATE
+    names = [slot.name for slot in build.slots]
+    resonance = 0.0
+    if "Galaxite" in names or any(v > 0 for v in golemite_values(build, "blackhole_dmg")):
+        resonance = golemite_sum(build, "resonance_dmg") + (GALAXITE_BISMUTH_WAVE if "Bismuth" in names else 0.0)
+    galaxite_amount = sum(slot.amount for slot in build.slots if slot.name == "Galaxite")
 
-    fire_dmg = slot_sum("fire_dmg") + RACE_FIRE_DMG.get(race, 0.0) + ab.fire_dmg
-    poison_dmg = slot_sum("poison_dmg") + ab.poison_dmg
-    lightning_dmg = slot_sum("lightning_dmg") + ab.lightning_dmg
+    fire_dmg = slot_sum("fire_dmg") + RACE_FIRE_DMG.get(race, 0.0) + ab.fire_dmg + golemite_sum(build, "fire_dmg")
+    poison_dmg = slot_sum("poison_dmg") + ab.poison_dmg + golemite_sum(build, "poison_dmg")
+    lightning_dmg = slot_sum("lightning_dmg") + ab.lightning_dmg + golemite_sum(build, "lightning_dmg")
     cooldowns = slot_vals("lightning_cooldown") + ([ab.lightning_cooldown] if ab.lightning_cooldown else [])
+    golemite_cooldowns = [cd for cd in golemite_values(build, "lightning_cooldown") if cd]
     if lightning_dmg <= 0:
         lightning_cooldown = 0.0
+    elif not cooldowns:
+        lightning_cooldown = DEFAULT_LIGHTNING_COOLDOWN
     else:
-        lightning_cooldown = min(cooldowns) if cooldowns else DEFAULT_LIGHTNING_COOLDOWN
+        lightning_cooldown = min(cooldowns + golemite_cooldowns)
 
     return ProcComponents(
-        moon=min(MOON_CAP, slot_sum("moon")),
-        explosion_dmg=min(EXPLOSION_DMG_CAP, slot_sum("explosion_dmg") + ab.blast_dmg),
-        explosion_chance=max(slot_max("explosion_chance"), ab.blast_chance),
+        moon=min(MOON_CAP, slot_sum("moon")) + golemite_sum(build, "moon"),
+        explosion_dmg=min(EXPLOSION_DMG_CAP, slot_sum("explosion_dmg") + ab.blast_dmg + golemite_sum(build, "blast_dmg")),
+        explosion_chance=max(slot_max("explosion_chance"), ab.blast_chance, *golemite_values(build, "blast_chance")),
         fire_dmg=fire_dmg,
-        fire_chance=max(slot_max("fire_chance"), ab.fire_chance, RACE_FIRE_CHANCE.get(race, 0.0)),
+        fire_chance=max(slot_max("fire_chance"), ab.fire_chance, RACE_FIRE_CHANCE.get(race, 0.0),
+                        *golemite_values(build, "fire_chance")),
         fire_duration=_dot_duration(
-            fire_dmg, slot_vals("fire_duration") + [RACE_FIRE_TIME.get(race, 0.0), ab.fire_time], FIRE_TIME_RANGE),
+            fire_dmg,
+            slot_vals("fire_duration") + [RACE_FIRE_TIME.get(race, 0.0), ab.fire_time, *golemite_values(build, "fire_time")],
+            FIRE_TIME_RANGE),
         poison_dmg=poison_dmg,
-        poison_chance=max(slot_max("poison_chance"), ab.poison_chance),
-        poison_duration=_dot_duration(poison_dmg, slot_vals("poison_duration") + [ab.poison_time], POISON_TIME_RANGE),
-        smite_dmg=min(SMITE_DMG_CAP, slot_sum("smite_dmg") + RACE_SMITE_DMG.get(race, 0.0)),
-        smite_chance=max(slot_max("smite_chance"), RACE_SMITE_CHANCE.get(race, 0.0)),
-        blackhole_dmg=min(BLACKHOLE_DMG_CAP, slot_sum("blackhole_dmg"))
-        + (GALAXITE_BISMUTH_WAVE if galaxite and bismuth else 0.0),
-        blackhole_chance=BLACKHOLE_CHANCE if galaxite else 0.0,
+        poison_chance=max(slot_max("poison_chance"), ab.poison_chance, *golemite_values(build, "poison_chance")),
+        poison_duration=_dot_duration(
+            poison_dmg, slot_vals("poison_duration") + [ab.poison_time, *golemite_values(build, "poison_time")],
+            POISON_TIME_RANGE),
+        smite_dmg=min(SMITE_DMG_CAP, slot_sum("smite_dmg") + RACE_SMITE_DMG.get(race, 0.0)) + golemite_sum(build, "smite_dmg"),
+        smite_chance=max(slot_max("smite_chance"), RACE_SMITE_CHANCE.get(race, 0.0), *golemite_values(build, "smite_chance")),
+        blackhole_dmg=slot_sum("blackhole_dmg") + resonance + golemite_sum(build, "blackhole_dmg"),
+        blackhole_chance=max(BLACKHOLE_CHANCE if galaxite_amount > 0 else 0.0, *golemite_values(build, "blackhole_chance")),
         lightning_dmg=lightning_dmg,
         lightning_cooldown=lightning_cooldown,
-        lightning_chance=max(slot_max("lightning_chance"), ab.lightning_chance),
+        lightning_chance=max(slot_max("lightning_chance"), ab.lightning_chance, *golemite_values(build, "lightning_chance")),
         smash_dmg=RACE_SMASH_DMG.get(race, 0.0),
         smash_cooldown=RACE_SMASH_COOLDOWN.get(race, 0.0),
         smash_chance=RACE_SMASH_CHANCE.get(race, 0.0),
@@ -615,6 +677,7 @@ class CalculateResult:
     lightning_cooldown: float = 0.0
     trait_damage_multiplier: float = 1.0
     berserk_level: float = 0.0
+    golemite_dps: float = 0.0
 
 
 def calculate(build: Build, game: GameData) -> CalculateResult:
@@ -669,10 +732,11 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
     if race == "Archangel" and atk_rate > 0:
         archangel = ARCHANGEL_SMITE_DMG * unforged * cooldown_rate(ARCHANGEL_SMITE_CHANCE, atk_rate, ARCHANGEL_SMITE_COOLDOWN)
     cursed_aura = DEMON_CURSED_AURA_DMG * unforged if race == "Demon" else 0.0
+    golemite_dps = sum(golemite_damage(g.level, unforged) * GOLEMITE_HITS_PER_SECOND for g in build.golemites)
 
     proc_total = (
         explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
-        + smash_dps + fox_claws_dps + foxfire_dps + archangel + cursed_aura
+        + smash_dps + fox_claws_dps + foxfire_dps + archangel + cursed_aura + golemite_dps
     )
     total = weapon_dps + proc_total
 
@@ -754,4 +818,5 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         lightning_cooldown=procs.lightning_cooldown,
         trait_damage_multiplier=tdm,
         berserk_level=berserk_level,
+        golemite_dps=golemite_dps,
     )

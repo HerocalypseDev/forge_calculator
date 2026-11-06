@@ -802,3 +802,23 @@ until the user re-saves the workbook through Google Sheets.
 | 6 | **MediaWiki engine + UI + tests + fuzz** — JS engine mirrors the Python one; UI gains a "Race Situational" section (Orc Lord HP missing % / kill stacks, Dryad grove checkbox / max HP; shown only for that race) and DPS rows Prismatic Shift / Archangel Smite / Cursed Aura (+ clipboard, `fc-sv-prismatic` / `fc-sv-aura` colours). `fuzz_gen.py` covers the new inputs and fields: 250 builds, 13,426 fields, JS ≡ Python; every focused test updated and passing | ✅ |
 | 7 | **Docs** — CLAUDE.md race table, domain model, quirks and commands rewritten for the game-aligned workbook | ✅ |
 | 8 | **Partial rollback (user request)** — report section 1.3 back to the sheet's own values (burn chance Fireite/Gargantuan 20%, Kyubite 45%; Kitsunite smite ungated + clamped; Kitsunite/Marblite cooldown ramps; Bismuth attack speed ramp) and section 1.4 Bismuth back to the ÷8 T3-rune procs (now gated flats in the proc cells); Prismatic Shift row, engine code and UI row removed. Built from the committed workbook — the working copy had been re-saved in desktop Excel (`_xludf.IFS`, `#NAME?`, `C49 = Yes`) and was discarded. Excel 80-build parity re-run | ✅ |
+
+### Golemite Workbook Adoption (November 2026)
+**Goal:** `Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (5).xlsx` replaces
+`reference/UpdatedSpreadsheet.xlsx` (same file name kept). It inserts a **Golemite Stats** block
+(rows 39–64) that pushes every cell below row 38 down (rows 39–49 +27, 50–55 +28, 56–110 +29,
+111–116 +30: lethality `E72`, crit `E73`/`E74`, attack speed `E75`, achievement `C127`, results
+`C131`–`C146`). Two Golemites each carry a level (`E54`/`E55`) and sub-stats (`C41`–`D64`) that
+feed the existing stat and proc cells; Golemite DPS (`E62` → `E138`) is added to Total, Berserk
+and Moon Stone DPS. Also: two new Halberds and several weapon damage/interval changes in
+`_Weapon` (`C2:E90`); black hole (`C105`) rewritten as `SUMPRODUCT`, its Resonance and chance
+gates now test whether Galaxite / Bismuth are slotted at all. User decisions: explosion chance
+`C88` uses the Golemite **Blast** chances `D47`/`D48` (the sheet's `C49`/`C50` is a typo);
+Golemite smite damage and moon boost stay outside the 250% / 150% caps as in the sheet. Lightning cooldown `E109` is ported verbatim: its "no cooldown source → 10 s" test ignores the Golemite cooldowns, so a Golemite cooldown only counts next to an ore or rune cooldown.
+
+| Phase | Work | Status |
+|-------|------|--------|
+| 1 | **Workbook swap + data** — cell addresses moved in extractor, parser, audit, parity and tests; parser and audit read the `SUMPRODUCT` black-hole ramp; data rebuilt (89 weapons) | ✅ |
+| 2 | **Python engine + tests** — Golemite build inputs, stat/proc wiring, Golemite DPS, black-hole gates; parity + goldens; Excel fuzz (230 builds incl. Golemites) EXCEL PARITY PASSED | ✅ |
+| 3 | **MediaWiki engine + UI + tests + fuzz** — same engine changes in JS, Golemite input section, Golemite DPS row | ⬜ |
+| 4 | **Deploy + docs** — upload to the wiki, CLAUDE.md domain model | ⬜ |

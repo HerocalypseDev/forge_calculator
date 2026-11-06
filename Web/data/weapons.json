@@ -1,5 +1,5 @@
 {
-  "source": "_Weapon!C2:E88 (+ DPS C12/C23 validation lists)",
+  "source": "_Weapon!C2:E90 (+ DPS C12/C23 validation lists)",
   "types": [
     "Dagger",
     "Straight Sword",
@@ -118,7 +118,7 @@
       "name": "Cutlass",
       "type": "Straight Sword",
       "interval": 0.78,
-      "damage": 9.375
+      "damage": 9.38
     },
     {
       "name": "Rapier",
@@ -130,13 +130,13 @@
       "name": "Chaos",
       "type": "Straight Sword",
       "interval": 0.7,
-      "damage": 9.375
+      "damage": 9.38
     },
     {
       "name": "Hell Slayer",
       "type": "Straight Sword",
       "interval": 0.7,
-      "damage": 11.125
+      "damage": 11.13
     },
     {
       "name": "Candy Cane",
@@ -178,7 +178,7 @@
       "name": "Thornspine",
       "type": "Straight Sword",
       "interval": 0.7,
-      "damage": 10.875
+      "damage": 10.9
     },
     {
       "name": "Mace",
@@ -298,7 +298,7 @@
       "name": "Tachi",
       "type": "Katana",
       "interval": 0.73,
-      "damage": 8.925
+      "damage": 8.93
     },
     {
       "name": "Straight Edge Katana",
@@ -327,31 +327,31 @@
     {
       "name": "Crusader Sword",
       "type": "Great Sword",
-      "interval": 1.2,
+      "interval": 1.19,
       "damage": 12.0
     },
     {
       "name": "Long Sword",
       "type": "Great Sword",
-      "interval": 1.33,
+      "interval": 1.32,
       "damage": 12.0
     },
     {
       "name": "Dark Knight's Greatsword",
       "type": "Great Sword",
-      "interval": 1.33,
+      "interval": 1.32,
       "damage": 15.0
     },
     {
       "name": "Anchored Greatsword",
       "type": "Great Sword",
-      "interval": 1.09,
+      "interval": 1.08,
       "damage": 13.8
     },
     {
       "name": "Zweihander",
       "type": "Great Sword",
-      "interval": 1.26,
+      "interval": 1.25,
       "damage": 14.4
     },
     {
@@ -394,7 +394,7 @@
       "name": "Knight Spear",
       "type": "Spear",
       "interval": 0.6,
-      "damage": 10.125
+      "damage": 7.5
     },
     {
       "name": "Compass Spear",
@@ -460,7 +460,7 @@
       "name": "Executioner's Greataxe",
       "type": "Great Axe",
       "interval": 1.7,
-      "damage": 20.0
+      "damage": 19.5
     },
     {
       "name": "Anchored Straight Blade",
@@ -478,13 +478,25 @@
       "name": "Batwing Reaver",
       "type": "Great Axe",
       "interval": 1.7,
-      "damage": 19.5
+      "damage": 20.0
     },
     {
       "name": "Halberd",
       "type": "Halberd",
       "interval": 1.07,
       "damage": 16.8
+    },
+    {
+      "name": "Spiked Halberd",
+      "type": "Halberd",
+      "interval": 1.07,
+      "damage": 17.04
+    },
+    {
+      "name": "Fangtian Halberd",
+      "type": "Halberd",
+      "interval": 1.07,
+      "damage": 18.0
     },
     {
       "name": "Great Sword",
@@ -532,7 +544,7 @@
       "name": "Colossal Gemblade",
       "type": "Colossal Sword",
       "interval": 1.4,
-      "damage": 25.0
+      "damage": 23.0
     },
     {
       "name": "Otsuchi",
@@ -556,7 +568,7 @@
       "name": "Coffin Lid",
       "type": "Colossal Sword",
       "interval": 1.4,
-      "damage": 23.0
+      "damage": 25.0
     }
   ]
 }

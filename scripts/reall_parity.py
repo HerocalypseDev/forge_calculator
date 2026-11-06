@@ -21,6 +21,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from forge_calculator.data import DEFAULT_DATA_DIR, load_game_data  # noqa: E402
 from forge_calculator.engine import Abilities, Build, OreSlot, calculate  # noqa: E402
+from scripts.excel_fuzz import golemites_from  # noqa: E402
 
 DEFAULT_WORKBOOK = PROJECT_ROOT / "reference" / "UpdatedSpreadsheet.xlsx"
 
@@ -31,42 +32,43 @@ CELL_ATTRS = [
     ("A18  unforged dmg", "unforged_damage", "A18"),
     ("C18  forged dmg", "forged_damage", "C18"),
     ("E21  eff. hits/sec", "attack_rate", "E21"),
-    ("E45  lethality", "lethality", "E45"),
-    ("E46  crit chance", "crit_chance", "E46"),
-    ("E47  crit dmg", "crit_dmg", "E47"),
-    ("E48  atk speed", "atk_speed", "E48"),
-    ("C53  moon", "moon", "C53"),
-    ("C58  explosion dmg", "explosion_dmg", "C58"),
-    ("C59  explosion chance", "explosion_chance", "C59"),
-    ("C62  fire dmg", "fire_dmg", "C62"),
-    ("C63  fire chance", "fire_chance", "C63"),
-    ("C64  fire duration", "fire_duration", "C64"),
-    ("C67  poison dmg", "poison_dmg", "C67"),
-    ("C68  poison chance", "poison_chance", "C68"),
-    ("C69  poison duration", "poison_duration", "C69"),
-    ("C72  smite dmg", "smite_dmg", "C72"),
-    ("C73  smite chance", "smite_chance", "C73"),
-    ("C76  black hole dmg", "blackhole_dmg", "C76"),
-    ("C77  black hole chance", "blackhole_chance", "C77"),
-    ("C80  lightning dmg", "lightning_dmg", "C80"),
-    ("C81  lightning chance", "lightning_chance", "C81"),
-    ("C102 physical hit DPS", "weapon_dps", "C102"),
-    ("C103 explosion DPS", "explosion_dps", "C103"),
-    ("C104 fire DoT DPS", "fire_dps", "C104"),
-    ("C105 poison DoT DPS", "poison_dps", "C105"),
-    ("C106 smite DPS", "smite_dps", "C106"),
-    ("C107 black hole DPS", "blackhole_dps", "C107"),
-    ("E107 lightning DPS", "lightning_dps", "E107"),
-    ("C111 TOTAL DPS", "total_dps", "C111"),
-    ("C112 berserk DPS", "berserk", "C112"),
-    ("C113 moon stone DPS", "moonstone", "C113"),
-    ("C115 min DPS", "min_dps", "C115"),
-    ("C116 max burst DPS", "max_dps", "C116"),
-    ("E111 TTK 25k", "ttk_25k", "E111"),
-    ("E112 TTK 75k", "ttk_75k", "E112"),
-    ("C108 smash DPS", "smash_dps", "C108"),
-    ("E108 fox claws DPS", "fox_claws_dps", "E108"),
-    ("C109 foxfire DPS", "foxfire_dps", "C109"),
+    ("E72  lethality", "lethality", "E72"),
+    ("E73  crit chance", "crit_chance", "E73"),
+    ("E74  crit dmg", "crit_dmg", "E74"),
+    ("E75  atk speed", "atk_speed", "E75"),
+    ("C81  moon", "moon", "C81"),
+    ("C87  explosion dmg", "explosion_dmg", "C87"),
+    ("C88  explosion chance", "explosion_chance", "C88"),
+    ("C91  fire dmg", "fire_dmg", "C91"),
+    ("C92  fire chance", "fire_chance", "C92"),
+    ("C93  fire duration", "fire_duration", "C93"),
+    ("C96  poison dmg", "poison_dmg", "C96"),
+    ("C97  poison chance", "poison_chance", "C97"),
+    ("C98  poison duration", "poison_duration", "C98"),
+    ("C101  smite dmg", "smite_dmg", "C101"),
+    ("C102  smite chance", "smite_chance", "C102"),
+    ("C105  black hole dmg", "blackhole_dmg", "C105"),
+    ("C106  black hole chance", "blackhole_chance", "C106"),
+    ("C109  lightning dmg", "lightning_dmg", "C109"),
+    ("C110  lightning chance", "lightning_chance", "C110"),
+    ("C131 physical hit DPS", "weapon_dps", "C131"),
+    ("C132 explosion DPS", "explosion_dps", "C132"),
+    ("C133 fire DoT DPS", "fire_dps", "C133"),
+    ("C134 poison DoT DPS", "poison_dps", "C134"),
+    ("C135 smite DPS", "smite_dps", "C135"),
+    ("C136 black hole DPS", "blackhole_dps", "C136"),
+    ("E136 lightning DPS", "lightning_dps", "E136"),
+    ("C141 TOTAL DPS", "total_dps", "C141"),
+    ("C142 berserk DPS", "berserk", "C142"),
+    ("C143 moon stone DPS", "moonstone", "C143"),
+    ("C145 min DPS", "min_dps", "C145"),
+    ("C146 max burst DPS", "max_dps", "C146"),
+    ("E141 TTK 25k", "ttk_25k", "E141"),
+    ("E142 TTK 75k", "ttk_75k", "E142"),
+    ("C137 smash DPS", "smash_dps", "C137"),
+    ("E137 fox claws DPS", "fox_claws_dps", "E137"),
+    ("C138 foxfire DPS", "foxfire_dps", "C138"),
+    ("E138 Golemite DPS", "golemite_dps", "E138"),
 ]
 
 
@@ -88,10 +90,10 @@ def _build_from_cache(c):
                     c("C29") or "None", c("D29") or "None", c("E29") or "None"),
         base_crit_chance=c("C20") or 0.0,
         base_crit_dmg=c("C21") or 0.0,
-        armor_crit_chance=c("C42") or 0.0,
-        armor_crit_dmg=c("C43") or 0.0,
-        armor_lethality=c("C44") or 0.0,
-        base_lethality=c("A45") or 0.0,
+        armor_crit_chance=c("C69") or 0.0,
+        armor_crit_dmg=c("C70") or 0.0,
+        armor_lethality=c("C71") or 0.0,
+        base_lethality=c("A72") or 0.0,
         abilities=Abilities(
             fire_dmg=c("C34") or 0.0, fire_chance=c("D34") or 0.0, fire_time=c("E34") or 0.0,
             poison_dmg=c("C35") or 0.0, poison_chance=c("D35") or 0.0, poison_time=c("E35") or 0.0,
@@ -99,8 +101,9 @@ def _build_from_cache(c):
             lightning_cooldown=c("E36") or 0.0,
             blast_dmg=c("C37") or 0.0, blast_chance=c("D37") or 0.0,
         ),
-        berserk=c("C54") or 0.0,
-        achievement=c("C98") or "None",
+        berserk=c("C82") or 0.0,
+        achievement=c("C127") or "None",
+        golemites=golemites_from(c, sheet_typo=True),
     )
 
 
@@ -131,7 +134,7 @@ def main(argv):
         want = c(cell) or 0.0
         got = getattr(r, attr)
         if got is None and attr in ("berserk", "moonstone"):
-            got = r.total_dps  # workbook falls back to C111 when the bonus is 0
+            got = r.total_dps  # workbook falls back to C141 when the bonus is 0
         ok = got is not None and abs(got - want) <= TOL * max(1.0, abs(want))
         if not ok:
             fails += 1

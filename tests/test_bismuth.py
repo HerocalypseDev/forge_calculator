@@ -60,12 +60,14 @@ def test_bismuth_poison_duration_is_one_more_term(game):
     assert run(game, ("Malachite", 30), ("Bismuth", 30)).poison_duration == pytest.approx(3.0)
 
 
-def test_galaxite_and_bismuth_add_the_rainbow_wave_when_both_are_gated(game):
+def test_galaxite_and_bismuth_add_the_rainbow_wave_when_both_are_slotted(game):
     galaxite = run(game, ("Galaxite", 30), ("Ancienite", 70))
     both = run(game, ("Galaxite", 30), ("Bismuth", 10), ("Ancienite", 60))
     assert both.blackhole_dmg == pytest.approx(galaxite.blackhole_dmg + 1.25)
     low = run(game, ("Galaxite", 30), ("Bismuth", 5), ("Ancienite", 65))
-    assert low.blackhole_dmg == pytest.approx(run(game, ("Galaxite", 30), ("Ancienite", 70)).blackhole_dmg)
+    assert low.blackhole_dmg == pytest.approx(galaxite.blackhole_dmg + 1.25)
+    bismuth_only = run(game, ("Bismuth", 30), ("Ancienite", 70))
+    assert bismuth_only.blackhole_dmg == 0.0
 
 
 def test_game_chance_rolls_on_integers():

@@ -159,7 +159,7 @@ EXPECTED = {
 
 
 def _formula_text(ws, coord):
-    """Formula string, unwrapping openpyxl's ArrayFormula (C69's XLOOKUP)."""
+    """Formula string, unwrapping openpyxl's ArrayFormula (C98's XLOOKUP)."""
     val = ws[coord].value
     return getattr(val, "text", val) or ""
 
