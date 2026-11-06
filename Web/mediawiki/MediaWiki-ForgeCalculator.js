@@ -2341,6 +2341,110 @@
   }
 
 
+  function sectionHeader(title) {
+    var wrap = createEl('div', { class: 'fc-section' });
+    wrap.append(
+      createEl('span', { class: 'fc-section-dot' }),
+      createEl('h2', { class: 'fc-section-title' }, [title]),
+      createEl('span', { class: 'fc-section-line' })
+    );
+    return wrap;
+  }
+
+  function createTabber(id, tabs) {
+    var container = createEl('div', { class: 'fc-tabber' });
+    var bar = createEl('div', { class: 'fc-tabs', role: 'tablist' });
+    var buttons = [];
+    var panels = [];
+    function select(index) {
+      for (var j = 0; j < tabs.length; j++) {
+        buttons[j].classList.toggle('fc-tab--active', j === index);
+        buttons[j].setAttribute('aria-selected', j === index ? 'true' : 'false');
+        panels[j].classList.toggle('fc-hidden', j !== index);
+      }
+    }
+    tabs.forEach(function (tab, index) {
+      var button = createEl('button', {
+        type: 'button', class: 'fc-tab', role: 'tab', id: id + '-tab-' + (index + 1)
+      }, [tab.title]);
+      button.addEventListener('click', function (e) { e.preventDefault(); select(index); });
+      var panel = createEl('div', { class: 'fc-tab-panel', role: 'tabpanel' });
+      tab.content.forEach(function (node) { panel.appendChild(node); });
+      buttons.push(button);
+      panels.push(panel);
+      bar.appendChild(button);
+    });
+    container.appendChild(bar);
+    panels.forEach(function (panel) { container.appendChild(panel); });
+    select(0);
+    container.select = select;
+    return container;
+  }
+
+  var HERO_ART_FILE = 'Gradient Weapons.webp';
+
+  function createHero() {
+    var hero = createEl('div', { class: 'fc-hero' });
+    var art = createEl('div', { class: 'fc-hero-art' });
+    var left = createEl('div', { class: 'fc-hero-left' });
+    var stats = createEl('div', { class: 'fc-hero-stats' });
+    var values = {};
+    [
+      { key: 'total', sub: 'Total DPS' },
+      { key: 'golem', sub: 'Golem (25,000 HP)' },
+      { key: 'asura', sub: 'Asura (75,000 HP)' }
+    ].forEach(function (item) {
+      var value = createEl('div', { class: 'fc-hero-stat-label' }, ['—']);
+      values[item.key] = value;
+      stats.appendChild(createEl('div', { class: 'fc-hero-stat' }, [
+        value,
+        createEl('div', { class: 'fc-hero-stat-sub' }, [item.sub])
+      ]));
+    });
+    left.append(
+      createEl('span', { class: 'fc-hero-badge' }, ['DPS Calculator']),
+      createEl('div', { class: 'fc-hero-title' }, ['Forge Calculator']),
+      createEl('div', { class: 'fc-hero-desc' }, [
+        'Pick your ores, weapon, race, runes and Golemites, then press Calculate DPS to see your damage, ' +
+        'every proc and how long a boss takes to fall. Percentages are whole numbers (15 = 15%).'
+      ]),
+      stats
+    );
+    hero.append(art, createEl('div', { class: 'fc-hero-gradient' }), left);
+    hero.update = function (result) {
+      values.total.textContent = fmtDps(result.total_dps);
+      values.golem.textContent = fmtTime(result.ttk_25k);
+      values.asura.textContent = fmtTime(result.ttk_75k);
+    };
+    loadHeroArt(art);
+    return hero;
+  }
+
+  function loadHeroArt(wrap) {
+    if (!mw.loader || typeof mw.loader.using !== 'function') { return; }
+    mw.loader.using('mediawiki.api').then(function () {
+      if (!mw.Api) { return; }
+      var api = new mw.Api();
+      if (!api || typeof api.parse !== 'function') { return; }
+      api.parse('[[File:' + HERO_ART_FILE + '|frameless|900px|link=|alt=]]').then(function (html) {
+        var img = /<img[^>]*>/.exec(String(html || ''));
+        if (img) { wrap.innerHTML = img[0]; }
+      }, function () {});
+    });
+  }
+
+  function createActionBar(handlers) {
+    var bar = createEl('div', { class: 'fc-toolbar' });
+    var resetBtn = createEl('button', { class: 'fc-btn fc-btn--reset', type: 'button' },
+      [iconImg('reset', 'Reset'), 'Reset']);
+    var calcBtn = createEl('button', { class: 'fc-btn fc-btn--calc', type: 'button' },
+      [iconImg('calc', 'Calculate DPS'), 'Calculate DPS']);
+    resetBtn.addEventListener('click', function (e) { e.preventDefault(); handlers.onReset(); });
+    calcBtn.addEventListener('click', function (e) { e.preventDefault(); handlers.onCalculate(); });
+    bar.append(resetBtn, calcBtn);
+    return bar;
+  }
+
   function sectionTitle(title, iconName) {
     var h3 = createEl('h3', { class: 'fc-input-section-title' });
     h3.appendChild(iconImg(iconName, title));
@@ -2353,20 +2457,8 @@
   function createResultsPanel(handlers) {
     var container = createEl('div', { class: 'fc-results-panel' });
 
-    var head = createEl('div', { class: 'fc-results-head' });
-    var title = createEl('h2', { class: 'fc-results-title' }, ['Results']);
-    var toolbar = createEl('div', { class: 'fc-toolbar' });
-    var resetBtn = createEl('button', { class: 'fc-btn fc-btn--reset', type: 'button' },
-      [iconImg('reset', 'Reset'), 'Reset']);
-    var calcBtn = createEl('button', { class: 'fc-btn fc-btn--calc', type: 'button' },
-      [iconImg('calc', 'Calculate DPS'), 'Calculate DPS']);
-    resetBtn.addEventListener('click', function (e) { e.preventDefault(); handlers.onReset(); });
-    calcBtn.addEventListener('click', function (e) { e.preventDefault(); handlers.onCalculate(); });
-    toolbar.append(resetBtn, calcBtn);
-    head.append(title, toolbar);
-
     var cardsContainer = createEl('div', { class: 'fc-results-cards' });
-    container.append(head, cardsContainer);
+    container.append(sectionHeader('Results'), cardsContainer);
 
     var coreDpsCard = createResultsCard({
       title: 'Core DPS',
@@ -2542,12 +2634,7 @@
 
     var container = createEl('div', { class: 'fc-input-panel' });
 
-    var panelHeader = createEl('div', { class: 'fc-panel-header' });
-    panelHeader.appendChild(createEl('h2', { class: 'fc-panel-title' }, ['Build Inputs']));
-    panelHeader.appendChild(createEl('p', { class: 'fc-panel-subtext' }, [
-      'Percent inputs are whole numbers (15 = 15%).'
-    ]));
-    container.appendChild(panelHeader);
+    container.appendChild(sectionHeader('Build'));
 
     function patch(partial) {
       var merged = {};
@@ -2819,18 +2906,17 @@
     var metaRow = createEl('div', { class: 'fc-meta-row' });
     metaRow.append(metaWrap, situationalSection);
 
-    container.append(
-      weaponSection,
-      oreSection,
-      metaRow,
-      runeSection,
-      statSection,
-      abilitySection,
-      golemiteSection
-    );
+    container.appendChild(createTabber('fc-build', [
+      { title: 'Weapon & Ores', content: [weaponSection, oreSection] },
+      { title: 'Race & Bonuses', content: [metaRow] },
+      { title: 'Runes & Armor', content: [runeSection, statSection] },
+      { title: 'Abilities', content: [abilitySection] },
+      { title: 'Golemites', content: [golemiteSection] }
+    ]));
 
     var warningsBox = createEl('div', { class: 'fc-warnings fc-hidden' });
     container.appendChild(warningsBox);
+    if (opts.actions) { container.appendChild(opts.actions); }
 
 
     container.refreshWarnings = function () {
@@ -3041,6 +3127,7 @@
     try {
       var result = calculate(transformBuildForEngine(state.build), state.gameData);
       state.resultsPanel.updateResults(result);
+      if (state.hero) { state.hero.update(result); }
     } catch (err) {
       if (mw.log) { mw.log('Forge Calculator: calculation error', err); }
     }
@@ -3177,11 +3264,14 @@
       var left = createEl('div', { class: 'fc-left' });
       var right = createEl('div', { class: 'fc-right' });
 
+      state.hero = createHero();
+
       state.inputPanel = createInputPanel({
         data: gameData,
         getBuild: function () { return state.build; },
         onBuildChange: handleBuildChange,
-        onCalculate: recalculate
+        onCalculate: recalculate,
+        actions: createActionBar({ onReset: resetBuild, onCalculate: recalculate })
       });
       left.appendChild(state.inputPanel);
 
@@ -3196,7 +3286,7 @@
 
       loadSectionIcons();
 
-      body.append(left, right);
+      body.append(state.hero, left, right);
 
       root.textContent = '';
       root.appendChild(body);

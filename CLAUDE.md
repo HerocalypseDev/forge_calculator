@@ -834,3 +834,14 @@ Golemite smite damage and moon boost stay outside the 250% / 150% caps as in the
 | 2 | **Python engine + tests** — Golemite build inputs, stat/proc wiring, Golemite DPS, black-hole gates; parity + goldens; Excel fuzz (230 builds incl. Golemites) EXCEL PARITY PASSED | ✅ |
 | 3 | **MediaWiki engine + UI + tests + fuzz** — same engine changes in JS, tabbed Golemite input section (level + grouped sub-stats, whole percents), Golemite DPS row + clipboard line, `golemite-ui-test.js`; fuzz 250 builds / 13,537 fields JS ≡ Python; previewed in Chromium on the live wiki skin (desktop / tablet / mobile) with local code swapped in, rune Abilities overflow fixed | ✅ |
 | 4 | **Deploy + docs** — `deploy_wiki.py --apply`: Data:Ores / Weapons / Achievements, styles.css, ForgeCalculator.js (revs 17134–17138); live page checked in Chromium, Golemite DPS shows, no console errors; CLAUDE.md domain model, deviation, UI invariant and commands updated | ✅ |
+
+### Wiki-Style Calculator Remodel (branch `calculator-wiki-restyle`, not merged)
+**Goal:** restyle and restructure the MediaWiki calculator to match the wiki's own article pages
+(Home, Guide, Weapons, Items, Ores, Golemite), surveyed in Chromium. Kept on its own branch for the
+user to review; not deployed. Engine and data untouched.
+
+| Phase | Work | Status |
+|-------|------|--------|
+| 1 | **Survey** — wiki uses `Template:Article Header`: hero with Cinzel/Lora serif title, `#cccccc` description, stats strip, art on the right behind a fade; "◆ TITLE ◆———◆" section headers in `#FFB74D`; underline tabs (`#999` → white, 2px gold bar); `#0a0a0a` page, `#111212` cards, `#4d4d4d` borders, 8–14px radius; gold `#F9B65B` primary buttons, `#333` secondary | ✅ |
+| 2 | **Structure** — `createHero` (badge, title, description, live Total DPS / Golem / Asura strip, `Gradient Weapons.webp` art), `sectionHeader` (dot + title + line), `createTabber` (Weapon & Ores / Race & Bonuses / Runes & Armor / Abilities / Golemites), `createActionBar` (sticky Reset / Calculate DPS under the tabs); results become a full-width "Results" section with a three-column card grid | ✅ |
+| 3 | **Stylesheet rewrite** — `Template-ForgeCalculator-styles.css` rewritten from scratch on the wiki palette with the same class names; responsive at 1000 / 720 / 440px; previewed on the live wiki skin (desktop, tablet, mobile) with local JS/CSS swapped in; all MediaWiki tests pass | ✅ |
