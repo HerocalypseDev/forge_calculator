@@ -699,7 +699,7 @@
 
 .fc-ability-label {
   color: #ffffff;
-  font-size: 1.1rem;
+  font-size: 0.85rem;
   font-weight: 600;
   text-align: center;
   white-space: normal;
@@ -707,7 +707,8 @@
 }
 
 .fc-ability-field {
-  width: 120px;
+  width: 100%;
+  max-width: 120px;
   min-width: 0;
 }
 
@@ -1098,6 +1099,134 @@
   padding: 10px 14px;
 }
 
+.fc-stat-val.fc-sv-golemite,
+.fc-stat-label.fc-sv-golemite {
+  color: #9fa8da !important;
+}
+
+.fc-golemite-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.fc-golemite-tab {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #b8b0a0;
+  background: #0F0F0F;
+  border: 3px solid #231D16;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.fc-golemite-tab:hover {
+  border-color: #ffffff;
+  color: #ffffff;
+}
+
+.fc-golemite-tab.fc-golemite-tab--active {
+  color: #c8a85a;
+  border-color: #c8a85a;
+}
+
+.fc-golemite-level {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.fc-golemite-level-label {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.fc-golemite-level .fc-golemite-level-input {
+  width: 90px;
+}
+
+.fc-golemite-level-hint {
+  color: #b8b0a0;
+  font-size: 0.75rem;
+}
+
+.fc-golemite-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.fc-golemite-group.fc-ability-section {
+  padding: 10px;
+  gap: 8px;
+}
+
+.fc-golemite-group .fc-ability-label {
+  font-size: 0.85rem;
+}
+
+.fc-golemite-group .fc-ability-field {
+  width: 100%;
+}
+
+.fc-golemite-group--stats {
+  grid-column: 1 / -1;
+  border-color: #c8a85a;
+}
+.fc-golemite-group--stats .fc-ability-section-title {
+  color: #c8a85a;
+}
+.fc-golemite-group--fire {
+  border-color: #ef5350;
+}
+.fc-golemite-group--fire .fc-ability-section-title {
+  color: #ef5350;
+}
+.fc-golemite-group--poison {
+  border-color: #81c784;
+}
+.fc-golemite-group--poison .fc-ability-section-title {
+  color: #81c784;
+}
+.fc-golemite-group--lightning {
+  border-color: #42a5f5;
+}
+.fc-golemite-group--lightning .fc-ability-section-title {
+  color: #42a5f5;
+}
+.fc-golemite-group--blast {
+  border-color: #ffa726;
+}
+.fc-golemite-group--blast .fc-ability-section-title {
+  color: #ffa726;
+}
+.fc-golemite-group--smite {
+  border-color: #e8c874;
+}
+.fc-golemite-group--smite .fc-ability-section-title {
+  color: #e8c874;
+}
+.fc-golemite-group--blackhole {
+  border-color: #ba68c8;
+}
+.fc-golemite-group--blackhole .fc-ability-section-title {
+  color: #ba68c8;
+}
+.fc-golemite-group--moon {
+  grid-column: 1 / -1;
+  border-color: #81d4fa;
+}
+.fc-golemite-group--moon .fc-ability-section-title {
+  color: #81d4fa;
+}
+
 @media (max-width: 1024px) {
   .fc-body {
     grid-template-columns: 1fr;
@@ -1144,6 +1273,9 @@
   }
 
   .fc-ability-grid {
+    grid-template-columns: 1fr;
+  }
+  .fc-golemite-grid {
     grid-template-columns: 1fr;
   }
   .fc-ability-section {

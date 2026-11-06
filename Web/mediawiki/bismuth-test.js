@@ -74,7 +74,8 @@ approx(gated.lightning_cooldown, 0.375, 'Bismuth lightning cooldown is 1/8 of Th
 
 const galaxite = run([['Galaxite', 30], ['Ancienite', 60]]);
 approx(run([['Galaxite', 30], ['Bismuth', 10], ['Ancienite', 50]]).blackhole_dmg, galaxite.blackhole_dmg + 1.25, 'Galaxite + Bismuth rainbow wave');
-approx(run([['Galaxite', 30], ['Bismuth', 0], ['Ancienite', 60]]).blackhole_dmg, galaxite.blackhole_dmg, 'rainbow wave needs 10% Bismuth');
+approx(run([['Galaxite', 30], ['Bismuth', 0], ['Ancienite', 60]]).blackhole_dmg, galaxite.blackhole_dmg + 1.25, 'rainbow wave counts any slotted Bismuth');
+approx(run([['Bismuth', 30], ['Ancienite', 60]]).blackhole_dmg, 0, 'rainbow wave needs Galaxite or a Golemite black hole');
 approx(run([['Malachite', 30], ['Bismuth', 30]]).poison_duration, 3, 'longest poison duration wins');
 
 const dot = run([], { abilities: { fire_dmg: 0.1, fire_time: 3 } });

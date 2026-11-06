@@ -82,6 +82,14 @@ defensive code in the engines still makes sense on read. (The fifth, berserk's 2
 was also fixed at the source — `Extended.xlsx`'s `C64` reads `E34`, matching what
 the engines always did via `fire_time`.
 
+### Approved deviation (current, live): Golemite blast chance in `C88`
+The sheet's explosion chance `C88` ends `MAX(..., D37, C49, C50)`. `C49`/`C50` are the Golemite
+**Smite damage** cells; the Golemite **Blast chance** cells `D47`/`D48` are read nowhere. The user
+confirmed it is a typo, so both engines take `MAX(..., blast_chance, golemite blast chances)`.
+`test_engine_constants_match_source` guards the sheet's current `C49, C50` text so a fix at the
+source is noticed; `scripts/excel_fuzz.py` mirrors the typo (`sheet_typo=True`) only when comparing
+against Excel. Once the sheet reads `D47, D48`, drop the `sheet_typo` flag and this section.
+
 ### Resolved deviation (historical): no Demon + Straight Sword bonus
 One `UpdatedSpreadsheet.xlsx` revision's `E45` contained `AND(C22="Demon",C23="Straight Sword"),10%`
 (added in the user's double-count-fix edit; no earlier workbook had it). The user confirmed it
@@ -201,8 +209,8 @@ Retired — do not maintain:
   `scripts/smoke_gui.py`).
 
 Workbook sheets:
-- **DPS Calculator** — the main calculation sheet (cells C6–E116).
-- **_Weapon** — weapon lookup (`C2:E88`, types from `F12`'s `FILTER` literal — 11 incl. `Halberd`, race-bonus types `C23`).
+- **DPS Calculator** — the main calculation sheet (cells C6–E146; Golemite block rows 39–64).
+- **_Weapon** — weapon lookup (`C2:E90`, 89 weapons, types from `F12`'s `FILTER` literal — 11 incl. `Halberd`, race-bonus types `C23`).
 - **_OptionsCrafter** — ore catalog (`A61:F209`; `A60` is the Select Ore sentinel).
 - **_Options** — races (`B1:C20` dropdown + descriptions, availability matrix `E1:AA21`) + rune pool (`A1:A48`).
 - **IGNORE REF CALC** — ignore.
@@ -227,6 +235,8 @@ game has a cooldown, a refresh rule or a random roll, the sheet uses its expecte
 - **Race procs**: Smash (Orc Lord) 100% × `1/(10 + 1/(0.25×E21))`; Fox Claws (Kitsune) `0.75 × A18 × MIN(0.25 × E21, 3/2.22)` (max 3 spirits of ~2.22 s); Foxfire (Kitsune) `A18 × (1+E45) × 30% × (1 − e^(−0.5 × E21 × 3))` (reset-to-3 s refresh, boosted damage); Archangel beam (`C110`) `1.5 × A18 / (10 + 1/(0.33×E21))`, separate from ore smite; Cursed Aura (Demon, `E110`) `10% × A18` per second; Demon also gets +20% fire damage and a 3 s burn time.
 - **Results block rows 102–116**: physical hit `C102` = `C18 × (1+E45) × crit_blend × E21`; every proc row scales on **unforged A18**; Total `C111` = all rows incl. `C110`/`E110`; TTK `E111/E112` = 25k / 75k ÷ total (Asura stays 75k for its two phases); `C115` min, `C116` max burst (procs on **forged C18**).
 - **Berserk** `C112` = `C18 × (1 + E45 + E54) × crit_blend × E21` + every proc row, `E54 = MIN(200%, C54) + Minotaur 30%` — berserk is **additive with lethality** (same damage-boost pool in the game). **Moon Stone** `C113` = `C102 × (1+C53)` + every proc row.
+- **Golemites** (rows 39–64, two of them): sub-stats `C41`–`D64` feed the existing cells — lethality / crit chance / crit dmg / attack speed join the capped pools (`C72`–`C75`); fire, poison, lightning damage add, their chances and times join the `MAX`; blast damage sits inside the 250% explosion cap; smite damage (`C101`) and moon boost (`C81`) are added **after** their caps; Golemite black-hole damage and Resonance (`C53`/`C54`) add to `C105`; Golemite black-hole chance joins `C106`'s `MAX`; Golemite lightning cooldowns join `E109`'s `MIN` only when an ore or rune cooldown exists (otherwise the 10 s default stands, verbatim). Golemite DPS `E56`/`E57` = `A18 × (2% + (MIN(25, lvl) − 13) × 0.04/12)` from level 13, × the fixed 0.66666666666666 hits/s (`E58`/`E59`); the total (`E62` → `E138`) joins Total / Berserk / Moon Stone DPS but not Max Burst.
+- **Black hole** `C105` = Galaxite's per-slot ramp (`SUMPRODUCT`, no cap) + Golemite black-hole damage, plus — when Galaxite is slotted at all or a Golemite has black-hole damage — Golemite Resonance and +125% if Bismuth is slotted at all (any amount). `C106` = `MAX(Golemite chances, 30% if any Galaxite amount > 0)`.
 - **Situational inputs**: Dryad `C49` (in Healing Grove, Yes/No) and `E49` (max HP); Orc Lord `C55` (HP missing %) and `E55` (kill stacks 0–5). All default to off/0.
 
 ## Preserved workbook quirks (do not "fix")
@@ -268,6 +278,7 @@ carries no comments.
   Reset keeps a slot's typed amount, while actually changing the ore in the dropdown
   zeroes it (`createOreSlot`). Changing this breaks `ore-slot-test.js`.
 - **Weapon types need a minimum total ore amount** (sheet `F12`: `FILTER(types, thresholds <= D10)`, `D10` = sum of the four slot amounts). The thresholds are extracted into `weapons.json` as `type_min_ore` (Dagger 3, Straight Sword 4, Mace/Gauntlet 6, Axe/Katana 8, Great Sword/Spear 11, Great Axe/Halberd 15, Colossal Sword 19 — the game's `ItemRarity.lua` `min_ores`) plus the `not_enough_ore` fallback text. The weapon-type and weapon dropdowns only offer unlocked types (below 3 total the type list is just "Not enough Ore"); `setOreTotal` refreshes them on every ore-amount change and on `setBuild`. Like the sheet, an already-chosen weapon is **not** cleared when the total drops; `computeWarnings` adds "`<Type>` weapons need at least N total ore (you have M)." instead. UI-only, no engine change.
+- **Golemite inputs** live in their own section with one tab per Golemite; the tab label shows the level. Level is a whole number clamped to 0–25; every sub-stat is clamped to ≥ 0 and otherwise unbounded. Percent sub-stats are whole numbers divided by 100 in `transformBuildForEngine` (`GOLEMITE_PERCENT_FIELDS`); level, fire / poison duration and lightning cooldown pass through unchanged.
 - Ore `atk_speed` is **not** reachable from the MediaWiki UI — there is no attack-speed
   input, so it only ever arrives from ores, runes, race and achievements.
 - **Active Traits' free-text clauses are computed when they safely can be, approximated
@@ -287,7 +298,7 @@ carries no comments.
 ## Commands
 
 ```bash
-python -m pytest tests/               # 129 tests (engine/golden/parser/data/races/bismuth)
+python -m pytest tests/               # 138 tests (engine/golden/parser/data/races/bismuth/golemite)
 pip install -e .[build]               # dev: add openpyxl
 python -m scripts.build_data          # regenerate data/*.json from UpdatedSpreadsheet.xlsx
 ```
@@ -323,7 +334,8 @@ node Web/mediawiki/ore-slot-test.js         node Web/mediawiki/bonus-derive-test
 node Web/mediawiki/armor-stats-test.js      node Web/mediawiki/berserk-input-test.js
 node Web/mediawiki/no-ore-weapon-test.js    node Web/mediawiki/berserk-trait-test.js
 node Web/mediawiki/generic-trait-ramp-test.js  node Web/mediawiki/new-races-test.js
-node Web/mediawiki/bismuth-test.js
+node Web/mediawiki/bismuth-test.js         node Web/mediawiki/golemite-ui-test.js
+node Web/mediawiki/validation-warnings-test.js
 ```
 
 `copy-stat-test.js` (expects the pre-`fc-is-capped` inline cap colour) and `icon-test.js`
@@ -820,5 +832,5 @@ Golemite smite damage and moon boost stay outside the 250% / 150% caps as in the
 |-------|------|--------|
 | 1 | **Workbook swap + data** — cell addresses moved in extractor, parser, audit, parity and tests; parser and audit read the `SUMPRODUCT` black-hole ramp; data rebuilt (89 weapons) | ✅ |
 | 2 | **Python engine + tests** — Golemite build inputs, stat/proc wiring, Golemite DPS, black-hole gates; parity + goldens; Excel fuzz (230 builds incl. Golemites) EXCEL PARITY PASSED | ✅ |
-| 3 | **MediaWiki engine + UI + tests + fuzz** — same engine changes in JS, Golemite input section, Golemite DPS row | ⬜ |
+| 3 | **MediaWiki engine + UI + tests + fuzz** — same engine changes in JS, tabbed Golemite input section (level + grouped sub-stats, whole percents), Golemite DPS row + clipboard line, `golemite-ui-test.js`; fuzz 250 builds / 13,537 fields JS ≡ Python; previewed in Chromium on the live wiki skin (desktop / tablet / mobile) with local code swapped in, rune Abilities overflow fixed | ✅ |
 | 4 | **Deploy + docs** — upload to the wiki, CLAUDE.md domain model | ⬜ |

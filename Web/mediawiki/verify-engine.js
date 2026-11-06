@@ -140,7 +140,7 @@ r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'No
 approx(r.lethality, Math.min(0.15 + 0.20, 1.5), 'achievement lethality');
 
 approx(game.ores.length, 149, 'ore count');
-approx(game.weapons.length, 87, 'weapon count');
+approx(game.weapons.length, 89, 'weapon count');
 approx(game.races.length, 20, 'race count');
 approx(game.runes.length, 46, 'rune count');
 approx(game.achievements.length, 16, 'achievement count');

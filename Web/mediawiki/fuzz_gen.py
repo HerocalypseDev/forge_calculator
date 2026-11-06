@@ -13,7 +13,9 @@ sys.path.insert(0, str(HERE.parent.parent))
 OUT = HERE / "fuzz-cases.json"
 
 from forge_calculator.data import load_game_data, DEFAULT_DATA_DIR
-from forge_calculator.engine import Build, OreSlot, Abilities, calculate
+from dataclasses import asdict, fields
+
+from forge_calculator.engine import Build, Golemite, OreSlot, Abilities, calculate
 
 random.seed(20260809)
 game = load_game_data(DEFAULT_DATA_DIR)
@@ -28,6 +30,17 @@ bonus_types = list(dict.fromkeys([*game.race_bonus_types, *game.weapon_types]))
 
 def rand_float(maxv):
     return round(random.uniform(0, maxv), 3)
+
+
+def gen_golemite():
+    if random.random() < 0.5:
+        return Golemite()
+    values = {f.name: (rand_float(0.6) if random.random() < 0.5 else 0.0) for f in fields(Golemite)}
+    values["fire_time"] = random.choice([0, 1, 3, 6])
+    values["poison_time"] = random.choice([0, 2, 9, 20])
+    values["lightning_cooldown"] = random.choice([0, 0.5, 3, 12])
+    values["level"] = random.choice([0, 5, 12, 13, 18, 25, 31])
+    return Golemite(**values)
 
 
 def gen_build():
@@ -68,6 +81,7 @@ def gen_build():
         dryad_max_hp=random.choice([0, 999, 1000, 4500, 12000]),
         orc_lord_hp_missing=random.choice([0, 0.1, 0.35, 0.99, 1.2]),
         orc_lord_kill_stacks=random.choice([0, 1, 3, 5, 8]),
+        golemites=(gen_golemite(), gen_golemite()),
     )
 
 
@@ -105,6 +119,7 @@ def build_to_dict(b):
         "dryad_max_hp": b.dryad_max_hp,
         "orc_lord_hp_missing": b.orc_lord_hp_missing,
         "orc_lord_kill_stacks": b.orc_lord_kill_stacks,
+        "golemites": [asdict(g) for g in b.golemites],
     }
 
 
@@ -157,6 +172,7 @@ def result_to_dict(r):
         "lightning_cooldown": r.lightning_cooldown,
         "trait_damage_multiplier": r.trait_damage_multiplier,
         "berserk_level": r.berserk_level,
+        "golemite_dps": r.golemite_dps,
         "total_dps": r.total_dps,
         "berserk": r.berserk,
         "moonstone": r.moonstone,

@@ -93,7 +93,6 @@
 
   var EXPLOSION_DMG_CAP = 2.5;
   var SMITE_DMG_CAP = 2.5;
-  var BLACKHOLE_DMG_CAP = 2.5;
   var MOON_CAP = 1.5;
   var FIRE_TIME_RANGE = [1.0, 5.0];
   var POISON_TIME_RANGE = [1.0, 15.0];
@@ -102,6 +101,18 @@
   var BLACKHOLE_COOLDOWN = 1.0;
   var GALAXITE_BISMUTH_WAVE = 1.25;
   var PROC_ROLL_SIDES = 101;
+  var GOLEMITE_MIN_LEVEL = 13;
+  var GOLEMITE_MAX_LEVEL = 25;
+  var GOLEMITE_BASE_DMG = 0.02;
+  var GOLEMITE_DMG_RAMP = 0.04;
+  var GOLEMITE_RAMP_LEVELS = 12;
+  var GOLEMITE_HITS_PER_SECOND = 0.66666666666666;
+  var GOLEMITE_FIELDS = [
+    'level', 'fire_dmg', 'fire_chance', 'fire_time', 'poison_dmg', 'poison_chance', 'poison_time',
+    'lightning_dmg', 'lightning_chance', 'lightning_cooldown', 'blast_dmg', 'blast_chance',
+    'smite_dmg', 'smite_chance', 'blackhole_dmg', 'blackhole_chance', 'resonance_dmg', 'moon',
+    'lethality', 'crit_chance', 'crit_dmg', 'atk_speed'
+  ];
 
   var AVG_POWER_EXCLUDED = ['Fichilliumorite', 'Bismuth'];
   var SOLO_ORE_POWER = { 'Bismuth': 8.0, 'Fichilliumorite': 1.0 };
@@ -123,7 +134,7 @@
 
   var EXPECTED_COUNTS = {
     ores: 149,
-    weapons: 87,
+    weapons: 89,
     races: 20,
     runes: 46,
     achievements: 16
@@ -574,6 +585,20 @@
     return Math.min(1.0, (Math.floor(roundHalfUp(chance * 100, 2)) + 1) / PROC_ROLL_SIDES);
   }
 
+  function golemiteValues(build, field) {
+    return build.golemites.map(function (g) { return g[field]; });
+  }
+
+  function golemiteSum(build, field) {
+    return golemiteValues(build, field).reduce(function (a, b) { return a + b; }, 0.0);
+  }
+
+  function golemiteDamage(level, unforged) {
+    if (level < GOLEMITE_MIN_LEVEL) { return 0.0; }
+    var steps = Math.min(GOLEMITE_MAX_LEVEL, level) - GOLEMITE_MIN_LEVEL;
+    return unforged * (GOLEMITE_BASE_DMG + steps * (GOLEMITE_DMG_RAMP / GOLEMITE_RAMP_LEVELS));
+  }
+
   function traitDamageMultiplier(build) {
     if (build.race !== 'Dryad') { return 1.0; }
     var steps = Math.min(Math.floor(Math.max(0, build.dryad_max_hp) / DRYAD_VITAL_POWER_STEP_HP), DRYAD_VITAL_POWER_MAX_STEPS);
@@ -591,6 +616,7 @@
 
     var lethality = oreContribs.lethality
       + build.armor_lethality
+      + golemiteSum(build, 'lethality')
       + runes.lethality
       + build.base_lethality
       + raceValue(RACE_LETHALITY, race)
@@ -604,12 +630,14 @@
 
     var crit_chance = oreContribs.crit_chance
       + build.armor_crit_chance
+      + golemiteSum(build, 'crit_chance')
       + runes.crit_chance
       + (achStat === 'crit_chance' ? achValue : 0.0);
 
-    var crit_dmg = oreContribs.crit_dmg + build.armor_crit_dmg + runes.crit_dmg;
+    var crit_dmg = oreContribs.crit_dmg + build.armor_crit_dmg + golemiteSum(build, 'crit_dmg') + runes.crit_dmg;
 
     var atk_speed = oreContribs.atk_speed
+      + golemiteSum(build, 'atk_speed')
       + runes.atk_speed
       + raceValue(RACE_ATK_SPEED, race)
       + raceValue(CLASS_ATK_SPEED, cls)
@@ -685,40 +713,60 @@
   function procComponents(build, shares, game) {
     var ab = build.abilities;
     var race = build.race;
-    var galaxite = oreShare(build.slots, shares, 'Galaxite') >= SHARE_GATE;
-    var bismuth = oreShare(build.slots, shares, 'Bismuth') >= SHARE_GATE;
+    var names = build.slots.map(function (s) { return s.name; });
+    var golemiteBlackholeSource = golemiteValues(build, 'blackhole_dmg').some(function (v) { return v > 0; });
+    var resonance = 0.0;
+    if (names.indexOf('Galaxite') !== -1 || golemiteBlackholeSource) {
+      resonance = golemiteSum(build, 'resonance_dmg') + (names.indexOf('Bismuth') !== -1 ? GALAXITE_BISMUTH_WAVE : 0.0);
+    }
+    var galaxiteAmount = 0.0;
+    build.slots.forEach(function (s) { if (s.name === 'Galaxite') { galaxiteAmount += s.amount; } });
 
-    var fireDmg = slotSum(build.slots, shares, game, 'fire_dmg') + raceValue(RACE_FIRE_DMG, race) + ab.fire_dmg;
-    var poisonDmg = slotSum(build.slots, shares, game, 'poison_dmg') + ab.poison_dmg;
-    var lightningDmg = slotSum(build.slots, shares, game, 'lightning_dmg') + ab.lightning_dmg;
+    var fireDmg = slotSum(build.slots, shares, game, 'fire_dmg') + raceValue(RACE_FIRE_DMG, race) + ab.fire_dmg
+      + golemiteSum(build, 'fire_dmg');
+    var poisonDmg = slotSum(build.slots, shares, game, 'poison_dmg') + ab.poison_dmg + golemiteSum(build, 'poison_dmg');
+    var lightningDmg = slotSum(build.slots, shares, game, 'lightning_dmg') + ab.lightning_dmg
+      + golemiteSum(build, 'lightning_dmg');
     var cooldowns = slotVals(build.slots, shares, game, 'lightning_cooldown');
     if (ab.lightning_cooldown) { cooldowns.push(ab.lightning_cooldown); }
+    var golemiteCooldowns = golemiteValues(build, 'lightning_cooldown').filter(function (cd) { return cd; });
     var lightningCooldown = 0.0;
     if (lightningDmg > 0) {
-      lightningCooldown = cooldowns.length ? Math.min.apply(null, cooldowns) : DEFAULT_LIGHTNING_COOLDOWN;
+      lightningCooldown = cooldowns.length
+        ? Math.min.apply(null, cooldowns.concat(golemiteCooldowns))
+        : DEFAULT_LIGHTNING_COOLDOWN;
     }
 
     return {
-      moon: Math.min(MOON_CAP, slotSum(build.slots, shares, game, 'moon')),
-      explosion_dmg: Math.min(EXPLOSION_DMG_CAP, slotSum(build.slots, shares, game, 'explosion_dmg') + ab.blast_dmg),
-      explosion_chance: Math.max(slotMax(build.slots, shares, game, 'explosion_chance'), ab.blast_chance),
+      moon: Math.min(MOON_CAP, slotSum(build.slots, shares, game, 'moon')) + golemiteSum(build, 'moon'),
+      explosion_dmg: Math.min(EXPLOSION_DMG_CAP, slotSum(build.slots, shares, game, 'explosion_dmg') + ab.blast_dmg
+        + golemiteSum(build, 'blast_dmg')),
+      explosion_chance: Math.max.apply(null, [slotMax(build.slots, shares, game, 'explosion_chance'), ab.blast_chance]
+        .concat(golemiteValues(build, 'blast_chance'))),
       fire_dmg: fireDmg,
-      fire_chance: Math.max(slotMax(build.slots, shares, game, 'fire_chance'), ab.fire_chance, raceValue(RACE_FIRE_CHANCE, race)),
+      fire_chance: Math.max.apply(null, [slotMax(build.slots, shares, game, 'fire_chance'), ab.fire_chance,
+        raceValue(RACE_FIRE_CHANCE, race)].concat(golemiteValues(build, 'fire_chance'))),
       fire_duration: dotDuration(fireDmg,
-        slotVals(build.slots, shares, game, 'fire_duration').concat([raceValue(RACE_FIRE_TIME, race), ab.fire_time]),
+        slotVals(build.slots, shares, game, 'fire_duration').concat([raceValue(RACE_FIRE_TIME, race), ab.fire_time])
+          .concat(golemiteValues(build, 'fire_time')),
         FIRE_TIME_RANGE),
       poison_dmg: poisonDmg,
-      poison_chance: Math.max(slotMax(build.slots, shares, game, 'poison_chance'), ab.poison_chance),
+      poison_chance: Math.max.apply(null, [slotMax(build.slots, shares, game, 'poison_chance'), ab.poison_chance]
+        .concat(golemiteValues(build, 'poison_chance'))),
       poison_duration: dotDuration(poisonDmg,
-        slotVals(build.slots, shares, game, 'poison_duration').concat([ab.poison_time]),
+        slotVals(build.slots, shares, game, 'poison_duration').concat([ab.poison_time])
+          .concat(golemiteValues(build, 'poison_time')),
         POISON_TIME_RANGE),
-      smite_dmg: Math.min(SMITE_DMG_CAP, slotSum(build.slots, shares, game, 'smite_dmg') + raceValue(RACE_SMITE_DMG, race)),
-      smite_chance: Math.max(slotMax(build.slots, shares, game, 'smite_chance'), raceValue(RACE_SMITE_CHANCE, race)),
-      blackhole_dmg: Math.min(BLACKHOLE_DMG_CAP, slotSum(build.slots, shares, game, 'blackhole_dmg'))
-        + (galaxite && bismuth ? GALAXITE_BISMUTH_WAVE : 0.0),
-      blackhole_chance: galaxite ? BLACKHOLE_CHANCE : 0.0,
+      smite_dmg: Math.min(SMITE_DMG_CAP, slotSum(build.slots, shares, game, 'smite_dmg') + raceValue(RACE_SMITE_DMG, race))
+        + golemiteSum(build, 'smite_dmg'),
+      smite_chance: Math.max.apply(null, [slotMax(build.slots, shares, game, 'smite_chance'), raceValue(RACE_SMITE_CHANCE, race)]
+        .concat(golemiteValues(build, 'smite_chance'))),
+      blackhole_dmg: slotSum(build.slots, shares, game, 'blackhole_dmg') + resonance + golemiteSum(build, 'blackhole_dmg'),
+      blackhole_chance: Math.max.apply(null, [galaxiteAmount > 0 ? BLACKHOLE_CHANCE : 0.0]
+        .concat(golemiteValues(build, 'blackhole_chance'))),
       lightning_dmg: lightningDmg,
-      lightning_chance: Math.max(slotMax(build.slots, shares, game, 'lightning_chance'), ab.lightning_chance),
+      lightning_chance: Math.max.apply(null, [slotMax(build.slots, shares, game, 'lightning_chance'), ab.lightning_chance]
+        .concat(golemiteValues(build, 'lightning_chance'))),
       lightning_cooldown: lightningCooldown,
       smash_dmg: raceValue(RACE_SMASH_DMG, race),
       smash_cooldown: raceValue(RACE_SMASH_COOLDOWN, race),
@@ -789,7 +837,13 @@
       dryad_in_grove: b.dryad_in_grove === true,
       dryad_max_hp: num(b.dryad_max_hp),
       orc_lord_hp_missing: num(b.orc_lord_hp_missing),
-      orc_lord_kill_stacks: num(b.orc_lord_kill_stacks)
+      orc_lord_kill_stacks: num(b.orc_lord_kill_stacks),
+      golemites: [0, 1].map(function (i) {
+        var src = (b.golemites && b.golemites[i]) || {};
+        var g = {};
+        GOLEMITE_FIELDS.forEach(function (f) { g[f] = num(src[f]); });
+        return g;
+      })
     };
   }
 
@@ -842,9 +896,13 @@
       ? ARCHANGEL_SMITE_DMG * unforged * cooldownRate(ARCHANGEL_SMITE_CHANCE, atkRate, ARCHANGEL_SMITE_COOLDOWN)
       : 0.0;
     var cursed_aura_dps = race === 'Demon' ? DEMON_CURSED_AURA_DMG * unforged : 0.0;
+    var golemite_dps = 0.0;
+    build.golemites.forEach(function (g) {
+      golemite_dps += golemiteDamage(g.level, unforged) * GOLEMITE_HITS_PER_SECOND;
+    });
 
     var proc_total = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
-      + smash_dps + fox_claws_dps + foxfire_dps + archangel_smite_dps + cursed_aura_dps;
+      + smash_dps + fox_claws_dps + foxfire_dps + archangel_smite_dps + cursed_aura_dps + golemite_dps;
     var total_dps = weapon_dps + proc_total;
 
     var berserkLevel = Math.min(build.berserk, CAPS.berserk) + raceValue(RACE_BERSERK, race);
@@ -922,6 +980,7 @@
       foxfire_dps: foxfire_dps,
       archangel_smite_dps: archangel_smite_dps,
       cursed_aura_dps: cursed_aura_dps,
+      golemite_dps: golemite_dps,
       trait_damage_multiplier: tdm
     };
   }
@@ -1881,6 +1940,188 @@
     return container;
   }
 
+  var GOLEMITE_PERCENT_FIELDS = [
+    'fire_dmg', 'fire_chance', 'poison_dmg', 'poison_chance', 'lightning_dmg', 'lightning_chance',
+    'blast_dmg', 'blast_chance', 'smite_dmg', 'smite_chance', 'blackhole_dmg', 'blackhole_chance',
+    'resonance_dmg', 'moon', 'lethality', 'crit_chance', 'crit_dmg', 'atk_speed'
+  ];
+
+  var GOLEMITE_GROUPS = [
+    { title: 'Stats', mod: 'stats', fields: [
+      { key: 'lethality', label: 'Lethality' },
+      { key: 'crit_chance', label: 'Crit Chance' },
+      { key: 'crit_dmg', label: 'Crit DMG' },
+      { key: 'atk_speed', label: 'Atk Speed' }
+    ] },
+    { title: 'Fire', mod: 'fire', fields: [
+      { key: 'fire_dmg', label: 'Damage' },
+      { key: 'fire_chance', label: 'Chance' },
+      { key: 'fire_time', label: 'Duration' }
+    ] },
+    { title: 'Poison', mod: 'poison', fields: [
+      { key: 'poison_dmg', label: 'Damage' },
+      { key: 'poison_chance', label: 'Chance' },
+      { key: 'poison_time', label: 'Duration' }
+    ] },
+    { title: 'Lightning', mod: 'lightning', fields: [
+      { key: 'lightning_dmg', label: 'Damage' },
+      { key: 'lightning_chance', label: 'Chance' },
+      { key: 'lightning_cooldown', label: 'Cooldown' }
+    ] },
+    { title: 'Blast', mod: 'blast', fields: [
+      { key: 'blast_dmg', label: 'Damage' },
+      { key: 'blast_chance', label: 'Chance' }
+    ] },
+    { title: 'Smite', mod: 'smite', fields: [
+      { key: 'smite_dmg', label: 'Damage' },
+      { key: 'smite_chance', label: 'Chance' }
+    ] },
+    { title: 'Black Hole', mod: 'blackhole', fields: [
+      { key: 'blackhole_dmg', label: 'Damage' },
+      { key: 'blackhole_chance', label: 'Chance' },
+      { key: 'resonance_dmg', label: 'Resonance' }
+    ] },
+    { title: 'Moon', mod: 'moon', fields: [
+      { key: 'moon', label: 'Moon Boost' }
+    ] }
+  ];
+
+  function emptyGolemite() {
+    var g = {};
+    GOLEMITE_FIELDS.forEach(function (f) { g[f] = 0; });
+    return g;
+  }
+
+  function golemiteBuildValues(list) {
+    return [0, 1].map(function (i) {
+      var src = (list && list[i]) || {};
+      var g = emptyGolemite();
+      GOLEMITE_FIELDS.forEach(function (f) { g[f] = Number(src[f]) || 0; });
+      return g;
+    });
+  }
+
+  function createGolemiteInputs(opts) {
+    var onChange = opts.onChange;
+    var values = golemiteBuildValues(opts.values);
+    var active = 0;
+    var inputs = [{}, {}];
+
+    var container = createEl('div', { class: 'fc-golemite' });
+    var tabs = createEl('div', { class: 'fc-golemite-tabs', role: 'tablist' });
+    var panes = [];
+    var tabButtons = [];
+
+    function emit() {
+      onChange(values.map(function (g) {
+        var out = {};
+        for (var k in g) { out[k] = g[k]; }
+        return out;
+      }));
+    }
+
+    function tabText(i) {
+      var level = values[i].level;
+      return 'Golemite ' + (i + 1) + (level ? ' · Lv ' + level : '');
+    }
+
+    function selectTab(i) {
+      active = i;
+      for (var j = 0; j < 2; j++) {
+        tabButtons[j].classList.toggle('fc-golemite-tab--active', j === i);
+        tabButtons[j].setAttribute('aria-selected', j === i ? 'true' : 'false');
+        panes[j].classList.toggle('fc-hidden', j !== i);
+      }
+    }
+
+    function numberInput(index, key, label, max, integer) {
+      var id = 'fc-golemite-' + (index + 1) + '-' + key;
+      var input = createEl('input', {
+        type: 'number',
+        class: 'fc-ability-input',
+        id: id,
+        value: values[index][key] || 0,
+        min: '0',
+        step: integer ? '1' : 'any',
+        placeholder: '0',
+        title: 'Golemite ' + (index + 1) + ' ' + label + '. 0 = none.',
+        inputmode: integer ? 'numeric' : 'decimal'
+      });
+      if (max !== null) { input.setAttribute('max', String(max)); }
+      function commit() {
+        var v = Math.max(0, parseFloat(input.value) || 0);
+        if (integer) { v = Math.floor(v); }
+        if (max !== null) { v = Math.min(v, max); }
+        input.value = v;
+        values[index][key] = v;
+        tabButtons[index].textContent = tabText(index);
+        emit();
+      }
+      input.addEventListener('input', debounce(commit, 150));
+      input.addEventListener('change', commit);
+      inputs[index][key] = input;
+      return input;
+    }
+
+    for (var i = 0; i < 2; i++) {
+      (function (index) {
+        var tab = createEl('button', {
+          type: 'button',
+          class: 'fc-golemite-tab',
+          role: 'tab',
+          id: 'fc-golemite-tab-' + (index + 1)
+        }, [tabText(index)]);
+        tab.addEventListener('click', function (e) { e.preventDefault(); selectTab(index); });
+        tabButtons.push(tab);
+        tabs.appendChild(tab);
+
+        var pane = createEl('div', { class: 'fc-golemite-pane', role: 'tabpanel' });
+        var levelRow = createEl('div', { class: 'fc-golemite-level' });
+        var levelLabel = createEl('label', { class: 'fc-golemite-level-label', for: 'fc-golemite-' + (index + 1) + '-level' }, ['Level']);
+        var levelInput = numberInput(index, 'level', 'level (13 or higher adds Golemite DPS)', 25, true);
+        levelInput.classList.add('fc-golemite-level-input');
+        levelRow.append(levelLabel, levelInput,
+          createEl('span', { class: 'fc-golemite-level-hint' }, ['Golemite DPS starts at level 13 (max 25).']));
+        pane.appendChild(levelRow);
+
+        var grid = createEl('div', { class: 'fc-golemite-grid' });
+        GOLEMITE_GROUPS.forEach(function (group) {
+          var section = createEl('div', { class: 'fc-ability-section fc-golemite-group fc-golemite-group--' + group.mod });
+          section.appendChild(createEl('h4', { class: 'fc-ability-section-title' }, [group.title]));
+          group.fields.forEach(function (field) {
+            var row = createEl('div', { class: 'fc-ability-row' });
+            var input = numberInput(index, field.key, field.label, null, false);
+            row.append(
+              createEl('label', { class: 'fc-ability-label', for: input.id }, [field.label]),
+              createEl('div', { class: 'fc-ability-field' }, [input])
+            );
+            section.appendChild(row);
+          });
+          grid.appendChild(section);
+        });
+        pane.appendChild(grid);
+        panes.push(pane);
+      })(i);
+    }
+
+    container.appendChild(tabs);
+    panes.forEach(function (pane) { container.appendChild(pane); });
+    selectTab(0);
+
+    container.setValues = function (list) {
+      values = golemiteBuildValues(list);
+      for (var j = 0; j < 2; j++) {
+        for (var key in inputs[j]) { inputs[j][key].value = values[j][key] || 0; }
+        tabButtons[j].textContent = tabText(j);
+      }
+      selectTab(active);
+    };
+
+    container.getValues = function () { return golemiteBuildValues(values); };
+
+    return container;
+  }
+
   function createRuneSelector(opts) {
     var runes = opts.runes;
     var noneLabel = opts.noneLabel;
@@ -2164,6 +2405,7 @@
         { label: 'Foxfire DPS', value: '0', valueClass: 'fc-sv-foxfire', labelClass: 'fc-sv-foxfire' },
         { label: 'Archangel Smite DPS', value: '0', valueClass: 'fc-sv-smite', labelClass: 'fc-sv-smite' },
         { label: 'Cursed Aura DPS', value: '0', valueClass: 'fc-sv-aura', labelClass: 'fc-sv-aura' },
+        { label: 'Golemite DPS', value: '0', valueClass: 'fc-sv-golemite', labelClass: 'fc-sv-golemite' },
         { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold', labelClass: 'fc-sv-dmg' },
         { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-berserk', labelClass: 'fc-sv-berserk' },
         { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-moonstone', labelClass: 'fc-sv-moonstone' }
@@ -2230,7 +2472,7 @@
       }
 
       var dpsRows = dpsCard.querySelectorAll('.fc-stat-row');
-      if (dpsRows.length >= 15) {
+      if (dpsRows.length >= 16) {
         updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
         updateStatRow(dpsRows[1], fmtDps(result.explosion_dps), false);
         updateStatRow(dpsRows[2], fmtDps(result.fire_dps), false);
@@ -2243,9 +2485,10 @@
         updateStatRow(dpsRows[9], fmtDps(result.foxfire_dps), false);
         updateStatRow(dpsRows[10], fmtDps(result.archangel_smite_dps), false);
         updateStatRow(dpsRows[11], fmtDps(result.cursed_aura_dps), false);
-        updateStatRow(dpsRows[12], fmtDps(result.total_dps), false);
-        updateStatRow(dpsRows[13], fmtDps(result.berserk), false);
-        updateStatRow(dpsRows[14], fmtDps(result.moonstone), false);
+        updateStatRow(dpsRows[12], fmtDps(result.golemite_dps), false);
+        updateStatRow(dpsRows[13], fmtDps(result.total_dps), false);
+        updateStatRow(dpsRows[14], fmtDps(result.berserk), false);
+        updateStatRow(dpsRows[15], fmtDps(result.moonstone), false);
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
@@ -2530,6 +2773,17 @@
     });
     abilitySection.appendChild(abilityGrid);
 
+    var golemiteSection = createEl('div', { class: 'fc-input-section' });
+    golemiteSection.appendChild(sectionTitle('Golemites', 'golemite'));
+    golemiteSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
+      'Up to two Golemites. Sub-stats add to your own stats and procs; percentages are whole numbers, times are seconds.'
+    ]));
+    var golemiteInputs = createGolemiteInputs({
+      values: getBuild().golemites,
+      onChange: function (list) { patch({ golemites: list }); }
+    });
+    golemiteSection.appendChild(golemiteInputs);
+
     var runeSection = createEl('div', { class: 'fc-input-section' });
     runeSection.appendChild(sectionTitle('Runes', 'rune'));
 
@@ -2571,7 +2825,8 @@
       metaRow,
       runeSection,
       statSection,
-      abilitySection
+      abilitySection,
+      golemiteSection
     );
 
     var warningsBox = createEl('div', { class: 'fc-warnings fc-hidden' });
@@ -2635,6 +2890,7 @@
       });
       runeSelector.setValues(newBuild.runes || []);
       achievementDropdown.setValue(toUI(newBuild.achievement, ACHIEVEMENT_PROMPT));
+      golemiteInputs.setValues(newBuild.golemites);
     };
 
 
@@ -2676,7 +2932,8 @@
     dryadInGrove: false,
     dryadMaxHp: 0,
     runes: [NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL, NONE_LABEL],
-    achievement: NONE_LABEL
+    achievement: NONE_LABEL,
+    golemites: [emptyGolemite(), emptyGolemite()]
   };
 
   var state = {
@@ -2768,7 +3025,14 @@
       dryad_in_grove: build.dryadInGrove === true,
       dryad_max_hp: Number(build.dryadMaxHp) || 0,
       orc_lord_hp_missing: (Number(build.orcLordHpMissing) || 0) / 100,
-      orc_lord_kill_stacks: Number(build.orcLordKillStacks) || 0
+      orc_lord_kill_stacks: Number(build.orcLordKillStacks) || 0,
+      golemites: golemiteBuildValues(build.golemites).map(function (g) {
+        var out = {};
+        GOLEMITE_FIELDS.forEach(function (f) {
+          out[f] = GOLEMITE_PERCENT_FIELDS.indexOf(f) !== -1 ? g[f] / 100 : g[f];
+        });
+        return out;
+      })
     };
   }
 
@@ -2866,6 +3130,7 @@
       'Foxfire DPS: ' + result.foxfire_dps.toFixed(2),
       'Archangel Smite DPS: ' + result.archangel_smite_dps.toFixed(2),
       'Cursed Aura DPS: ' + result.cursed_aura_dps.toFixed(2),
+      'Golemite DPS: ' + result.golemite_dps.toFixed(2),
       'Total DPS: ' + result.total_dps.toFixed(2),
       '',
       '--- Time to Kill ---',
