@@ -33,6 +33,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - If a change would require touching a retired file, say so and stop rather than
   editing it.
 
+### "Switch to old UI" (saved pre-overhaul calculator)
+- The calculator UI before the wiki-style overhaul is kept on GitHub as branch **`old-ui`** and tag
+  **`old-ui-2026-11-06`** (commit `9a2cc79`, the version that was live until the overhaul). Never delete
+  or rewrite that branch or tag.
+- When the user says **"switch to old UI"** (or similar), do this without asking again:
+  1. On `main`, take the old stylesheet whole: `git checkout old-ui-2026-11-06 -- Web/mediawiki/Template-ForgeCalculator-styles.css`.
+  2. Rebuild `Web/mediawiki/MediaWiki-ForgeCalculator.js` from two halves: everything **before**
+     `var DATA_TITLES = {` from the **current** `main` file (the engine — keeps every formula and data
+     change made since the snapshot), and everything **from** `var DATA_TITLES = {` to the end from the
+     `old-ui-2026-11-06` file (loader, UI components, `init`).
+  3. If the current UI gained inputs or results the old UI lacks (new build fields, new DPS rows), port
+     only those into the old-UI half so no feature is lost; keep the old layout and styling otherwise.
+  4. `node --check`, then every MediaWiki test and `fuzz_verify.js`; fix anything that fails.
+  5. Commit and push, then deploy with `python scripts/deploy_wiki.py --apply` and check the live page
+     in a browser.
+- **"Switch back to new UI"** is the same procedure in reverse, using the last `main` commit that had the
+  wiki-style UI (`git log -- Web/mediawiki/Template-ForgeCalculator-styles.css`).
+
 ### Automated GitHub sync
 - **Core directive:** Always execute this workflow automatically. Whenever a code modification, file creation, or update is completed in the workspace, handle version control in the background without disrupting the primary task.
 - **Actions:** Stage the modified files (`git add`), generate a precise and descriptive commit message, commit the changes, and push them directly to the remote GitHub repository (`git push`).
@@ -835,7 +853,7 @@ Golemite smite damage and moon boost stay outside the 250% / 150% caps as in the
 | 3 | **MediaWiki engine + UI + tests + fuzz** — same engine changes in JS, tabbed Golemite input section (level + grouped sub-stats, whole percents), Golemite DPS row + clipboard line, `golemite-ui-test.js`; fuzz 250 builds / 13,537 fields JS ≡ Python; previewed in Chromium on the live wiki skin (desktop / tablet / mobile) with local code swapped in, rune Abilities overflow fixed | ✅ |
 | 4 | **Deploy + docs** — `deploy_wiki.py --apply`: Data:Ores / Weapons / Achievements, styles.css, ForgeCalculator.js (revs 17134–17138); live page checked in Chromium, Golemite DPS shows, no console errors; CLAUDE.md domain model, deviation, UI invariant and commands updated | ✅ |
 
-### Wiki-Style Calculator Remodel (branch `calculator-wiki-restyle`, not merged)
+### Wiki-Style Calculator Remodel — COMPLETED ✅ (merged and deployed; old UI kept as `old-ui`)
 **Goal:** restyle and restructure the MediaWiki calculator to match the wiki's own article pages
 (Home, Guide, Weapons, Items, Ores, Golemite), surveyed in Chromium. Kept on its own branch for the
 user to review; not deployed. Engine and data untouched.
@@ -846,3 +864,5 @@ user to review; not deployed. Engine and data untouched.
 | 2 | **Structure** — `createHero` (badge, title, description, live Total DPS / Golem / Asura strip, `Gradient Weapons.webp` art), `sectionHeader` (dot + title + line), `createTabber` (Weapon & Ores / Race & Bonuses / Runes & Armor / Abilities / Golemites), `createActionBar` (sticky Reset / Calculate DPS under the tabs); results become a full-width "Results" section with a three-column card grid | ✅ |
 | 3 | **Stylesheet rewrite** — `Template-ForgeCalculator-styles.css` rewritten from scratch on the wiki palette with the same class names; responsive at 1000 / 720 / 440px; previewed on the live wiki skin (desktop, tablet, mobile) with local JS/CSS swapped in; all MediaWiki tests pass | ✅ |
 | 4 | **Wiki preview** — branch build uploaded as a separate preview, live calculator untouched: `User:HeroDev/Calculator preview` (root `fc-preview-root`), `Template:ForgeCalculator/Preview/styles.css`, `User:HeroDev/ForgeCalculatorPreview.js` (guard `FC_CALCULATOR_PREVIEW_LOADED`), loaded by one line in `User:HeroDev/common.js`, so only that account sees it. TemplateStyles rejects `:focus-visible`; the sheet uses `:focus` | ✅ |
+| 5 | **Focus, sizes, fonts** — no focus outline / shadow / box on tabs, input borders never change colour; text ~12% bigger and taller controls; only the wiki's two font stacks (`"Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif` everywhere, `Cinzel, "Palatino Linotype", Palatino, Georgia, serif` for the hero title only) | ✅ |
+| 6 | **Old UI saved + merge + deploy** — branch `old-ui` / tag `old-ui-2026-11-06`, "switch to old UI" rule added above; branch merged into `main` and deployed live | ✅ |
