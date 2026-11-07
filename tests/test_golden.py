@@ -114,7 +114,7 @@ def test_workbook_cached_golden(game):
         ("C121", r.foxfire_dmg), ("C122", r.foxfire_chance), ("C123", r.foxfire_duration),
         ("C146", r.foxfire_dps), ("E146", r.golemite_dps),
         ("C147", r.archangel_smite_dps), ("E147", r.cursed_aura_dps),
-        ("C148", r.dark_smite_dps), ("E148", r.trident_toss_dps),
+        ("E127", r.dark_smite_dps), ("E131", r.trident_toss_dps),
         ("C162", r.reverberation_chance), ("E162", r.reverberation_dps),
         ("C164", r.frost_slash_dmg), ("E164", r.frost_slash_dps),
         ("C167", r.glacier_dmg), ("E167", r.glacier_explosion_dps),
@@ -358,7 +358,7 @@ def test_engine_constants_match_source():
     _guard(formulas, "E88", "A18", "explosion dps on A18")
     _guard(formulas, "C155", "C18", "max-burst on C18")
     for cell in ["C150", "C151", "C152"]:
-        _guard(formulas, cell, "C145+E145+C146+C147+E147+E146+C148+E148+E162+E164+E167+E170+E174+E177",
+        _guard(formulas, cell, "C145+E145+C146+C147+E147+E146+E127+E131+E162+E164+E167+E170+E174+E177",
                f"{cell} includes every proc row")
     _guard(formulas, "C155", "C113*C18", "max burst adds smash on forged C18")
     for cell in ["C91", "C92", "C93"]:

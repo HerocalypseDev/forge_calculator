@@ -2707,8 +2707,6 @@
         { label: 'Archangel Smite DPS', value: '0', valueClass: 'fc-sv-smite', labelClass: 'fc-sv-smite' },
         { label: 'Cursed Aura DPS', value: '0', valueClass: 'fc-sv-aura', labelClass: 'fc-sv-aura' },
         { label: 'Golemite DPS', value: '0', valueClass: 'fc-sv-golemite', labelClass: 'fc-sv-golemite' },
-        { label: 'Dark Smite DPS', value: '0', valueClass: 'fc-sv-darksmite', labelClass: 'fc-sv-darksmite' },
-        { label: 'Trident Toss DPS', value: '0', valueClass: 'fc-sv-fire', labelClass: 'fc-sv-fire' },
         { label: 'Reverberation DPS', value: '0', valueClass: 'fc-sv-dmg', labelClass: 'fc-sv-dmg' },
         { label: 'Frost Slash DPS', value: '0', valueClass: 'fc-sv-frost', labelClass: 'fc-sv-frost' },
         { label: 'Glacier Explosion DPS', value: '0', valueClass: 'fc-sv-frost', labelClass: 'fc-sv-frost' },
@@ -2795,17 +2793,15 @@
         updateStatRow(dpsRows[10], fmtDps(result.archangel_smite_dps), false);
         updateStatRow(dpsRows[11], fmtDps(result.cursed_aura_dps), false);
         updateStatRow(dpsRows[12], fmtDps(result.golemite_dps), false);
-        updateStatRow(dpsRows[13], fmtDps(result.dark_smite_dps), false);
-        updateStatRow(dpsRows[14], fmtDps(result.trident_toss_dps), false);
-        updateStatRow(dpsRows[15], fmtDps(result.reverberation_dps), false);
-        updateStatRow(dpsRows[16], fmtDps(result.frost_slash_dps), false);
-        updateStatRow(dpsRows[17], fmtDps(result.glacier_explosion_dps), false);
-        updateStatRow(dpsRows[18], fmtDps(result.starfall_dps), false);
-        updateStatRow(dpsRows[19], fmtDps(result.stellar_mark_dps), false);
-        updateStatRow(dpsRows[20], fmtDps(result.ancient_poison_dps), false);
-        updateStatRow(dpsRows[21], fmtDps(result.total_dps), false);
-        updateStatRow(dpsRows[22], fmtDps(result.berserk), false);
-        updateStatRow(dpsRows[23], fmtDps(result.moonstone), false);
+        updateStatRow(dpsRows[13], fmtDps(result.reverberation_dps), false);
+        updateStatRow(dpsRows[14], fmtDps(result.frost_slash_dps), false);
+        updateStatRow(dpsRows[15], fmtDps(result.glacier_explosion_dps), false);
+        updateStatRow(dpsRows[16], fmtDps(result.starfall_dps), false);
+        updateStatRow(dpsRows[17], fmtDps(result.stellar_mark_dps), false);
+        updateStatRow(dpsRows[18], fmtDps(result.ancient_poison_dps), false);
+        updateStatRow(dpsRows[19], fmtDps(result.total_dps), false);
+        updateStatRow(dpsRows[20], fmtDps(result.berserk), false);
+        updateStatRow(dpsRows[21], fmtDps(result.moonstone), false);
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
@@ -3445,8 +3441,6 @@
       'Archangel Smite DPS: ' + result.archangel_smite_dps.toFixed(2),
       'Cursed Aura DPS: ' + result.cursed_aura_dps.toFixed(2),
       'Golemite DPS: ' + result.golemite_dps.toFixed(2),
-      'Dark Smite DPS: ' + result.dark_smite_dps.toFixed(2),
-      'Trident Toss DPS: ' + result.trident_toss_dps.toFixed(2),
       'Reverberation DPS: ' + result.reverberation_dps.toFixed(2),
       'Frost Slash DPS: ' + result.frost_slash_dps.toFixed(2),
       'Glacier Explosion DPS: ' + result.glacier_explosion_dps.toFixed(2),

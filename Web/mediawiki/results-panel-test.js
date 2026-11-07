@@ -158,8 +158,10 @@ assert(!!dpsCard, 'DPS Breakdown card found');
 
 const labels = (dpsCard.querySelectorAll('.fc-stat-row') || []).map((row) =>
   (row.querySelector('.fc-stat-label') || {}).textContent);
-const expectedLabels = ['Weapon DPS', 'Explosion DPS', 'Fire DPS', 'Poison DPS', 'Smite DPS', 'Black Hole DPS', 'Lightning DPS', 'Smash DPS', 'Fox Claws DPS', 'Foxfire DPS', 'Archangel Smite DPS', 'Cursed Aura DPS', 'Golemite DPS', 'Dark Smite DPS', 'Trident Toss DPS', 'Reverberation DPS', 'Frost Slash DPS', 'Glacier Explosion DPS', 'Starfall DPS', 'Stellar Mark DPS', 'Ancient Poison DPS', 'Total DPS', 'Total Berserk DPS', 'Total Moonstone DPS'];
-assert(labels.length === 24, `24 rows rendered (got ${labels.length})`);
+const expectedLabels = ['Weapon DPS', 'Explosion DPS', 'Fire DPS', 'Poison DPS', 'Smite DPS', 'Black Hole DPS', 'Lightning DPS', 'Smash DPS', 'Fox Claws DPS', 'Foxfire DPS', 'Archangel Smite DPS', 'Cursed Aura DPS', 'Golemite DPS', 'Reverberation DPS', 'Frost Slash DPS', 'Glacier Explosion DPS', 'Starfall DPS', 'Stellar Mark DPS', 'Ancient Poison DPS', 'Total DPS', 'Total Berserk DPS', 'Total Moonstone DPS'];
+assert(labels.length === 22, `22 rows rendered (got ${labels.length})`);
+assert(labels.indexOf('Dark Smite DPS') === -1 && labels.indexOf('Trident Toss DPS') === -1,
+  'Dark Smite and Trident Toss count in Total DPS but have no row');
 assert(JSON.stringify(labels) === JSON.stringify(expectedLabels),
   'row labels match: ' + expectedLabels.join(' | '));
 
@@ -188,17 +190,17 @@ assert(val(9) === '88.88', `Foxfire DPS row shows foxfire_dps (got ${val(9)})`);
 assert(val(10) === '23.45', `Archangel Smite DPS row (got ${val(10)})`);
 assert(val(11) === '34.56', `Cursed Aura DPS row (got ${val(11)})`);
 assert(val(12) === '45.67', `Golemite DPS row shows golemite_dps (got ${val(12)})`);
-['1.01', '2.02', '3.03', '4.04', '5.05', '6.06', '7.07', '8.08'].forEach((want, i) =>
+['3.03', '4.04', '5.05', '6.06', '7.07', '8.08'].forEach((want, i) =>
   assert(val(13 + i) === want, `new proc row ${13 + i} shows its DPS (got ${val(13 + i)})`));
-assert(val(21) === '728.24', `Total DPS row shows total_dps (got ${val(21)})`);
-assert(val(22) === '512.50', `Total Berserk DPS row shows berserk (got ${val(22)})`);
-assert(val(23) === '600.00', `Total Moonstone DPS row shows moonstone (got ${val(23)})`);
+assert(val(19) === '728.24', `Total DPS row shows total_dps (got ${val(19)})`);
+assert(val(20) === '512.50', `Total Berserk DPS row shows berserk (got ${val(20)})`);
+assert(val(21) === '600.00', `Total Moonstone DPS row shows moonstone (got ${val(21)})`);
 assert(val(1) !== val(4), 'Explosion and Smite rows are distinct components');
 assert(val(3) === '22.22' && val(2) === '11.11', 'Fire/Poison rows map correctly');
 
 panel.updateResults({ ...fake, berserk: null, moonstone: null });
-assert(val(22) === '—', `null berserk renders as "—" (got ${val(22)})`);
-assert(val(23) === '—', `null moonstone renders as "—" (got ${val(23)})`);
+assert(val(20) === '—', `null berserk renders as "—" (got ${val(20)})`);
+assert(val(21) === '—', `null moonstone renders as "—" (got ${val(21)})`);
 panel.updateResults(fake);
 
 console.log('== Active Traits block ==');

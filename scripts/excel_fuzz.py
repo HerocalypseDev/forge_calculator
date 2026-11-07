@@ -21,7 +21,7 @@ CELL_FIELDS = {
     "C139": "weapon_dps", "C140": "explosion_dps", "C141": "fire_dps", "C142": "poison_dps",
     "C143": "smite_dps", "C144": "blackhole_dps", "E144": "lightning_dps", "C145": "smash_dps",
     "E145": "fox_claws_dps", "C146": "foxfire_dps", "E146": "golemite_dps",
-    "C147": "archangel_smite_dps", "E147": "cursed_aura_dps", "C148": "dark_smite_dps", "E148": "trident_toss_dps",
+    "C147": "archangel_smite_dps", "E147": "cursed_aura_dps", "E127": "dark_smite_dps", "E131": "trident_toss_dps",
     "C150": "total_dps", "C151": "berserk", "C152": "moonstone", "C154": "min_dps", "C155": "max_dps",
     "C162": "reverberation_chance", "E162": "reverberation_dps", "C164": "frost_slash_dmg", "E164": "frost_slash_dps",
     "C167": "glacier_dmg", "E167": "glacier_explosion_dps", "C170": "starfall_dmg", "E170": "starfall_dps",
