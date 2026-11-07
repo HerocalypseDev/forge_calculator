@@ -892,7 +892,7 @@ shows a read-only summary of the rarity, scaling and resulting stats.
 | 4 | **Tests** — `golemite-ui-test.js` rewritten (rarity, scaling, weapon rules, UI, end to end); every MediaWiki test, parity harness, `fuzz_verify.js` and `pytest` green | ✅ |
 | 5 | **Deploy + docs** — `deploy_wiki.py --apply`: styles.css rev 17424, ForgeCalculator.js rev 17425; Data:OreRarity.json already live | ✅ |
 
-### Tower of Hell Ores + Fallen Angel / Imp Workbook Adoption (November 2026) — IN PROGRESS
+### Tower of Hell Ores + Fallen Angel / Imp Workbook Adoption (November 2026) — COMPLETED ✅
 **Goal:** `Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (5).xlsx` (Nov 7) replaces
 `reference/UpdatedSpreadsheet.xlsx`. It adds races **Fallen Angel** (20% lethality, 10% attack speed,
 30% berserk, Dark Smite 35% at 30% chance, rows 125–127) and **Imp** (Trident Toss 120%, 8 s, Spear
@@ -924,4 +924,4 @@ User decisions:
 | 2 | **Data** — extractor ranges `_Weapon` 2..93, `_OptionsCrafter` 61..215, achievements `C135`; parser + audit read the 11 new stat cells (`C164`–`C179`, `E172`); data rebuilt (155 ores, 92 weapons, 22 races), audit 0 problems, rarities refetched (155 of 155) | ✅ |
 | 3 | **Python engine + tests** — Fallen Angel / Imp constants, Dark Smite, Trident Toss (weapon type = `C12`), Reverberation, Frost Slash, Glacier Explosion, Starfall, Stellar Mark, Ancient Poison, totals and Max Burst; `tests/test_tower_of_hell.py`; goldens and `reall_parity.py` moved to rows 139–179; Excel fuzz 250 + 60 focused builds × 58 cells EXCEL PARITY PASSED; `pytest` 147 passed | ✅ |
 | 4 | **MediaWiki engine + UI + tests + fuzz** — JS engine mirrors Python; DPS Breakdown gains Dark Smite, Trident Toss, Reverberation, Frost Slash, Glacier Explosion, Starfall, Stellar Mark, Ancient Poison rows (+ clipboard, `fc-sv-darksmite` / `-frost` / `-star` colours); `tower-of-hell-test.js`; `fuzz_gen.py` biases 25% of slots to the new ores: 250 builds / 17,284 fields JS ≡ Python; every MediaWiki test green | ✅ |
-| 5 | **Deploy + docs** | ⏳ |
+| 5 | **Deploy + docs** — `deploy_wiki.py --apply`: Data:Ores / Weapons / Races / Achievements / OreRarity, styles.css, ForgeCalculator.js (revs 17444–17450); live page shows the 8 new DPS rows with no console errors; CLAUDE.md race table, domain model, sheet ranges and commands updated | ✅ |
