@@ -635,8 +635,7 @@
   width: 100%;
 }
 
-.fc-ability-grid,
-.fc-golemite-grid {
+.fc-ability-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
@@ -699,43 +698,17 @@
   background: #0a0a0a;
 }
 
-.fc-ability-section--fire,
-.fc-golemite-group--fire { border-color: #ef5350; }
-.fc-ability-section--fire .fc-ability-section-title,
-.fc-golemite-group--fire .fc-ability-section-title { color: #ef5350; }
+.fc-ability-section--fire { border-color: #ef5350; }
+.fc-ability-section--fire .fc-ability-section-title { color: #ef5350; }
 
-.fc-ability-section--blast,
-.fc-golemite-group--blast { border-color: #ffa726; }
-.fc-ability-section--blast .fc-ability-section-title,
-.fc-golemite-group--blast .fc-ability-section-title { color: #ffa726; }
+.fc-ability-section--blast { border-color: #ffa726; }
+.fc-ability-section--blast .fc-ability-section-title { color: #ffa726; }
 
-.fc-ability-section--poison,
-.fc-golemite-group--poison { border-color: #81c784; }
-.fc-ability-section--poison .fc-ability-section-title,
-.fc-golemite-group--poison .fc-ability-section-title { color: #81c784; }
+.fc-ability-section--poison { border-color: #81c784; }
+.fc-ability-section--poison .fc-ability-section-title { color: #81c784; }
 
-.fc-ability-section--lightning,
-.fc-golemite-group--lightning { border-color: #42a5f5; }
-.fc-ability-section--lightning .fc-ability-section-title,
-.fc-golemite-group--lightning .fc-ability-section-title { color: #42a5f5; }
-
-.fc-golemite-group--smite { border-color: #e8c874; }
-.fc-golemite-group--smite .fc-ability-section-title { color: #e8c874; }
-
-.fc-golemite-group--blackhole { border-color: #ba68c8; }
-.fc-golemite-group--blackhole .fc-ability-section-title { color: #ba68c8; }
-
-.fc-golemite-group--moon {
-  grid-column: 1 / -1;
-  border-color: #81d4fa;
-}
-.fc-golemite-group--moon .fc-ability-section-title { color: #81d4fa; }
-
-.fc-golemite-group--stats {
-  grid-column: 1 / -1;
-  border-color: #FFB74D;
-}
-.fc-golemite-group--stats .fc-ability-section-title { color: #FFB74D; }
+.fc-ability-section--lightning { border-color: #42a5f5; }
+.fc-ability-section--lightning .fc-ability-section-title { color: #42a5f5; }
 
 .fc-golemite-tabs {
   display: flex;
@@ -784,6 +757,84 @@
 .fc-golemite-level-hint {
   font-size: 15px;
   color: #999999;
+}
+
+.fc-golemite-ores {
+  margin-bottom: 14px;
+}
+
+.fc-golemite-summary {
+  padding: 14px;
+  background: #131517;
+  border: 1px solid #4d4d4d;
+  border-radius: 8px;
+}
+
+.fc-golemite-summary-empty {
+  margin: 0;
+  font-size: 15px;
+  color: #999999;
+}
+
+.fc-golemite-summary-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.fc-golemite-rarity {
+  padding: 2px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b0b6bf;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+
+.fc-golemite-rarity--uncommon { color: #6fd83c; }
+.fc-golemite-rarity--rare { color: #35b6ff; }
+.fc-golemite-rarity--epic { color: #c239ff; }
+.fc-golemite-rarity--legendary { color: #c9a227; }
+.fc-golemite-rarity--mythic { color: #ff3b3b; }
+.fc-golemite-rarity--relic { color: #f7c948; }
+.fc-golemite-rarity--exotic { color: #bb437e; }
+.fc-golemite-rarity--divine { color: #e879f9; }
+
+.fc-golemite-scaling {
+  font-size: 15px;
+  color: #cccccc;
+}
+
+.fc-golemite-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.fc-golemite-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #0a0a0a;
+  border: 1px solid #262626;
+  border-radius: 6px;
+}
+
+.fc-golemite-stat-label {
+  font-size: 14px;
+  color: #999999;
+}
+
+.fc-golemite-stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFD580;
+  font-variant-numeric: tabular-nums;
 }
 
 .fc-warnings {
@@ -1121,7 +1172,6 @@
     position: static;
   }
   .fc-ability-grid,
-  .fc-golemite-grid,
   .fc-results-cards {
     grid-template-columns: minmax(0, 1fr);
   }

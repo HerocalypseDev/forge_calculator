@@ -16,6 +16,7 @@ PAGES = [
     ("Data:Runes.json", MW / "Data-Runes.json"),
     ("Data:Races.json", MW / "Data-Races.json"),
     ("Data:Achievements.json", MW / "Data-Achievements.json"),
+    ("Data:OreRarity.json", MW / "Data-OreRarity.json"),
     ("Template:ForgeCalculator/styles.css", MW / "Template-ForgeCalculator-styles.css"),
     ("MediaWiki:ForgeCalculator.js", MW / "MediaWiki-ForgeCalculator.js"),
 ]

@@ -16,7 +16,9 @@ const instrumented = SRC.slice(0, blockStart) +
   '    calculate: calculate,\n' +
   '    buildGameData: buildGameData,\n' +
   '    transformBuildForEngine: transformBuildForEngine,\n' +
-  '    createInputPanel: createInputPanel\n' +
+  '    createInputPanel: createInputPanel,\n' +
+  '    deriveGolemiteStats: deriveGolemiteStats,\n' +
+  '    setGameData: function (g) { state.gameData = g; }\n' +
   '  };\n' +
   SRC.slice(blockStart);
 
@@ -168,8 +170,10 @@ const game = FC.buildGameData({
   weapons: loadJSON('Data-Weapons.json'),
   races: loadJSON('Data-Races.json'),
   runes: loadJSON('Data-Runes.json'),
-  achievements: loadJSON('Data-Achievements.json')
+  achievements: loadJSON('Data-Achievements.json'),
+  oreRarity: loadJSON('Data-OreRarity.json')
 });
+FC.setGameData(game);
 
 let failures = 0;
 function assert(cond, label) {
@@ -190,7 +194,7 @@ function approx(actual, expected, label, eps) {
 
 let build = {
   oreSlots: [
-    { name: 'Wolfarite', amount: 30 },
+    { name: 'Stone', amount: 10 },
     { name: 'None', amount: 0 },
     { name: 'None', amount: 0 },
     { name: 'None', amount: 0 }
@@ -210,6 +214,44 @@ let build = {
   achievement: 'None'
 };
 
+function slots(list) {
+  const out = list.map(([name, amount]) => ({ name, amount }));
+  while (out.length < 4) { out.push({ name: 'None', amount: 0 }); }
+  return out;
+}
+
+console.log('== Rarity and scaling ==');
+let d = FC.deriveGolemiteStats(slots([['Wolfarite', 30]]), game);
+assert(d.rarity === 'Exotic', `Wolfarite Golemite is Exotic (got ${d.rarity})`);
+approx(d.scaling, 0.28, 'Exotic scaling is 0.28');
+approx(d.stats.lethality, 0.15 * 0.28, 'Wolfarite lethality is its full weapon trait x 0.28');
+approx(d.stats.atk_speed, 0.08 * 0.28, 'Wolfarite attack speed x 0.28');
+d = FC.deriveGolemiteStats(slots([['Wolfarite', 20], ['Stone', 10]]), game);
+assert(d.rarity === 'Exotic', 'rarity is the rarest ore used, not the most common');
+approx(d.stats.lethality, 0.15 * 0.28, 'share above 30% keeps the full trait');
+d = FC.deriveGolemiteStats(slots([['Stone', 10]]), game);
+assert(d.rarity === 'Common', 'Stone Golemite is Common');
+approx(d.stats.lethality, 0, 'Stone gives no traits');
+d = FC.deriveGolemiteStats(slots([['Wolfarite', 0], ['Stone', 10]]), game);
+assert(d.rarity === 'Common', 'an ore with amount 0 does not set the rarity');
+d = FC.deriveGolemiteStats(slots([]), game);
+assert(d.rarity === null, 'no ores means no rarity');
+
+console.log('== Weapon rules carry over ==');
+d = FC.deriveGolemiteStats(slots([['Fireite', 10]]), game);
+approx(d.stats.fire_dmg, 0.20 * 0.18, 'Fireite fire damage x Legendary 0.18');
+approx(d.stats.fire_chance, 0.20 * 0.18, 'Fireite fire chance x 0.18');
+approx(d.stats.fire_time, 2, 'fire duration is not scaled');
+d = FC.deriveGolemiteStats(slots([['Wolfarite', 95], ['Fireite', 5]]), game);
+approx(d.stats.fire_dmg, 0, 'an ore below 10% share gives no trait, like on a weapon');
+d = FC.deriveGolemiteStats(slots([['Galaxite', 10], ['Bismuth', 10]]), game);
+assert(d.rarity === 'Divine', 'Galaxite + Bismuth is Divine');
+approx(d.stats.blackhole_dmg, 0.60 * 0.30, 'Galaxite black hole damage x 0.30');
+approx(d.stats.blackhole_chance, 0.30 * 0.30, 'black hole chance x 0.30');
+approx(d.stats.resonance_dmg, 1.25 * 0.30, 'Galaxite + Bismuth Resonance x 0.30');
+d = FC.deriveGolemiteStats(slots([['Wolfarite', 30]]), Object.assign({}, game, { ore_rarity: {} }));
+assert(d.rarity === null && d.stats.lethality === 0, 'without rarity data a Golemite adds nothing');
+
 const inputPanel = FC.createInputPanel({
   data: game,
   getBuild: () => build,
@@ -227,11 +269,18 @@ function commit(id, value) {
 }
 
 console.log('== Golemite inputs render ==');
-const fields = ['level', 'fire_dmg', 'fire_chance', 'fire_time', 'poison_dmg', 'poison_chance', 'poison_time',
-  'lightning_dmg', 'lightning_chance', 'lightning_cooldown', 'blast_dmg', 'blast_chance', 'smite_dmg',
-  'smite_chance', 'blackhole_dmg', 'blackhole_chance', 'resonance_dmg', 'moon', 'lethality', 'crit_chance',
-  'crit_dmg', 'atk_speed'];
-[1, 2].forEach((g) => fields.forEach((f) => assert(!!byId['fc-golemite-' + g + '-' + f], `Golemite ${g} ${f} input rendered`)));
+[1, 2].forEach((g) => {
+  assert(!!byId['fc-golemite-' + g + '-level'], `Golemite ${g} level input rendered`);
+  for (let s = 0; s < 4; s++) {
+    assert(!!byId['fc-golemite-' + g + '-slot-' + s], `Golemite ${g} slot ${s + 1} ore slot rendered`);
+    assert(!!byId['fc-golemite-' + g + '-slot-' + s + '-amount'], `Golemite ${g} slot ${s + 1} amount rendered`);
+  }
+  assert(!!byId['fc-golemite-' + g + '-summary'], `Golemite ${g} summary rendered`);
+  ['fire_dmg', 'lethality', 'moon', 'lightning_cooldown'].forEach((f) => {
+    assert(!byId['fc-golemite-' + g + '-' + f], `old manual ${f} box is gone`);
+  });
+});
+assert(!!byId['ore-slot-0'], 'weapon ore slots keep their ids');
 assert(byId['fc-golemite-1-level'].getAttribute('max') === '25', 'level max is 25');
 const tabs = inputPanel.querySelectorAll('.fc-golemite-tab');
 assert(tabs.length === 2, 'two Golemite tabs');
@@ -239,42 +288,47 @@ const panes = inputPanel.querySelectorAll('.fc-golemite-pane');
 assert(!panes[0].classList.contains('fc-hidden') && panes[1].classList.contains('fc-hidden'), 'first Golemite shown first');
 tabs[1].dispatchEvent({ type: 'click', preventDefault() {} });
 assert(panes[0].classList.contains('fc-hidden') && !panes[1].classList.contains('fc-hidden'), 'second tab shows Golemite 2');
+assert(byId['fc-golemite-1-summary'].textContent.indexOf('Add the ores') !== -1, 'empty Golemite asks for ores');
 
-console.log('== Commit + transform ==');
-commit('fc-golemite-1-level', '30');
+console.log('== setBuild + amount commits ==');
+inputPanel.setBuild(Object.assign({}, build, {
+  golemites: [{ level: 30, slots: slots([['Wolfarite', 20], ['Stone', 10]]) }, { level: 13.7, slots: slots([['Fireite', 10]]) }]
+}));
 assert(byId['fc-golemite-1-level'].value === '25', 'level clamps to 25');
-commit('fc-golemite-2-level', '13.7');
 assert(byId['fc-golemite-2-level'].value === '13', 'level is a whole number');
-commit('fc-golemite-1-lethality', '10');
-commit('fc-golemite-1-fire_dmg', '12');
-commit('fc-golemite-1-fire_time', '4');
-commit('fc-golemite-2-lightning_cooldown', '2.5');
-commit('fc-golemite-2-crit_dmg', '-5');
-assert(byId['fc-golemite-2-crit_dmg'].value === '0', 'negative values clamp to 0');
-assert(tabs[0].textContent === 'Golemite 1 · Lv 25', `tab shows the level (got ${tabs[0].textContent})`);
-const engineBuild = FC.transformBuildForEngine(build);
-approx(engineBuild.golemites[0].level, 25, 'level passes through');
-approx(engineBuild.golemites[0].lethality, 0.10, 'lethality is a whole percent');
-approx(engineBuild.golemites[0].fire_dmg, 0.12, 'fire damage is a whole percent');
-approx(engineBuild.golemites[0].fire_time, 4, 'fire time stays in seconds');
-approx(engineBuild.golemites[1].lightning_cooldown, 2.5, 'cooldown stays in seconds');
+assert(byId['fc-golemite-1-slot-0-amount'].value === '20', 'setBuild restores ore amounts');
+assert(tabs[0].textContent === 'Golemite 1 · Lv 25 · Exotic', `tab shows level and rarity (got ${tabs[0].textContent})`);
+const summary1 = byId['fc-golemite-1-summary'].textContent;
+assert(summary1.indexOf('Exotic') !== -1 && summary1.indexOf('Ore traits ×0.28') !== -1, `summary shows rarity and scaling (got ${summary1})`);
+assert(summary1.indexOf('Lethality') !== -1 && summary1.indexOf('4.2%') !== -1, 'summary shows the scaled lethality');
+const summary2 = byId['fc-golemite-2-summary'].textContent;
+assert(summary2.indexOf('Fire Duration') !== -1 && summary2.indexOf('2s') !== -1, 'summary shows durations in seconds');
 
-console.log('== Engine end to end ==');
+commit('fc-golemite-1-level', '20');
+assert(build.golemites[0].level === 20, 'level commit reaches the build');
+commit('fc-golemite-1-slot-0-amount', '0');
+assert(build.golemites[0].slots[0].amount === 0, 'amount commit reaches the build');
+assert(tabs[0].textContent === 'Golemite 1 · Lv 20 · Common', `rarity drops when Wolfarite is emptied (got ${tabs[0].textContent})`);
+assert(byId['fc-golemite-1-summary'].textContent.indexOf('no weapon traits') !== -1, 'Stone-only Golemite says it has no traits');
+commit('fc-golemite-1-slot-0-amount', '20');
+
+console.log('== Transform + engine end to end ==');
+const engineBuild = FC.transformBuildForEngine(build);
+approx(engineBuild.golemites[0].level, 20, 'level passes through');
+approx(engineBuild.golemites[0].lethality, 0.15 * 0.28, 'derived lethality reaches the engine build');
+approx(engineBuild.golemites[1].fire_dmg, 0.20 * 0.18, 'derived fire damage reaches the engine build');
+approx(engineBuild.golemites[1].fire_time, 2, 'fire time stays in seconds');
 const r = FC.calculate(engineBuild, game);
 const base = FC.calculate(FC.transformBuildForEngine(Object.assign({}, build, { golemites: undefined })), game);
-approx(r.golemite_dps, r.unforged_damage * (0.06 + 0.02) * 0.66666666666666, 'Golemite DPS from both levels');
-approx(r.lethality, base.lethality + 0.10, 'Golemite lethality reaches the stat pool');
-approx(r.fire_dmg, 0.12, 'Golemite fire damage reaches fire');
-approx(r.total_dps - base.total_dps - r.golemite_dps - r.fire_dps, r.weapon_dps - base.weapon_dps, 'total adds Golemite DPS');
+approx(r.golemite_dps, r.unforged_damage * ((0.02 + 7 * 0.04 / 12) + 0.02) * 0.66666666666666, 'Golemite DPS from both levels');
+approx(r.lethality, base.lethality + 0.15 * 0.28, 'Golemite lethality reaches the stat pool');
+approx(r.fire_dmg, 0.20 * 0.18, 'Golemite fire damage reaches fire');
 
-console.log('== setBuild restores and resets ==');
-inputPanel.setBuild(Object.assign({}, build, { golemites: [{ level: 18, moon: 20 }, {}] }));
-assert(byId['fc-golemite-1-level'].value === '18', 'setBuild restores level');
-assert(byId['fc-golemite-1-moon'].value === '20', 'setBuild restores sub-stat');
-assert(byId['fc-golemite-2-level'].value === '0', 'missing Golemite resets to 0');
+console.log('== Reset ==');
 inputPanel.setBuild(Object.assign({}, build, { golemites: undefined }));
 assert(byId['fc-golemite-1-level'].value === '0', 'reset clears Golemite level');
-assert(tabs[0].textContent === 'Golemite 1', 'reset clears tab level');
+assert(byId['fc-golemite-1-slot-0-amount'].value === '0', 'reset clears Golemite ores');
+assert(tabs[0].textContent === 'Golemite 1', 'reset clears tab text');
 
 console.log(failures === 0 ? 'ALL GOLEMITE-UI CHECKS PASSED ✓' : `${failures} CHECK(S) FAILED ✗`);
 process.exit(failures === 0 ? 0 : 1);

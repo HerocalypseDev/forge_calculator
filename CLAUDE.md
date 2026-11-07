@@ -296,7 +296,7 @@ carries no comments.
   Reset keeps a slot's typed amount, while actually changing the ore in the dropdown
   zeroes it (`createOreSlot`). Changing this breaks `ore-slot-test.js`.
 - **Weapon types need a minimum total ore amount** (sheet `F12`: `FILTER(types, thresholds <= D10)`, `D10` = sum of the four slot amounts). The thresholds are extracted into `weapons.json` as `type_min_ore` (Dagger 3, Straight Sword 4, Mace/Gauntlet 6, Axe/Katana 8, Great Sword/Spear 11, Great Axe/Halberd 15, Colossal Sword 19 — the game's `ItemRarity.lua` `min_ores`) plus the `not_enough_ore` fallback text. The weapon-type and weapon dropdowns only offer unlocked types (below 3 total the type list is just "Not enough Ore"); `setOreTotal` refreshes them on every ore-amount change and on `setBuild`. Like the sheet, an already-chosen weapon is **not** cleared when the total drops; `computeWarnings` adds "`<Type>` weapons need at least N total ore (you have M)." instead. UI-only, no engine change.
-- **Golemite inputs** live in their own section with one tab per Golemite; the tab label shows the level. Level is a whole number clamped to 0–25; every sub-stat is clamped to ≥ 0 and otherwise unbounded. Percent sub-stats are whole numbers divided by 100 in `transformBuildForEngine` (`GOLEMITE_PERCENT_FIELDS`); level, fire / poison duration and lightning cooldown pass through unchanged.
+- **Golemite inputs** live in their own section with one tab per Golemite; the tab label shows the level and rarity. Each Golemite is a Level (whole number, 0–25) plus 4 ore slots (`createOreSlot` with `idPrefix`), stored as `{level, slots}`. The sub-stats are never typed: `deriveGolemiteStats(slots, game)` (engine half) works out the ore traits exactly like a weapon (same share ramp, gates, `MAX`/sum rules and the 250% / 150% caps) and multiplies every damage, chance and stat trait by `GOLEMITE_TRAIT_SCALING[rarity]`; durations and the lightning cooldown are not scaled. The rarity is the highest `GOLEMITE_RARITY_ORDER` rarity among ores with an amount > 0, read from `game.ore_rarity` (`Data:OreRarity.json`, built by `scripts/fetch_ore_rarity.py` from the wiki's `Module:Ore/Data`). A missing rarity page loads as `{}`, which makes every Golemite add nothing. The pane shows a read-only summary (rarity, scaling, non-zero stats). User-given rule, not a workbook formula; the engine's Golemite cells are unchanged.
 - Ore `atk_speed` is **not** reachable from the MediaWiki UI — there is no attack-speed
   input, so it only ever arrives from ores, runes, race and achievements.
 - **Active Traits' free-text clauses are computed when they safely can be, approximated
@@ -319,6 +319,7 @@ carries no comments.
 python -m pytest tests/               # 138 tests (engine/golden/parser/data/races/bismuth/golemite)
 pip install -e .[build]               # dev: add openpyxl
 python -m scripts.build_data          # regenerate data/*.json from UpdatedSpreadsheet.xlsx
+python scripts/fetch_ore_rarity.py    # ore rarities from the wiki's Module:Ore/Data -> data/ore_rarity.json + Data-OreRarity.json
 ```
 
 After a data rebuild, copy `data/*.json` to `Web/data/` and to
@@ -866,3 +867,23 @@ user to review; not deployed. Engine and data untouched.
 | 4 | **Wiki preview** — branch build uploaded as a separate preview, live calculator untouched: `User:HeroDev/Calculator preview` (root `fc-preview-root`), `Template:ForgeCalculator/Preview/styles.css`, `User:HeroDev/ForgeCalculatorPreview.js` (guard `FC_CALCULATOR_PREVIEW_LOADED`), loaded by one line in `User:HeroDev/common.js`, so only that account sees it. TemplateStyles rejects `:focus-visible`; the sheet uses `:focus` | ✅ |
 | 5 | **Focus, sizes, fonts** — no focus outline / shadow / box on tabs, input borders never change colour; text ~12% bigger and taller controls; only the wiki's two font stacks (`"Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif` everywhere, `Cinzel, "Palatino Linotype", Palatino, Georgia, serif` for the hero title only) | ✅ |
 | 6 | **Old UI saved + merge + deploy** — branch `old-ui` / tag `old-ui-2026-11-06`, "switch to old UI" rule added above; branch merged into `main` and deployed live | ✅ |
+
+### Golemites Forged From Ores — IN PROGRESS
+**Goal:** replace the Golemite tab's 21 manual sub-stat boxes with the same 4 ore slots the
+weapon uses. Rule given by the user (not in the workbook, so it is a UI derivation feeding the
+existing Golemite sub-stat cells; the engines are unchanged): a Golemite's ore traits are worked
+out exactly like a weapon's (per-slot share ramp 10% → 30%, same gates and caps), then every
+damage / chance / stat trait is multiplied by the ore-trait scaling of the Golemite's rarity. The
+rarity is the highest rarity among the ores used. Scaling: Common 0.06, Uncommon 0.08, Rare 0.12,
+Epic 0.15, Legendary 0.18, Mythic 0.23, Relic 0.25, Exotic 0.28, Divine 0.30 (mining damage is
+ignored — the calculator has no mining). Durations and the lightning cooldown are not scaled.
+Ore rarities come from the wiki's `Module:Ore/Data`. Manual sub-stat entry is removed; the tab
+shows a read-only summary of the rarity, scaling and resulting stats.
+
+| Phase | Work | Status |
+|-------|------|--------|
+| 1 | **Rarity data** — `scripts/fetch_ore_rarity.py` reads `Module:Ore/Data` into `data/ore_rarity.json` / `Web/mediawiki/Data-OreRarity.json` (`Data:OreRarity.json`); loader and `deploy_wiki.py` ship it. All 149 ores matched | ✅ |
+| 2 | **Derivation** — `deriveGolemiteStats(slots, game)` in the engine half of the IIFE (survives a UI swap) | ✅ |
+| 3 | **UI** — Golemite panes get Level + 4 ore slots + summary; build state `{level, slots}`; `transformBuildForEngine` derives the sub-stats; old sub-stat CSS removed | ✅ |
+| 4 | **Tests** — `golemite-ui-test.js` rewritten (rarity, scaling, weapon rules, UI, end to end); every MediaWiki test, parity harness, `fuzz_verify.js` and `pytest` green | ✅ |
+| 5 | **Deploy + docs** | ⏳ |

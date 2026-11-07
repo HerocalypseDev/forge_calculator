@@ -107,6 +107,18 @@
   var GOLEMITE_DMG_RAMP = 0.04;
   var GOLEMITE_RAMP_LEVELS = 12;
   var GOLEMITE_HITS_PER_SECOND = 0.66666666666666;
+  var GOLEMITE_RARITY_ORDER = ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Relic', 'Exotic', 'Divine'];
+  var GOLEMITE_TRAIT_SCALING = {
+    Common: 0.06,
+    Uncommon: 0.08,
+    Rare: 0.12,
+    Epic: 0.15,
+    Legendary: 0.18,
+    Mythic: 0.23,
+    Relic: 0.25,
+    Exotic: 0.28,
+    Divine: 0.30
+  };
   var GOLEMITE_FIELDS = [
     'level', 'fire_dmg', 'fire_chance', 'fire_time', 'poison_dmg', 'poison_chance', 'poison_time',
     'lightning_dmg', 'lightning_chance', 'lightning_cooldown', 'blast_dmg', 'blast_chance',
@@ -599,6 +611,59 @@
     return unforged * (GOLEMITE_BASE_DMG + steps * (GOLEMITE_DMG_RAMP / GOLEMITE_RAMP_LEVELS));
   }
 
+  function golemiteRarity(slots, game) {
+    var rarities = game.ore_rarity || {};
+    var best = -1;
+    for (var i = 0; i < slots.length; i++) {
+      var slot = slots[i];
+      if (!(slot.amount > 0) || slot.name === game.select_ore) { continue; }
+      var rank = GOLEMITE_RARITY_ORDER.indexOf(rarities[slot.name]);
+      if (rank > best) { best = rank; }
+    }
+    return best < 0 ? null : GOLEMITE_RARITY_ORDER[best];
+  }
+
+  function oreAmount(slots, name) {
+    var total = 0.0;
+    for (var i = 0; i < slots.length; i++) { if (slots[i].name === name) { total += slots[i].amount; } }
+    return total;
+  }
+
+  function deriveGolemiteStats(rawSlots, game) {
+    var slots = (rawSlots || []).map(function (s) { return { name: s.name, amount: Math.max(0, Number(s.amount) || 0) }; });
+    var stats = {};
+    GOLEMITE_FIELDS.forEach(function (f) { if (f !== 'level') { stats[f] = 0.0; } });
+    var rarity = golemiteRarity(slots, game);
+    if (!rarity) { return { rarity: null, scaling: 0.0, stats: stats }; }
+    var k = GOLEMITE_TRAIT_SCALING[rarity];
+    var shares = slotShares(slots);
+    var hasGalaxite = oreAmount(slots, 'Galaxite') > 0;
+    var cooldowns = slotVals(slots, shares, game, 'lightning_cooldown');
+
+    stats.lethality = oreStatSum(slots, shares, game, 'lethality') * k;
+    stats.crit_chance = oreStatSum(slots, shares, game, 'crit_chance') * k;
+    stats.crit_dmg = oreStatSum(slots, shares, game, 'crit_dmg') * k;
+    stats.atk_speed = oreStatSum(slots, shares, game, 'atk_speed') * k;
+    stats.fire_dmg = slotSum(slots, shares, game, 'fire_dmg') * k;
+    stats.fire_chance = slotMax(slots, shares, game, 'fire_chance') * k;
+    stats.fire_time = slotMax(slots, shares, game, 'fire_duration');
+    stats.poison_dmg = slotSum(slots, shares, game, 'poison_dmg') * k;
+    stats.poison_chance = slotMax(slots, shares, game, 'poison_chance') * k;
+    stats.poison_time = slotMax(slots, shares, game, 'poison_duration');
+    stats.lightning_dmg = slotSum(slots, shares, game, 'lightning_dmg') * k;
+    stats.lightning_chance = slotMax(slots, shares, game, 'lightning_chance') * k;
+    stats.lightning_cooldown = cooldowns.length ? Math.min.apply(null, cooldowns) : 0.0;
+    stats.blast_dmg = Math.min(EXPLOSION_DMG_CAP, slotSum(slots, shares, game, 'explosion_dmg')) * k;
+    stats.blast_chance = slotMax(slots, shares, game, 'explosion_chance') * k;
+    stats.smite_dmg = Math.min(SMITE_DMG_CAP, slotSum(slots, shares, game, 'smite_dmg')) * k;
+    stats.smite_chance = slotMax(slots, shares, game, 'smite_chance') * k;
+    stats.blackhole_dmg = slotSum(slots, shares, game, 'blackhole_dmg') * k;
+    stats.blackhole_chance = hasGalaxite ? BLACKHOLE_CHANCE * k : 0.0;
+    stats.resonance_dmg = hasGalaxite && oreAmount(slots, 'Bismuth') > 0 ? GALAXITE_BISMUTH_WAVE * k : 0.0;
+    stats.moon = Math.min(MOON_CAP, slotSum(slots, shares, game, 'moon')) * k;
+    return { rarity: rarity, scaling: k, stats: stats };
+  }
+
   function traitDamageMultiplier(build) {
     if (build.race !== 'Dryad') { return 1.0; }
     var steps = Math.min(Math.floor(Math.max(0, build.dryad_max_hp) / DRYAD_VITAL_POWER_STEP_HP), DRYAD_VITAL_POWER_MAX_STEPS);
@@ -990,7 +1055,8 @@
     weapons: 'Data:Weapons.json',
     races: 'Data:Races.json',
     runes: 'Data:Runes.json',
-    achievements: 'Data:Achievements.json'
+    achievements: 'Data:Achievements.json',
+    oreRarity: 'Data:OreRarity.json'
   };
 
   function native(p) {
@@ -1142,6 +1208,7 @@
       not_enough_ore: rawWeapons.not_enough_ore || 'Not enough Ore',
       select_ore: rawOres.select_ore || SELECT_ORE,
       none_label: rawRunes.none || NONE_LABEL,
+      ore_rarity: (files.oreRarity && files.oreRarity.rarities) || {},
       constants: {
         selectOreLabel: rawOres.select_ore || SELECT_ORE,
         noneLabel: rawRunes.none || NONE_LABEL
@@ -1192,14 +1259,16 @@
       loadJSONPage(DATA_TITLES.weapons),
       loadJSONPage(DATA_TITLES.races),
       loadJSONPage(DATA_TITLES.runes),
-      loadJSONPage(DATA_TITLES.achievements)
+      loadJSONPage(DATA_TITLES.achievements),
+      loadJSONPage(DATA_TITLES.oreRarity).then(null, function () { return null; })
     ]).then(function (all) {
       return buildGameData({
         ores: all[0],
         weapons: all[1],
         races: all[2],
         runes: all[3],
-        achievements: all[4]
+        achievements: all[4],
+        oreRarity: all[5]
       });
     });
   }
@@ -1495,7 +1564,7 @@
     var oreMultipliers = opts.oreMultipliers || {};
     var onChange = opts.onChange;
 
-    var slotId = 'ore-slot-' + index;
+    var slotId = (opts.idPrefix || 'ore-slot-') + index;
     var currentName = opts.value || noneLabel;
     var currentAmount = opts.amount || 0;
 
@@ -1940,89 +2009,131 @@
     return container;
   }
 
-  var GOLEMITE_PERCENT_FIELDS = [
-    'fire_dmg', 'fire_chance', 'poison_dmg', 'poison_chance', 'lightning_dmg', 'lightning_chance',
-    'blast_dmg', 'blast_chance', 'smite_dmg', 'smite_chance', 'blackhole_dmg', 'blackhole_chance',
-    'resonance_dmg', 'moon', 'lethality', 'crit_chance', 'crit_dmg', 'atk_speed'
+  var GOLEMITE_SLOT_COUNT = 4;
+
+  var GOLEMITE_STAT_LABELS = [
+    { key: 'lethality', label: 'Lethality', kind: 'pct' },
+    { key: 'crit_chance', label: 'Crit Chance', kind: 'pct' },
+    { key: 'crit_dmg', label: 'Crit DMG', kind: 'pct' },
+    { key: 'atk_speed', label: 'Atk Speed', kind: 'pct' },
+    { key: 'fire_dmg', label: 'Fire DMG', kind: 'pct' },
+    { key: 'fire_chance', label: 'Fire Chance', kind: 'pct' },
+    { key: 'fire_time', label: 'Fire Duration', kind: 'sec' },
+    { key: 'poison_dmg', label: 'Poison DMG', kind: 'pct' },
+    { key: 'poison_chance', label: 'Poison Chance', kind: 'pct' },
+    { key: 'poison_time', label: 'Poison Duration', kind: 'sec' },
+    { key: 'lightning_dmg', label: 'Lightning DMG', kind: 'pct' },
+    { key: 'lightning_chance', label: 'Lightning Chance', kind: 'pct' },
+    { key: 'lightning_cooldown', label: 'Lightning Cooldown', kind: 'sec' },
+    { key: 'blast_dmg', label: 'Blast DMG', kind: 'pct' },
+    { key: 'blast_chance', label: 'Blast Chance', kind: 'pct' },
+    { key: 'smite_dmg', label: 'Smite DMG', kind: 'pct' },
+    { key: 'smite_chance', label: 'Smite Chance', kind: 'pct' },
+    { key: 'blackhole_dmg', label: 'Black Hole DMG', kind: 'pct' },
+    { key: 'blackhole_chance', label: 'Black Hole Chance', kind: 'pct' },
+    { key: 'resonance_dmg', label: 'Resonance', kind: 'pct' },
+    { key: 'moon', label: 'Moon Boost', kind: 'pct' }
   ];
 
-  var GOLEMITE_GROUPS = [
-    { title: 'Stats', mod: 'stats', fields: [
-      { key: 'lethality', label: 'Lethality' },
-      { key: 'crit_chance', label: 'Crit Chance' },
-      { key: 'crit_dmg', label: 'Crit DMG' },
-      { key: 'atk_speed', label: 'Atk Speed' }
-    ] },
-    { title: 'Fire', mod: 'fire', fields: [
-      { key: 'fire_dmg', label: 'Damage' },
-      { key: 'fire_chance', label: 'Chance' },
-      { key: 'fire_time', label: 'Duration' }
-    ] },
-    { title: 'Poison', mod: 'poison', fields: [
-      { key: 'poison_dmg', label: 'Damage' },
-      { key: 'poison_chance', label: 'Chance' },
-      { key: 'poison_time', label: 'Duration' }
-    ] },
-    { title: 'Lightning', mod: 'lightning', fields: [
-      { key: 'lightning_dmg', label: 'Damage' },
-      { key: 'lightning_chance', label: 'Chance' },
-      { key: 'lightning_cooldown', label: 'Cooldown' }
-    ] },
-    { title: 'Blast', mod: 'blast', fields: [
-      { key: 'blast_dmg', label: 'Damage' },
-      { key: 'blast_chance', label: 'Chance' }
-    ] },
-    { title: 'Smite', mod: 'smite', fields: [
-      { key: 'smite_dmg', label: 'Damage' },
-      { key: 'smite_chance', label: 'Chance' }
-    ] },
-    { title: 'Black Hole', mod: 'blackhole', fields: [
-      { key: 'blackhole_dmg', label: 'Damage' },
-      { key: 'blackhole_chance', label: 'Chance' },
-      { key: 'resonance_dmg', label: 'Resonance' }
-    ] },
-    { title: 'Moon', mod: 'moon', fields: [
-      { key: 'moon', label: 'Moon Boost' }
-    ] }
-  ];
+  function emptyGolemiteSlots() {
+    var slots = [];
+    for (var i = 0; i < GOLEMITE_SLOT_COUNT; i++) { slots.push({ name: NONE_LABEL, amount: 0 }); }
+    return slots;
+  }
 
   function emptyGolemite() {
-    var g = {};
-    GOLEMITE_FIELDS.forEach(function (f) { g[f] = 0; });
-    return g;
+    return { level: 0, slots: emptyGolemiteSlots() };
   }
 
   function golemiteBuildValues(list) {
     return [0, 1].map(function (i) {
       var src = (list && list[i]) || {};
-      var g = emptyGolemite();
-      GOLEMITE_FIELDS.forEach(function (f) { g[f] = Number(src[f]) || 0; });
-      return g;
+      var level = Math.min(GOLEMITE_MAX_LEVEL, Math.max(0, Math.floor(Number(src.level) || 0)));
+      var slots = emptyGolemiteSlots().map(function (empty, j) {
+        var s = (src.slots && src.slots[j]) || empty;
+        return { name: s.name || NONE_LABEL, amount: Math.max(0, Number(s.amount) || 0) };
+      });
+      return { level: level, slots: slots };
     });
+  }
+
+  function golemiteEngineValues(golemite, game) {
+    var out = { level: golemite.level };
+    var derived = game ? deriveGolemiteStats(golemite.slots, game).stats : null;
+    GOLEMITE_FIELDS.forEach(function (f) {
+      if (f !== 'level') { out[f] = derived ? derived[f] : 0.0; }
+    });
+    return out;
+  }
+
+  function formatGolemiteStat(value, kind) {
+    if (kind === 'sec') { return String(parseFloat(value.toFixed(2))) + 's'; }
+    return String(parseFloat((value * 100).toFixed(2))) + '%';
   }
 
   function createGolemiteInputs(opts) {
     var onChange = opts.onChange;
+    var describe = opts.describe || function () { return null; };
     var values = golemiteBuildValues(opts.values);
     var active = 0;
-    var inputs = [{}, {}];
+    var levelInputs = [];
+    var slotWidgets = [[], []];
+    var summaries = [];
 
     var container = createEl('div', { class: 'fc-golemite' });
     var tabs = createEl('div', { class: 'fc-golemite-tabs', role: 'tablist' });
     var panes = [];
     var tabButtons = [];
 
-    function emit() {
-      onChange(values.map(function (g) {
-        var out = {};
-        for (var k in g) { out[k] = g[k]; }
-        return out;
-      }));
+    function copyValues() {
+      return values.map(function (g) {
+        return { level: g.level, slots: g.slots.map(function (s) { return { name: s.name, amount: s.amount }; }) };
+      });
     }
 
     function tabText(i) {
       var level = values[i].level;
-      return 'Golemite ' + (i + 1) + (level ? ' · Lv ' + level : '');
+      var info = describe(values[i]);
+      return 'Golemite ' + (i + 1) + (level ? ' · Lv ' + level : '') + (info && info.rarity ? ' · ' + info.rarity : '');
+    }
+
+    function renderSummary(i) {
+      var box = summaries[i];
+      empty(box);
+      var info = describe(values[i]);
+      if (!info || !info.rarity) {
+        box.appendChild(createEl('p', { class: 'fc-golemite-summary-empty' }, ['Add the ores you forged this Golemite with to see its stats.']));
+        return;
+      }
+      box.appendChild(createEl('div', { class: 'fc-golemite-summary-head' }, [
+        createEl('span', { class: 'fc-golemite-rarity fc-golemite-rarity--' + info.rarity.toLowerCase() }, [info.rarity]),
+        createEl('span', { class: 'fc-golemite-scaling' }, ['Ore traits ×' + info.scaling.toFixed(2)])
+      ]));
+      var list = createEl('div', { class: 'fc-golemite-stats' });
+      var shown = 0;
+      GOLEMITE_STAT_LABELS.forEach(function (entry) {
+        var v = info.stats[entry.key];
+        if (!v) { return; }
+        shown++;
+        list.appendChild(createEl('div', { class: 'fc-golemite-stat' }, [
+          createEl('span', { class: 'fc-golemite-stat-label' }, [entry.label]),
+          createEl('span', { class: 'fc-golemite-stat-value' }, [formatGolemiteStat(v, entry.kind)])
+        ]));
+      });
+      if (!shown) {
+        list.appendChild(createEl('p', { class: 'fc-golemite-summary-empty' }, ['These ores give no weapon traits.']));
+      }
+      box.appendChild(list);
+    }
+
+    function refresh(i) {
+      tabButtons[i].textContent = tabText(i);
+      renderSummary(i);
+    }
+
+    function emit(i) {
+      refresh(i);
+      onChange(copyValues());
     }
 
     function selectTab(i) {
@@ -2034,35 +2145,6 @@
       }
     }
 
-    function numberInput(index, key, label, max, integer) {
-      var id = 'fc-golemite-' + (index + 1) + '-' + key;
-      var input = createEl('input', {
-        type: 'number',
-        class: 'fc-ability-input',
-        id: id,
-        value: values[index][key] || 0,
-        min: '0',
-        step: integer ? '1' : 'any',
-        placeholder: '0',
-        title: 'Golemite ' + (index + 1) + ' ' + label + '. 0 = none.',
-        inputmode: integer ? 'numeric' : 'decimal'
-      });
-      if (max !== null) { input.setAttribute('max', String(max)); }
-      function commit() {
-        var v = Math.max(0, parseFloat(input.value) || 0);
-        if (integer) { v = Math.floor(v); }
-        if (max !== null) { v = Math.min(v, max); }
-        input.value = v;
-        values[index][key] = v;
-        tabButtons[index].textContent = tabText(index);
-        emit();
-      }
-      input.addEventListener('input', debounce(commit, 150));
-      input.addEventListener('change', commit);
-      inputs[index][key] = input;
-      return input;
-    }
-
     for (var i = 0; i < 2; i++) {
       (function (index) {
         var tab = createEl('button', {
@@ -2070,54 +2152,92 @@
           class: 'fc-golemite-tab',
           role: 'tab',
           id: 'fc-golemite-tab-' + (index + 1)
-        }, [tabText(index)]);
+        }, ['']);
         tab.addEventListener('click', function (e) { e.preventDefault(); selectTab(index); });
         tabButtons.push(tab);
         tabs.appendChild(tab);
 
         var pane = createEl('div', { class: 'fc-golemite-pane', role: 'tabpanel' });
+        var levelId = 'fc-golemite-' + (index + 1) + '-level';
         var levelRow = createEl('div', { class: 'fc-golemite-level' });
-        var levelLabel = createEl('label', { class: 'fc-golemite-level-label', for: 'fc-golemite-' + (index + 1) + '-level' }, ['Level']);
-        var levelInput = numberInput(index, 'level', 'level (13 or higher adds Golemite DPS)', 25, true);
-        levelInput.classList.add('fc-golemite-level-input');
-        levelRow.append(levelLabel, levelInput,
-          createEl('span', { class: 'fc-golemite-level-hint' }, ['Golemite DPS starts at level 13 (max 25).']));
+        var levelInput = createEl('input', {
+          type: 'number',
+          class: 'fc-ability-input fc-golemite-level-input',
+          id: levelId,
+          value: values[index].level || 0,
+          min: '0',
+          max: String(GOLEMITE_MAX_LEVEL),
+          step: '1',
+          placeholder: '0',
+          title: 'Golemite ' + (index + 1) + ' level (13 or higher adds Golemite DPS). 0 = none.',
+          inputmode: 'numeric'
+        });
+        function commitLevel() {
+          var v = Math.min(GOLEMITE_MAX_LEVEL, Math.max(0, Math.floor(parseFloat(levelInput.value) || 0)));
+          levelInput.value = v;
+          values[index].level = v;
+          emit(index);
+        }
+        levelInput.addEventListener('input', debounce(commitLevel, 150));
+        levelInput.addEventListener('change', commitLevel);
+        levelInputs.push(levelInput);
+        levelRow.append(
+          createEl('label', { class: 'fc-golemite-level-label', for: levelId }, ['Level']),
+          levelInput,
+          createEl('span', { class: 'fc-golemite-level-hint' }, ['Golemite DPS starts at level 13 (max 25).'])
+        );
         pane.appendChild(levelRow);
 
-        var grid = createEl('div', { class: 'fc-golemite-grid' });
-        GOLEMITE_GROUPS.forEach(function (group) {
-          var section = createEl('div', { class: 'fc-ability-section fc-golemite-group fc-golemite-group--' + group.mod });
-          section.appendChild(createEl('h4', { class: 'fc-ability-section-title' }, [group.title]));
-          group.fields.forEach(function (field) {
-            var row = createEl('div', { class: 'fc-ability-row' });
-            var input = numberInput(index, field.key, field.label, null, false);
-            row.append(
-              createEl('label', { class: 'fc-ability-label', for: input.id }, [field.label]),
-              createEl('div', { class: 'fc-ability-field' }, [input])
-            );
-            section.appendChild(row);
-          });
-          grid.appendChild(section);
-        });
+        var grid = createEl('div', { class: 'fc-ore-grid fc-golemite-ores' });
+        for (var j = 0; j < GOLEMITE_SLOT_COUNT; j++) {
+          (function (slotIndex) {
+            var slot = createOreSlot({
+              index: slotIndex,
+              idPrefix: 'fc-golemite-' + (index + 1) + '-slot-',
+              oreNames: opts.oreNames || [],
+              noneLabel: opts.noneLabel || NONE_LABEL,
+              selectOreLabel: opts.selectOreLabel || SELECT_ORE,
+              prompt: opts.prompt,
+              oreMultipliers: opts.oreMultipliers || {},
+              value: values[index].slots[slotIndex].name,
+              amount: values[index].slots[slotIndex].amount,
+              onChange: function (name, amount) {
+                values[index].slots[slotIndex] = { name: name, amount: amount };
+                emit(index);
+              }
+            });
+            slotWidgets[index].push(slot);
+            grid.appendChild(slot);
+          })(j);
+        }
         pane.appendChild(grid);
+
+        var summary = createEl('div', { class: 'fc-golemite-summary', id: 'fc-golemite-' + (index + 1) + '-summary' });
+        summaries.push(summary);
+        pane.appendChild(summary);
         panes.push(pane);
       })(i);
     }
 
     container.appendChild(tabs);
     panes.forEach(function (pane) { container.appendChild(pane); });
+    refresh(0);
+    refresh(1);
     selectTab(0);
 
     container.setValues = function (list) {
       values = golemiteBuildValues(list);
-      for (var j = 0; j < 2; j++) {
-        for (var key in inputs[j]) { inputs[j][key].value = values[j][key] || 0; }
-        tabButtons[j].textContent = tabText(j);
+      for (var k = 0; k < 2; k++) {
+        levelInputs[k].value = values[k].level || 0;
+        for (var m = 0; m < GOLEMITE_SLOT_COUNT; m++) {
+          slotWidgets[k][m].setValue(values[k].slots[m].name, values[k].slots[m].amount);
+        }
+        refresh(k);
       }
       selectTab(active);
     };
 
-    container.getValues = function () { return golemiteBuildValues(values); };
+    container.getValues = function () { return copyValues(); };
 
     return container;
   }
@@ -2863,10 +2983,16 @@
     var golemiteSection = createEl('div', { class: 'fc-input-section' });
     golemiteSection.appendChild(sectionTitle('Golemites', 'golemite'));
     golemiteSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
-      'Up to two Golemites. Sub-stats add to your own stats and procs; percentages are whole numbers, times are seconds.'
+      'Up to two Golemites. Pick the ores you forged each one with, like a weapon. Its rarity is the rarest ore used, and every ore trait is scaled by that rarity (Common ×0.06 up to Divine ×0.30).'
     ]));
     var golemiteInputs = createGolemiteInputs({
       values: getBuild().golemites,
+      oreNames: oreNames,
+      oreMultipliers: oreMultipliers,
+      noneLabel: noneLabel,
+      selectOreLabel: selectOreLabel,
+      prompt: ORE_PROMPT,
+      describe: function (g) { return deriveGolemiteStats(g.slots, data); },
       onChange: function (list) { patch({ golemites: list }); }
     });
     golemiteSection.appendChild(golemiteInputs);
@@ -3113,11 +3239,7 @@
       orc_lord_hp_missing: (Number(build.orcLordHpMissing) || 0) / 100,
       orc_lord_kill_stacks: Number(build.orcLordKillStacks) || 0,
       golemites: golemiteBuildValues(build.golemites).map(function (g) {
-        var out = {};
-        GOLEMITE_FIELDS.forEach(function (f) {
-          out[f] = GOLEMITE_PERCENT_FIELDS.indexOf(f) !== -1 ? g[f] / 100 : g[f];
-        });
-        return out;
+        return golemiteEngineValues(g, state.gameData);
       })
     };
   }
