@@ -62,20 +62,22 @@ FORGE_MULT = {
 
 RACE_LETHALITY = {
     "Archangel": 0.20, "Demon": 0.20, "Orc": 0.10,
-    "Shadow": 0.05, "Dragonborn": 0.12, "Orc Lord": 0.40,
+    "Shadow": 0.05, "Dragonborn": 0.12, "Orc Lord": 0.40, "Fallen Angel": 0.20,
 }
 CLASS_LETHALITY = {
     ("Felynx", "Gauntlet"): 0.20,
     ("Felynx", "Gauntlets"): 0.20,
     ("Vampire", "Straight Sword"): 0.10,
+    ("Imp", "Spear"): 0.25,
 }
-RACE_ATK_SPEED = {"Shadow": 0.10, "Demon": 0.20, "Archangel": 0.20}
+RACE_ATK_SPEED = {"Shadow": 0.10, "Demon": 0.20, "Archangel": 0.20, "Fallen Angel": 0.10}
 CLASS_ATK_SPEED = {
     ("Goblin", "Dagger"): 0.10,
     ("Golem", "Colossal Sword"): 0.15,
     ("Golem", "Great Axe"): 0.15,
     ("Felynx", "Gauntlet"): 0.20,
     ("Felynx", "Gauntlets"): 0.20,
+    ("Imp", "Spear"): 0.20,
 }
 UNCAPPED_RACE_LETHALITY = {"Kitsune": 0.20}
 UNCAPPED_CLASS_LETHALITY = {("Fairy", "Spear"): 0.15}
@@ -96,7 +98,7 @@ RACE_FIRE_CHANCE = {"Dragonborn": 0.40}
 RACE_FIRE_TIME = {"Dragonborn": 3.0, "Demon": 3.0}
 RACE_SMITE_DMG = {"Angel": 0.30}
 RACE_SMITE_CHANCE = {"Angel": 0.50}
-RACE_BERSERK = {"Minotaur": 0.30}
+RACE_BERSERK = {"Minotaur": 0.30, "Fallen Angel": 0.30}
 RACE_SMASH_DMG = {"Orc Lord": 1.0}
 RACE_SMASH_COOLDOWN = {"Orc Lord": 10.0}
 RACE_SMASH_CHANCE = {"Orc Lord": 0.25}
@@ -111,6 +113,14 @@ ARCHANGEL_SMITE_DMG = 1.5
 ARCHANGEL_SMITE_CHANCE = 0.33
 ARCHANGEL_SMITE_COOLDOWN = 10.0
 DEMON_CURSED_AURA_DMG = 0.1
+RACE_DARK_SMITE_DMG = {"Fallen Angel": 0.35}
+RACE_DARK_SMITE_CHANCE = {"Fallen Angel": 0.3}
+TRIDENT_TOSS = {("Imp", "Spear"): (1.2, 1.0, 8.0)}
+REVERBERATION_ORE = "Echotite"
+REVERBERATION_CHANCE = {"Dagger": 0.20, "Straight Sword": 0.16, "Gauntlet": 0.12}
+REVERBERATION_DEFAULT_CHANCE = 0.08
+STARFALL_GALAXITE_MULT = 225 / 125
+STELLAR_MARK_HITS = 5
 
 EXPLOSION_DMG_CAP = 2.5
 SMITE_DMG_CAP = 2.5
@@ -492,6 +502,19 @@ class ProcComponents:
     foxfire_dmg: float = 0.0
     foxfire_chance: float = 0.0
     foxfire_duration: float = 0.0
+    reverberation_chance: float = 0.0
+    frost_slash_dmg: float = 0.0
+    frost_slash_chance: float = 0.0
+    glacier_dmg: float = 0.0
+    glacier_chance: float = 0.0
+    starfall_dmg: float = 0.0
+    starfall_chance: float = 0.0
+    starfall_cooldown: float = 0.0
+    stellar_mark_dmg: float = 0.0
+    stellar_mark_hits: float = 0.0
+    ancient_poison_dmg: float = 0.0
+    ancient_poison_chance: float = 0.0
+    ancient_poison_duration: float = 0.0
 
 
 def _dot_duration(dmg: float, terms, time_range) -> float:
@@ -548,6 +571,15 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
     else:
         lightning_cooldown = min(cooldowns + golemite_cooldowns)
 
+    reverberation = 0.0
+    if sum(slot.amount for slot in build.slots) != 0:
+        for slot, share in zip(build.slots, shares):
+            if slot.name == REVERBERATION_ORE and share >= SHARE_GATE:
+                reverberation = max(reverberation, REVERBERATION_CHANCE.get(build.bonus_weapon_type, REVERBERATION_DEFAULT_CHANCE))
+    starfall_dmg = slot_sum("starfall_dmg")
+    starfall_cooldowns = slot_vals("starfall_cooldown")
+    stellar_mark_dmg = slot_sum("stellar_mark_dmg")
+
     return ProcComponents(
         moon=min(MOON_CAP, slot_sum("moon")) + golemite_sum(build, "moon"),
         explosion_dmg=min(EXPLOSION_DMG_CAP, slot_sum("explosion_dmg") + ab.blast_dmg + golemite_sum(build, "blast_dmg")),
@@ -579,6 +611,19 @@ def proc_components(build: Build, shares, game: GameData, atk_rate: float = 0.0)
         foxfire_dmg=RACE_FOXFIRE_DMG.get(race, 0.0),
         foxfire_chance=RACE_FOXFIRE_CHANCE.get(race, 0.0),
         foxfire_duration=RACE_FOXFIRE_TIME.get(race, 0.0),
+        reverberation_chance=reverberation,
+        frost_slash_dmg=slot_sum("frost_slash_dmg"),
+        frost_slash_chance=slot_max("frost_slash_chance"),
+        glacier_dmg=slot_sum("glacier_dmg"),
+        glacier_chance=slot_max("glacier_chance"),
+        starfall_dmg=starfall_dmg,
+        starfall_chance=slot_max("starfall_chance"),
+        starfall_cooldown=min(starfall_cooldowns) if starfall_dmg > 0 and starfall_cooldowns else 0.0,
+        stellar_mark_dmg=stellar_mark_dmg,
+        stellar_mark_hits=STELLAR_MARK_HITS if stellar_mark_dmg > 0 else 0.0,
+        ancient_poison_dmg=slot_sum("ancient_poison_dmg"),
+        ancient_poison_chance=slot_max("ancient_poison_chance"),
+        ancient_poison_duration=slot_max("ancient_poison_duration"),
     )
 
 
@@ -678,6 +723,21 @@ class CalculateResult:
     trait_damage_multiplier: float = 1.0
     berserk_level: float = 0.0
     golemite_dps: float = 0.0
+    dark_smite_dps: float = 0.0
+    trident_toss_dps: float = 0.0
+    reverberation_chance: float = 0.0
+    reverberation_dps: float = 0.0
+    frost_slash_dmg: float = 0.0
+    frost_slash_dps: float = 0.0
+    glacier_dmg: float = 0.0
+    glacier_explosion_dps: float = 0.0
+    starfall_dmg: float = 0.0
+    starfall_cooldown: float = 0.0
+    starfall_dps: float = 0.0
+    stellar_mark_dmg: float = 0.0
+    stellar_mark_dps: float = 0.0
+    ancient_poison_dmg: float = 0.0
+    ancient_poison_dps: float = 0.0
 
 
 def calculate(build: Build, game: GameData) -> CalculateResult:
@@ -733,10 +793,36 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         archangel = ARCHANGEL_SMITE_DMG * unforged * cooldown_rate(ARCHANGEL_SMITE_CHANCE, atk_rate, ARCHANGEL_SMITE_COOLDOWN)
     cursed_aura = DEMON_CURSED_AURA_DMG * unforged if race == "Demon" else 0.0
     golemite_dps = sum(golemite_damage(g.level, unforged) * GOLEMITE_HITS_PER_SECOND for g in build.golemites)
+    dark_smite_dmg = RACE_DARK_SMITE_DMG.get(race, 0.0)
+    dark_smite_dps = unforged * atk_rate * dark_smite_dmg * game_chance(RACE_DARK_SMITE_CHANCE.get(race, 0.0), dark_smite_dmg > 0)
+    weapon_type = weapon.type if weapon is not None else ""
+    trident_dmg, trident_chance, trident_cooldown = TRIDENT_TOSS.get((race, weapon_type), (0.0, 0.0, 0.0))
+    trident_toss_dps = unforged * trident_dmg * trident_chance * min(atk_rate, 1 / trident_cooldown) if trident_cooldown else 0.0
+
+    reverberation_dps = weapon_dps * game_chance(procs.reverberation_chance, procs.reverberation_chance > 0)
+    frost_slash_dps = unforged * procs.frost_slash_dmg * game_chance(procs.frost_slash_chance, procs.frost_slash_dmg > 0) * atk_rate
+    crit_share = min(build.base_crit_chance + totals["crit_chance"], 1.0)
+    glacier_explosion_dps = (
+        unforged * procs.glacier_dmg * game_chance(procs.glacier_chance, procs.glacier_dmg > 0) * crit_share * atk_rate)
+    galaxite_amount = sum(slot.amount for slot in build.slots if slot.name == "Galaxite")
+    starfall_mult = STARFALL_GALAXITE_MULT if galaxite_amount > 0 else 1.0
+    starfall_dps = 0.0
+    if atk_rate and procs.starfall_dmg > 0:
+        starfall_dps = unforged * procs.starfall_dmg * starfall_mult * cooldown_rate(
+            game_chance(procs.starfall_chance, True), atk_rate, procs.starfall_cooldown)
+    stellar_mark_dps = (
+        unforged * procs.stellar_mark_dmg * atk_rate / procs.stellar_mark_hits if procs.stellar_mark_dmg > 0 else 0.0)
+    ancient_poison_dps = 0.0
+    if atk_rate and procs.ancient_poison_dmg > 0:
+        mark_chance = game_chance(procs.ancient_poison_chance, True)
+        ancient_poison_dps = poison_dps * procs.ancient_poison_dmg * (
+            1 - (1 - mark_chance) ** (atk_rate * procs.ancient_poison_duration))
 
     proc_total = (
         explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
         + smash_dps + fox_claws_dps + foxfire_dps + archangel + cursed_aura + golemite_dps
+        + dark_smite_dps + trident_toss_dps + reverberation_dps + frost_slash_dps + glacier_explosion_dps
+        + starfall_dps + stellar_mark_dps + ancient_poison_dps
     )
     total = weapon_dps + proc_total
 
@@ -757,6 +843,13 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         + procs.blackhole_dmg * forged
         + forged * procs.lightning_dmg * procs.lightning_chance * atk_rate
         + procs.smash_dmg * forged
+        + (forged * (1 + totals["lethality"]) * (build.base_crit_dmg + totals["crit_dmg"]) * atk_rate
+           if procs.reverberation_chance > 0 else 0.0)
+        + forged * procs.frost_slash_dmg * atk_rate
+        + forged * procs.glacier_dmg * atk_rate
+        + (forged * procs.starfall_dmg * starfall_mult / procs.starfall_cooldown if procs.starfall_cooldown > 0 else 0.0)
+        + (forged * procs.stellar_mark_dmg * atk_rate / procs.stellar_mark_hits if procs.stellar_mark_hits > 0 else 0.0)
+        + forged * procs.poison_dmg * procs.ancient_poison_dmg
     )
 
     ttk_25k = 25000 / total if total > 0 else None
@@ -819,4 +912,19 @@ def calculate(build: Build, game: GameData) -> CalculateResult:
         trait_damage_multiplier=tdm,
         berserk_level=berserk_level,
         golemite_dps=golemite_dps,
+        dark_smite_dps=dark_smite_dps,
+        trident_toss_dps=trident_toss_dps,
+        reverberation_chance=procs.reverberation_chance,
+        reverberation_dps=reverberation_dps,
+        frost_slash_dmg=procs.frost_slash_dmg,
+        frost_slash_dps=frost_slash_dps,
+        glacier_dmg=procs.glacier_dmg,
+        glacier_explosion_dps=glacier_explosion_dps,
+        starfall_dmg=procs.starfall_dmg,
+        starfall_cooldown=procs.starfall_cooldown,
+        starfall_dps=starfall_dps,
+        stellar_mark_dmg=procs.stellar_mark_dmg,
+        stellar_mark_dps=stellar_mark_dps,
+        ancient_poison_dmg=procs.ancient_poison_dmg,
+        ancient_poison_dps=ancient_poison_dps,
     )

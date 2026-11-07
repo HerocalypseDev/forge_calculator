@@ -7,9 +7,10 @@ from forge_calculator.engine import Abilities, Build, Golemite, OreSlot, calcula
 
 ORES = ["Galaxite", "Bismuth", "Kitsunite", "Malachite", "Marblite", "Fireite", "Gargantuan", "Kyubite",
         "Heavenite", "Moon Stone", "Aetherit", "Tiger's Eye", "Snowite", "Sun Stone", "Meteorite",
-        "Supermassive Black Hole", "Magmaite", "Fierce Jade", "Yin-Yang", "Wolfarite", "Select Ore"]
+        "Supermassive Black Hole", "Magmaite", "Fierce Jade", "Yin-Yang", "Wolfarite", "Echotite", "Frost Core",
+        "Tetrinite", "Frost Star", "Select Ore"]
 RACES = ["Human", "Kitsune", "Archangel", "Angel", "Demon", "Dragonborn", "Dryad", "Orc Lord", "Golem",
-         "Fairy", "Minotaur", "Felynx", "Goblin", "Vampire", "Shadow", "Orc"]
+         "Fairy", "Minotaur", "Felynx", "Goblin", "Vampire", "Shadow", "Orc", "Fallen Angel", "Imp"]
 CELL_FIELDS = {
     "E10": "avg_power", "A18": "unforged_damage", "C18": "forged_damage", "E21": "attack_rate",
     "E72": "lethality", "E73": "crit_chance", "E74": "crit_dmg", "E75": "atk_speed", "C81": "moon",
@@ -17,11 +18,15 @@ CELL_FIELDS = {
     "C92": "fire_chance", "C93": "fire_duration", "C96": "poison_dmg", "C97": "poison_chance",
     "C98": "poison_duration", "C101": "smite_dmg", "C102": "smite_chance", "C105": "blackhole_dmg",
     "C106": "blackhole_chance", "C109": "lightning_dmg", "E109": "lightning_cooldown", "C110": "lightning_chance",
-    "C131": "weapon_dps", "C132": "explosion_dps", "C133": "fire_dps", "C134": "poison_dps",
-    "C135": "smite_dps", "C136": "blackhole_dps", "E136": "lightning_dps", "C137": "smash_dps",
-    "E137": "fox_claws_dps", "C138": "foxfire_dps",
-    "C139": "archangel_smite_dps", "E139": "cursed_aura_dps", "C141": "total_dps", "C142": "berserk",
-    "C143": "moonstone", "C145": "min_dps", "C146": "max_dps", "E138": "golemite_dps",
+    "C139": "weapon_dps", "C140": "explosion_dps", "C141": "fire_dps", "C142": "poison_dps",
+    "C143": "smite_dps", "C144": "blackhole_dps", "E144": "lightning_dps", "C145": "smash_dps",
+    "E145": "fox_claws_dps", "C146": "foxfire_dps", "E146": "golemite_dps",
+    "C147": "archangel_smite_dps", "E147": "cursed_aura_dps", "C148": "dark_smite_dps", "E148": "trident_toss_dps",
+    "C150": "total_dps", "C151": "berserk", "C152": "moonstone", "C154": "min_dps", "C155": "max_dps",
+    "C162": "reverberation_chance", "E162": "reverberation_dps", "C164": "frost_slash_dmg", "E164": "frost_slash_dps",
+    "C167": "glacier_dmg", "E167": "glacier_explosion_dps", "C170": "starfall_dmg", "E170": "starfall_dps",
+    "E172": "starfall_cooldown", "C174": "stellar_mark_dmg", "E174": "stellar_mark_dps",
+    "C177": "ancient_poison_dmg", "E177": "ancient_poison_dps",
 }
 GOLEMITE_CELLS = {
     "fire_dmg": "C41", "fire_chance": "D41", "fire_time": "E41",
@@ -71,14 +76,14 @@ def gen(path, n, seed):
             b[f"C{r}"] = rng.choice(ORES)
             b[f"D{r}"] = float(rng.choice([0, 1, 2, 3, 5, 8, 10, 15, 20]))
         b.update({
-            "D12": w.name, "E12": float(rng.choice([0, 50, 100])), "C13": float(rng.randint(0, 9)),
+            "C12": w.type, "D12": w.name, "E12": float(rng.choice([0, 50, 100])), "C13": float(rng.randint(0, 9)),
             "C22": rng.choice(RACES), "C23": w.type,
             "C34": rng.choice([0, 0, 0.1]), "D34": rng.choice([0, 0, 0.3]), "E34": float(rng.choice([0, 0, 2])),
             "C35": rng.choice([0, 0, 0.07]), "D35": rng.choice([0, 0, 0.4]), "E35": float(rng.choice([0, 0, 8])),
             "C36": rng.choice([0, 0, 0.5]), "D36": rng.choice([0, 0, 0.3]), "E36": float(rng.choice([0, 0, 4])),
             "C37": rng.choice([0, 0, 0.4]), "D37": rng.choice([0, 0, 0.2]),
             "C69": rng.choice([0, 0.1]), "C70": rng.choice([0, 0.1]), "C71": rng.choice([0, 0.2]),
-            "C82": rng.choice([0, 0, 0.5, 2.5]), "C127": rng.choice(achievements),
+            "C82": rng.choice([0, 0, 0.5, 2.5]), "C135": rng.choice(achievements),
             "C76": rng.choice(["No", "Yes"]), "E76": float(rng.choice([0, 2500, 12000])),
             "C83": rng.choice([0, 0.35, 0.8]), "E83": float(rng.choice([0, 2, 7])),
         })
@@ -101,7 +106,7 @@ def to_build(b):
         armor_crit_chance=b["C69"], armor_crit_dmg=b["C70"], armor_lethality=b["C71"],
         abilities=Abilities(b["C34"], b["D34"], b["E34"], b["C35"], b["D35"], b["E35"],
                             b["C36"], b["D36"], b["E36"], b["C37"], b["D37"]),
-        berserk=b["C82"], achievement=b["C127"], dryad_in_grove=b["C76"] == "Yes", dryad_max_hp=b["E76"],
+        berserk=b["C82"], achievement=b["C135"], dryad_in_grove=b["C76"] == "Yes", dryad_max_hp=b["E76"],
         orc_lord_hp_missing=b["C83"], orc_lord_kill_stacks=b["E83"],
         golemites=golemites_from(lambda cell: b.get(cell, 0.0), sheet_typo=True),
     )
