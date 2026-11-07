@@ -139,9 +139,9 @@ approx(r.berserk === null ? 0 : 1, 0, 'no-race berserk is null');
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger', achievement: 'Damage Boost +20%' }), game);
 approx(r.lethality, Math.min(0.15 + 0.20, 1.5), 'achievement lethality');
 
-approx(game.ores.length, 149, 'ore count');
-approx(game.weapons.length, 89, 'weapon count');
-approx(game.races.length, 20, 'race count');
+approx(game.ores.length, 155, 'ore count');
+approx(game.weapons.length, 92, 'weapon count');
+approx(game.races.length, 22, 'race count');
 approx(game.runes.length, 46, 'rune count');
 approx(game.achievements.length, 16, 'achievement count');
 

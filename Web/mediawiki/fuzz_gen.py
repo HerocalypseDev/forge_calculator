@@ -26,6 +26,7 @@ race_names = [r.name for r in game.races]
 rune_names = [r.name for r in game.runes if r.name != "None"]
 ach_names = [a.name for a in game.achievements if a.name != "None"]
 bonus_types = list(dict.fromkeys([*game.race_bonus_types, *game.weapon_types]))
+TOWER_ORES = ["Echotite", "Frost Core", "Tetrinite", "Frost Star", "Galaxite"]
 
 
 def rand_float(maxv):
@@ -50,7 +51,8 @@ def gen_build():
         if random.random() < 0.35:
             slots.append(OreSlot("None", 0))
         else:
-            slots.append(OreSlot(random.choice(ore_names), random.choice([1, 2, 3, 5, 8, 13, 20, 30])))
+            pool = TOWER_ORES if random.random() < 0.25 else ore_names
+            slots.append(OreSlot(random.choice(pool), random.choice([1, 2, 3, 5, 8, 13, 20, 30])))
     rune_cells = []
     if random.random() < 0.5:
         rune_cells = [random.choice(rune_names) for _ in range(random.randint(1, 4))]
@@ -173,6 +175,21 @@ def result_to_dict(r):
         "trait_damage_multiplier": r.trait_damage_multiplier,
         "berserk_level": r.berserk_level,
         "golemite_dps": r.golemite_dps,
+        "dark_smite_dps": r.dark_smite_dps,
+        "trident_toss_dps": r.trident_toss_dps,
+        "reverberation_chance": r.reverberation_chance,
+        "reverberation_dps": r.reverberation_dps,
+        "frost_slash_dmg": r.frost_slash_dmg,
+        "frost_slash_dps": r.frost_slash_dps,
+        "glacier_dmg": r.glacier_dmg,
+        "glacier_explosion_dps": r.glacier_explosion_dps,
+        "starfall_dmg": r.starfall_dmg,
+        "starfall_cooldown": r.starfall_cooldown,
+        "starfall_dps": r.starfall_dps,
+        "stellar_mark_dmg": r.stellar_mark_dmg,
+        "stellar_mark_dps": r.stellar_mark_dps,
+        "ancient_poison_dmg": r.ancient_poison_dmg,
+        "ancient_poison_dps": r.ancient_poison_dps,
         "total_dps": r.total_dps,
         "berserk": r.berserk,
         "moonstone": r.moonstone,

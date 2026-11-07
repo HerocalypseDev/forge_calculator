@@ -1049,6 +1049,15 @@
 .fc-stat-val.fc-sv-golemite,
 .fc-stat-label.fc-sv-golemite { color: #9fa8da !important; }
 
+.fc-stat-val.fc-sv-darksmite,
+.fc-stat-label.fc-sv-darksmite { color: #b39ddb !important; }
+
+.fc-stat-val.fc-sv-frost,
+.fc-stat-label.fc-sv-frost { color: #81d4fa !important; }
+
+.fc-stat-val.fc-sv-star,
+.fc-stat-label.fc-sv-star { color: #fff59d !important; }
+
 .fc-stat-val.fc-sv-mult,
 .fc-stat-label.fc-sv-mult { color: #FFD580 !important; }
 

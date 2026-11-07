@@ -27,19 +27,22 @@
     'Orc': 0.10,
     'Shadow': 0.05,
     'Dragonborn': 0.12,
-    'Orc Lord': 0.40
+    'Orc Lord': 0.40,
+    'Fallen Angel': 0.20
   };
 
   var CLASS_LETHALITY = {
     'Felynx,Gauntlet': 0.20,
     'Felynx,Gauntlets': 0.20,
-    'Vampire,Straight Sword': 0.10
+    'Vampire,Straight Sword': 0.10,
+    'Imp,Spear': 0.25
   };
 
   var RACE_ATK_SPEED = {
     'Shadow': 0.10,
     'Demon': 0.20,
-    'Archangel': 0.20
+    'Archangel': 0.20,
+    'Fallen Angel': 0.10
   };
 
   var CLASS_ATK_SPEED = {
@@ -47,7 +50,8 @@
     'Golem,Colossal Sword': 0.15,
     'Golem,Great Axe': 0.15,
     'Felynx,Gauntlet': 0.20,
-    'Felynx,Gauntlets': 0.20
+    'Felynx,Gauntlets': 0.20,
+    'Imp,Spear': 0.20
   };
 
   var UNCAPPED_RACE_LETHALITY = { 'Kitsune': 0.20 };
@@ -71,7 +75,7 @@
   var RACE_SMITE_DMG = { 'Angel': 0.30 };
   var RACE_SMITE_CHANCE = { 'Angel': 0.50 };
 
-  var RACE_BERSERK = { 'Minotaur': 0.30 };
+  var RACE_BERSERK = { 'Minotaur': 0.30, 'Fallen Angel': 0.30 };
 
   var RACE_SMASH_DMG = { 'Orc Lord': 1.0 };
   var RACE_SMASH_COOLDOWN = { 'Orc Lord': 10.0 };
@@ -90,6 +94,14 @@
   var ARCHANGEL_SMITE_CHANCE = 0.33;
   var ARCHANGEL_SMITE_COOLDOWN = 10.0;
   var DEMON_CURSED_AURA_DMG = 0.1;
+  var RACE_DARK_SMITE_DMG = { 'Fallen Angel': 0.35 };
+  var RACE_DARK_SMITE_CHANCE = { 'Fallen Angel': 0.3 };
+  var TRIDENT_TOSS = { 'Imp,Spear': [1.2, 1.0, 8.0] };
+  var REVERBERATION_ORE = 'Echotite';
+  var REVERBERATION_CHANCE = { 'Dagger': 0.20, 'Straight Sword': 0.16, 'Gauntlet': 0.12 };
+  var REVERBERATION_DEFAULT_CHANCE = 0.08;
+  var STARFALL_GALAXITE_MULT = 225 / 125;
+  var STELLAR_MARK_HITS = 5;
 
   var EXPLOSION_DMG_CAP = 2.5;
   var SMITE_DMG_CAP = 2.5;
@@ -802,6 +814,18 @@
         : DEFAULT_LIGHTNING_COOLDOWN;
     }
 
+    var reverberation = 0.0;
+    build.slots.forEach(function (s, i) {
+      if (s.name === REVERBERATION_ORE && shares[i] >= SHARE_GATE) {
+        var chance = Object.prototype.hasOwnProperty.call(REVERBERATION_CHANCE, build.bonus_weapon_type)
+          ? REVERBERATION_CHANCE[build.bonus_weapon_type] : REVERBERATION_DEFAULT_CHANCE;
+        reverberation = Math.max(reverberation, chance);
+      }
+    });
+    var starfallDmg = slotSum(build.slots, shares, game, 'starfall_dmg');
+    var starfallCooldowns = slotVals(build.slots, shares, game, 'starfall_cooldown');
+    var stellarMarkDmg = slotSum(build.slots, shares, game, 'stellar_mark_dmg');
+
     return {
       moon: Math.min(MOON_CAP, slotSum(build.slots, shares, game, 'moon')) + golemiteSum(build, 'moon'),
       explosion_dmg: Math.min(EXPLOSION_DMG_CAP, slotSum(build.slots, shares, game, 'explosion_dmg') + ab.blast_dmg
@@ -840,7 +864,20 @@
       fox_claws_chance: raceValue(RACE_FOX_CLAWS_CHANCE, race),
       foxfire_dmg: raceValue(RACE_FOXFIRE_DMG, race),
       foxfire_chance: raceValue(RACE_FOXFIRE_CHANCE, race),
-      foxfire_duration: raceValue(RACE_FOXFIRE_TIME, race)
+      foxfire_duration: raceValue(RACE_FOXFIRE_TIME, race),
+      reverberation_chance: reverberation,
+      frost_slash_dmg: slotSum(build.slots, shares, game, 'frost_slash_dmg'),
+      frost_slash_chance: slotMax(build.slots, shares, game, 'frost_slash_chance'),
+      glacier_dmg: slotSum(build.slots, shares, game, 'glacier_dmg'),
+      glacier_chance: slotMax(build.slots, shares, game, 'glacier_chance'),
+      starfall_dmg: starfallDmg,
+      starfall_chance: slotMax(build.slots, shares, game, 'starfall_chance'),
+      starfall_cooldown: starfallDmg > 0 && starfallCooldowns.length ? Math.min.apply(null, starfallCooldowns) : 0.0,
+      stellar_mark_dmg: stellarMarkDmg,
+      stellar_mark_hits: stellarMarkDmg > 0 ? STELLAR_MARK_HITS : 0.0,
+      ancient_poison_dmg: slotSum(build.slots, shares, game, 'ancient_poison_dmg'),
+      ancient_poison_chance: slotMax(build.slots, shares, game, 'ancient_poison_chance'),
+      ancient_poison_duration: slotMax(build.slots, shares, game, 'ancient_poison_duration')
     };
   }
 
@@ -966,8 +1003,38 @@
       golemite_dps += golemiteDamage(g.level, unforged) * GOLEMITE_HITS_PER_SECOND;
     });
 
+    var darkSmiteDmg = raceValue(RACE_DARK_SMITE_DMG, race);
+    var dark_smite_dps = unforged * atkRate * darkSmiteDmg
+      * gameChance(raceValue(RACE_DARK_SMITE_CHANCE, race), darkSmiteDmg > 0);
+    var weaponType = weapon && weapon.type ? weapon.type : '';
+    var trident = TRIDENT_TOSS[race + ',' + weaponType] || [0.0, 0.0, 0.0];
+    var trident_toss_dps = trident[2] ? unforged * trident[0] * trident[1] * Math.min(atkRate, 1 / trident[2]) : 0.0;
+
+    var reverberation_dps = weapon_dps * gameChance(procs.reverberation_chance, procs.reverberation_chance > 0);
+    var frost_slash_dps = unforged * procs.frost_slash_dmg
+      * gameChance(procs.frost_slash_chance, procs.frost_slash_dmg > 0) * atkRate;
+    var critShare = Math.min(build.base_crit_chance + totals.crit_chance, 1.0);
+    var glacier_explosion_dps = unforged * procs.glacier_dmg
+      * gameChance(procs.glacier_chance, procs.glacier_dmg > 0) * critShare * atkRate;
+    var galaxiteAmount = 0.0;
+    build.slots.forEach(function (s) { if (s.name === 'Galaxite') { galaxiteAmount += s.amount; } });
+    var starfallMult = galaxiteAmount > 0 ? STARFALL_GALAXITE_MULT : 1.0;
+    var starfall_dps = atkRate && procs.starfall_dmg > 0
+      ? unforged * procs.starfall_dmg * starfallMult
+        * cooldownRate(gameChance(procs.starfall_chance, true), atkRate, procs.starfall_cooldown)
+      : 0.0;
+    var stellar_mark_dps = procs.stellar_mark_dmg > 0
+      ? unforged * procs.stellar_mark_dmg * atkRate / procs.stellar_mark_hits
+      : 0.0;
+    var ancient_poison_dps = atkRate && procs.ancient_poison_dmg > 0
+      ? poison_dps * procs.ancient_poison_dmg
+        * (1 - Math.pow(1 - gameChance(procs.ancient_poison_chance, true), atkRate * procs.ancient_poison_duration))
+      : 0.0;
+
     var proc_total = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
-      + smash_dps + fox_claws_dps + foxfire_dps + archangel_smite_dps + cursed_aura_dps + golemite_dps;
+      + smash_dps + fox_claws_dps + foxfire_dps + archangel_smite_dps + cursed_aura_dps + golemite_dps
+      + dark_smite_dps + trident_toss_dps + reverberation_dps + frost_slash_dps + glacier_explosion_dps
+      + starfall_dps + stellar_mark_dps + ancient_poison_dps;
     var total_dps = weapon_dps + proc_total;
 
     var berserkLevel = Math.min(build.berserk, CAPS.berserk) + raceValue(RACE_BERSERK, race);
@@ -985,7 +1052,14 @@
       + procs.smite_dmg * forged
       + procs.blackhole_dmg * forged
       + forged * procs.lightning_dmg * procs.lightning_chance * atkRate
-      + procs.smash_dmg * forged;
+      + procs.smash_dmg * forged
+      + (procs.reverberation_chance > 0
+        ? forged * (1 + totals.lethality) * (build.base_crit_dmg + totals.crit_dmg) * atkRate : 0.0)
+      + forged * procs.frost_slash_dmg * atkRate
+      + forged * procs.glacier_dmg * atkRate
+      + (procs.starfall_cooldown > 0 ? forged * procs.starfall_dmg * starfallMult / procs.starfall_cooldown : 0.0)
+      + (procs.stellar_mark_hits > 0 ? forged * procs.stellar_mark_dmg * atkRate / procs.stellar_mark_hits : 0.0)
+      + forged * procs.poison_dmg * procs.ancient_poison_dmg;
 
     var ttk_25k = total_dps > 0 ? 25000 / total_dps : null;
     var ttk_75k = total_dps > 0 ? 75000 / total_dps : null;
@@ -1046,6 +1120,21 @@
       archangel_smite_dps: archangel_smite_dps,
       cursed_aura_dps: cursed_aura_dps,
       golemite_dps: golemite_dps,
+      dark_smite_dps: dark_smite_dps,
+      trident_toss_dps: trident_toss_dps,
+      reverberation_chance: procs.reverberation_chance,
+      reverberation_dps: reverberation_dps,
+      frost_slash_dmg: procs.frost_slash_dmg,
+      frost_slash_dps: frost_slash_dps,
+      glacier_dmg: procs.glacier_dmg,
+      glacier_explosion_dps: glacier_explosion_dps,
+      starfall_dmg: procs.starfall_dmg,
+      starfall_cooldown: procs.starfall_cooldown,
+      starfall_dps: starfall_dps,
+      stellar_mark_dmg: procs.stellar_mark_dmg,
+      stellar_mark_dps: stellar_mark_dps,
+      ancient_poison_dmg: procs.ancient_poison_dmg,
+      ancient_poison_dps: ancient_poison_dps,
       trait_damage_multiplier: tdm
     };
   }
@@ -2618,6 +2707,14 @@
         { label: 'Archangel Smite DPS', value: '0', valueClass: 'fc-sv-smite', labelClass: 'fc-sv-smite' },
         { label: 'Cursed Aura DPS', value: '0', valueClass: 'fc-sv-aura', labelClass: 'fc-sv-aura' },
         { label: 'Golemite DPS', value: '0', valueClass: 'fc-sv-golemite', labelClass: 'fc-sv-golemite' },
+        { label: 'Dark Smite DPS', value: '0', valueClass: 'fc-sv-darksmite', labelClass: 'fc-sv-darksmite' },
+        { label: 'Trident Toss DPS', value: '0', valueClass: 'fc-sv-fire', labelClass: 'fc-sv-fire' },
+        { label: 'Reverberation DPS', value: '0', valueClass: 'fc-sv-dmg', labelClass: 'fc-sv-dmg' },
+        { label: 'Frost Slash DPS', value: '0', valueClass: 'fc-sv-frost', labelClass: 'fc-sv-frost' },
+        { label: 'Glacier Explosion DPS', value: '0', valueClass: 'fc-sv-frost', labelClass: 'fc-sv-frost' },
+        { label: 'Starfall DPS', value: '0', valueClass: 'fc-sv-star', labelClass: 'fc-sv-star' },
+        { label: 'Stellar Mark DPS', value: '0', valueClass: 'fc-sv-star', labelClass: 'fc-sv-star' },
+        { label: 'Ancient Poison DPS', value: '0', valueClass: 'fc-sv-poison', labelClass: 'fc-sv-poison' },
         { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold', labelClass: 'fc-sv-dmg' },
         { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-berserk', labelClass: 'fc-sv-berserk' },
         { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-moonstone', labelClass: 'fc-sv-moonstone' }
@@ -2698,9 +2795,17 @@
         updateStatRow(dpsRows[10], fmtDps(result.archangel_smite_dps), false);
         updateStatRow(dpsRows[11], fmtDps(result.cursed_aura_dps), false);
         updateStatRow(dpsRows[12], fmtDps(result.golemite_dps), false);
-        updateStatRow(dpsRows[13], fmtDps(result.total_dps), false);
-        updateStatRow(dpsRows[14], fmtDps(result.berserk), false);
-        updateStatRow(dpsRows[15], fmtDps(result.moonstone), false);
+        updateStatRow(dpsRows[13], fmtDps(result.dark_smite_dps), false);
+        updateStatRow(dpsRows[14], fmtDps(result.trident_toss_dps), false);
+        updateStatRow(dpsRows[15], fmtDps(result.reverberation_dps), false);
+        updateStatRow(dpsRows[16], fmtDps(result.frost_slash_dps), false);
+        updateStatRow(dpsRows[17], fmtDps(result.glacier_explosion_dps), false);
+        updateStatRow(dpsRows[18], fmtDps(result.starfall_dps), false);
+        updateStatRow(dpsRows[19], fmtDps(result.stellar_mark_dps), false);
+        updateStatRow(dpsRows[20], fmtDps(result.ancient_poison_dps), false);
+        updateStatRow(dpsRows[21], fmtDps(result.total_dps), false);
+        updateStatRow(dpsRows[22], fmtDps(result.berserk), false);
+        updateStatRow(dpsRows[23], fmtDps(result.moonstone), false);
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
@@ -3340,6 +3445,14 @@
       'Archangel Smite DPS: ' + result.archangel_smite_dps.toFixed(2),
       'Cursed Aura DPS: ' + result.cursed_aura_dps.toFixed(2),
       'Golemite DPS: ' + result.golemite_dps.toFixed(2),
+      'Dark Smite DPS: ' + result.dark_smite_dps.toFixed(2),
+      'Trident Toss DPS: ' + result.trident_toss_dps.toFixed(2),
+      'Reverberation DPS: ' + result.reverberation_dps.toFixed(2),
+      'Frost Slash DPS: ' + result.frost_slash_dps.toFixed(2),
+      'Glacier Explosion DPS: ' + result.glacier_explosion_dps.toFixed(2),
+      'Starfall DPS: ' + result.starfall_dps.toFixed(2),
+      'Stellar Mark DPS: ' + result.stellar_mark_dps.toFixed(2),
+      'Ancient Poison DPS: ' + result.ancient_poison_dps.toFixed(2),
       'Total DPS: ' + result.total_dps.toFixed(2),
       '',
       '--- Time to Kill ---',
