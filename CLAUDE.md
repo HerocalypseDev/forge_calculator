@@ -887,3 +887,37 @@ shows a read-only summary of the rarity, scaling and resulting stats.
 | 3 | **UI** — Golemite panes get Level + 4 ore slots + summary; build state `{level, slots}`; `transformBuildForEngine` derives the sub-stats; old sub-stat CSS removed | ✅ |
 | 4 | **Tests** — `golemite-ui-test.js` rewritten (rarity, scaling, weapon rules, UI, end to end); every MediaWiki test, parity harness, `fuzz_verify.js` and `pytest` green | ✅ |
 | 5 | **Deploy + docs** — `deploy_wiki.py --apply`: styles.css rev 17424, ForgeCalculator.js rev 17425; Data:OreRarity.json already live | ✅ |
+
+### Tower of Hell Ores + Fallen Angel / Imp Workbook Adoption (November 2026) — IN PROGRESS
+**Goal:** `Copy of LittleTimmy's Calculator MAIN COPY (UP TO DATE) (5).xlsx` (Nov 7) replaces
+`reference/UpdatedSpreadsheet.xlsx`. It adds races **Fallen Angel** (20% lethality, 10% attack speed,
+30% berserk, Dark Smite 35% at 30% chance, rows 125–127) and **Imp** (Trident Toss 120%, 8 s, Spear
+only, rows 129–131), weapons Moon Crescent Spear / Royal Guardian's Glaive / Sharktooth Odachi rows
+(`_Weapon` to row 93), ores Royal Boneite, Echotite, Frost Core, Tetrinite, Bizzarite, Frost Star
+(`_OptionsCrafter` to row 215, no trait formulas yet), and moves achievements to `C135` and the
+results block to rows 139–155. The four weapon ores' traits are missing from the sheet; they are
+added to the workbook first (XML patch, Google spelling) and then ported verbatim.
+
+User decisions:
+- New ore traits ramp like other ores: the wiki number is the 30%-share value and 10% share gives a
+  tenth of it; chances, cooldowns and durations are gated flats.
+- Sheet bugs fixed in the sheet: Dark Smite (`C148`) and Trident Toss (`E148`) join Total / Berserk /
+  Moon Stone; Imp's "Physical Damage +25% / Attack Speed +20% (Spears Only)" go to `E72` / `E75`
+  pools, and the fire terms the sheet put in `C91`–`C93` for Imp are removed.
+- Echotite Explosion 40% / 50%, Tetrinite Poison 75% / 40% / 6 s and Lightning 50% / 70% / 4 s join
+  the existing explosion, poison and lightning cells; Frost Core Lethality 15% and Crit Damage 10%
+  join `C72` / `C74`; Frost Star Polar Shift gives ¼ of 10% to attack speed, lethality and crit dmg.
+- New rows (below the results block, all on unforged `A18`, game-exact chance rounding):
+  Reverberation = physical hit × chance (8%; Dagger 20%, Straight Sword 16%, Gauntlet 12%);
+  Frost Slash 25% at 30%; Glacier Explosion 65% at 50% × crit chance; Starfall 125% (225% with any
+  Galaxite) at 20% with a 10 s cooldown; Stellar Mark 150% every 5th hit; Ancient Poison = poison
+  DPS × 50% × mark uptime (50% chance, 5 s). Snow, Fracture, Echoes of Decay and slows add no DPS.
+- Every new proc also joins Max Burst on forged `C18`.
+
+| Phase | Work | Status |
+|-------|------|--------|
+| 1 | **Workbook** — new file in `reference/`, sheet bugs fixed, new ore traits and rows added by XML patch, caches from an Excel recalculation | ⏳ |
+| 2 | **Data** — extractor / parser / audit moved to the new rows; new ore stats parsed; races, weapons, ores rebuilt; ore rarity refetched | ⏳ |
+| 3 | **Python engine + tests** — Fallen Angel, Imp, new procs, totals; goldens, parity, Excel fuzz | ⏳ |
+| 4 | **MediaWiki engine + UI + tests + fuzz** — same engine, new DPS rows and clipboard lines | ⏳ |
+| 5 | **Deploy + docs** | ⏳ |
