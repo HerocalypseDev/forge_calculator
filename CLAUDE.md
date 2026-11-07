@@ -868,7 +868,7 @@ user to review; not deployed. Engine and data untouched.
 | 5 | **Focus, sizes, fonts** — no focus outline / shadow / box on tabs, input borders never change colour; text ~12% bigger and taller controls; only the wiki's two font stacks (`"Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif` everywhere, `Cinzel, "Palatino Linotype", Palatino, Georgia, serif` for the hero title only) | ✅ |
 | 6 | **Old UI saved + merge + deploy** — branch `old-ui` / tag `old-ui-2026-11-06`, "switch to old UI" rule added above; branch merged into `main` and deployed live | ✅ |
 
-### Golemites Forged From Ores — IN PROGRESS
+### Golemites Forged From Ores — COMPLETED ✅
 **Goal:** replace the Golemite tab's 21 manual sub-stat boxes with the same 4 ore slots the
 weapon uses. Rule given by the user (not in the workbook, so it is a UI derivation feeding the
 existing Golemite sub-stat cells; the engines are unchanged): a Golemite's ore traits are worked
@@ -886,4 +886,4 @@ shows a read-only summary of the rarity, scaling and resulting stats.
 | 2 | **Derivation** — `deriveGolemiteStats(slots, game)` in the engine half of the IIFE (survives a UI swap) | ✅ |
 | 3 | **UI** — Golemite panes get Level + 4 ore slots + summary; build state `{level, slots}`; `transformBuildForEngine` derives the sub-stats; old sub-stat CSS removed | ✅ |
 | 4 | **Tests** — `golemite-ui-test.js` rewritten (rarity, scaling, weapon rules, UI, end to end); every MediaWiki test, parity harness, `fuzz_verify.js` and `pytest` green | ✅ |
-| 5 | **Deploy + docs** | ⏳ |
+| 5 | **Deploy + docs** — `deploy_wiki.py --apply`: styles.css rev 17424, ForgeCalculator.js rev 17425; Data:OreRarity.json already live | ✅ |
