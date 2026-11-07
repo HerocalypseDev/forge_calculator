@@ -567,12 +567,8 @@
 }
 
 .fc-meta-row > .fc-situational-section {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: calc(68% + 16px);
-  overflow: hidden;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .fc-situational-grid {
@@ -1167,9 +1163,6 @@
   .fc-meta-row > .fc-meta-wrap {
     flex: 0 0 auto;
     max-width: 100%;
-  }
-  .fc-meta-row > .fc-situational-section {
-    position: static;
   }
   .fc-ability-grid,
   .fc-results-cards {
