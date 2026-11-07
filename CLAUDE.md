@@ -157,6 +157,8 @@ and are added after the cap:
 | Goblin + Dagger | — | 10% |
 | Golem + Colossal Sword or Great Axe | — | 15% |
 | Dryad in Healing Grove (`C49`) | +15% crit chance and +15% crit dmg after cap | — |
+| Fallen Angel (Black Halo) | 20% pool (+30% berserk in `E82`, Dark Smite) | 10% pool |
+| Imp + Spear | 25% pool (Trident Toss) | 20% pool |
 
 Minotaur has no lethality; its Bull's Fury +30% sits in the berserk pool (`E54`).
 
@@ -215,7 +217,7 @@ Maintained:
   `calculate(build, game)` → every workbook cell (E10…E101). Not part of any shipped UI:
   it exists so `fuzz_verify.js` can differentially verify the MediaWiki engine against it.
 - **Data** (`forge_calculator/data.py`, `data/*.json`) — committed JSON is the source of
-  truth; counts validated against the workbook (149 ores / 87 weapons / 20 races /
+  truth; counts validated against the workbook (155 ores / 92 weapons / 22 races /
   46 runes / 16 achievements). Copied to `Web/data/` and `Web/mediawiki/Data-*.json`.
 - **Build** (`build_data/`, `scripts/build_data.py`) — openpyxl extraction → JSON.
   Dev-only; never imported at runtime.
@@ -227,10 +229,10 @@ Retired — do not maintain:
   `scripts/smoke_gui.py`).
 
 Workbook sheets:
-- **DPS Calculator** — the main calculation sheet (cells C6–E146; Golemite block rows 39–64).
-- **_Weapon** — weapon lookup (`C2:E90`, 89 weapons, types from `F12`'s `FILTER` literal — 11 incl. `Halberd`, race-bonus types `C23`).
-- **_OptionsCrafter** — ore catalog (`A61:F209`; `A60` is the Select Ore sentinel).
-- **_Options** — races (`B1:C20` dropdown + descriptions, availability matrix `E1:AA21`) + rune pool (`A1:A48`).
+- **DPS Calculator** — the main calculation sheet (cells C6–E179; Golemite block rows 39–64, Tower of Hell ore block rows 161–179).
+- **_Weapon** — weapon lookup (`C2:E93`, 92 weapons, types from `F12`'s `FILTER` literal — 11 incl. `Halberd`, race-bonus types `C23`).
+- **_OptionsCrafter** — ore catalog (`A61:F215`; `A60` is the Select Ore sentinel).
+- **_Options** — races (`B1:B22` dropdown, availability matrix `E1:AE23`) + rune pool (`A1:A48`).
 - **IGNORE REF CALC** — ignore.
 
 ## Domain model (engine)
@@ -255,6 +257,8 @@ game has a cooldown, a refresh rule or a random roll, the sheet uses its expecte
 - **Berserk** `C112` = `C18 × (1 + E45 + E54) × crit_blend × E21` + every proc row, `E54 = MIN(200%, C54) + Minotaur 30%` — berserk is **additive with lethality** (same damage-boost pool in the game). **Moon Stone** `C113` = `C102 × (1+C53)` + every proc row.
 - **Golemites** (rows 39–64, two of them): sub-stats `C41`–`D64` feed the existing cells — lethality / crit chance / crit dmg / attack speed join the capped pools (`C72`–`C75`); fire, poison, lightning damage add, their chances and times join the `MAX`; blast damage sits inside the 250% explosion cap; smite damage (`C101`) and moon boost (`C81`) are added **after** their caps; Golemite black-hole damage and Resonance (`C53`/`C54`) add to `C105`; Golemite black-hole chance joins `C106`'s `MAX`; Golemite lightning cooldowns join `E109`'s `MIN` only when an ore or rune cooldown exists (otherwise the 10 s default stands, verbatim). Golemite DPS `E56`/`E57` = `A18 × (2% + (MIN(25, lvl) − 13) × 0.04/12)` from level 13, × the fixed 0.66666666666666 hits/s (`E58`/`E59`); the total (`E62` → `E138`) joins Total / Berserk / Moon Stone DPS but not Max Burst.
 - **Black hole** `C105` = Galaxite's per-slot ramp (`SUMPRODUCT`, no cap) + Golemite black-hole damage, plus — when Galaxite is slotted at all or a Golemite has black-hole damage — Golemite Resonance and +125% if Bismuth is slotted at all (any amount). `C106` = `MAX(Golemite chances, 30% if any Galaxite amount > 0)`.
+- **Fallen Angel / Imp**: Dark Smite (`C126`/`C127`, `E127`) = `A18 × E21 × 35% × game_chance(30%)`; Trident Toss (`C130`/`C131`/`E130`, `E131`) = `A18 × 120% × 100% × MIN(E21, 1/8)` only for Imp with a Spear (the sheet tests the weapon type `C12`, the engines use the selected weapon's type). Rows `C148`/`E148` join Total / Berserk / Moon Stone.
+- **Tower of Hell ores** (ramps 1/10 → full like other ores; chances, cooldowns, durations are gated flats): Echotite explosion 5→50% at 40% (`C87`/`C88`) and Reverberation `C162` = 8% (Dagger 20%, Straight Sword 16%, Gauntlet 12% by `C23`), `E162` = physical hit `C139` × game_chance; Frost Core lethality 1.5→15% and crit dmg 1→10%; Tetrinite poison 4→40% / 75% / 6 s, lightning 7→70% / 50% / 4 s cooldown, Ancient Poison `E177` = poison DPS × 5→50% × (1 − (1 − game_chance(50%))^(E21 × 5)); Frost Star Polar Shift 0.25→2.5% each to lethality, crit dmg and attack speed, Frost Slash `E164` = `A18 × 2.5→25% × game_chance(30%) × E21`, Glacier Explosion `E167` = `A18 × 6.5→65% × game_chance(50%) × MIN(C20+E73, 1) × E21`, Starfall `E170` = `A18 × 12.5→125% (× 225/125 with any Galaxite) / (10 + 1/(game_chance(20%) × E21))`, Stellar Mark `E174` = `A18 × 15→150% × E21 / 5`. Every new row joins Total / Berserk / Moon Stone (`C150`–`C152`) and Max Burst (`C155`, on forged `C18`). Snow, Fracture, Echoes of Decay and slows add no DPS.
 - **Situational inputs**: Dryad `C49` (in Healing Grove, Yes/No) and `E49` (max HP); Orc Lord `C55` (HP missing %) and `E55` (kill stacks 0–5). All default to off/0.
 
 ## Preserved workbook quirks (do not "fix")
@@ -316,7 +320,7 @@ carries no comments.
 ## Commands
 
 ```bash
-python -m pytest tests/               # 138 tests (engine/golden/parser/data/races/bismuth/golemite)
+python -m pytest tests/               # 147 tests (engine/golden/parser/data/races/bismuth/golemite)
 pip install -e .[build]               # dev: add openpyxl
 python -m scripts.build_data          # regenerate data/*.json from UpdatedSpreadsheet.xlsx
 python scripts/fetch_ore_rarity.py    # ore rarities from the wiki's Module:Ore/Data -> data/ore_rarity.json + Data-OreRarity.json
@@ -337,12 +341,12 @@ python scripts/reall_parity.py                        # reference engine -> save
 python scripts/audit_reall.py reference/UpdatedSpreadsheet.xlsx data/ores.json
 python -m scripts.excel_fuzz gen builds.json 80 7     # random builds for Excel (Windows + Excel only)
 powershell scripts/excel_batch.ps1 -Path <_xlfn copy>.xlsx -BuildsJson builds.json -OutJson excel.json
-python -m scripts.excel_fuzz compare builds.json excel.json   # Excel (the workbook itself) vs engine.py, 43 cells
+python -m scripts.excel_fuzz compare builds.json excel.json   # Excel (the workbook itself) vs engine.py, 58 cells
 ```
 
-The saved build in the workbook is Snowite 12 / Kitsunite 15 / Moon Stone 15 / Bismuth 15 with a
-Colossal Terrorblade on a Human, so the saved-build harnesses exercise Bismuth,
-moon, lightning, smite and fire. After a formula edit, the cached values come from an Excel
+The workbook's saved build is empty (Select Ore ×4, Human), so the saved-build harnesses only check the
+baseline; the Excel fuzz is the real check. In the `_xlfn.` copy, `C105` (a `SUMPRODUCT` over an `IF`) must be
+array-entered (`<f t="array" ref="C105">`), otherwise Excel returns `#VALUE!` for black hole and every total. After a formula edit, the cached values come from an Excel
 recalculation of an `_xlfn.`-prefixed copy until the user re-saves the workbook through Google Sheets.
 
 Every MediaWiki UI change should also keep the focused tests green:
@@ -354,7 +358,7 @@ node Web/mediawiki/armor-stats-test.js      node Web/mediawiki/berserk-input-tes
 node Web/mediawiki/no-ore-weapon-test.js    node Web/mediawiki/berserk-trait-test.js
 node Web/mediawiki/generic-trait-ramp-test.js  node Web/mediawiki/new-races-test.js
 node Web/mediawiki/bismuth-test.js         node Web/mediawiki/golemite-ui-test.js
-node Web/mediawiki/validation-warnings-test.js
+node Web/mediawiki/validation-warnings-test.js  node Web/mediawiki/tower-of-hell-test.js
 ```
 
 `copy-stat-test.js` (expects the pre-`fc-is-capped` inline cap colour) and `icon-test.js`
