@@ -145,9 +145,9 @@
   var CORE_STATS = ['lethality', 'crit_chance', 'crit_dmg', 'atk_speed'];
 
   var EXPECTED_COUNTS = {
-    ores: 149,
-    weapons: 89,
-    races: 20,
+    ores: 155,
+    weapons: 92,
+    races: 22,
     runes: 46,
     achievements: 16
   };

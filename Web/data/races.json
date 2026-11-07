@@ -1,5 +1,5 @@
 {
-  "source": "_Options!B1:C20 + availability matrix E2:AA21",
+  "source": "_Options!B1:C22 + availability matrix E2:AA23",
   "trait_headers": [
     "Physical Damage +5%",
     "Physical Damage +10%",
@@ -22,7 +22,11 @@
     "Physical Damage +40%",
     "25% chance for slam",
     "Fox Claws",
-    "Foxfire"
+    "Foxfire",
+    "Black Halo",
+    "Physical Damage +25% (Spears Only)",
+    "Attack Speed +20% (Spears Only)",
+    "Trident Toss"
   ],
   "races": [
     {
@@ -159,8 +163,28 @@
       "name": "Kitsune",
       "default_trait": "25% chance for slam",
       "available_traits": [
+        "Physical Damage +20%",
+        "Attack Speed +20%  (Gauntlets Only)",
         "Fox Claws",
         "Foxfire"
+      ]
+    },
+    {
+      "name": "Fallen Angel",
+      "default_trait": "Fox Claws",
+      "available_traits": [
+        "Physical Damage +20%",
+        "Attack Speed +10%",
+        "Black Halo"
+      ]
+    },
+    {
+      "name": "Imp",
+      "default_trait": "Foxfire",
+      "available_traits": [
+        "Physical Damage +25% (Spears Only)",
+        "Attack Speed +20% (Spears Only)",
+        "Trident Toss"
       ]
     }
   ]

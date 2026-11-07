@@ -917,7 +917,7 @@ User decisions:
 | Phase | Work | Status |
 |-------|------|--------|
 | 1 | **Workbook** — new file in `reference/`; Imp fire terms dropped from `C91`–`C93`, Imp +25% / +20% added to `E72` / `E75`; new ore branches in `C72`, `C74`, `C75`, `C87`, `C88`, `C96`–`C98`, `C109`, `C110`, `E109`; new block rows 161–179 (Reverberation `E162`, Frost Slash `E164`, Glacier Explosion `E167`, Starfall `E170` / cooldown `E172`, Stellar Mark `E174`, Ancient Poison `E177`); `C148`, `E148` and the new rows join `C150`–`C152`, new procs join `C155`; trait text for the 4 ores in `_OptionsCrafter` D/E; caches from Excel (`C105` array-entered in the `_xlfn.` copy) | ✅ |
-| 2 | **Data** — extractor / parser / audit moved to the new rows; new ore stats parsed; races, weapons, ores rebuilt; ore rarity refetched | ⏳ |
+| 2 | **Data** — extractor ranges `_Weapon` 2..93, `_OptionsCrafter` 61..215, achievements `C135`; parser + audit read the 11 new stat cells (`C164`–`C179`, `E172`); data rebuilt (155 ores, 92 weapons, 22 races), audit 0 problems, rarities refetched (155 of 155) | ✅ |
 | 3 | **Python engine + tests** — Fallen Angel, Imp, new procs, totals; goldens, parity, Excel fuzz | ⏳ |
 | 4 | **MediaWiki engine + UI + tests + fuzz** — same engine, new DPS rows and clipboard lines | ⏳ |
 | 5 | **Deploy + docs** | ⏳ |

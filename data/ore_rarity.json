@@ -160,6 +160,12 @@
     "Kitsunite": "Divine",
     "Fichilliumorite": "Divine",
     "Pumpkinite": "Rare",
-    "Bismuth": "Divine"
+    "Bismuth": "Divine",
+    "Royal Boneite": "Mythic",
+    "Echotite": "Mythic",
+    "Frost Core": "Relic",
+    "Tetrinite": "Relic",
+    "Bizzarite": "Exotic",
+    "Frost Star": "Exotic"
   }
 }

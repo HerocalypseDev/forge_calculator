@@ -58,6 +58,17 @@ STAT_CELLS = {
     "C109": "lightning_dmg",
     "E109": "lightning_cooldown",
     "C110": "lightning_chance",
+    "C164": "frost_slash_dmg",
+    "C165": "frost_slash_chance",
+    "C167": "glacier_dmg",
+    "C168": "glacier_chance",
+    "C170": "starfall_dmg",
+    "C171": "starfall_chance",
+    "E172": "starfall_cooldown",
+    "C174": "stellar_mark_dmg",
+    "C177": "ancient_poison_dmg",
+    "C178": "ancient_poison_chance",
+    "C179": "ancient_poison_duration",
 }
 
 # C106 (black-hole proc chance) is the constant IF(COUNTIF(...)>=0.1,0.3,0) and

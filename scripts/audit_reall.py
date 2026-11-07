@@ -31,6 +31,17 @@ CELL_STATS = {
     "C109": ("lightning_dmg", 100),
     "C110": ("lightning_chance", 100),
     "E109": ("lightning_cooldown", 1),
+    "C164": ("frost_slash_dmg", 100),
+    "C165": ("frost_slash_chance", 100),
+    "C167": ("glacier_dmg", 100),
+    "C168": ("glacier_chance", 100),
+    "C170": ("starfall_dmg", 100),
+    "C171": ("starfall_chance", 100),
+    "E172": ("starfall_cooldown", 1),
+    "C174": ("stellar_mark_dmg", 100),
+    "C177": ("ancient_poison_dmg", 100),
+    "C178": ("ancient_poison_chance", 100),
+    "C179": ("ancient_poison_duration", 1),
 }
 
 # phys_dmg/move_speed/berserk_duration have no DPS Calculator formula cell --
@@ -122,7 +133,7 @@ def main(xlsx, json_path):
     book.setdefault("phys_dmg", {})
     book.setdefault("move_speed", {})
     book.setdefault("berserk_duration", {})
-    for row in wsv.iter_rows(min_row=61, max_row=209):
+    for row in wsv.iter_rows(min_row=61, max_row=215):
         name = (row[0].value or "").strip()
         if not name:
             continue

@@ -1,5 +1,5 @@
 {
-  "source": "_Weapon!C2:E90 (+ DPS C12/C23 validation lists)",
+  "source": "_Weapon!C2:E93 (+ DPS C12/C23 validation lists)",
   "types": [
     "Dagger",
     "Straight Sword",
@@ -382,13 +382,13 @@
       "name": "Angelic Spear",
       "type": "Spear",
       "interval": 0.66,
-      "damage": 9.75
+      "damage": 13.11
     },
     {
       "name": "Demonic Spear",
       "type": "Spear",
-      "interval": 0.91,
-      "damage": 14.1
+      "interval": 0.73,
+      "damage": 14.42
     },
     {
       "name": "Knight Spear",
@@ -425,6 +425,12 @@
       "type": "Spear",
       "interval": 0.73,
       "damage": 10.88
+    },
+    {
+      "name": "Moon Crescent Spear",
+      "type": "Spear",
+      "interval": 0.73,
+      "damage": 14.7
     },
     {
       "name": "Double Battle Axe",
@@ -499,6 +505,12 @@
       "damage": 18.0
     },
     {
+      "name": "Royal Guardian's Glaive",
+      "type": "Halberd",
+      "interval": 1.07,
+      "damage": 21.4
+    },
+    {
       "name": "Great Sword",
       "type": "Colossal Sword",
       "interval": 1.4,
@@ -563,6 +575,12 @@
       "type": "Colossal Sword",
       "interval": 1.4,
       "damage": 27.0
+    },
+    {
+      "name": "Devil's Deed",
+      "type": "Colossal Sword",
+      "interval": 1.4,
+      "damage": 30.8
     },
     {
       "name": "Coffin Lid",

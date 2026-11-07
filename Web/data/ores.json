@@ -1,5 +1,5 @@
 {
-  "source": "_OptionsCrafter!A61:F209 + DPS stat formulas (C72..C110)",
+  "source": "_OptionsCrafter!A61:F215 + DPS stat formulas (C72..C179)",
   "select_ore": "Select Ore",
   "formula_only_ores": [],
   "ores": [
@@ -1855,6 +1855,184 @@
         "lightning_chance": {
           "base": 5.875,
           "max": 5.875,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Royal Boneite",
+      "equipment": "Armor",
+      "multiplier": 6.7,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Echotite",
+      "equipment": "Weapons",
+      "multiplier": 22.0,
+      "trait10": "Reverberation: 8% chance for an attack to hit twice (20% for Daggers, 16% for Straight Swords, 12% for Gauntlets). The echo deals damage only. | Explosion: 40% chance to deal 5% of Base Weapon Damage as an AoE Explosion. | Fracture: Hits stun 2% faster. | Echoes of Decay: Hitting an enemy with an Ancient Poison mark makes the next 2 attacks within 1.5s spread the mark to other enemies.",
+      "trait30": "Reverberation: 8% chance for an attack to hit twice (20% for Daggers, 16% for Straight Swords, 12% for Gauntlets). The echo deals damage only. | Explosion: 40% chance to deal 50% of Base Weapon Damage as an AoE Explosion. | Fracture: Hits stun 20% faster. | Echoes of Decay: Hitting an enemy with an Ancient Poison mark makes the next 2 attacks within 1.5s spread the mark to other enemies.",
+      "comments": null,
+      "stats": {
+        "explosion_dmg": {
+          "base": 5.0,
+          "max": 50.0,
+          "divisor": 100
+        },
+        "explosion_chance": {
+          "base": 40.0,
+          "max": 40.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Frost Core",
+      "equipment": "Weapons",
+      "multiplier": 22.75,
+      "trait10": "Lethality: Increases Physical Damage by 1.5%. | Critical Damage: Increases Critical Damage by 1%.",
+      "trait30": "Lethality: Increases Physical Damage by 15%. | Critical Damage: Increases Critical Damage by 10%.",
+      "comments": null,
+      "stats": {
+        "lethality": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 1.0,
+          "max": 10.0,
+          "divisor": 100
+        }
+      }
+    },
+    {
+      "name": "Tetrinite",
+      "equipment": "Weapons",
+      "multiplier": 23.5,
+      "trait10": "Poison: 75% chance to inflict Poison for 6 seconds dealing 4% of Base Weapon Damage per second. | Lightning: 50% Chance to chain Lightning to up to 3 nearby enemies within 20 studs, dealing 7% of Base Weapon Damage (4sec cooldown). | Ancient Poison: On hit, 50% chance to mark the enemy for 5sec. All Poison deals 5% more damage to it. Only 1 enemy at a time.",
+      "trait30": "Poison: 75% chance to inflict Poison for 6 seconds dealing 40% of Base Weapon Damage per second. | Lightning: 50% Chance to chain Lightning to up to 3 nearby enemies within 20 studs, dealing 70% of Base Weapon Damage (4sec cooldown). | Ancient Poison: On hit, 50% chance to mark the enemy for 5sec. All Poison deals 50% more damage to it. Only 1 enemy at a time.",
+      "comments": null,
+      "stats": {
+        "poison_dmg": {
+          "base": 4.0,
+          "max": 40.0,
+          "divisor": 100
+        },
+        "poison_chance": {
+          "base": 75.0,
+          "max": 75.0,
+          "divisor": 100
+        },
+        "poison_duration": {
+          "base": 6.0,
+          "max": 6.0,
+          "divisor": 1
+        },
+        "lightning_dmg": {
+          "base": 7.0,
+          "max": 70.0,
+          "divisor": 100
+        },
+        "lightning_cooldown": {
+          "base": 4.0,
+          "max": 4.0,
+          "divisor": 1
+        },
+        "lightning_chance": {
+          "base": 50.0,
+          "max": 50.0,
+          "divisor": 100
+        },
+        "ancient_poison_dmg": {
+          "base": 5.0,
+          "max": 50.0,
+          "divisor": 100
+        },
+        "ancient_poison_chance": {
+          "base": 50.0,
+          "max": 50.0,
+          "divisor": 100
+        },
+        "ancient_poison_duration": {
+          "base": 5.0,
+          "max": 5.0,
+          "divisor": 1
+        }
+      }
+    },
+    {
+      "name": "Bizzarite",
+      "equipment": "Armor",
+      "multiplier": 25.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Frost Star",
+      "equipment": "Weapons",
+      "multiplier": 27.75,
+      "trait10": "Frost Slash: On hit, 30% chance to unleash a frost slash forward, dealing 2.5% of Base Weapon Damage to all enemies and slowing their attack and movement speed by 30% for 8 seconds. | Glacier Explosion: Critical Hits have a 50% chance to create an ice explosion, dealing 6.5% of Base Weapon Damage around the enemy. | Polar Shift: In combat, every 10 seconds cycles to the next bonus: 1% Attackspeed, Fracture, Lethality or Critical Damage. | Snow: 70% chance to slow enemies by 30% for 8 seconds. | Starfall: On hit, 20% chance to call down a falling star, dealing 12.5% of Base Weapon Damage around the enemy (10sec cooldown). With Galaxite in the same weapon, this damage increases to 22.5%. | Stellar Mark: Hitting an enemy places a Star Mark on it (1 enemy at a time). After 5 hits on the marked enemy it detonates, dealing 15% of Base Weapon Damage around it.",
+      "trait30": "Frost Slash: On hit, 30% chance to unleash a frost slash forward, dealing 25% of Base Weapon Damage to all enemies and slowing their attack and movement speed by 30% for 8 seconds. | Glacier Explosion: Critical Hits have a 50% chance to create an ice explosion, dealing 65% of Base Weapon Damage around the enemy. | Polar Shift: In combat, every 10 seconds cycles to the next bonus: 10% Attackspeed, Fracture, Lethality or Critical Damage. | Snow: 70% chance to slow enemies by 30% for 8 seconds. | Starfall: On hit, 20% chance to call down a falling star, dealing 125% of Base Weapon Damage around the enemy (10sec cooldown). With Galaxite in the same weapon, this damage increases to 225%. | Stellar Mark: Hitting an enemy places a Star Mark on it (1 enemy at a time). After 5 hits on the marked enemy it detonates, dealing 150% of Base Weapon Damage around it.",
+      "comments": null,
+      "stats": {
+        "lethality": {
+          "base": 0.25,
+          "max": 2.5,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 0.25,
+          "max": 2.5,
+          "divisor": 100
+        },
+        "atk_speed": {
+          "base": 0.25,
+          "max": 2.5,
+          "divisor": 100
+        },
+        "frost_slash_dmg": {
+          "base": 2.5,
+          "max": 25.0,
+          "divisor": 100
+        },
+        "frost_slash_chance": {
+          "base": 30.0,
+          "max": 30.0,
+          "divisor": 100
+        },
+        "glacier_dmg": {
+          "base": 6.5,
+          "max": 65.0,
+          "divisor": 100
+        },
+        "glacier_chance": {
+          "base": 50.0,
+          "max": 50.0,
+          "divisor": 100
+        },
+        "starfall_dmg": {
+          "base": 12.5,
+          "max": 125.0,
+          "divisor": 100
+        },
+        "starfall_chance": {
+          "base": 20.0,
+          "max": 20.0,
+          "divisor": 100
+        },
+        "starfall_cooldown": {
+          "base": 10.0,
+          "max": 10.0,
+          "divisor": 1
+        },
+        "stellar_mark_dmg": {
+          "base": 15.0,
+          "max": 150.0,
           "divisor": 100
         }
       }
