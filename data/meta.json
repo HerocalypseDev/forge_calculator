@@ -1,6 +1,6 @@
 {
   "workbook": "UpdatedSpreadsheet.xlsx",
-  "built_at": "2026-11-07T22:03:30+00:00",
+  "built_at": "2026-11-08T12:50:29+00:00",
   "counts": {
     "ores": 155,
     "weapons": 92,
@@ -8,6 +8,6 @@
     "runes": 46,
     "achievements": 16
   },
-  "stat_formulas_sha256": "d6df01e2fe566acc2c480d011151dd976932c68e0d29a6d646473dab36354d1b",
+  "stat_formulas_sha256": "fdae7a7193a6e390bc80f2bac9a73de0bf2e08960b4a0426356d773fb8e5771e",
   "formula_only_ores": []
 }

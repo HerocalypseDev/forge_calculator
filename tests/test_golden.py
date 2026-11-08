@@ -345,9 +345,11 @@ def test_engine_constants_match_source():
     _guard(formulas, "C123", '"Kitsune",3', "foxfire duration")
     _guard(formulas, "E122", "A18*(1+E72)*C121*(1-EXP(-C122*E21*C123))", "foxfire uptime")
     _guard(formulas, "E146", "=E62", "Golemite DPS row")
-    for cell, frag in [("C87", "8.75/100"), ("C88", "5.25/100"), ("C91", "3.25/100"), ("C92", "7.5/100"),
-                       ("C96", "2/100"), ("C97", "9.625/100"), ("C109", "10/100"), ("C110", "5.875/100")]:
-        _guard(formulas, cell, f'C6="Bismuth",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,{frag}))', "Bismuth one-eighth T3 rune")
+    for cell, frag in [("C88", "5.25/100"), ("C92", "7.5/100"), ("C97", "9.625/100"), ("C110", "5.875/100")]:
+        _guard(formulas, cell, f'C6="Bismuth",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,{frag}))', "Bismuth T3 rune chance")
+    for cell, base, top in [("C87", "0.875", "8.75"), ("C91", "0.325", "3.25"), ("C96", "0.2", "2"), ("C109", "1", "10"),
+                            ("C72", "1.5", "15"), ("C73", "1.5", "15"), ("C74", "1.5", "15")]:
+        _guard(formulas, cell, f'C6="Bismuth",IF(SUM($D$6:$D$9)=0,0,IF(D6/SUM($D$6:$D$9)<0.1,0,({base}+({top}-{base})*MIN((D6/SUM($D$6:$D$9)-0.1)/0.2,1))/100))', "Bismuth ramp")
     _guard(formulas, "E109", 'C6="Bismuth",IF(SUM($D$6:$D$9)=0,99,IF(D6/SUM($D$6:$D$9)<0.1,99,0.375))', "Bismuth lightning cooldown")
     _guard(formulas, "C147", "1.5*A18/(10+1/(0.33*E21))", "Archangel smite beam")
     _guard(formulas, "E147", '"Demon",0.1*A18', "Cursed Aura")

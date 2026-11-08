@@ -30,25 +30,28 @@ def test_pumpkinite_ore_is_in_the_catalog(game):
     assert ore.stats == {}
 
 
-@pytest.mark.parametrize("amount", [10, 50])
-def test_bismuth_procs_are_one_eighth_of_each_t3_rune(game, amount):
+@pytest.mark.parametrize("amount, scale", [(10, 0.1), (20, 0.55), (30, 1.0), (50, 1.0)])
+def test_bismuth_traits_ramp_to_full_at_thirty_percent(game, amount, scale):
     r = run(game, ("Bismuth", amount), ("Ancienite", 100 - amount))
-    assert r.explosion_dmg == pytest.approx(0.0875)
+    assert r.explosion_dmg == pytest.approx(0.0875 * scale)
+    assert r.fire_dmg == pytest.approx(0.0325 * scale)
+    assert r.poison_dmg == pytest.approx(0.02 * scale)
+    assert r.lightning_dmg == pytest.approx(0.10 * scale)
+    assert r.lethality == pytest.approx(0.15 * scale)
+    assert r.crit_chance == pytest.approx(0.15 * scale)
+    assert r.crit_dmg == pytest.approx(0.15 * scale)
     assert r.explosion_chance == pytest.approx(0.0525)
-    assert r.fire_dmg == pytest.approx(0.0325)
     assert r.fire_chance == pytest.approx(0.075)
     assert r.fire_duration == pytest.approx(1.0)
-    assert r.poison_dmg == pytest.approx(0.02)
     assert r.poison_chance == pytest.approx(0.09625)
     assert r.poison_duration == pytest.approx(1.5)
-    assert r.lightning_dmg == pytest.approx(0.10)
     assert r.lightning_chance == pytest.approx(0.05875)
     assert r.lightning_cooldown == pytest.approx(0.375)
 
 
 def test_bismuth_needs_ten_percent_share(game):
     r = run(game, ("Bismuth", 9), ("Ancienite", 91))
-    assert (r.explosion_dmg, r.fire_dmg, r.poison_dmg, r.lightning_dmg, r.atk_speed) == (0.0, 0.0, 0.0, 0.0, 0.0)
+    assert (r.explosion_dmg, r.fire_dmg, r.poison_dmg, r.lightning_dmg, r.atk_speed, r.lethality, r.crit_chance, r.crit_dmg) == (0.0,) * 8
 
 
 def test_bismuth_attack_speed_ramps_like_any_ore(game):

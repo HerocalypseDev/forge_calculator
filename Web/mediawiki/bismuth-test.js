@@ -64,12 +64,18 @@ approx(low.atk_speed + low.explosion_dmg + low.fire_dmg + low.poison_dmg + low.l
 const gated = run([['Bismuth', 10], ['Ancienite', 90]]);
 approx(gated.atk_speed, 0.018, 'Bismuth attack speed ramps from 1.8%');
 approx(run([['Bismuth', 30], ['Ancienite', 70]]).atk_speed, 0.18, 'Bismuth attack speed reaches 18%');
-approx(gated.explosion_dmg, 0.0875, 'Bismuth explosion dmg is 1/8 of Blast Chip');
+const full = run([['Bismuth', 30], ['Ancienite', 70]]);
+approx(gated.explosion_dmg, 0.00875, 'Bismuth explosion dmg at 10% share is a tenth');
+approx(full.explosion_dmg, 0.0875, 'Bismuth explosion dmg reaches 1/8 of Blast Chip at 30%');
 approx(gated.explosion_chance, 0.0525, 'Bismuth explosion chance is 1/8 of Blast Chip');
-approx(gated.fire_dmg, 0.0325, 'Bismuth fire dmg is 1/8 of Flame Spark');
+approx(full.fire_dmg, 0.0325, 'Bismuth fire dmg reaches 1/8 of Flame Spark at 30%');
 approx(gated.poison_chance, 0.09625, 'Bismuth poison chance is 1/8 of Venom Crumb');
-approx(gated.lightning_dmg, 0.10, 'Bismuth lightning dmg is 1/8 of Thunder Shard');
+approx(full.lightning_dmg, 0.10, 'Bismuth lightning dmg reaches 1/8 of Thunder Shard at 30%');
 approx(gated.lightning_chance, 0.05875, 'Bismuth lightning chance is 1/8 of Thunder Shard');
+approx(gated.lethality, 0.015, 'Bismuth lethality at 10% share');
+approx(full.lethality, 0.15, 'Bismuth lethality reaches 15%');
+approx(full.crit_chance, 0.15, 'Bismuth crit chance reaches 15%');
+approx(full.crit_dmg, 0.15, 'Bismuth crit dmg reaches 15%');
 approx(gated.lightning_cooldown, 0.375, 'Bismuth lightning cooldown is 1/8 of Thunder Shard');
 
 const galaxite = run([['Galaxite', 30], ['Ancienite', 60]]);

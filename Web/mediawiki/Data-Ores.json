@@ -1797,13 +1797,28 @@
       "trait30": "18% increase to attack speed | On hit, unleash a random T3 attack rune (Venom Crumb, Blast Chip, Flame Spark or Thunder Shard) for 10 seconds | When your Galaxite black hole triggers, unleash a rainbow wave that deals 125% of your weapon damage Increases critical chance by 15% | Increases Critical Damage by 15% | Increases Lethality by 15% | Fire, Poison, Black Hole and Resonance DMG +1% per 500 HP up to +20% | Regen 6 health per second | Whenever you trigger a Galaxite Black Hole, restore 2.5% of your max health",
       "comments": null,
       "stats": {
+        "lethality": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        },
+        "crit_chance": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        },
+        "crit_dmg": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        },
         "atk_speed": {
           "base": 1.8,
           "max": 18.0,
           "divisor": 100
         },
         "explosion_dmg": {
-          "base": 8.75,
+          "base": 0.875,
           "max": 8.75,
           "divisor": 100
         },
@@ -1813,7 +1828,7 @@
           "divisor": 100
         },
         "fire_dmg": {
-          "base": 3.25,
+          "base": 0.325,
           "max": 3.25,
           "divisor": 100
         },
@@ -1828,7 +1843,7 @@
           "divisor": 1
         },
         "poison_dmg": {
-          "base": 2.0,
+          "base": 0.2,
           "max": 2.0,
           "divisor": 100
         },
@@ -1843,7 +1858,7 @@
           "divisor": 1
         },
         "lightning_dmg": {
-          "base": 10.0,
+          "base": 1.0,
           "max": 10.0,
           "divisor": 100
         },
