@@ -4,7 +4,7 @@
 }
 
 .article-top .article-gradient {
-    background: linear-gradient(to right, rgba(10, 10, 10, 0.92) 0%, rgba(10, 10, 10, 0.78) 30%, rgba(10, 10, 10, 0.35) 60%, rgba(10, 10, 10, 0.05) 100%);
+    background: linear-gradient(to right, #0a0a0a 0%, #0a0a0a 32%, rgba(10, 10, 10, 0.85) 45%, rgba(10, 10, 10, 0.5) 62%, rgba(10, 10, 10, 0.2) 80%, rgba(10, 10, 10, 0) 100%);
 }
 
 .trait-browser {
@@ -53,6 +53,7 @@
     align-items: center;
     gap: 6px;
     margin: 14px 0 16px;
+    overflow: hidden;
 }
 
 .trait-filters {
@@ -60,7 +61,10 @@
     flex: 1 1 auto;
     gap: 8px;
     min-width: 0;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 24px;
+    margin-bottom: -24px;
 }
 
 .trait-browser .pf-btn {
@@ -101,7 +105,7 @@
 
 .trait-filter-arrow {
     flex: 0 0 auto;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     width: 30px;
@@ -120,8 +124,12 @@
     border-color: #FFB74D;
 }
 
-.trait-filter-arrow.is-hidden {
-    display: none;
+.trait-filter-bar.has-overflow .trait-filter-arrow {
+    display: flex;
+}
+
+.trait-filter-bar.has-overflow .trait-filter-arrow.is-hidden {
+    visibility: hidden;
 }
 
 .trait-grid {
@@ -132,6 +140,7 @@
 }
 
 .trait-card {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -150,6 +159,21 @@
 .trait-card:hover,
 .trait-card.is-active {
     border-color: #FFB74D;
+}
+
+.trait-card > a {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    border-radius: 10px;
+}
+
+.trait-card-link {
+    font-size: 0;
+    color: transparent;
 }
 
 .trait-card-icon {
@@ -187,51 +211,79 @@
 }
 
 .trait-detail-area {
-    display: none;
     position: relative;
     min-width: 0;
 }
 
 .trait-browser.has-selection .trait-detail-area {
-    display: block;
     position: sticky;
     top: 16px;
 }
 
 .trait-detail-close {
     position: absolute;
-    top: 12px;
+    top: 10px;
     right: 12px;
     z-index: 2;
-    width: 36px;
-    height: 36px;
-    line-height: 32px;
-    text-align: center;
-    border-radius: 50%;
-    border: 2px solid #FFB74D;
-    background: #2a2118;
-    color: #FFB74D;
-    font-size: 24px;
-    font-weight: 700;
+    width: 34px;
+    height: 34px;
+    box-sizing: border-box;
+    border: 1px solid #4a0c0c;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #a3282a 0%, #7c1a1c 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 -3px 0 rgba(0, 0, 0, 0.28);
     cursor: pointer;
+    transition: transform 0.07s ease, box-shadow 0.07s ease;
 }
 
 .trait-detail-close:hover {
-    background: #FFB74D;
-    color: #1a1208;
+    background: linear-gradient(180deg, #b52f31 0%, #8a1e20 100%);
+}
+
+.trait-detail-close:active {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.4);
+}
+
+.trait-detail-close a,
+.trait-detail-close a:visited {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding-bottom: 4px;
+    box-sizing: border-box;
+    color: #f6e9e6;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+}
+
+.trait-detail-close a:hover,
+.trait-detail-close a:focus {
+    color: #ffffff;
+    text-decoration: none;
 }
 
 .trait-detail {
     display: none;
 }
 
-.trait-detail.is-active {
+.trait-detail.is-active,
+.trait-detail:target {
+    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
     background: #110e0b;
     border: 1px solid #3a2c1f;
     border-radius: 12px;
     overflow: hidden;
+}
+
+.trait-browser[data-trait-ready] .trait-detail:target:not(.is-active) {
+    display: none;
 }
 
 .trait-detail-art {
@@ -463,14 +515,21 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .trait-browser.has-selection .trait-detail-area {
+    .trait-detail-area {
         order: -1;
+    }
+
+    .trait-browser.has-selection .trait-detail-area {
         position: relative;
         top: 0;
     }
 }
 
 @media screen and (max-width: 760px) {
+    .article-top .article-gradient {
+        background: linear-gradient(to right, #0a0a0a 0%, #0a0a0a 45%, rgba(10, 10, 10, 0.8) 62%, rgba(10, 10, 10, 0.45) 80%, rgba(10, 10, 10, 0.15) 100%);
+    }
+
     .trait-grid {
         grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
         gap: 10px;
@@ -486,7 +545,8 @@
         height: 56px;
     }
 
-    .trait-detail.is-active {
+    .trait-detail.is-active,
+    .trait-detail:target {
         grid-template-columns: minmax(0, 1fr);
     }
 

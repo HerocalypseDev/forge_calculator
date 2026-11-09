@@ -36,7 +36,7 @@
 
         var cards = toArray(root.querySelectorAll('.trait-card'));
         var area = root.querySelector('.trait-detail-area');
-        var closeButton = root.querySelector('.trait-detail-close');
+        var closeButtons = toArray(root.querySelectorAll('.trait-detail-close'));
         var details = {};
         var active = '';
 
@@ -83,7 +83,8 @@
         cards.forEach(function (card) {
             card.setAttribute('tabindex', '0');
             card.setAttribute('role', 'button');
-            card.addEventListener('click', function () {
+            card.addEventListener('click', function (event) {
+                event.preventDefault();
                 select(card.getAttribute('data-trait'));
             });
             card.addEventListener('keydown', function (event) {
@@ -94,17 +95,21 @@
             });
         });
 
-        if (closeButton) {
-            closeButton.setAttribute('role', 'button');
-            closeButton.setAttribute('tabindex', '0');
-            closeButton.addEventListener('click', close);
-            closeButton.addEventListener('keydown', function (event) {
+        closeButtons.forEach(function (button) {
+            button.setAttribute('role', 'button');
+            button.setAttribute('tabindex', '0');
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                close();
+            });
+            button.addEventListener('keydown', function (event) {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
                     close();
                 }
             });
-        }
+        });
 
         var filterRow = root.querySelector('.trait-filters');
         var leftArrow = root.querySelector('.trait-filter-arrow.is-left');
@@ -114,17 +119,29 @@
             if (!filterRow || !leftArrow || !rightArrow) {
                 return;
             }
+            var bar = filterRow.parentNode;
+            bar.classList.toggle('has-overflow', filterRow.scrollWidth > bar.clientWidth + 1);
             var maxScroll = filterRow.scrollWidth - filterRow.clientWidth;
             leftArrow.classList.toggle('is-hidden', filterRow.scrollLeft <= 1);
             rightArrow.classList.toggle('is-hidden', filterRow.scrollLeft >= maxScroll - 1);
         }
 
         function scrollFilters(direction) {
-            var step = Math.max(120, filterRow.clientWidth * 0.6) * direction;
-            if (filterRow.scrollBy) {
-                filterRow.scrollBy({ left: step, behavior: 'smooth' });
+            var maxScroll = Math.max(0, filterRow.scrollWidth - filterRow.clientWidth);
+            var step = Math.max(120, filterRow.clientWidth * 0.6);
+            var current = Math.min(maxScroll, Math.max(0, filterRow.scrollLeft));
+            var target = Math.min(maxScroll, Math.max(0, current + step * direction));
+            var snap = step / 2;
+            if (target < snap) {
+                target = 0;
+            }
+            if (maxScroll - target < snap) {
+                target = maxScroll;
+            }
+            if (filterRow.scrollTo) {
+                filterRow.scrollTo({ left: target, behavior: 'smooth' });
             } else {
-                filterRow.scrollLeft += step;
+                filterRow.scrollLeft = target;
             }
         }
 

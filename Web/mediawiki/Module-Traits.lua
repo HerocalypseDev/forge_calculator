@@ -1,6 +1,7 @@
 local p = {}
 
 local STYLES = "Template:Traits/styles.css"
+local ROOT_ID = "trait-browser"
 local TYPE_ORDER = { "Damage", "Defense", "Movement", "Miscellaneous" }
 local NO_CAP = "No Cap"
 local CAP_LABEL = "Cap"
@@ -10,9 +11,10 @@ local NO_DESCRIPTION = "No description yet."
 local SOURCE_MODULES = {
     { module = "Module:Ore/Data", list = "ores", name = "name", group = "Ores" },
     { module = "Module:Runes/Data", list = "runes", name = "name", group = "Runes" },
+    { module = "Module:WorldEvents/Data", list = "events", name = "name", group = "World Events" },
     { module = "Module:Races/Data", name = "title", link = "Races", group = "Races", size = 110 },
 }
-local SOURCE_GROUPS = { "Ores", "Runes", "Others", "Races" }
+local SOURCE_GROUPS = { "Ores", "Runes", "World Events", "Others", "Races" }
 local SOURCE_SIZE = 44
 local OTHER_GROUP = "Others"
 
@@ -107,7 +109,9 @@ end
 local function renderStat(stats, value, label)
     local stat = stats:tag("div"):addClass("trait-stat")
     stat:tag("div"):addClass("trait-stat-value"):wikitext(value)
-    stat:tag("div"):addClass("trait-stat-label"):wikitext(label)
+    if label then
+        stat:tag("div"):addClass("trait-stat-label"):wikitext(label)
+    end
 end
 
 local function renderCard(grid, trait)
@@ -119,10 +123,12 @@ local function renderCard(grid, trait)
         :attr("title", trait.name)
     card:tag("div"):addClass("trait-card-icon"):wikitext(icon(trait, 64))
     card:tag("div"):addClass("trait-card-name"):wikitext(trait.name)
+    card:wikitext(string.format('[[#%s|<span class="trait-card-link">%s</span>]]', trait.slug, trait.name))
 end
 
 local function renderDetail(area, trait, sources)
-    local detail = area:tag("div"):addClass("trait-detail"):attr("data-trait", trait.slug)
+    local detail = area:tag("div"):addClass("trait-detail"):attr("data-trait", trait.slug):attr("id", trait.slug)
+    detail:tag("span"):addClass("trait-detail-close"):attr("title", "Close"):wikitext("[[#" .. ROOT_ID .. "|&times;]]")
 
     detail:tag("div")
         :addClass("trait-detail-art")
@@ -157,7 +163,7 @@ local function renderDetail(area, trait, sources)
         end
     end
     if shownCaps == 0 then
-        renderStat(stats, NO_CAP, CAP_LABEL)
+        renderStat(stats, NO_CAP, nil)
         shownCaps = 1
     end
     stats:addClass("has-" .. shownCaps)
@@ -230,6 +236,7 @@ function p.browser(frame)
 
     local root = mw.html.create("div")
         :addClass("trait-browser")
+        :attr("id", ROOT_ID)
         :addClass("pf-outer")
         :attr("data-placeholder", "Search traits...")
 
@@ -252,7 +259,6 @@ function p.browser(frame)
     end
 
     local area = root:tag("div"):addClass("trait-detail-area")
-    area:tag("span"):addClass("trait-detail-close"):attr("title", "Close"):wikitext("&times;")
     for _, trait in ipairs(traits) do
         renderDetail(area, trait, sources)
     end

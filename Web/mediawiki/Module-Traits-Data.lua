@@ -9,7 +9,7 @@ return {
         { name = "Black Halo", type = "Damage", image = "Trait Black Halo.png", color = "#bf3434", description = "", caps = {}, foundOn = {} },
         { name = "Blackhole", type = "Damage", image = "Trait Blackhole.png", color = "#6346bf", description = "", caps = {}, foundOn = {} },
         { name = "Bulls Fury", type = "Damage", image = "Trait Bulls Fury.png", color = "#bf2222", description = "", caps = {}, foundOn = {} },
-        { name = "Burn", type = "Damage", image = "Trait Burn.png", color = "#c65800", description = "", caps = {}, foundOn = {"Fireite", "Sun Stone", "Kyubite", "Gargantuan", "Magmaite", "Supermassive Black Hole", "Meteorite", "Crimsonite", "Vanegos", "Galaxite", "Flame Spark", "Blast Chip", "Venom Crumb", "Thunder Shard", "Rage Mark", "Drain Edge", "Demon", "Dragonborn"} },
+        { name = "Burn", type = "Damage", image = "Trait Burn.png", color = "#c65800", description = "", caps = {}, foundOn = {"Fireite", "Sun Stone", "Kyubite", "Gargantuan", "Magmaite", "Supermassive Black Hole", "Meteorite", "Crimsonite", "Vanegos", "Galaxite", "Flame Spark", "Blast Chip", "Venom Crumb", "Thunder Shard", "Rage Mark", "Drain Edge", "Demon", "Dragonborn", "Blood Moon", "Comet Star", "Haunted Night"} },
         { name = "Critical Chance", type = "Damage", image = "Trait Critical Chance.png", color = "#bfa057", description = "", caps = {}, foundOn = {} },
         { name = "Critical Damage", type = "Damage", image = "Trait Critical Damage.png", color = "#bf4444", description = "", caps = {}, foundOn = {} },
         { name = "Cursed Aura", type = "Damage", image = "Trait Cursed Aura.png", color = "#f46464", description = "", caps = {}, foundOn = {} },
