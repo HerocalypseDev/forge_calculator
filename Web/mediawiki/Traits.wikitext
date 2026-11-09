@@ -1,7 +1,7 @@
 {{Article Header
  | title       = Traits
- | description = Every trait an ore, rune or race can give in The Forge. Pick a trait to see what it does, its cap, and where to find it.
- | image       = Gradient_Weapons.webp
+ | description = Uhm triats section descrition stuff i add things later. am too good
+ | image       = Stonewake Cross Island.webp
  | section     = ALL TRAITS
  | content     = {{#invoke:Traits|browser}}
 }}

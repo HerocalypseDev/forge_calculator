@@ -7,6 +7,7 @@ SHARED = [
     ("Module:Traits", MW / "Module-Traits.lua"),
     ("Template:Traits/styles.css", MW / "Template-Traits-styles.css"),
 ]
+WIKI_OWNED = {"Module:Traits/Data"}
 JS_FILE = MW / "MediaWiki-Traits.js"
 PAGE_FILE = MW / "Traits.wikitext"
 
@@ -54,6 +55,10 @@ def main():
         remote = wiki.content(title)
         if same(title, local, remote):
             print(f"  unchanged  {title}")
+            continue
+        if title in WIKI_OWNED and remote is not None:
+            path.write_text(remote.rstrip("\n") + "\n", encoding="utf-8")
+            print(f"  pulled     {title} (edited on the wiki, local file updated)")
             continue
         if not apply:
             print(f"  WOULD EDIT {title} ({'new page' if remote is None else 'differs'})")

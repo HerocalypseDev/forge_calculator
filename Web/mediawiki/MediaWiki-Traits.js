@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var NARROW_QUERY = '(max-width: 760px)';
+    var NARROW_QUERY = '(max-width: 1000px)';
 
     function toArray(list) {
         return Array.prototype.slice.call(list);

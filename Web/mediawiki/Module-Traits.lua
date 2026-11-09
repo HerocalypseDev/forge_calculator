@@ -4,6 +4,7 @@ local STYLES = "Template:Traits/styles.css"
 local TYPE_ORDER = { "Armor", "Weapon", "Pickaxe", "Race" }
 local NO_CAP = "No Cap"
 local CAP_LABEL = "Cap"
+local CAPS_HEADING = "Caps"
 local MAX_CAPS = 4
 local NO_DESCRIPTION = "No description yet."
 local SOURCE_MODULES = {
@@ -17,8 +18,7 @@ local function isBlank(value)
 end
 
 local function filterKey(traitType)
-    local base = mw.ustring.gsub(traitType or "", "^Extra ", "")
-    return mw.ustring.lower(base)
+    return mw.ustring.lower(traitType or "")
 end
 
 local function initials(name)
@@ -129,7 +129,9 @@ local function renderDetail(area, trait, sources)
         info:tag("div"):addClass("trait-detail-note"):wikitext(trait.note)
     end
 
-    local stats = detail:tag("div"):addClass("trait-detail-stats")
+    local caps = detail:tag("div"):addClass("trait-detail-caps")
+    caps:tag("div"):addClass("trait-detail-caps-label"):wikitext(CAPS_HEADING)
+    local stats = caps:tag("div"):addClass("trait-detail-stats")
     local shownCaps = 0
     for _, cap in ipairs(trait.caps) do
         if shownCaps == MAX_CAPS then
@@ -170,7 +172,7 @@ local function renderFilter(filters, key, label, count, active)
 end
 
 local function prepare(data)
-    local traits, counts, order, needSources = {}, {}, {}, false
+    local traits, counts, needSources = {}, {}, false
     for _, raw in ipairs(data.traits) do
         local trait = {
             name = raw.name,
@@ -188,18 +190,14 @@ local function prepare(data)
         if trait.foundOn[1] then
             needSources = true
         end
-        if not counts[trait.filter] then
-            counts[trait.filter] = 0
-            table.insert(order, trait.filter)
-        end
-        counts[trait.filter] = counts[trait.filter] + 1
+        counts[trait.filter] = (counts[trait.filter] or 0) + 1
         table.insert(traits, trait)
     end
-    return traits, counts, order, needSources
+    return traits, counts, needSources
 end
 
 function p.browser(frame)
-    local traits, counts, order, needSources = prepare(mw.loadData("Module:Traits/Data"))
+    local traits, counts, needSources = prepare(mw.loadData("Module:Traits/Data"))
     local sources = needSources and loadSources() or {}
 
     local root = mw.html.create("div")
@@ -215,18 +213,9 @@ function p.browser(frame)
     local filters = filterBar:tag("div"):addClass("trait-filters")
     filterBar:tag("span"):addClass("trait-filter-arrow is-right is-hidden"):attr("title", "Scroll right"):wikitext("&#8250;")
     renderFilter(filters, "all", "All", #traits, true)
-    local shown = {}
     for _, label in ipairs(TYPE_ORDER) do
-        local key = mw.ustring.lower(label)
-        if counts[key] then
-            renderFilter(filters, key, label, counts[key], false)
-            shown[key] = true
-        end
-    end
-    for _, key in ipairs(order) do
-        if not shown[key] and key ~= "" then
-            renderFilter(filters, key, mw.language.getContentLanguage():ucfirst(key), counts[key], false)
-        end
+        local key = filterKey(label)
+        renderFilter(filters, key, label, counts[key] or 0, false)
     end
 
     local grid = list:tag("div"):addClass("trait-grid")
