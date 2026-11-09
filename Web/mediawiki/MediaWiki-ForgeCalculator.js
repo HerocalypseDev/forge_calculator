@@ -463,7 +463,10 @@
       var bd2 = vals.blackhole_dmg || 0;
       var bc = vals.blackhole_chance !== undefined ? vals.blackhole_chance : 0;
       var br = vals.blackhole_radius || 0;
-      return fmtPct(bd2) + ' Black Hole DMG (' + fmtPct(bc) + ' chance, ' + fmtPct(br) + ' radius)';
+      var bhParts = [];
+      if (bc) { bhParts.push(fmtPct(bc) + ' chance'); }
+      if (br) { bhParts.push(fmtPct(br) + ' radius'); }
+      return fmtPct(bd2) + ' Black Hole DMG' + (bhParts.length ? ' (' + bhParts.join(', ') + ')' : '');
     }
 
     return '';
@@ -577,10 +580,14 @@
     return parts.concat(extras);
   }
 
+  var NON_WEAPON_TRAIT_RE = /vitality|swiftness|endurance|stamina|movement\s*speed|regen|health|jump|stride|damage\s*reduction|heal/i;
+
   function weaponTraitLines(slots, game) {
     var clean = (slots || []).map(function (s) { return { name: s.name, amount: Math.max(0, Number(s.amount) || 0) }; });
     var merged = {};
-    var extras = collectOreTraits(clean, slotShares(clean), game, merged);
+    var extras = collectOreTraits(clean, slotShares(clean), game, merged).filter(function (line) {
+      return !NON_WEAPON_TRAIT_RE.test(line);
+    });
     return traitLines(merged, extras);
   }
 
@@ -3537,7 +3544,10 @@
 
   function transformBuildForEngine(build) {
     return {
-      slots: build.oreSlots.map(function (s) { return { name: s.name, amount: Number(s.amount) || 0 }; }),
+      slots: build.oreSlots.map(function (s) {
+        var blank = !s.name || s.name === NONE_LABEL;
+        return { name: blank && state.gameData ? state.gameData.select_ore : s.name, amount: Number(s.amount) || 0 };
+      }),
       weapon_name: build.weaponName,
       quality: Number(build.quality) || 0,
       forge_level: Number(build.enhancement) || 0,

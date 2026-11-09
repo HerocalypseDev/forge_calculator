@@ -319,6 +319,13 @@ carries no comments.
   250%, moon 150%) gets "(capped at X%)", X = cap + after-cap terms (Kitsune, Fairy + Spear,
   Warbringer, Lord of War, Dryad grove, Golemite smite / moon). `Data-Races.json` trait text is not used because its
   `default_trait` column is offset. Verify with `node Web/mediawiki/active-traits-test.js`.
+- **Weapon Traits box shows Damage traits only.** `weaponTraitLines` drops free-text clauses
+  that the Traits page types as Defense / Movement / Miscellaneous (Vitality, Swiftness,
+  Endurance, Stamina, Movement Speed, regen and heal text — `NON_WEAPON_TRAIT_RE`). Active
+  Traits still lists them.
+- **Empty ore slots reach the engine as `Select Ore`.** The UI's blank slot is `None`;
+  `transformBuildForEngine` maps it to `game.select_ore` (the sheet's blank), otherwise
+  `None` counted as a filled slot and a Bismuth-only build lost its flat 8x.
 - **Golemite special traits (display only).** The workbook's Golemite cells have no slot for
   the Tower of Hell procs, so `deriveGolemiteStats` also returns `special` (Echotite
   Reverberation at the base 8%, Frost Star Frost Slash / Glacier Explosion / Starfall (×225/125

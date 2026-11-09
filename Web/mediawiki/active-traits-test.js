@@ -233,7 +233,15 @@ console.log('== Weapon trait summary ==');
 let lines = FC.weaponTraitLines(slots([['Wolfarite', 30]]), game);
 has(lines, '+15% Lethality', 'Wolfarite gives full lethality at 30% share');
 has(lines, '+8% Attack Speed', 'Wolfarite gives full attack speed');
-has(lines, '+6% Swiftness', 'free-text clause listed too');
+assert(lines.indexOf('+6% Swiftness') === -1 && lines.indexOf('-8% Vitality') === -1,
+  'weapon box drops movement and defense traits');
+has(traitsFor({ oreSlots: slots([['Wolfarite', 30]]) }), '+6% Swiftness', 'Active Traits still lists every trait');
+lines = FC.weaponTraitLines(slots([['Bismuth', 10]]), game);
+assert(lines.every((l) => !/health/i.test(l)) && lines.some((l) => /T3 attack rune/.test(l)),
+  'Bismuth weapon box keeps its rune proc and drops regen and heal');
+lines = FC.weaponTraitLines(slots([['Galaxite', 10]]), game);
+has(lines, '+60% Black Hole DMG', 'black hole line has no empty chance or radius');
+has(lines, '+30% Black Hole Chance', 'Galaxite black hole chance listed');
 assert(FC.weaponTraitLines(slots([['Wolfarite', 1], ['Stone', 20]]), game).indexOf('+15% Lethality') === -1,
   'an ore below 10% share gives no trait');
 assert(FC.weaponTraitLines(slots([]), game).length === 0, 'no ores means no traits');
@@ -341,6 +349,14 @@ console.log('== Skeleton King time to kill ==');
 const ttkResult = FC.calculate(FC.transformBuildForEngine(Object.assign({}, build, { oreSlots: slots([['Wolfarite', 30]]) })), game);
 assert(ttkResult.total_dps > 0 && Math.abs(ttkResult.ttk_skeleton - 7200 / ttkResult.total_dps) < 1e-9,
   'Skeleton King TTK is 7,200 HP / Total DPS');
+
+console.log('== Bismuth on its own ==');
+[[['Bismuth', 3]], [['Bismuth', 3], ['Bismuth', 5]]].forEach((s) => {
+  const r = FC.calculate(FC.transformBuildForEngine(Object.assign({}, build, { oreSlots: slots(s) })), game);
+  assert(r.avg_power === 8, `Bismuth only ${JSON.stringify(s)} gives 8x (got ${r.avg_power})`);
+});
+const fich = FC.calculate(FC.transformBuildForEngine(Object.assign({}, build, { oreSlots: slots([['Fichilliumorite', 3]]) })), game);
+assert(fich.avg_power === 1, 'Fichilliumorite only gives 1x');
 
 if (failures) {
   console.log(`\n${failures} ACTIVE-TRAITS CHECK(S) FAILED`);
