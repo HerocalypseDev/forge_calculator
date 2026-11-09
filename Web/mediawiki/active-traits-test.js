@@ -304,6 +304,39 @@ has(traitsFor({ blastDmg: 300, blastChance: 10 }), '+300% Explosion DMG (capped 
 assert(FC.weaponTraitLines(slots([['Wolfarite', 30]]), game).every((l) => l.indexOf('capped') === -1),
   'weapon trait box has no cap notes under the caps');
 
+console.log('== Raid ore Golemite special traits ==');
+const star = FC.deriveGolemiteStats(slots([['Frost Star', 10]]), game);
+assert(Math.abs(star.special.frost_slash_dmg - 0.25 * 0.28) < 1e-9, 'Frost Star Frost Slash damage x Exotic 0.28');
+assert(star.special.starfall_cooldown === 10, 'Starfall cooldown is not scaled');
+const echo = FC.deriveGolemiteStats(slots([['Echotite', 10]]), game);
+assert(Math.abs(echo.special.reverberation_chance - 0.08 * 0.23) < 1e-9, 'Echotite Reverberation 8% x Mythic 0.23');
+const tet = FC.deriveGolemiteStats(slots([['Tetrinite', 10]]), game);
+assert(Math.abs(tet.special.ancient_poison_dmg - 0.50 * 0.25) < 1e-9, 'Tetrinite Ancient Poison x Relic 0.25');
+const golemOnly = (s) => ({ golemites: [{ level: 0, slots: slots(s) }, { level: 0, slots: slots([]) }] });
+lines = traitsFor(golemOnly([['Frost Star', 10]]));
+has(lines, 'Frost Slash: 7% DMG (8.4% chance) (Golemite, not in DPS)', 'Golemite Frost Slash in Active Traits');
+has(lines, 'Starfall: 35% DMG (5.6% chance, 10s cooldown) (Golemite, not in DPS)', 'Golemite Starfall in Active Traits');
+has(lines, 'Stellar Mark: 42% DMG every 5 hits (Golemite, not in DPS)', 'Golemite Stellar Mark in Active Traits');
+has(traitsFor(golemOnly([['Echotite', 10]])), 'Reverberation: 1.8% chance to hit twice (Golemite, not in DPS)', 'Golemite Reverberation');
+has(traitsFor(golemOnly([['Tetrinite', 10]])), 'Ancient Poison: +12.5% Poison DMG (12.5% chance, 5s) (Golemite, not in DPS)',
+  'Golemite Ancient Poison');
+const dpsWith = FC.calculate(FC.transformBuildForEngine(Object.assign({}, build, golemOnly([['Frost Star', 10]]))), game);
+const dpsWithout = FC.calculate(FC.transformBuildForEngine(Object.assign({}, build, golemOnly([]))), game);
+assert(dpsWith.frost_slash_dps === dpsWithout.frost_slash_dps && dpsWith.starfall_dps === dpsWithout.starfall_dps,
+  'Golemite special traits do not change DPS');
+
+const gPanel = FC.createInputPanel({ data: game, getBuild: () => build, onBuildChange: (nb) => { build = nb; }, onCalculate: null });
+const gIds = {};
+const gWalk = (n) => { if (n.id) { gIds[n.id] = n; } (n.children || []).forEach(gWalk); };
+gWalk(gPanel);
+gPanel.setBuild(Object.assign({}, build, golemOnly([['Frost Star', 10]])));
+const gSummary = gIds['fc-golemite-1-summary'].textContent;
+assert(gSummary.indexOf('Frost Slash: 7% DMG (8.4% chance)') !== -1, 'Golemite summary lists Frost Slash');
+assert(gSummary.indexOf('not added to DPS') !== -1, 'Golemite summary says special traits are not in DPS');
+gPanel.setBuild(Object.assign({}, build, golemOnly([['Royal Boneite', 10]])));
+assert(gIds['fc-golemite-1-summary'].textContent.indexOf('These ores give no weapon traits.') !== -1,
+  'armor-only raid ore gives no weapon traits');
+
 if (failures) {
   console.log(`\n${failures} ACTIVE-TRAITS CHECK(S) FAILED`);
   process.exit(1);

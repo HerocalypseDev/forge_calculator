@@ -319,6 +319,13 @@ carries no comments.
   250%, moon 150%) gets "(capped at X%)", X = cap + after-cap terms (Kitsune, Fairy + Spear,
   Warbringer, Lord of War, Dryad grove, Golemite smite / moon). `Data-Races.json` trait text is not used because its
   `default_trait` column is offset. Verify with `node Web/mediawiki/active-traits-test.js`.
+- **Golemite special traits (display only).** The workbook's Golemite cells have no slot for
+  the Tower of Hell procs, so `deriveGolemiteStats` also returns `special` (Echotite
+  Reverberation at the base 8%, Frost Star Frost Slash / Glacier Explosion / Starfall (×225/125
+  with Galaxite in that Golemite) / Stellar Mark, Tetrinite Ancient Poison; damage and chance
+  × rarity scaling, cooldowns and durations not). They show in the Golemite summary and in
+  Active Traits marked "(Golemite, not in DPS)" and never reach the engine's DPS. Royal
+  Boneite and Bizzarite are armor ores with no weapon traits.
 - Ore `atk_speed` is **not** reachable from the MediaWiki UI — there is no attack-speed
   input, so it only ever arrives from ores, runes, race and achievements.
 - **Active Traits' free-text clauses are computed when they safely can be, approximated

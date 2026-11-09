@@ -833,6 +833,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+.fc-golemite-special {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.fc-golemite-special-note {
+  margin: 0;
+  font-size: 13px;
+  color: #999999;
+}
+
+.fc-golemite-special-line {
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #FFD580;
+  background: #0a0a0a;
+  border: 1px solid #262626;
+  border-radius: 6px;
+}
+
 .fc-weapon-traits {
   margin-top: 14px;
 }

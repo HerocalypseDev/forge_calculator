@@ -703,6 +703,7 @@
     addTraitValue(merged, 'crit_dmg', build.armor_crit_dmg || 0);
     addTraitValue(merged, 'berserk', Math.min(build.berserk || 0, CAPS.berserk) + raceValue(RACE_BERSERK, build.race));
     extras = extras.concat(raceTraits(build, game, merged, afterCap));
+    (build.golemites || []).forEach(function (g) { extras = extras.concat(golemiteSpecialLines(g.special)); });
 
     var parts = traitLines(merged, extras, afterCap);
     return parts.length ? parts.join('\n') : 'No active traits';
@@ -790,7 +791,7 @@
     var stats = {};
     GOLEMITE_FIELDS.forEach(function (f) { if (f !== 'level') { stats[f] = 0.0; } });
     var rarity = golemiteRarity(slots, game);
-    if (!rarity) { return { rarity: null, scaling: 0.0, stats: stats }; }
+    if (!rarity) { return { rarity: null, scaling: 0.0, stats: stats, special: {} }; }
     var k = GOLEMITE_TRAIT_SCALING[rarity];
     var shares = slotShares(slots);
     var hasGalaxite = oreAmount(slots, 'Galaxite') > 0;
@@ -817,7 +818,54 @@
     stats.blackhole_chance = hasGalaxite ? BLACKHOLE_CHANCE * k : 0.0;
     stats.resonance_dmg = hasGalaxite && oreAmount(slots, 'Bismuth') > 0 ? GALAXITE_BISMUTH_WAVE * k : 0.0;
     stats.moon = Math.min(MOON_CAP, slotSum(slots, shares, game, 'moon')) * k;
-    return { rarity: rarity, scaling: k, stats: stats };
+
+    var hasEchotite = slots.some(function (slot, i) { return slot.name === REVERBERATION_ORE && shares[i] >= SHARE_GATE; });
+    var starfallDmg = slotSum(slots, shares, game, 'starfall_dmg') * (hasGalaxite ? STARFALL_GALAXITE_MULT : 1.0);
+    var starfallCooldowns = slotVals(slots, shares, game, 'starfall_cooldown');
+    var special = {
+      reverberation_chance: hasEchotite ? REVERBERATION_DEFAULT_CHANCE * k : 0.0,
+      frost_slash_dmg: slotSum(slots, shares, game, 'frost_slash_dmg') * k,
+      frost_slash_chance: slotMax(slots, shares, game, 'frost_slash_chance') * k,
+      glacier_dmg: slotSum(slots, shares, game, 'glacier_dmg') * k,
+      glacier_chance: slotMax(slots, shares, game, 'glacier_chance') * k,
+      starfall_dmg: starfallDmg * k,
+      starfall_chance: slotMax(slots, shares, game, 'starfall_chance') * k,
+      starfall_cooldown: starfallDmg > 0 && starfallCooldowns.length ? Math.min.apply(null, starfallCooldowns) : 0.0,
+      stellar_mark_dmg: slotSum(slots, shares, game, 'stellar_mark_dmg') * k,
+      ancient_poison_dmg: slotSum(slots, shares, game, 'ancient_poison_dmg') * k,
+      ancient_poison_chance: slotMax(slots, shares, game, 'ancient_poison_chance') * k,
+      ancient_poison_duration: slotMax(slots, shares, game, 'ancient_poison_duration')
+    };
+    return { rarity: rarity, scaling: k, stats: stats, special: special };
+  }
+
+  var GOLEMITE_SPECIAL_NOTE = ' (Golemite, not in DPS)';
+
+  function golemiteSpecialLines(special) {
+    var sp = special || {};
+    var lines = [];
+    function pct(key) { return fmtPlainPct(Number(sp[key]) || 0); }
+    if (sp.reverberation_chance > 0) {
+      lines.push('Reverberation: ' + pct('reverberation_chance') + ' chance to hit twice' + GOLEMITE_SPECIAL_NOTE);
+    }
+    if (sp.frost_slash_dmg > 0) {
+      lines.push('Frost Slash: ' + pct('frost_slash_dmg') + ' DMG (' + pct('frost_slash_chance') + ' chance)' + GOLEMITE_SPECIAL_NOTE);
+    }
+    if (sp.glacier_dmg > 0) {
+      lines.push('Glacier Explosion: ' + pct('glacier_dmg') + ' DMG (' + pct('glacier_chance') + ' chance on crit)' + GOLEMITE_SPECIAL_NOTE);
+    }
+    if (sp.starfall_dmg > 0) {
+      lines.push('Starfall: ' + pct('starfall_dmg') + ' DMG (' + pct('starfall_chance') + ' chance, '
+        + fmtDur(Number(sp.starfall_cooldown) || 0) + ' cooldown)' + GOLEMITE_SPECIAL_NOTE);
+    }
+    if (sp.stellar_mark_dmg > 0) {
+      lines.push('Stellar Mark: ' + pct('stellar_mark_dmg') + ' DMG every ' + STELLAR_MARK_HITS + ' hits' + GOLEMITE_SPECIAL_NOTE);
+    }
+    if (sp.ancient_poison_dmg > 0) {
+      lines.push('Ancient Poison: +' + pct('ancient_poison_dmg') + ' Poison DMG (' + pct('ancient_poison_chance') + ' chance, '
+        + fmtDur(Number(sp.ancient_poison_duration) || 0) + ')' + GOLEMITE_SPECIAL_NOTE);
+    }
+    return lines;
   }
 
   function traitDamageMultiplier(build) {
@@ -1088,6 +1136,7 @@
         var src = (b.golemites && b.golemites[i]) || {};
         var g = {};
         GOLEMITE_FIELDS.forEach(function (f) { g[f] = num(src[f]); });
+        g.special = src.special && typeof src.special === 'object' ? src.special : {};
         return g;
       })
     };
@@ -2292,10 +2341,12 @@
 
   function golemiteEngineValues(golemite, game) {
     var out = { level: golemite.level };
-    var derived = game ? deriveGolemiteStats(golemite.slots, game).stats : null;
+    var info = game ? deriveGolemiteStats(golemite.slots, game) : null;
+    var derived = info ? info.stats : null;
     GOLEMITE_FIELDS.forEach(function (f) {
       if (f !== 'level') { out[f] = derived ? derived[f] : 0.0; }
     });
+    out.special = info ? info.special : {};
     return out;
   }
 
@@ -2353,10 +2404,23 @@
           createEl('span', { class: 'fc-golemite-stat-value' }, [formatGolemiteStat(v, entry.kind)])
         ]));
       });
-      if (!shown) {
+      var specialLines = golemiteSpecialLines(info.special).map(function (line) {
+        return line.replace(GOLEMITE_SPECIAL_NOTE, '');
+      });
+      if (!shown && !specialLines.length) {
         list.appendChild(createEl('p', { class: 'fc-golemite-summary-empty' }, ['These ores give no weapon traits.']));
       }
       box.appendChild(list);
+      if (specialLines.length) {
+        var specialBox = createEl('div', { class: 'fc-golemite-special' });
+        specialBox.appendChild(createEl('p', { class: 'fc-golemite-special-note' }, [
+          'Special traits (shown for reference, not added to DPS):'
+        ]));
+        specialLines.forEach(function (line) {
+          specialBox.appendChild(createEl('div', { class: 'fc-golemite-special-line' }, [line]));
+        });
+        box.appendChild(specialBox);
+      }
     }
 
     function refresh(i) {
