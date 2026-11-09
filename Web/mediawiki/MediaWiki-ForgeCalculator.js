@@ -392,7 +392,11 @@
     return a + b;
   }
 
-  function formatTraitGroup(group, merged) {
+  function capNote(capped, key) {
+    return capped && capped[key] !== undefined ? ' (capped at ' + fmtPlainPct(capped[key]) + ')' : '';
+  }
+
+  function formatTraitGroup(group, merged, capped) {
     var keys = TRAIT_GROUP_KEYS[group];
     if (!keys) return '';
     var vals = {};
@@ -408,7 +412,7 @@
       for (var j = 0; j < keys.length; j++) {
         var sk = keys[j];
         if (vals[sk] !== undefined) {
-          parts.push(fmtPct(vals[sk]) + ' ' + info[sk].name);
+          parts.push(fmtPct(vals[sk]) + ' ' + info[sk].name + capNote(capped, sk));
         }
       }
       return parts.join('\n');
@@ -431,7 +435,7 @@
     if (group === 'explosion') {
       var ed = vals.explosion_dmg || 0;
       var ec = vals.explosion_chance !== undefined ? vals.explosion_chance : 0;
-      return fmtPct(ed) + ' Explosion DMG (' + fmtPct(ec) + ' chance)';
+      return fmtPct(ed) + ' Explosion DMG' + capNote(capped, 'explosion_dmg') + ' (' + fmtPct(ec) + ' chance)';
     }
 
     if (group === 'poison') {
@@ -444,7 +448,7 @@
     if (group === 'smite') {
       var sd = vals.smite_dmg || 0;
       var sc = vals.smite_chance !== undefined ? vals.smite_chance : 0;
-      return fmtPct(sd) + ' Smite DMG (' + fmtPct(sc) + ' chance on hit)';
+      return fmtPct(sd) + ' Smite DMG' + capNote(capped, 'smite_dmg') + ' (' + fmtPct(sc) + ' chance on hit)';
     }
 
     if (group === 'lightning') {
@@ -542,10 +546,31 @@
     return extras;
   }
 
-  function traitLines(merged, extras) {
+  var TRAIT_CAPS = {
+    lethality: CAPS.lethality,
+    crit_chance: CAPS.crit_chance,
+    crit_dmg: CAPS.crit_dmg,
+    atk_speed: CAPS.atk_speed,
+    explosion_dmg: EXPLOSION_DMG_CAP,
+    smite_dmg: SMITE_DMG_CAP,
+    moon: MOON_CAP
+  };
+
+  function cappedTraits(merged, afterCap) {
+    var capped = {};
+    Object.keys(TRAIT_CAPS).forEach(function (key) {
+      if (merged[key] === undefined) { return; }
+      var extra = (afterCap && afterCap[key]) || 0;
+      if (merged[key] - extra > TRAIT_CAPS[key] + 1e-9) { capped[key] = TRAIT_CAPS[key] + extra; }
+    });
+    return capped;
+  }
+
+  function traitLines(merged, extras, afterCap) {
+    var capped = cappedTraits(merged, afterCap);
     var parts = [];
     for (var g = 0; g < TRAIT_GROUP_ORDER.length; g++) {
-      var fmt = formatTraitGroup(TRAIT_GROUP_ORDER[g], merged);
+      var fmt = formatTraitGroup(TRAIT_GROUP_ORDER[g], merged, capped);
       if (fmt) { parts = parts.concat(fmt.split('\n')); }
     }
     return parts.concat(extras);
@@ -575,25 +600,41 @@
     blast_dmg: 'explosion_dmg', blast_chance: 'explosion_chance'
   };
 
-  function addMappedTraits(merged, source, keyMap) {
+  var GOLEMITE_AFTER_CAP_KEYS = ['smite_dmg', 'moon'];
+
+  function addAfterCap(merged, afterCap, key, val) {
+    if (!val) { return; }
+    addTraitValue(merged, key, val);
+    afterCap[key] = (afterCap[key] || 0) + val;
+  }
+
+  function addMappedTraits(merged, source, keyMap, afterCap, afterCapKeys) {
     if (!source) { return; }
-    Object.keys(keyMap).forEach(function (field) { addTraitValue(merged, keyMap[field], Number(source[field]) || 0); });
+    Object.keys(keyMap).forEach(function (field) {
+      var key = keyMap[field];
+      var val = Number(source[field]) || 0;
+      if (afterCap && afterCapKeys && afterCapKeys.indexOf(key) !== -1) {
+        addAfterCap(merged, afterCap, key, val);
+      } else {
+        addTraitValue(merged, key, val);
+      }
+    });
   }
 
   function fmtPlainPct(val) {
     return fmtPct(val).replace(/^\+/, '');
   }
 
-  function raceTraits(build, game, merged) {
+  function raceTraits(build, game, merged, afterCap) {
     var race = build.race;
     var cls = race + ',' + build.bonus_weapon_type;
     var extras = [];
 
-    addTraitValue(merged, 'lethality', raceValue(RACE_LETHALITY, race) + raceValue(CLASS_LETHALITY, cls)
-      + raceValue(UNCAPPED_RACE_LETHALITY, race) + raceValue(UNCAPPED_CLASS_LETHALITY, cls));
-    addTraitValue(merged, 'atk_speed', raceValue(RACE_ATK_SPEED, race) + raceValue(CLASS_ATK_SPEED, cls)
-      + raceValue(UNCAPPED_RACE_ATK_SPEED, race) + raceValue(UNCAPPED_CLASS_ATK_SPEED, cls));
-    addTraitValue(merged, 'crit_dmg', raceValue(UNCAPPED_RACE_CRIT_DMG, race));
+    addTraitValue(merged, 'lethality', raceValue(RACE_LETHALITY, race) + raceValue(CLASS_LETHALITY, cls));
+    addAfterCap(merged, afterCap, 'lethality', raceValue(UNCAPPED_RACE_LETHALITY, race) + raceValue(UNCAPPED_CLASS_LETHALITY, cls));
+    addTraitValue(merged, 'atk_speed', raceValue(RACE_ATK_SPEED, race) + raceValue(CLASS_ATK_SPEED, cls));
+    addAfterCap(merged, afterCap, 'atk_speed', raceValue(UNCAPPED_RACE_ATK_SPEED, race) + raceValue(UNCAPPED_CLASS_ATK_SPEED, cls));
+    addAfterCap(merged, afterCap, 'crit_dmg', raceValue(UNCAPPED_RACE_CRIT_DMG, race));
     addTraitValue(merged, 'fire_dmg', raceValue(RACE_FIRE_DMG, race));
     addTraitValue(merged, 'fire_chance', raceValue(RACE_FIRE_CHANCE, race));
     addTraitValue(merged, 'fire_duration', raceValue(RACE_FIRE_TIME, race));
@@ -601,8 +642,8 @@
     addTraitValue(merged, 'smite_chance', raceValue(RACE_SMITE_CHANCE, race));
 
     if (race === 'Dryad' && build.dryad_in_grove) {
-      addTraitValue(merged, 'crit_chance', DRYAD_GROVE_CRIT_CHANCE);
-      addTraitValue(merged, 'crit_dmg', DRYAD_GROVE_CRIT_DMG);
+      addAfterCap(merged, afterCap, 'crit_chance', DRYAD_GROVE_CRIT_CHANCE);
+      addAfterCap(merged, afterCap, 'crit_dmg', DRYAD_GROVE_CRIT_DMG);
     }
     var tdm = traitDamageMultiplier(build);
     if (tdm > 1) {
@@ -610,9 +651,9 @@
     }
     if (race === 'Orc Lord') {
       var missing = Math.min(1.0, Math.max(0.0, build.orc_lord_hp_missing));
-      addTraitValue(merged, 'lethality', Math.floor(missing * 10 + 1e-6) * ORC_LORD_WARBRINGER_PER_TENTH);
+      addAfterCap(merged, afterCap, 'lethality', Math.floor(missing * 10 + 1e-6) * ORC_LORD_WARBRINGER_PER_TENTH);
       var stacks = Math.min(ORC_LORD_LORD_OF_WAR_MAX_STACKS, Math.max(0, Math.floor(build.orc_lord_kill_stacks)));
-      addTraitValue(merged, 'atk_speed', stacks * ORC_LORD_LORD_OF_WAR_PER_STACK);
+      addAfterCap(merged, afterCap, 'atk_speed', stacks * ORC_LORD_LORD_OF_WAR_PER_STACK);
       extras.push('Smash: ' + fmtPlainPct(RACE_SMASH_DMG[race]) + ' DMG (' + fmtPlainPct(RACE_SMASH_CHANCE[race])
         + ' chance, ' + fmtDur(RACE_SMASH_COOLDOWN[race]) + ' cooldown)');
     }
@@ -644,9 +685,12 @@
 
   function activeTraits(build, shares, game) {
     var merged = {};
+    var afterCap = {};
     var extras = collectOreTraits(build.slots, shares, game, merged);
 
-    (build.golemites || []).forEach(function (g) { addMappedTraits(merged, g, GOLEMITE_TRAIT_KEYS); });
+    (build.golemites || []).forEach(function (g) {
+      addMappedTraits(merged, g, GOLEMITE_TRAIT_KEYS, afterCap, GOLEMITE_AFTER_CAP_KEYS);
+    });
     addMappedTraits(merged, build.abilities, ABILITY_TRAIT_KEYS);
     (build.rune_cells || []).forEach(function (cell) {
       var rune = parseTrait(cell);
@@ -654,10 +698,13 @@
     });
     var ach = parseTrait(build.achievement);
     if (ach) { addTraitValue(merged, ach.stat, ach.value); }
+    addTraitValue(merged, 'lethality', build.armor_lethality || 0);
+    addTraitValue(merged, 'crit_chance', build.armor_crit_chance || 0);
+    addTraitValue(merged, 'crit_dmg', build.armor_crit_dmg || 0);
     addTraitValue(merged, 'berserk', Math.min(build.berserk || 0, CAPS.berserk) + raceValue(RACE_BERSERK, build.race));
-    extras = extras.concat(raceTraits(build, game, merged));
+    extras = extras.concat(raceTraits(build, game, merged, afterCap));
 
-    var parts = traitLines(merged, extras);
+    var parts = traitLines(merged, extras, afterCap);
     return parts.length ? parts.join('\n') : 'No active traits';
   }
 
