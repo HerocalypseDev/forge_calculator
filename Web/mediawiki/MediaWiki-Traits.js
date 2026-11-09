@@ -106,6 +106,45 @@
             });
         }
 
+        var filterRow = root.querySelector('.trait-filters');
+        var leftArrow = root.querySelector('.trait-filter-arrow.is-left');
+        var rightArrow = root.querySelector('.trait-filter-arrow.is-right');
+
+        function updateArrows() {
+            if (!filterRow || !leftArrow || !rightArrow) {
+                return;
+            }
+            var maxScroll = filterRow.scrollWidth - filterRow.clientWidth;
+            leftArrow.classList.toggle('is-hidden', filterRow.scrollLeft <= 1);
+            rightArrow.classList.toggle('is-hidden', filterRow.scrollLeft >= maxScroll - 1);
+        }
+
+        function scrollFilters(direction) {
+            var step = Math.max(120, filterRow.clientWidth * 0.6) * direction;
+            if (filterRow.scrollBy) {
+                filterRow.scrollBy({ left: step, behavior: 'smooth' });
+            } else {
+                filterRow.scrollLeft += step;
+            }
+        }
+
+        if (filterRow && leftArrow && rightArrow) {
+            leftArrow.setAttribute('role', 'button');
+            rightArrow.setAttribute('role', 'button');
+            leftArrow.addEventListener('click', function () {
+                scrollFilters(-1);
+            });
+            rightArrow.addEventListener('click', function () {
+                scrollFilters(1);
+            });
+            filterRow.addEventListener('scroll', updateArrows);
+            window.addEventListener('resize', updateArrows);
+            if (window.ResizeObserver) {
+                new window.ResizeObserver(updateArrows).observe(filterRow);
+            }
+            updateArrows();
+        }
+
         root.addEventListener('keydown', function (event) {
             if (event.key === 'Escape' && active) {
                 close();

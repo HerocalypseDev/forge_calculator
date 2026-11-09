@@ -19,14 +19,6 @@ local function filterKey(traitType)
     return mw.ustring.lower(base)
 end
 
-local function rgba(hex, alpha)
-    local r, g, b = tostring(hex or ""):match("^#?(%x%x)(%x%x)(%x%x)$")
-    if not r then
-        r, g, b = "9a", "9a", "9a"
-    end
-    return string.format("rgba(%d, %d, %d, %s)", tonumber(r, 16), tonumber(g, 16), tonumber(b, 16), alpha)
-end
-
 local function initials(name)
     local letters = {}
     for word in mw.ustring.gmatch(name, "%w+") do
@@ -80,7 +72,7 @@ local function renderSource(list, entry, sources)
     local source = sources[mw.ustring.lower(entry)] or { name = entry }
     local item = list:tag("span"):addClass("trait-source"):attr("title", source.name)
     if source.image then
-        item:wikitext(string.format("[[File:%s|40px|link=%s|alt=%s]]", source.image, source.name, source.name))
+        item:wikitext(string.format("[[File:%s|44px|link=%s|alt=%s]]", source.image, source.name, source.name))
     else
         item:addClass("trait-source-text"):wikitext(string.format("[[%s]]", source.name))
     end
@@ -99,7 +91,7 @@ local function renderCard(grid, trait)
         :attr("data-trait", trait.slug)
         :attr("data-name", mw.ustring.lower(trait.name))
         :attr("title", trait.name)
-    card:tag("div"):addClass("trait-card-icon"):wikitext(icon(trait, 52))
+    card:tag("div"):addClass("trait-card-icon"):wikitext(icon(trait, 68))
     card:tag("div"):addClass("trait-card-name"):wikitext(trait.name)
 end
 
@@ -108,10 +100,7 @@ local function renderDetail(area, trait, sources)
 
     detail:tag("div")
         :addClass("trait-detail-art")
-        :css("background", string.format(
-            "radial-gradient(circle at 50%% 45%%, %s 0%%, %s 40%%, rgba(0, 0, 0, 0) 72%%)",
-            rgba(trait.color, 0.42), rgba(trait.color, 0.1)))
-        :tag("div"):addClass("trait-detail-icon"):wikitext(icon(trait, 150))
+        :tag("div"):addClass("trait-detail-icon"):wikitext(icon(trait, 140))
 
     local info = detail:tag("div"):addClass("trait-detail-info")
     info:tag("div"):addClass("trait-detail-kicker"):wikitext(trait.type .. " Trait")
@@ -197,7 +186,10 @@ function p.browser(frame)
     local list = root:tag("div"):addClass("trait-browser-list")
     list:tag("div"):addClass("pf-searchbox"):tag("div"):addClass("pf-search-target")
 
-    local filters = list:tag("div"):addClass("trait-filters")
+    local filterBar = list:tag("div"):addClass("trait-filter-bar")
+    filterBar:tag("span"):addClass("trait-filter-arrow is-left is-hidden"):attr("title", "Scroll left"):wikitext("&#8249;")
+    local filters = filterBar:tag("div"):addClass("trait-filters")
+    filterBar:tag("span"):addClass("trait-filter-arrow is-right is-hidden"):attr("title", "Scroll right"):wikitext("&#8250;")
     renderFilter(filters, "all", "All", #traits, true)
     local shown = {}
     for _, label in ipairs(TYPE_ORDER) do
