@@ -101,6 +101,7 @@
   var REVERBERATION_CHANCE = { 'Dagger': 0.20, 'Straight Sword': 0.16, 'Gauntlet': 0.12 };
   var REVERBERATION_DEFAULT_CHANCE = 0.08;
   var STARFALL_GALAXITE_MULT = 225 / 125;
+  var SKELETON_KING_HP = 7200;
   var STELLAR_MARK_HITS = 5;
 
   var EXPLOSION_DMG_CAP = 2.5;
@@ -1256,6 +1257,7 @@
 
     var ttk_25k = total_dps > 0 ? 25000 / total_dps : null;
     var ttk_75k = total_dps > 0 ? 75000 / total_dps : null;
+    var ttk_skeleton = total_dps > 0 ? SKELETON_KING_HP / total_dps : null;
 
     return {
       avg_power: avgPower,
@@ -1299,6 +1301,7 @@
       max_dps: max_dps,
       ttk_25k: ttk_25k,
       ttk_75k: ttk_75k,
+      ttk_skeleton: ttk_skeleton,
       active_traits: activeTraits(build, shares, game),
       smash_dmg: procs.smash_dmg,
       smash_chance: procs.smash_chance,
@@ -2808,6 +2811,7 @@
     var values = {};
     [
       { key: 'total', sub: 'Total DPS' },
+      { key: 'skeleton', sub: 'Skeleton King (7,200 HP)' },
       { key: 'golem', sub: 'Golem (25,000 HP)' },
       { key: 'asura', sub: 'Asura (75,000 HP)' }
     ].forEach(function (item) {
@@ -2830,6 +2834,7 @@
     hero.append(art, createEl('div', { class: 'fc-hero-gradient' }), left);
     hero.update = function (result) {
       values.total.textContent = fmtDps(result.total_dps);
+      values.skeleton.textContent = fmtTime(result.ttk_skeleton);
       values.golem.textContent = fmtTime(result.ttk_25k);
       values.asura.textContent = fmtTime(result.ttk_75k);
     };
@@ -2930,6 +2935,7 @@
     var ttkCard = createResultsCard({
       title: 'Time to Kill',
       content: createStatRows([
+        { label: 'Time taken to defeat Skeleton King', value: '0.00s', valueClass: 'fc-sv-time' },
         { label: 'Time taken to defeat Golem', value: '0.00s', valueClass: 'fc-sv-time' },
         { label: 'Time taken to defeat Asura', value: '0.00s', valueClass: 'fc-sv-time' }
       ])
@@ -3013,9 +3019,10 @@
       }
 
       var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
-      if (ttkRows.length >= 2) {
-        updateStatRow(ttkRows[0], fmtTime(result.ttk_25k), false);
-        updateStatRow(ttkRows[1], fmtTime(result.ttk_75k), false);
+      if (ttkRows.length >= 3) {
+        updateStatRow(ttkRows[0], fmtTime(result.ttk_skeleton), false);
+        updateStatRow(ttkRows[1], fmtTime(result.ttk_25k), false);
+        updateStatRow(ttkRows[2], fmtTime(result.ttk_75k), false);
       }
 
       if (result.active_traits) {
@@ -3678,6 +3685,7 @@
       'Total DPS: ' + result.total_dps.toFixed(2),
       '',
       '--- Time to Kill ---',
+      'Skeleton King: ' + (result.ttk_skeleton !== null && result.ttk_skeleton !== undefined ? result.ttk_skeleton.toFixed(2) + 's' : '—'),
       'Golem: ' + result.ttk_25k.toFixed(2) + 's',
       'Asura: ' + result.ttk_75k.toFixed(2) + 's',
       '',

@@ -337,6 +337,11 @@ gPanel.setBuild(Object.assign({}, build, golemOnly([['Royal Boneite', 10]])));
 assert(gIds['fc-golemite-1-summary'].textContent.indexOf('These ores give no weapon traits.') !== -1,
   'armor-only raid ore gives no weapon traits');
 
+console.log('== Skeleton King time to kill ==');
+const ttkResult = FC.calculate(FC.transformBuildForEngine(Object.assign({}, build, { oreSlots: slots([['Wolfarite', 30]]) })), game);
+assert(ttkResult.total_dps > 0 && Math.abs(ttkResult.ttk_skeleton - 7200 / ttkResult.total_dps) < 1e-9,
+  'Skeleton King TTK is 7,200 HP / Total DPS');
+
 if (failures) {
   console.log(`\n${failures} ACTIVE-TRAITS CHECK(S) FAILED`);
   process.exit(1);
