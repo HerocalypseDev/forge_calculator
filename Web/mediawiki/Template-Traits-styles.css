@@ -321,7 +321,9 @@
 }
 
 .trait-detail-caps-label {
-    padding: 10px 14px;
+    padding: 12px 14px;
+    font-size: 15px;
+    text-align: center;
 }
 
 .trait-detail-stats {
