@@ -833,6 +833,36 @@
   font-variant-numeric: tabular-nums;
 }
 
+.fc-weapon-traits {
+  margin-top: 14px;
+}
+
+.fc-weapon-traits-title {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #FFB74D;
+}
+
+.fc-weapon-traits-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.fc-weapon-trait {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #FFD580;
+  background: #0a0a0a;
+  border: 1px solid #262626;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
 .fc-warnings {
   display: flex;
   flex-direction: column;

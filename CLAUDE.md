@@ -306,6 +306,16 @@ carries no comments.
   zeroes it (`createOreSlot`). Changing this breaks `ore-slot-test.js`.
 - **Weapon types need a minimum total ore amount** (sheet `F12`: `FILTER(types, thresholds <= D10)`, `D10` = sum of the four slot amounts). The thresholds are extracted into `weapons.json` as `type_min_ore` (Dagger 3, Straight Sword 4, Mace/Gauntlet 6, Axe/Katana 8, Great Sword/Spear 11, Great Axe/Halberd 15, Colossal Sword 19 — the game's `ItemRarity.lua` `min_ores`) plus the `not_enough_ore` fallback text. The weapon-type and weapon dropdowns only offer unlocked types (below 3 total the type list is just "Not enough Ore"); `setOreTotal` refreshes them on every ore-amount change and on `setBuild`. Like the sheet, an already-chosen weapon is **not** cleared when the total drops; `computeWarnings` adds "`<Type>` weapons need at least N total ore (you have M)." instead. UI-only, no engine change.
 - **Golemite inputs** live in their own section with one tab per Golemite; the tab label shows the level and rarity. Each Golemite is a Level (whole number, 0–25) plus 4 ore slots (`createOreSlot` with `idPrefix`), stored as `{level, slots}`. The sub-stats are never typed: `deriveGolemiteStats(slots, game)` (engine half) works out the ore traits exactly like a weapon (same share ramp, gates, `MAX`/sum rules and the 250% / 150% caps) and multiplies every damage, chance and stat trait by `GOLEMITE_TRAIT_SCALING[rarity]`; durations and the lightning cooldown are not scaled. The rarity is the highest `GOLEMITE_RARITY_ORDER` rarity among ores with an amount > 0, read from `game.ore_rarity` (`Data:OreRarity.json`, built by `scripts/fetch_ore_rarity.py` from the wiki's `Module:Ore/Data`). A missing rarity page loads as `{}`, which makes every Golemite add nothing. The pane shows a read-only summary (rarity, scaling, non-zero stats). User-given rule, not a workbook formula; the engine's Golemite cells are unchanged.
+- **Weapon Traits box + Active Traits sources.** The Weapon & Ores tab shows a live
+  "Weapon Traits" box under the ore slots (`weaponTraitLines(slots, game)`, ore traits only,
+  same rules as Active Traits). The results' Active Traits merges, with each stat's own
+  sum/max/min rule: weapon ore traits, both Golemites' derived stats (Resonance folds into
+  Black Hole DMG), rune abilities (Blast shows as Explosion), rune stats, the achievement,
+  berserk (manual + race) and race traits read from the engine's race tables (pool and
+  after-cap terms, Dryad grove / Vital Power, Orc Lord Warbringer / Lord of War, and text
+  lines for Smash, Fox Claws, Foxfire, Archangel Smite, Cursed Aura, Dark Smite, Trident
+  Toss). Display only, uncapped; `Data-Races.json` trait text is not used because its
+  `default_trait` column is offset. Verify with `node Web/mediawiki/active-traits-test.js`.
 - Ore `atk_speed` is **not** reachable from the MediaWiki UI — there is no attack-speed
   input, so it only ever arrives from ores, runes, race and achievements.
 - **Active Traits' free-text clauses are computed when they safely can be, approximated
@@ -412,6 +422,7 @@ node Web/mediawiki/no-ore-weapon-test.js    node Web/mediawiki/berserk-trait-tes
 node Web/mediawiki/generic-trait-ramp-test.js  node Web/mediawiki/new-races-test.js
 node Web/mediawiki/bismuth-test.js         node Web/mediawiki/golemite-ui-test.js
 node Web/mediawiki/validation-warnings-test.js  node Web/mediawiki/tower-of-hell-test.js
+node Web/mediawiki/active-traits-test.js
 ```
 
 `copy-stat-test.js` (expects the pre-`fc-is-capped` inline cap colour) and `icon-test.js`

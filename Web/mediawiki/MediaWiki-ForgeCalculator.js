@@ -300,6 +300,7 @@
     crit_dmg: { name: 'Crit DMG', group: 'simple', agg: 'sum' },
     atk_speed: { name: 'Attack Speed', group: 'simple', agg: 'sum' },
     moon: { name: 'Moonboost', group: 'simple', agg: 'sum' },
+    berserk: { name: 'Berserk', group: 'simple', agg: 'sum' },
     phys_dmg: { name: 'Physical DMG', group: 'berserk', agg: 'sum' },
     move_speed: { name: 'Movement Speed', group: 'berserk', agg: 'sum' },
     berserk_duration: { name: 'Berserk Duration', group: 'berserk', agg: 'max' },
@@ -351,7 +352,7 @@
   var TRAIT_GROUP_ORDER = ['simple', 'berserk', 'fire', 'explosion', 'poison', 'smite', 'lightning', 'blackhole'];
 
   var TRAIT_GROUP_KEYS = {
-    simple: ['lethality', 'crit_chance', 'crit_dmg', 'atk_speed', 'moon'],
+    simple: ['lethality', 'crit_chance', 'crit_dmg', 'atk_speed', 'moon', 'berserk'],
     berserk: ['phys_dmg', 'move_speed', 'berserk_duration'],
     fire: ['fire_dmg', 'fire_chance', 'fire_duration'],
     explosion: ['explosion_dmg', 'explosion_chance'],
@@ -484,12 +485,17 @@
     return { value: parseFloat(m[1]), rawLabel: m[2].trim(), label: m[2].trim().toLowerCase() };
   }
 
-  function activeTraits(build, shares, game) {
-    var merged = {};
+  function addTraitValue(merged, key, val) {
+    if (!val) { return; }
+    var info = TRAIT_STAT_DISPLAY[key];
+    merged[key] = merged[key] === undefined ? val : aggStat(info.agg, merged[key], val);
+  }
+
+  function collectOreTraits(slots, shares, game, merged) {
     var extras = [];
 
-    for (var i = 0; i < build.slots.length; i++) {
-      var slot = build.slots[i];
+    for (var i = 0; i < slots.length; i++) {
+      var slot = slots[i];
       var share = shares[i];
       if (slot.name === game.select_ore || share < SHARE_GATE) continue;
       var ore = game._ore_index.get(slot.name);
@@ -501,13 +507,8 @@
           var sk = statKeys[j];
           var info = TRAIT_STAT_DISPLAY[sk];
           if (!info) continue;
-          var rng = ore.stats[sk];
-          var val = scaleRange(rng, share);
-          if (merged[sk] === undefined) {
-            merged[sk] = val;
-          } else {
-            merged[sk] = aggStat(info.agg, merged[sk], val);
-          }
+          var val = scaleRange(ore.stats[sk], share);
+          merged[sk] = merged[sk] === undefined ? val : aggStat(info.agg, merged[sk], val);
         }
       }
 
@@ -521,17 +522,6 @@
         if (isTraitClaimed(sub, ore)) continue;
 
         if (share < 0.3) {
-          // Most ores phrase every "|"-separated clause identically between
-          // trait10 and trait30 (same wording, just bigger numbers), scaling
-          // by the same base-at-10%-share -> max-at-30%-share ramp every
-          // formula-backed stat uses. When this clause and its same-position
-          // trait30 counterpart are both a plain "+X% Label", compute the
-          // real ramped value instead of guessing at one -- same principle as
-          // the berserk-group traits, just done generically at display time
-          // instead of needing a named stat slot per trait. Anything that
-          // doesn't cleanly pair (a different label, a second embedded
-          // number, no matching clause at all) falls back to the original
-          // "[X% power]" approximation unchanged.
           var parsed10 = parsePercentClause(sub);
           var parsed30 = subs30[k] !== undefined ? parsePercentClause(subs30[k]) : null;
           if (parsed10 && parsed30 && parsed10.label === parsed30.label) {
@@ -549,19 +539,126 @@
         }
       }
     }
+    return extras;
+  }
 
+  function traitLines(merged, extras) {
     var parts = [];
     for (var g = 0; g < TRAIT_GROUP_ORDER.length; g++) {
-      var group = TRAIT_GROUP_ORDER[g];
-      var fmt = formatTraitGroup(group, merged);
-      if (fmt) parts.push(fmt);
+      var fmt = formatTraitGroup(TRAIT_GROUP_ORDER[g], merged);
+      if (fmt) { parts = parts.concat(fmt.split('\n')); }
     }
+    return parts.concat(extras);
+  }
 
-    for (var e = 0; e < extras.length; e++) {
-      parts.push(extras[e]);
+  function weaponTraitLines(slots, game) {
+    var clean = (slots || []).map(function (s) { return { name: s.name, amount: Math.max(0, Number(s.amount) || 0) }; });
+    var merged = {};
+    var extras = collectOreTraits(clean, slotShares(clean), game, merged);
+    return traitLines(merged, extras);
+  }
+
+  var GOLEMITE_TRAIT_KEYS = {
+    lethality: 'lethality', crit_chance: 'crit_chance', crit_dmg: 'crit_dmg', atk_speed: 'atk_speed', moon: 'moon',
+    fire_dmg: 'fire_dmg', fire_chance: 'fire_chance', fire_time: 'fire_duration',
+    poison_dmg: 'poison_dmg', poison_chance: 'poison_chance', poison_time: 'poison_duration',
+    lightning_dmg: 'lightning_dmg', lightning_chance: 'lightning_chance', lightning_cooldown: 'lightning_cooldown',
+    blast_dmg: 'explosion_dmg', blast_chance: 'explosion_chance',
+    smite_dmg: 'smite_dmg', smite_chance: 'smite_chance',
+    blackhole_dmg: 'blackhole_dmg', blackhole_chance: 'blackhole_chance', resonance_dmg: 'blackhole_dmg'
+  };
+
+  var ABILITY_TRAIT_KEYS = {
+    fire_dmg: 'fire_dmg', fire_chance: 'fire_chance', fire_time: 'fire_duration',
+    poison_dmg: 'poison_dmg', poison_chance: 'poison_chance', poison_time: 'poison_duration',
+    lightning_dmg: 'lightning_dmg', lightning_chance: 'lightning_chance', lightning_cooldown: 'lightning_cooldown',
+    blast_dmg: 'explosion_dmg', blast_chance: 'explosion_chance'
+  };
+
+  function addMappedTraits(merged, source, keyMap) {
+    if (!source) { return; }
+    Object.keys(keyMap).forEach(function (field) { addTraitValue(merged, keyMap[field], Number(source[field]) || 0); });
+  }
+
+  function fmtPlainPct(val) {
+    return fmtPct(val).replace(/^\+/, '');
+  }
+
+  function raceTraits(build, game, merged) {
+    var race = build.race;
+    var cls = race + ',' + build.bonus_weapon_type;
+    var extras = [];
+
+    addTraitValue(merged, 'lethality', raceValue(RACE_LETHALITY, race) + raceValue(CLASS_LETHALITY, cls)
+      + raceValue(UNCAPPED_RACE_LETHALITY, race) + raceValue(UNCAPPED_CLASS_LETHALITY, cls));
+    addTraitValue(merged, 'atk_speed', raceValue(RACE_ATK_SPEED, race) + raceValue(CLASS_ATK_SPEED, cls)
+      + raceValue(UNCAPPED_RACE_ATK_SPEED, race) + raceValue(UNCAPPED_CLASS_ATK_SPEED, cls));
+    addTraitValue(merged, 'crit_dmg', raceValue(UNCAPPED_RACE_CRIT_DMG, race));
+    addTraitValue(merged, 'fire_dmg', raceValue(RACE_FIRE_DMG, race));
+    addTraitValue(merged, 'fire_chance', raceValue(RACE_FIRE_CHANCE, race));
+    addTraitValue(merged, 'fire_duration', raceValue(RACE_FIRE_TIME, race));
+    addTraitValue(merged, 'smite_dmg', raceValue(RACE_SMITE_DMG, race));
+    addTraitValue(merged, 'smite_chance', raceValue(RACE_SMITE_CHANCE, race));
+
+    if (race === 'Dryad' && build.dryad_in_grove) {
+      addTraitValue(merged, 'crit_chance', DRYAD_GROVE_CRIT_CHANCE);
+      addTraitValue(merged, 'crit_dmg', DRYAD_GROVE_CRIT_DMG);
     }
+    var tdm = traitDamageMultiplier(build);
+    if (tdm > 1) {
+      extras.push(fmtPct(tdm - 1) + ' Fire, Poison, Lightning & Black Hole DMG (Vital Power)');
+    }
+    if (race === 'Orc Lord') {
+      var missing = Math.min(1.0, Math.max(0.0, build.orc_lord_hp_missing));
+      addTraitValue(merged, 'lethality', Math.floor(missing * 10 + 1e-6) * ORC_LORD_WARBRINGER_PER_TENTH);
+      var stacks = Math.min(ORC_LORD_LORD_OF_WAR_MAX_STACKS, Math.max(0, Math.floor(build.orc_lord_kill_stacks)));
+      addTraitValue(merged, 'atk_speed', stacks * ORC_LORD_LORD_OF_WAR_PER_STACK);
+      extras.push('Smash: ' + fmtPlainPct(RACE_SMASH_DMG[race]) + ' DMG (' + fmtPlainPct(RACE_SMASH_CHANCE[race])
+        + ' chance, ' + fmtDur(RACE_SMASH_COOLDOWN[race]) + ' cooldown)');
+    }
+    if (RACE_FOX_CLAWS_DMG[race]) {
+      extras.push('Fox Claws: ' + fmtPlainPct(RACE_FOX_CLAWS_DMG[race]) + ' DMG (' + fmtPlainPct(RACE_FOX_CLAWS_CHANCE[race])
+        + ' chance, up to ' + FOX_CLAWS_SPIRITS + ' spirits)');
+    }
+    if (RACE_FOXFIRE_DMG[race]) {
+      extras.push('Foxfire: ' + fmtPlainPct(RACE_FOXFIRE_DMG[race]) + ' DMG (' + fmtPlainPct(RACE_FOXFIRE_CHANCE[race])
+        + ' chance, ' + fmtDur(RACE_FOXFIRE_TIME[race]) + ')');
+    }
+    if (race === 'Archangel') {
+      extras.push('Archangel Smite: ' + fmtPlainPct(ARCHANGEL_SMITE_DMG) + ' DMG (' + fmtPlainPct(ARCHANGEL_SMITE_CHANCE)
+        + ' chance, ' + fmtDur(ARCHANGEL_SMITE_COOLDOWN) + ' cooldown)');
+    }
+    if (race === 'Demon') {
+      extras.push('Cursed Aura: ' + fmtPlainPct(DEMON_CURSED_AURA_DMG) + ' weapon DMG/s');
+    }
+    if (RACE_DARK_SMITE_DMG[race]) {
+      extras.push('Dark Smite: ' + fmtPlainPct(RACE_DARK_SMITE_DMG[race]) + ' DMG (' + fmtPlainPct(RACE_DARK_SMITE_CHANCE[race]) + ' chance)');
+    }
+    var weapon = game._weapon_index ? game._weapon_index.get(build.weapon_name) : null;
+    var trident = TRIDENT_TOSS[race + ',' + (weapon && weapon.type ? weapon.type : '')];
+    if (trident) {
+      extras.push('Trident Toss: ' + fmtPlainPct(trident[0]) + ' DMG (every ' + fmtDur(trident[2]) + ')');
+    }
+    return extras;
+  }
 
-    return parts.length ? parts.join('\n') : 'No active weapon traits';
+  function activeTraits(build, shares, game) {
+    var merged = {};
+    var extras = collectOreTraits(build.slots, shares, game, merged);
+
+    (build.golemites || []).forEach(function (g) { addMappedTraits(merged, g, GOLEMITE_TRAIT_KEYS); });
+    addMappedTraits(merged, build.abilities, ABILITY_TRAIT_KEYS);
+    (build.rune_cells || []).forEach(function (cell) {
+      var rune = parseTrait(cell);
+      if (rune) { addTraitValue(merged, rune.stat, rune.value); }
+    });
+    var ach = parseTrait(build.achievement);
+    if (ach) { addTraitValue(merged, ach.stat, ach.value); }
+    addTraitValue(merged, 'berserk', Math.min(build.berserk || 0, CAPS.berserk) + raceValue(RACE_BERSERK, build.race));
+    extras = extras.concat(raceTraits(build, game, merged));
+
+    var parts = traitLines(merged, extras);
+    return parts.length ? parts.join('\n') : 'No active traits';
   }
 
   function oreStatSum(slots, shares, game, stat) {
@@ -2892,6 +2989,7 @@
             slots[idx] = { name: name, amount: amount };
             patch({ oreSlots: slots });
             weaponSelector.setOreTotal(oreTotalOf(getBuild()));
+            renderWeaponTraits(getBuild());
           }
         });
         oreSlots.push(slot);
@@ -2899,6 +2997,24 @@
       })(i);
     }
     oreSection.appendChild(oreGrid);
+
+    var weaponTraitsBox = createEl('div', { class: 'fc-golemite-summary fc-weapon-traits', id: 'fc-weapon-traits' });
+    function renderWeaponTraits(build) {
+      empty(weaponTraitsBox);
+      weaponTraitsBox.appendChild(createEl('div', { class: 'fc-weapon-traits-title' }, ['Weapon Traits']));
+      var lines = weaponTraitLines(build.oreSlots, data);
+      if (!lines.length) {
+        weaponTraitsBox.appendChild(createEl('p', { class: 'fc-golemite-summary-empty' }, [
+          'Add ores to see the traits your weapon will have. An ore needs at least 10% of the total amount to give its traits.'
+        ]));
+        return;
+      }
+      var list = createEl('div', { class: 'fc-weapon-traits-list' });
+      lines.forEach(function (line) { list.appendChild(createEl('div', { class: 'fc-weapon-trait' }, [line])); });
+      weaponTraitsBox.appendChild(list);
+    }
+    renderWeaponTraits(getBuild());
+    oreSection.appendChild(weaponTraitsBox);
 
     var weaponSection = createEl('div', { class: 'fc-input-section fc-input-section--flat' });
     weaponSection.appendChild(sectionTitle('Weapon', 'weapon'));
@@ -3168,6 +3284,7 @@
         oreSlots[s].setValue(slot.name, slot.amount || 0);
       }
       weaponSelector.setOreTotal(oreTotalOf(newBuild));
+      renderWeaponTraits(newBuild);
       weaponSelector.setValues(
         newBuild.weaponType || noneLabel,
         newBuild.weaponName || noneLabel,
