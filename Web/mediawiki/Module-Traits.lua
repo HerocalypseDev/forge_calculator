@@ -3,6 +3,8 @@ local p = {}
 local STYLES = "Template:Traits/styles.css"
 local TYPE_ORDER = { "Armor", "Weapon", "Pickaxe", "Race" }
 local NO_CAP = "No Cap"
+local CAP_LABEL = "Cap"
+local MAX_CAPS = 4
 local NO_DESCRIPTION = "No description yet."
 local SOURCE_MODULES = {
     { module = "Module:Ore/Data", list = "ores", name = "name" },
@@ -78,6 +80,17 @@ local function renderSource(list, entry, sources)
     end
 end
 
+local function capParts(cap)
+    if type(cap) == "table" then
+        return cap.value, cap.label
+    end
+    local label, value = mw.ustring.match(tostring(cap or ""), "^%s*(.-)%s*=%s*(.-)%s*$")
+    if label then
+        return value, label
+    end
+    return cap, nil
+end
+
 local function renderStat(stats, value, label)
     local stat = stats:tag("div"):addClass("trait-stat")
     stat:tag("div"):addClass("trait-stat-value"):wikitext(value)
@@ -91,7 +104,7 @@ local function renderCard(grid, trait)
         :attr("data-trait", trait.slug)
         :attr("data-name", mw.ustring.lower(trait.name))
         :attr("title", trait.name)
-    card:tag("div"):addClass("trait-card-icon"):wikitext(icon(trait, 68))
+    card:tag("div"):addClass("trait-card-icon"):wikitext(icon(trait, 64))
     card:tag("div"):addClass("trait-card-name"):wikitext(trait.name)
 end
 
@@ -117,10 +130,22 @@ local function renderDetail(area, trait, sources)
     end
 
     local stats = detail:tag("div"):addClass("trait-detail-stats")
-    renderStat(stats, isBlank(trait.cap) and NO_CAP or trait.cap, "Cap")
-    if type(trait.extra) == "table" and not isBlank(trait.extra.value) then
-        renderStat(stats, trait.extra.value, trait.extra.label or "")
+    local shownCaps = 0
+    for _, cap in ipairs(trait.caps) do
+        if shownCaps == MAX_CAPS then
+            break
+        end
+        local value, label = capParts(cap)
+        if not isBlank(value) then
+            renderStat(stats, value, isBlank(label) and CAP_LABEL or label)
+            shownCaps = shownCaps + 1
+        end
     end
+    if shownCaps == 0 then
+        renderStat(stats, NO_CAP, CAP_LABEL)
+        shownCaps = 1
+    end
+    stats:addClass("has-" .. shownCaps)
 
     local found = detail:tag("div"):addClass("trait-detail-found")
     found:tag("div"):addClass("trait-detail-found-label"):wikitext("Found On")
@@ -154,8 +179,7 @@ local function prepare(data)
             color = raw.color,
             description = raw.description,
             note = raw.note,
-            cap = raw.cap,
-            extra = raw.extra,
+            caps = raw.caps or {},
             foundOn = raw.foundOn or {},
         }
         trait.slug = mw.uri.anchorEncode(trait.name)

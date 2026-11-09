@@ -9,7 +9,7 @@
 }
 
 .trait-browser.has-selection {
-    grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+    grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
 }
 
 .trait-browser-list {
@@ -17,17 +17,10 @@
 }
 
 .trait-browser .pf-searchbox {
-    background: #14110d;
-    border: 1px solid #2e261c;
-    border-left: 3px solid #FFB74D;
+    background: #110e0b;
+    border: 1px solid #3a2c1f;
     border-radius: 10px;
     padding: 0 16px;
-    transition: border-color 0.2s;
-}
-
-.trait-browser .pf-searchbox:hover {
-    border-color: #4a3a26;
-    border-left-color: #FFB74D;
 }
 
 .trait-browser .pf-search {
@@ -39,7 +32,7 @@
     outline: none;
     color: #f1ece4;
     font-size: 14px;
-    padding: 13px 0;
+    padding: 12px 0;
 }
 
 .trait-browser .pf-search::placeholder {
@@ -63,6 +56,38 @@
 
 .trait-browser .pf-btn {
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: #0b0b0b;
+    border: 1px solid #4d4d4d;
+    color: #e6e6e6;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.trait-browser .pf-btn:hover {
+    border-color: #7a7a7a;
+}
+
+.trait-browser .pf-btn.active {
+    background: #FFB74D;
+    border-color: #FFB74D;
+    color: #1a1208;
+}
+
+.trait-filter-count {
+    color: #8a8a8a;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.trait-browser .pf-btn.active .trait-filter-count {
+    color: #6b4a1a;
 }
 
 .trait-filter-arrow {
@@ -73,18 +98,16 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: #17130e;
-    border: 1px solid #2e261c;
+    background: #0b0b0b;
+    border: 1px solid #4d4d4d;
     color: #FFB74D;
     font-size: 20px;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
 }
 
 .trait-filter-arrow:hover {
-    background: #241b0c;
     border-color: #FFB74D;
 }
 
@@ -92,130 +115,52 @@
     display: none;
 }
 
-.trait-browser .pf-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 16px;
-    border-radius: 999px;
-    background: #17130e;
-    border: 1px solid #2e261c;
-    color: #cfc6b8;
-    font-size: 13px;
-    font-weight: 700;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.trait-browser .pf-btn:hover {
-    border-color: #6b532f;
-    color: #ffffff;
-}
-
-.trait-browser .pf-btn.active {
-    background: #FFB74D;
-    border-color: #FFB74D;
-    color: #1a1208;
-}
-
-.trait-filter-count {
-    padding: 0 7px;
-    border-radius: 999px;
-    background: #241b0c;
-    color: #FFD580;
-    font-size: 11px;
-    font-weight: 700;
-    line-height: 1.6;
-}
-
-.trait-browser .pf-btn.active .trait-filter-count {
-    background: rgba(26, 18, 8, 0.18);
-    color: #1a1208;
-}
-
 .trait-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 14px;
-}
-
-.trait-browser.has-selection .trait-grid {
-    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(104px, 120px));
+    justify-content: space-between;
     gap: 12px;
 }
 
 .trait-card {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 10px;
-    padding: 10px 10px 14px;
-    background: #16120e;
-    border: 1px solid #2c241a;
-    border-radius: 14px;
+    height: 150px;
+    padding: 10px 8px;
+    box-sizing: border-box;
+    background: #110e0b;
+    border: 1px solid #3a2c1f;
+    border-radius: 10px;
     text-align: center;
-    overflow: hidden;
     cursor: pointer;
-    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
-.trait-card::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, rgba(255, 183, 77, 0), #FFB74D, rgba(255, 183, 77, 0));
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.trait-card:hover {
-    transform: translateY(-4px);
-    border-color: #8a6a3a;
-    background: #1b1610;
-}
-
-.trait-card:hover::before,
-.trait-card.is-active::before {
-    opacity: 1;
-}
-
+.trait-card:hover,
 .trait-card.is-active {
     border-color: #FFB74D;
-    background: #211a11;
 }
 
 .trait-card-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 96px;
-    border: 1px solid #2a2117;
-    border-radius: 10px;
-    background: linear-gradient(180deg, #251c12 0%, #18130d 100%);
-    box-sizing: border-box;
+    width: 64px;
+    height: 64px;
 }
 
 .trait-card-icon img {
-    width: 68px;
-    height: 68px;
-    transition: transform 0.25s ease;
-}
-
-.trait-card:hover .trait-card-icon img {
-    transform: scale(1.08);
+    width: 64px;
+    height: 64px;
 }
 
 .trait-card-name {
-    font-size: 13px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 600;
     line-height: 1.3;
-    color: #f4efe7;
+    color: #e6e1d9;
     overflow-wrap: anywhere;
 }
 
@@ -223,15 +168,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 68px;
-    height: 68px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    background: #241b12;
-    border: 1px solid #3a2e20;
-    color: #b8a68c;
+    background: #1c1611;
+    color: #8a7c69;
     font-weight: 700;
     font-size: 18px;
-    box-sizing: border-box;
 }
 
 .trait-detail-area {
@@ -244,41 +187,28 @@
     display: block;
     position: sticky;
     top: 16px;
-    animation: trait-detail-in 0.28s ease-out;
-}
-
-@keyframes trait-detail-in {
-    from {
-        opacity: 0;
-        transform: translateX(24px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
 }
 
 .trait-detail-close {
     position: absolute;
-    top: 14px;
-    right: 14px;
+    top: 12px;
+    right: 12px;
     z-index: 2;
-    width: 30px;
-    height: 30px;
-    line-height: 28px;
+    width: 28px;
+    height: 28px;
+    line-height: 26px;
     text-align: center;
     border-radius: 50%;
-    background: #1d1711;
-    border: 1px solid #3a2e20;
+    border: 1px solid #3a2c1f;
+    background: #110e0b;
     color: #b8a68c;
     font-size: 18px;
     cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
 }
 
 .trait-detail-close:hover {
-    color: #ffffff;
     border-color: #FFB74D;
+    color: #ffffff;
 }
 
 .trait-detail {
@@ -286,23 +216,12 @@
 }
 
 .trait-detail.is-active {
-    position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    background: #14110d;
-    border: 1px solid #2e261c;
-    border-radius: 14px;
+    background: #110e0b;
+    border: 1px solid #3a2c1f;
+    border-radius: 12px;
     overflow: hidden;
-}
-
-.trait-detail.is-active::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, rgba(255, 183, 77, 0), #FFB74D, rgba(255, 183, 77, 0));
 }
 
 .trait-detail-art {
@@ -311,66 +230,54 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 230px;
-    margin: 16px 0 16px 16px;
-    border: 1px solid #2a2117;
-    border-radius: 12px;
-    background: linear-gradient(180deg, #251c12 0%, #17120c 100%);
+    min-height: 220px;
+    border-right: 1px solid #3a2c1f;
 }
 
 .trait-detail-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 140px;
-    height: 140px;
+    width: 130px;
+    height: 130px;
 }
 
 .trait-detail-icon img {
-    width: 140px;
-    height: 140px;
+    width: 130px;
+    height: 130px;
 }
 
 .trait-detail-icon .trait-icon-missing {
-    width: 120px;
-    height: 120px;
     font-size: 40px;
 }
 
 .trait-detail-info {
     grid-column: 2;
     grid-row: 1 / 3;
-    padding: 28px 30px;
+    padding: 26px 28px;
 }
 
 .trait-detail-kicker {
-    display: inline-block;
-    padding: 2px 12px;
-    border-radius: 999px;
-    background: #241b0c;
-    border: 1px solid #4a3716;
-    color: #FFD580;
+    color: #FFB74D;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
 }
 
 .trait-detail-name {
-    margin-top: 12px;
+    margin-top: 4px;
     color: #ffffff;
-    font-family: Cinzel, "Palatino Linotype", Palatino, Georgia, serif;
     font-size: 32px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    font-weight: 800;
     line-height: 1.15;
     overflow-wrap: anywhere;
 }
 
 .trait-detail-rule {
-    width: 40px;
+    width: 36px;
     height: 3px;
-    margin: 14px 0;
+    margin: 12px 0;
     border-radius: 2px;
 }
 
@@ -399,24 +306,33 @@
 .trait-detail-stats {
     grid-column: 1;
     grid-row: 2;
-    display: flex;
-    gap: 10px;
-    padding: 0 0 16px 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    background: #3a2c1f;
+    border-top: 1px solid #3a2c1f;
+    border-right: 1px solid #3a2c1f;
+}
+
+.trait-detail-stats.has-1 {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.trait-detail-stats.has-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .trait-stat {
-    flex: 1 1 0;
-    padding: 12px 10px;
-    border: 1px solid #2e261c;
-    border-radius: 10px;
-    background: #1a150f;
+    padding: 14px 8px;
+    background: #110e0b;
     text-align: center;
 }
 
 .trait-stat-value {
     color: #ffffff;
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 15px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
 }
 
 .trait-stat-label {
@@ -424,7 +340,7 @@
     color: #FFB74D;
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
@@ -434,15 +350,14 @@
     display: flex;
     align-items: center;
     gap: 24px;
-    padding: 14px 24px;
-    border-top: 1px solid #2e261c;
-    background: #110e0b;
+    padding: 12px 24px;
+    border-top: 1px solid #3a2c1f;
 }
 
 .trait-detail-found-label {
     flex: 0 0 auto;
     color: #FFB74D;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -452,24 +367,18 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
 }
 
 .trait-source {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 56px;
-    height: 56px;
-    border: 1px solid #2a2117;
-    border-radius: 10px;
-    background: linear-gradient(180deg, #251c12 0%, #18130d 100%);
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    transition: transform 0.15s ease;
 }
 
 .trait-source:hover {
-    transform: scale(1.18);
-    border-color: #FFB74D;
+    transform: scale(1.2);
 }
 
 .trait-source img {
@@ -477,15 +386,10 @@
     height: 44px;
 }
 
-.trait-source-text {
-    width: auto;
-    padding: 0 12px;
-}
-
 .trait-source-text a {
     color: #FFD580;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .trait-detail-found-empty {
@@ -497,16 +401,16 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .trait-grid,
-    .trait-browser.has-selection .trait-grid {
-        grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+    .trait-grid {
+        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
         gap: 10px;
     }
 
-    .trait-card-icon {
-        height: 80px;
+    .trait-card {
+        height: 136px;
     }
 
+    .trait-card-icon,
     .trait-card-icon img {
         width: 56px;
         height: 56px;
@@ -523,8 +427,8 @@
     }
 
     .trait-detail-art {
-        min-height: 190px;
-        margin: 16px 16px 0;
+        min-height: 180px;
+        border-right: 0;
     }
 
     .trait-detail-info {
@@ -540,7 +444,7 @@
     .trait-detail-stats {
         grid-column: 1;
         grid-row: 3;
-        padding: 0 16px 16px;
+        border-right: 0;
     }
 
     .trait-detail-found {

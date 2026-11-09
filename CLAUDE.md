@@ -338,8 +338,9 @@ Separate from the calculator. Files in `Web/mediawiki/`, deployed by `scripts/de
 - Trait fields: `name`, `type` (`Armor`, `Weapon`, `Pickaxe`, `Race`; an `Extra ` prefix files it
   under the same filter chip), `image` (`Trait <Name>.png`, because `File:Luck.png` was already
   taken), `color` (glow behind the big icon, sampled from the icon), `description` (wikitext),
-  `cap` (missing or blank shows **No Cap**), `extra = { value = "...", label = "..." }` (the
-  second stat box, hidden while unset), optional `note`, and `foundOn` (ore, rune or race names;
+  `caps` (up to 4 shown; each entry is `"Damage = 65%"`, `"Cooldown = Lower"`, a bare `"65%"`
+  labelled Cap, or `{ label = "...", value = "..." }`; empty shows **No Cap**; 1/2/3 caps sit in
+  one row, 4 in a 2x2 grid), optional `note`, and `foundOn` (ore, rune or race names;
   icons and links are looked up in `Module:Ore/Data`, `Module:Runes/Data`, `Module:Races/Data`;
   an unknown name becomes a plain link).
 - Search and filter chips reuse the wiki's own `MediaWiki:Filter.js` (`.pf-outer`,
