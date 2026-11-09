@@ -348,8 +348,9 @@ Separate from the calculator. Files in `Web/mediawiki/`, deployed by `scripts/de
   icons and links are looked up in `Module:Ore/Data`, `Module:Runes/Data`, `Module:Races/Data`,
   matching names case-, space- and punctuation-insensitively, so `"DEMON"` or `"OrcLord"` work;
   race icons link to `Races` because race pages are redirects or missing; an unknown name becomes a
-  plain link). Found On is split under **Ores**, **Races**, **Runes** and **Others** headings, by
-  which module matched the name (no match = Others); a heading with no entries is not rendered.
+  plain link). Found On is split under **Ores**, **Runes**, **Others** and **Races** headings (Races
+  always last), by which module matched the name (no match = Others); a heading with no entries is
+  not rendered. Race images are 110px (2.5x the 44px ore/rune icons) because they are full renders.
 - The details panel shows a **Caps** heading above the cap boxes and a **Found On** heading above
   the source icons (built for up to 25, they wrap). The header uses `Stonewake Cross Island.webp`; the
   trait sheet stretches the Article Header image to full width with its own fade, because the

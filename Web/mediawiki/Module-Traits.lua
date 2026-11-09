@@ -10,9 +10,10 @@ local NO_DESCRIPTION = "No description yet."
 local SOURCE_MODULES = {
     { module = "Module:Ore/Data", list = "ores", name = "name", group = "Ores" },
     { module = "Module:Runes/Data", list = "runes", name = "name", group = "Runes" },
-    { module = "Module:Races/Data", name = "title", link = "Races", group = "Races" },
+    { module = "Module:Races/Data", name = "title", link = "Races", group = "Races", size = 110 },
 }
-local SOURCE_GROUPS = { "Ores", "Races", "Runes", "Others" }
+local SOURCE_GROUPS = { "Ores", "Runes", "Others", "Races" }
+local SOURCE_SIZE = 44
 local OTHER_GROUP = "Others"
 
 local function isBlank(value)
@@ -68,7 +69,7 @@ local function loadSources()
             for _, entry in ipairs(entries) do
                 local name = entry[source.name]
                 if name and not index[sourceKey(name)] then
-                    index[sourceKey(name)] = { name = name, image = entry.image, link = source.link or name, group = source.group }
+                    index[sourceKey(name)] = { name = name, image = entry.image, link = source.link or name, group = source.group, size = source.size or SOURCE_SIZE }
                 end
             end
         end
@@ -83,7 +84,10 @@ end
 local function renderSource(list, source)
     local item = list:tag("span"):addClass("trait-source"):attr("title", source.name)
     if source.image then
-        item:wikitext(string.format("[[File:%s|44x44px|link=%s|alt=%s]]", source.image, source.link, source.name))
+        if source.size ~= SOURCE_SIZE then
+            item:addClass("is-large")
+        end
+        item:wikitext(string.format("[[File:%s|%dx%dpx|link=%s|alt=%s]]", source.image, source.size, source.size, source.link, source.name))
     else
         item:addClass("trait-source-text"):wikitext(string.format("[[%s]]", source.name))
     end
