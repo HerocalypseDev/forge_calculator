@@ -1,17 +1,19 @@
 local p = {}
 
 local STYLES = "Template:Traits/styles.css"
-local TYPE_ORDER = { "Armor", "Weapon", "Pickaxe", "Race" }
+local TYPE_ORDER = { "Damage", "Defense", "Movement", "Miscellaneous" }
 local NO_CAP = "No Cap"
 local CAP_LABEL = "Cap"
 local CAPS_HEADING = "Caps"
 local MAX_CAPS = 4
 local NO_DESCRIPTION = "No description yet."
 local SOURCE_MODULES = {
-    { module = "Module:Ore/Data", list = "ores", name = "name" },
-    { module = "Module:Runes/Data", list = "runes", name = "name" },
-    { module = "Module:Races/Data", name = "title", link = "Races" },
+    { module = "Module:Ore/Data", list = "ores", name = "name", group = "Ores" },
+    { module = "Module:Runes/Data", list = "runes", name = "name", group = "Runes" },
+    { module = "Module:Races/Data", name = "title", link = "Races", group = "Races" },
 }
+local SOURCE_GROUPS = { "Ores", "Races", "Runes", "Others" }
+local OTHER_GROUP = "Others"
 
 local function isBlank(value)
     return value == nil or mw.text.trim(tostring(value)) == ""
@@ -66,7 +68,7 @@ local function loadSources()
             for _, entry in ipairs(entries) do
                 local name = entry[source.name]
                 if name and not index[sourceKey(name)] then
-                    index[sourceKey(name)] = { name = name, image = entry.image, link = source.link or name }
+                    index[sourceKey(name)] = { name = name, image = entry.image, link = source.link or name, group = source.group }
                 end
             end
         end
@@ -74,8 +76,11 @@ local function loadSources()
     return index
 end
 
-local function renderSource(list, entry, sources)
-    local source = sources[sourceKey(entry)] or { name = entry }
+local function findSource(entry, sources)
+    return sources[sourceKey(entry)] or { name = entry, group = OTHER_GROUP }
+end
+
+local function renderSource(list, source)
     local item = list:tag("span"):addClass("trait-source"):attr("title", source.name)
     if source.image then
         item:wikitext(string.format("[[File:%s|44x44px|link=%s|alt=%s]]", source.image, source.link, source.name))
@@ -155,14 +160,29 @@ local function renderDetail(area, trait, sources)
 
     local found = detail:tag("div"):addClass("trait-detail-found")
     found:tag("div"):addClass("trait-detail-found-label"):wikitext("Found On")
-    local list = found:tag("div"):addClass("trait-detail-found-list")
-    local hasSource = false
+    local grouped = {}
     for _, entry in ipairs(trait.foundOn) do
-        renderSource(list, entry, sources)
-        hasSource = true
+        if not isBlank(entry) then
+            local source = findSource(entry, sources)
+            grouped[source.group] = grouped[source.group] or {}
+            table.insert(grouped[source.group], source)
+        end
+    end
+    local hasSource = false
+    for _, group in ipairs(SOURCE_GROUPS) do
+        if grouped[group] then
+            local section = found:tag("div"):addClass("trait-found-group")
+            section:tag("div"):addClass("trait-found-group-label"):wikitext(group)
+            local list = section:tag("div"):addClass("trait-detail-found-list")
+            for _, source in ipairs(grouped[group]) do
+                renderSource(list, source)
+            end
+            hasSource = true
+        end
     end
     if not hasSource then
-        list:tag("span"):addClass("trait-detail-found-empty"):wikitext("&mdash;")
+        found:tag("div"):addClass("trait-detail-found-list")
+            :tag("span"):addClass("trait-detail-found-empty"):wikitext("&mdash;")
     end
 end
 

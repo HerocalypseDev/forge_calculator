@@ -338,8 +338,9 @@ Separate from the calculator. Files in `Web/mediawiki/`, deployed by `scripts/de
 - `Module:Traits/Data` is edited by the user on the wiki. `deploy_traits.py` never pushes it:
   if the wiki copy differs it is pulled into `Module-Traits-Data.lua`. To change data yourself,
   read the live page first and edit that text, never an old local copy.
-- Trait fields: `name`, `type` (only `Armor`, `Weapon`, `Pickaxe` or `Race`; no other types),
-  `image` (`Trait <Name>.png`, because `File:Luck.png` was already
+- Trait fields: `name`, `type` (only `Damage`, `Defense`, `Movement` or `Miscellaneous`, the user's
+  classification, partly from Dr.S.Moller's "All Trait Caps" chart; cards are listed in that
+  order, then alphabetically), `image` (`Trait <Name>.png`, because `File:Luck.png` was already
   taken), `color` (glow behind the big icon, sampled from the icon), `description` (wikitext),
   `caps` (up to 4 shown; each entry is `"Damage = 65%"`, `"Cooldown = Lower"`, a bare `"65%"`
   labelled Cap, or `{ label = "...", value = "..." }`; empty shows **No Cap**; 1/2/3 caps sit in
@@ -347,7 +348,8 @@ Separate from the calculator. Files in `Web/mediawiki/`, deployed by `scripts/de
   icons and links are looked up in `Module:Ore/Data`, `Module:Runes/Data`, `Module:Races/Data`,
   matching names case-, space- and punctuation-insensitively, so `"DEMON"` or `"OrcLord"` work;
   race icons link to `Races` because race pages are redirects or missing; an unknown name becomes a
-  plain link).
+  plain link). Found On is split under **Ores**, **Races**, **Runes** and **Others** headings, by
+  which module matched the name (no match = Others); a heading with no entries is not rendered.
 - The details panel shows a **Caps** heading above the cap boxes and a **Found On** heading above
   the source icons (built for up to 25, they wrap). The header uses `Stonewake Cross Island.webp`; the
   trait sheet stretches the Article Header image to full width with its own fade, because the
