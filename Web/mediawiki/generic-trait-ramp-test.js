@@ -57,46 +57,44 @@ function check(label, cond) {
   if (!cond) { fails++; console.log('  FAIL: ' + label); } else { console.log('  ok: ' + label); }
 }
 
-console.log('== Generic single-number trait clauses (Vitality, Swiftness, ...) computed like Lethality ==');
+console.log('== Generic single-number trait clauses computed like Lethality, armor-type clauses hidden ==');
 
 {
-  // Wolfarite trait10 "+0.6% Swiftness | -0.8% Vitality", trait30 "+6% Swiftness | -8% Vitality"
-  const r = FC.calculate(mk('Wolfarite', 15), game);
-  const share = 0.15;
-  const swiftness = 0.6 + (6.0 - 0.6) * Math.min((share - 0.10) / 0.20, 1.0);
-  const vitality = -0.8 + (-8.0 - -0.8) * Math.min((share - 0.10) / 0.20, 1.0);
-  const swStr = '+' + (Math.round(swiftness * 10) / 10) + '% Swiftness';
-  const viStr = '-' + (Math.round(Math.abs(vitality) * 10) / 10) + '% Vitality';
-  check('Swiftness ramped value matches scaleRange (' + swStr + ')', r.active_traits.indexOf(swStr) !== -1);
-  check('Vitality ramped value matches scaleRange (' + viStr + ')', r.active_traits.indexOf(viStr) !== -1);
+  const r = FC.calculate(mk('Stolen Heart', 20), game);
+  const lsStr = '+' + ((0.7 + (7.0 - 0.7) * 0.5) / 100 * 100).toFixed(1) + '% Life Steal';
+  check('Life Steal ramped value matches scaleRange (' + lsStr + ')', r.active_traits.indexOf(lsStr) !== -1);
   check('no [X% power] fallback left for this ore', !/% power\]/.test(r.active_traits));
 }
 
 {
-  // exact 10% share -> exact base numbers, no interpolation error
-  const r = FC.calculate(mk('Wolfarite', 10), game);
-  check('10% share: exact base Swiftness/Vitality', r.active_traits.indexOf('+0.6% Swiftness') !== -1 &&
-    r.active_traits.indexOf('-0.8% Vitality') !== -1);
+  const r = FC.calculate(mk('Stolen Heart', 10), game);
+  check('10% share: exact base Life Steal', r.active_traits.indexOf('+0.7% Life Steal') !== -1);
 }
 
 {
-  // Sealed Curse's standalone "-1.5% Movement Speed" (distinct from its berserk
-  // clause's "+X% Movement Speed... when HP drops below 35%") is also paired
-  // and computed now, via the generic mechanism rather than a named stat slot
+  const r = FC.calculate(mk('Wolfarite', 15), game);
+  check('Swiftness and Vitality are armor-type traits and not shown',
+    r.active_traits.indexOf('Swiftness') === -1 && r.active_traits.indexOf('Vitality') === -1);
+  check('Wolfarite weapon stats still shown', r.active_traits.indexOf('Lethality') !== -1);
+}
+
+{
   const r = FC.calculate(mk('Sealed Curse', 20), game);
-  const share = 0.20;
-  const ms = -1.5 + (-15.0 - -1.5) * Math.min((share - 0.10) / 0.20, 1.0);
-  const msStr = '-' + (Math.round(Math.abs(ms) * 10) / 10) + '% Movement Speed';
-  check('standalone Movement Speed (distinct from the berserk clause) computed: ' + msStr,
-    r.active_traits.indexOf(msStr) !== -1);
+  check('standalone Movement Speed and Stamina are not shown',
+    r.active_traits.indexOf('Movement Speed') === -1 && r.active_traits.indexOf('Stamina') === -1);
   check('the armor-only berserk clause is no longer shown on the weapon',
     r.active_traits.indexOf('Physical DMG & ') === -1);
 }
 
 {
-  // Kokorite has Endurance in addition to Vitality/Swiftness
   const r = FC.calculate(mk('Kokorite', 30), game);
-  check('Endurance computed at full (30%) share: -5% Endurance', r.active_traits.indexOf('-5% Endurance') !== -1);
+  check('Endurance is not shown', r.active_traits.indexOf('Endurance') === -1);
+}
+
+{
+  const r = FC.calculate(mk('Bismuth', 30), game);
+  check('Bismuth regen and heal text is not shown', !/health/i.test(r.active_traits));
+  check('Bismuth rune proc is still shown', r.active_traits.indexOf('T3 attack rune') !== -1);
 }
 
 {

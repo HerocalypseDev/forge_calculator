@@ -235,7 +235,8 @@ has(lines, '+15% Lethality', 'Wolfarite gives full lethality at 30% share');
 has(lines, '+8% Attack Speed', 'Wolfarite gives full attack speed');
 assert(lines.indexOf('+6% Swiftness') === -1 && lines.indexOf('-8% Vitality') === -1,
   'weapon box drops movement and defense traits');
-has(traitsFor({ oreSlots: slots([['Wolfarite', 30]]) }), '+6% Swiftness', 'Active Traits still lists every trait');
+assert(traitsFor({ oreSlots: slots([['Wolfarite', 30]]) }).every((l) => !/Swiftness|Vitality/.test(l)),
+  'Active Traits hides armor-type traits too');
 lines = FC.weaponTraitLines(slots([['Bismuth', 10]]), game);
 assert(lines.every((l) => !/health/i.test(l)) && lines.some((l) => /T3 attack rune/.test(l)),
   'Bismuth weapon box keeps its rune proc and drops regen and heal');

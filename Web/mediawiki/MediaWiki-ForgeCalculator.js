@@ -499,6 +499,8 @@
     merged[key] = merged[key] === undefined ? val : aggStat(info.agg, merged[key], val);
   }
 
+  var NON_WEAPON_TRAIT_RE = /vitality|swiftness|endurance|stamina|movement\s*speed|regen|health|jump|stride|damage\s*reduction|heal/i;
+
   function collectOreTraits(slots, shares, game, merged) {
     var extras = [];
 
@@ -547,7 +549,7 @@
         }
       }
     }
-    return extras;
+    return extras.filter(function (line) { return !NON_WEAPON_TRAIT_RE.test(line); });
   }
 
   var TRAIT_CAPS = {
@@ -580,14 +582,10 @@
     return parts.concat(extras);
   }
 
-  var NON_WEAPON_TRAIT_RE = /vitality|swiftness|endurance|stamina|movement\s*speed|regen|health|jump|stride|damage\s*reduction|heal/i;
-
   function weaponTraitLines(slots, game) {
     var clean = (slots || []).map(function (s) { return { name: s.name, amount: Math.max(0, Number(s.amount) || 0) }; });
     var merged = {};
-    var extras = collectOreTraits(clean, slotShares(clean), game, merged).filter(function (line) {
-      return !NON_WEAPON_TRAIT_RE.test(line);
-    });
+    var extras = collectOreTraits(clean, slotShares(clean), game, merged);
     return traitLines(merged, extras);
   }
 
