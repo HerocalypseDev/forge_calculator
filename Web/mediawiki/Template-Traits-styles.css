@@ -1,3 +1,12 @@
+.article-top .article-image-bg,
+.article-top .article-gradient {
+    left: 0;
+}
+
+.article-top .article-gradient {
+    background: linear-gradient(to right, rgba(10, 10, 10, 0.92) 0%, rgba(10, 10, 10, 0.78) 30%, rgba(10, 10, 10, 0.35) 60%, rgba(10, 10, 10, 0.05) 100%);
+}
+
 .trait-browser {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -383,6 +392,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 44px;
+    height: 44px;
     transition: transform 0.15s ease;
 }
 
@@ -391,8 +402,15 @@
 }
 
 .trait-source img {
-    width: 44px;
-    height: 44px;
+    width: auto;
+    height: auto;
+    max-width: 44px;
+    max-height: 44px;
+}
+
+.trait-source.trait-source-text {
+    width: auto;
+    padding: 0 6px;
 }
 
 .trait-source-text a {
@@ -463,8 +481,13 @@
         grid-row: 4;
     }
 
-    .trait-source img {
+    .trait-source {
         width: 40px;
         height: 40px;
+    }
+
+    .trait-source img {
+        max-width: 40px;
+        max-height: 40px;
     }
 }

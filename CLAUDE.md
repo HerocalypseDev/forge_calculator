@@ -344,10 +344,14 @@ Separate from the calculator. Files in `Web/mediawiki/`, deployed by `scripts/de
   `caps` (up to 4 shown; each entry is `"Damage = 65%"`, `"Cooldown = Lower"`, a bare `"65%"`
   labelled Cap, or `{ label = "...", value = "..." }`; empty shows **No Cap**; 1/2/3 caps sit in
   one row, 4 in a 2x2 grid), optional `note`, and `foundOn` (ore, rune or race names;
-  icons and links are looked up in `Module:Ore/Data`, `Module:Runes/Data`, `Module:Races/Data`;
-  an unknown name becomes a plain link).
+  icons and links are looked up in `Module:Ore/Data`, `Module:Runes/Data`, `Module:Races/Data`,
+  matching names case-, space- and punctuation-insensitively, so `"DEMON"` or `"OrcLord"` work;
+  race icons link to `Races` because race pages are redirects or missing; an unknown name becomes a
+  plain link).
 - The details panel shows a **Caps** heading above the cap boxes and a **Found On** heading above
-  the source icons (built for up to 25, they wrap). The header uses `Stonewake Cross Island.webp`.
+  the source icons (built for up to 25, they wrap). The header uses `Stonewake Cross Island.webp`; the
+  trait sheet stretches the Article Header image to full width with its own fade, because the
+  template's default leaves the left 30% solid black.
 - Search and filter chips reuse the wiki's own `MediaWiki:Filter.js` (`.pf-outer`,
   `.pf-btn[data-filter]`, `.pf-search-target`, rows by `data-name` + `filter-<type>`), restyled
   in the trait sheet. `MediaWiki-Traits.js` only handles selecting a card, closing, and the URL hash.

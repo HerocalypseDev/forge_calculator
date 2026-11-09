@@ -10,7 +10,7 @@ local NO_DESCRIPTION = "No description yet."
 local SOURCE_MODULES = {
     { module = "Module:Ore/Data", list = "ores", name = "name" },
     { module = "Module:Runes/Data", list = "runes", name = "name" },
-    { module = "Module:Races/Data", name = "title" },
+    { module = "Module:Races/Data", name = "title", link = "Races" },
 }
 
 local function isBlank(value)
@@ -53,6 +53,10 @@ local function icon(trait, size)
     return tostring(mw.html.create("span"):addClass("trait-icon-missing"):wikitext(initials(trait.name)))
 end
 
+local function sourceKey(name)
+    return (mw.ustring.gsub(mw.ustring.lower(tostring(name or "")), "[^%w]", ""))
+end
+
 local function loadSources()
     local index = {}
     for _, source in ipairs(SOURCE_MODULES) do
@@ -61,8 +65,8 @@ local function loadSources()
         if entries then
             for _, entry in ipairs(entries) do
                 local name = entry[source.name]
-                if name and not index[mw.ustring.lower(name)] then
-                    index[mw.ustring.lower(name)] = { name = name, image = entry.image }
+                if name and not index[sourceKey(name)] then
+                    index[sourceKey(name)] = { name = name, image = entry.image, link = source.link or name }
                 end
             end
         end
@@ -71,10 +75,10 @@ local function loadSources()
 end
 
 local function renderSource(list, entry, sources)
-    local source = sources[mw.ustring.lower(entry)] or { name = entry }
+    local source = sources[sourceKey(entry)] or { name = entry }
     local item = list:tag("span"):addClass("trait-source"):attr("title", source.name)
     if source.image then
-        item:wikitext(string.format("[[File:%s|44px|link=%s|alt=%s]]", source.image, source.name, source.name))
+        item:wikitext(string.format("[[File:%s|44x44px|link=%s|alt=%s]]", source.image, source.link, source.name))
     else
         item:addClass("trait-source-text"):wikitext(string.format("[[%s]]", source.name))
     end

@@ -20,7 +20,7 @@ return {
         { name = "Swiftness", type = "Armor", image = "Trait Swiftness.png", color = "#bfb854", description = "", caps = {}, foundOn = {} },
         { name = "Vitality", type = "Armor", image = "Trait Vitality.png", color = "#c04e4e", description = "", caps = {}, foundOn = {} },
         { name = "Ancient Poison", type = "Weapon", image = "Trait Ancient Poison.png", color = "#2cbfad", description = "", caps = {}, foundOn = {} },
-        { name = "Burn", type = "Weapon", image = "Trait Burn.png", color = "#c65800", description = "", caps = {}, foundOn = {} },
+        { name = "Burn", type = "Weapon", image = "Trait Burn.png", color = "#c65800", description = "", caps = {}, foundOn = {"Fireite", "Sun Stone", "Kyubite", "Gargantuan", "Magmaite", "Supermassive Black Hole", "Meteorite", "Crimsonite", "Vanegos", "Galaxite", "Flame Spark", "Blast Chip", "Venom Crumb", "Thunder Shard", "Rage Mark", "Drain Edge", "Demon", "Dragonborn"} },
         { name = "Echoes of Decay", type = "Weapon", image = "Trait Echoes of Decay.png", color = "#4abfbf", description = "", caps = {}, foundOn = {} },
         { name = "Explosion", type = "Weapon", image = "Trait Explosion.png", color = "#bf502e", description = "", caps = {}, foundOn = {} },
         { name = "Frost Slash", type = "Weapon", image = "Trait Frost Slash.png", color = "#a2bfd8", description = "", caps = {}, foundOn = {} },
