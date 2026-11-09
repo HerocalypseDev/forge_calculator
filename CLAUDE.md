@@ -317,6 +317,32 @@ carries no comments.
   enemies for 0.2 seconds. 1.5% chance on hit. Has cooldown of 15" (Prismatic Heart, Snowite,
   Iceite, Golem Heart). Verify with `node Web/mediawiki/generic-trait-ramp-test.js`.
 
+## Traits page (MediaWiki)
+
+Separate from the calculator. Files in `Web/mediawiki/`, deployed by `scripts/deploy_traits.py`
+(dry run by default, `--apply` to write; preview pages under `User:HeroDev/` unless `--live`).
+
+| Local file | Wiki page |
+|------------|-----------|
+| `Module-Traits-Data.lua` | `Module:Traits/Data` (the trait list; edit on the wiki or here) |
+| `Module-Traits.lua` | `Module:Traits` (`{{#invoke:Traits|browser}}`) |
+| `Template-Traits-styles.css` | `Template:Traits/styles.css` |
+| `MediaWiki-Traits.js` | `User:HeroDev/Traits.js` (preview) / `MediaWiki:Traits.js` (live) |
+| `Traits.wikitext` | `User:HeroDev/Traits preview` / `Traits` |
+
+- Trait fields: `name`, `type` (`Armor`, `Weapon`, `Pickaxe`, `Race`; an `Extra ` prefix files it
+  under the same filter chip), `image` (`Trait <Name>.png`, because `File:Luck.png` was already
+  taken), `color` (glow behind the big icon, sampled from the icon), `description` (wikitext),
+  `cap` (missing or blank shows **No Cap**), `extra = { value = "...", label = "..." }` (the
+  second stat box, hidden while unset), optional `note`, and `foundOn` (ore, rune or race names;
+  icons and links are looked up in `Module:Ore/Data`, `Module:Runes/Data`, `Module:Races/Data`;
+  an unknown name becomes a plain link).
+- Search and filter chips reuse the wiki's own `MediaWiki:Filter.js` (`.pf-outer`,
+  `.pf-btn[data-filter]`, `.pf-search-target`, rows by `data-name` + `filter-<type>`), restyled
+  in the trait sheet. `MediaWiki-Traits.js` only handles selecting a card, closing, and the URL hash.
+- A missing icon shows the trait's initials. The file check is an expensive parser function
+  (wiki limit 99); past the limit, `pcall` treats the file as present.
+
 ## Commands
 
 ```bash
