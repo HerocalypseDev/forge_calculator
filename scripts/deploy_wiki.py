@@ -78,7 +78,7 @@ def same(title, local, remote):
 def main():
     apply = "--apply" in sys.argv
     summary = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--summary=")),
-                   "Update Forge Calculator to the latest workbook")
+                   "")
     api, user, password = load_env()
     wiki = Wiki(api)
     wiki.login(user, password)

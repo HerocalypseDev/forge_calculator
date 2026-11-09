@@ -17,6 +17,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - This applies to every language in the repo, Python included — no `#` comments either.
   Existing Python docstrings may stay where they are, but don't add new ones.
 
+### No edit summaries on the wiki (hard requirement)
+- Every wiki edit, page creation and file upload goes out with an **empty** edit summary /
+  upload comment. Do not pass `--summary=...` to the deploy scripts, and do not write a
+  summary or comment into any API `edit` or `upload` call.
+
 ### MediaWiki only (hard requirement)
 - **The only calculator that is still maintained is the MediaWiki one.** Confine all
   changes to `Web/mediawiki/` and its data files.

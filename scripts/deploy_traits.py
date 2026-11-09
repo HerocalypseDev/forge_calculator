@@ -41,7 +41,7 @@ def main():
     apply = "--apply" in sys.argv
     live = "--live" in sys.argv
     summary = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--summary=")),
-                   "Update Traits page")
+                   "")
     api, user, password = load_env()
     account = user.split("@", 1)[0]
     wiki = Wiki(api)
