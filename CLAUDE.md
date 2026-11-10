@@ -314,9 +314,9 @@ carries no comments.
   berserk (manual + race) and race traits read from the engine's race tables (pool and
   after-cap terms, Dryad grove / Vital Power, Orc Lord Warbringer / Lord of War, and text
   lines for Smash, Fox Claws, Foxfire, Archangel Smite, Cursed Aura, Dark Smite, Trident
-  Toss), plus armor stats. Totals are shown uncapped; a stat whose pool passes its cap
+  Toss), plus armor stats. A stat whose pool passes its cap
   (lethality 300%, crit chance 100%, crit dmg 100%, attack speed 150%, explosion / smite
-  250%, moon 150%) gets "(capped at X%)", X = cap + after-cap terms (Kitsune, Fairy + Spear,
+  250%, moon 150%) is shown as X followed by "(capped)", X = cap + after-cap terms (Kitsune, Fairy + Spear,
   Warbringer, Lord of War, Dryad grove, Golemite smite / moon). `Data-Races.json` trait text is not used because its
   `default_trait` column is offset. Verify with `node Web/mediawiki/active-traits-test.js`.
 - **Weapon Traits box and Active Traits show Damage traits only.** `collectOreTraits` drops

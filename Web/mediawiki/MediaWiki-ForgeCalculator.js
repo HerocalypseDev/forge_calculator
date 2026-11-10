@@ -394,7 +394,7 @@
   }
 
   function capNote(capped, key) {
-    return capped && capped[key] !== undefined ? ' (capped at ' + fmtPlainPct(capped[key]) + ')' : '';
+    return capped && capped[key] !== undefined ? ' (capped)' : '';
   }
 
   function formatTraitGroup(group, merged, capped) {
@@ -574,9 +574,11 @@
 
   function traitLines(merged, extras, afterCap) {
     var capped = cappedTraits(merged, afterCap);
+    var shown = {};
+    Object.keys(merged).forEach(function (key) { shown[key] = capped[key] !== undefined ? capped[key] : merged[key]; });
     var parts = [];
     for (var g = 0; g < TRAIT_GROUP_ORDER.length; g++) {
-      var fmt = formatTraitGroup(TRAIT_GROUP_ORDER[g], merged, capped);
+      var fmt = formatTraitGroup(TRAIT_GROUP_ORDER[g], shown, capped);
       if (fmt) { parts = parts.concat(fmt.split('\n')); }
     }
     return parts.concat(extras);

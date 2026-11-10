@@ -303,13 +303,13 @@ assert(traitsFor({ race: 'Human' })[0] === 'No active traits', 'Human with a tra
 
 console.log('== Capped traits ==');
 const runes9 = (first) => [first, 'None', 'None', 'None', 'None', 'None', 'None', 'None', 'None'];
-has(traitsFor({ armorLethality: 300, race: 'Orc' }), '+310% Lethality (capped at 300%)', 'lethality over its cap');
+has(traitsFor({ armorLethality: 300, race: 'Orc' }), '+300% Lethality (capped)', 'lethality over its cap');
 has(traitsFor({ armorLethality: 290 }), '+290% Lethality', 'lethality under its cap has no note');
-has(traitsFor({ armorCritChance: 100, runes: runes9('Crit Chance +10%') }), '+110% Crit Chance (capped at 100%)', 'crit chance over its cap');
-has(traitsFor({ armorLethality: 300, race: 'Kitsune', runes: runes9('Lethality +5%') }), '+325% Lethality (capped at 320%)',
+has(traitsFor({ armorCritChance: 100, runes: runes9('Crit Chance +10%') }), '+100% Crit Chance (capped)', 'crit chance over its cap');
+has(traitsFor({ armorLethality: 300, race: 'Kitsune', runes: runes9('Lethality +5%') }), '+320% Lethality (capped)',
   'Kitsune Trickery is added after the cap');
 has(traitsFor({ armorLethality: 300, race: 'Kitsune' }), '+320% Lethality', 'after-cap race term alone does not count as capped');
-has(traitsFor({ blastDmg: 300, blastChance: 10 }), '+300% Explosion DMG (capped at 250%) (+10% chance)', 'explosion damage over its cap');
+has(traitsFor({ blastDmg: 300, blastChance: 10 }), '+250% Explosion DMG (capped) (+10% chance)', 'explosion damage over its cap');
 assert(FC.weaponTraitLines(slots([['Wolfarite', 30]]), game).every((l) => l.indexOf('capped') === -1),
   'weapon trait box has no cap notes under the caps');
 
