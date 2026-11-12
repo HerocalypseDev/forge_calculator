@@ -94,10 +94,10 @@ approx(r.lethality, 0.15, 'wolfarite lethality');
 approx(r.atk_speed, 0.08, 'wolfarite atk_speed');
 approx(r.avg_power, 15.48, 'wolfarite avg_power');
 approx(r.unforged_damage, 4.3 * 15.48, 'wolfarite unforged');
-approx(r.attack_rate, 1.08 / 0.47, 'wolfarite attack_rate');
-approx(r.weapon_dps, 175.89891063829785, 'wolfarite weapon_dps');
+approx(r.attack_rate, 1.08 / 0.4667, 'wolfarite attack_rate');
+approx(r.weapon_dps, 177.14267838011565, 'wolfarite weapon_dps');
 approx(r.total_dps, r.weapon_dps, 'wolfarite total == weapon');
-approx(r.max_dps, 255.05342042553187, 'wolfarite max_dps');
+approx(r.max_dps, 256.8568836511677, 'wolfarite max_dps');
 
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 3 }, { name: 'Stone', amount: 27 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.lethality, 0.015, 'gate lethality');
@@ -109,10 +109,10 @@ approx(r.explosion_chance, 0.35, 'garg explosion_chance');
 approx(r.fire_dmg, 0.2, 'garg fire_dmg');
 approx(r.fire_chance, 0.2, 'garg fire_chance');
 approx(r.fire_duration, 2.0, 'garg fire_duration');
-approx(r.explosion_dps, 24.45755213819254, 'garg explosion_dps');
-approx(r.fire_dps, 7.912954578647583, 'garg fire_dps');
-approx(r.total_dps, 169.6045492700316, 'garg total_dps');
-approx(r.max_dps, 280.50638297872337, 'garg max_dps');
+approx(r.explosion_dps, 24.630489618492597, 'garg explosion_dps');
+approx(r.fire_dps, 7.951661879721207, 'garg fire_dps');
+approx(r.total_dps, 170.78656546864448, 'garg total_dps');
+approx(r.max_dps, 282.3986072423398, 'garg max_dps');
 
 r = FC.calculate(build({ slots: [ { name: 'Malachite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.poison_dmg, 0.1, 'malachite poison_dmg');
@@ -125,14 +125,14 @@ approx(r.blackhole_dmg, 0.6, 'galaxite blackhole_dmg');
 approx(r.blackhole_chance, 0.3, 'galaxite blackhole_chance');
 approx(r.crit_chance, 0.45, 'galaxite crit_chance');
 approx(r.crit_dmg, 0.2, 'galaxite crit_dmg');
-approx(r.blackhole_dps, 25.481075570281636, 'galaxite blackhole_dps');
+approx(r.blackhole_dps, 25.589767676392785, 'galaxite blackhole_dps');
 
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.blackhole_chance, 0.0, 'blackhole requires galaxite');
 
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger', race: 'Minotaur' }), game);
 approx(r.berserk, r.weapon_dps * 1.45 / 1.15, 'minotaur berserk adds 30% to lethality');
-approx(r.berserk, 221.78558297872337, 'minotaur berserk');
+approx(r.berserk, 223.35381187058064, 'minotaur berserk');
 r = FC.calculate(build({ slots: [ { name: 'Wolfarite', amount: 30 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 }, { name: 'None', amount: 0 } ], weapon_name: 'Dagger' }), game);
 approx(r.berserk === null ? 0 : 1, 0, 'no-race berserk is null');
 

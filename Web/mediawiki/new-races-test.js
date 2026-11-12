@@ -58,7 +58,7 @@ const run = (race, weapon, bonus) => FC.calculate({
 }, game);
 
 const DAGGER_DMG = 4.3;
-const DAGGER_INTERVAL = 0.47;
+const DAGGER_INTERVAL = 0.4667;
 
 const raceNames = loadJSON('Data-Races.json').races.map((r) => r.name);
 ['Fairy', 'Orc Lord', 'Dryad', 'Kitsune'].forEach((name) =>

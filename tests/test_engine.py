@@ -138,15 +138,15 @@ def test_forge_multiplier_out_of_range_defaults_to_one():
 def test_weapon_bases_golden_unforged_equals_forged(game):
     weapon = game.weapon("Demonic Spear")
     unforged, forged = weapon_bases(weapon, 7.94, quality=100, forge_level=0)
-    assert unforged == pytest.approx(14.42 * 7.94 * 2.0)
-    assert forged == pytest.approx(14.42 * 7.94 * 2.0)
+    assert unforged == pytest.approx(14.42325 * 7.94 * 2.0)
+    assert forged == pytest.approx(14.42325 * 7.94 * 2.0)
 
 
 def test_weapon_bases_forge_scales_forged_only(game):
     weapon = game.weapon("Demonic Spear")
     unforged, forged = weapon_bases(weapon, 7.94, quality=100, forge_level=9)
-    assert unforged == pytest.approx(14.42 * 7.94 * 2.0)
-    assert forged == pytest.approx(14.42 * 7.94 * 2.0 * 1.5)
+    assert unforged == pytest.approx(14.42325 * 7.94 * 2.0)
+    assert forged == pytest.approx(14.42325 * 7.94 * 2.0 * 1.5)
 
 
 def test_weapon_bases_missing_weapon_is_one():
@@ -158,12 +158,12 @@ def test_weapon_bases_missing_weapon_is_one():
 
 def test_attack_rate_golden(game):
     weapon = game.weapon("Demonic Spear")
-    assert attack_rate(weapon, atk_speed_total=0.0) == pytest.approx(1 / 0.73)
+    assert attack_rate(weapon, atk_speed_total=0.0) == pytest.approx(1 / 0.725)
 
 
 def test_attack_rate_with_atk_speed(game):
     weapon = game.weapon("Demonic Spear")
-    assert attack_rate(weapon, atk_speed_total=0.5) == pytest.approx(1.5 / 0.73)
+    assert attack_rate(weapon, atk_speed_total=0.5) == pytest.approx(1.5 / 0.725)
 
 
 def test_attack_rate_missing_weapon_interval_one():

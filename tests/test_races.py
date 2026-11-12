@@ -6,7 +6,7 @@ from forge_calculator.data import DEFAULT_DATA_DIR, load_game_data
 from forge_calculator.engine import Build, OreSlot, calculate
 
 DAGGER_DMG = 4.3
-DAGGER_INTERVAL = 0.47
+DAGGER_INTERVAL = 0.4667
 
 
 @pytest.fixture(scope="module")

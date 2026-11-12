@@ -148,13 +148,13 @@ def test_wolfarite_single_slot(game):
     assert r.atk_speed == pytest.approx(0.08)
     assert r.avg_power == pytest.approx(15.48)          # Wolfarite multiplier
     assert r.unforged_damage == pytest.approx(4.3 * 15.48)
-    assert r.attack_rate == pytest.approx(1.08 / 0.47)
+    assert r.attack_rate == pytest.approx(1.08 / 0.4667)
     # C113 = 66.564 * 1.15 * 1.0 (blend, no crit) * 2.29787234
-    assert r.weapon_dps == pytest.approx(175.89891063829785)
+    assert r.weapon_dps == pytest.approx(175.89891063829785 * 0.47 / 0.4667)
     assert r.total_dps == pytest.approx(r.weapon_dps)   # no procs
     assert r.min_dps == pytest.approx(r.weapon_dps)     # blend==1
     # C125 max burst = C18*(1+E71)*(C21+E73)*E21 + procs; C21 base crit dmg = 1.45
-    assert r.max_dps == pytest.approx(255.05342042553187)
+    assert r.max_dps == pytest.approx(255.05342042553187 * 0.47 / 0.4667)
 
 
 def test_wolfarite_exactly_at_gate_is_base_not_zero(game):
@@ -179,7 +179,7 @@ def test_gargantuan_procs(game):
     assert r.explosion_dps == pytest.approx(a * 0.5 * 36 / 101 * rate)
     assert r.fire_dps == pytest.approx(a * 0.2 * dot_uptime(21 / 101, rate, 2.0))
     assert r.total_dps == pytest.approx(r.weapon_dps + r.explosion_dps + r.fire_dps)
-    assert r.max_dps == pytest.approx(280.50638297872337)
+    assert r.max_dps == pytest.approx(282.3986072423398)
 
 
 def test_malachite_poison(game):
