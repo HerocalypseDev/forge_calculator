@@ -1,7 +1,0 @@
-{{Article Header
- | title       = Traits
- | description = Uhm triats section descrition stuff i add things later. am too good
- | image       = Stonewake Cross Island.webp
- | section     = ALL TRAITS
- | content     = {{#invoke:Traits|browser}}
-}}
