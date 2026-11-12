@@ -443,6 +443,8 @@ node Web/mediawiki/validation-warnings-test.js  node Web/mediawiki/tower-of-hell
 node Web/mediawiki/active-traits-test.js
 ```
 
+`reall-golden.js` reports 14 of 46 cells diverging since the weapon update from Dr.S.Moller's ranking (Nov 12 2026): `_Weapon` D/E and the F cache were patched in the XML, but the DPS Calculator cache still holds the old Colossal Terrorblade interval (1.28 vs 1.2758). It clears when the user re-saves the workbook through Google Sheets.
+
 `copy-stat-test.js` (expects the pre-`fc-is-capped` inline cap colour) and `icon-test.js`
 (4 failures) were already red before the UpdatedSpreadsheet.xlsx adoption and are not in
 the list above.
