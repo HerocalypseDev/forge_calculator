@@ -2964,18 +2964,25 @@
     });
 
 
-    var traitToggleLabel = createEl('label', { class: 'fc-trait-toggle' });
-    var traitToggleBox = createEl('input', { type: 'checkbox', class: 'fc-trait-toggle-box' });
-    traitToggleBox.checked = state.showTraitDps;
-    traitToggleLabel.append(traitToggleBox, createEl('span', {}, ['Show trait DPS']));
-    dpsCard.querySelector('.fc-card-head').append(traitToggleLabel);
+    var traitToggle = createEl('div', { class: 'fc-trait-toggle' });
+    var traitToggleText = createEl('label', { for: 'fc-showTraitDps' }, ['Show trait DPS']);
+    var traitToggleBox = createEl('button', { type: 'button', class: 'fc-check fc-trait-toggle-box', id: 'fc-showTraitDps', role: 'checkbox' });
+    function setTraitToggle(on) {
+      traitToggleBox.setAttribute('aria-checked', on ? 'true' : 'false');
+      traitToggleBox.classList.toggle('fc-check--on', on);
+      traitToggleBox.textContent = on ? '✓' : '';
+    }
+    setTraitToggle(state.showTraitDps);
+    traitToggle.append(traitToggleText, traitToggleBox);
+    dpsCard.querySelector('.fc-card-head').append(traitToggle);
     var traitDpsRows = Array.prototype.slice.call(dpsCard.querySelectorAll('.fc-stat-row'), 1, 19);
     function applyTraitDpsVisibility() {
       traitDpsRows.forEach(function (row) { row.classList.toggle('fc-hidden', !state.showTraitDps); });
     }
     applyTraitDpsVisibility();
-    traitToggleBox.addEventListener('change', function () {
-      state.showTraitDps = traitToggleBox.checked;
+    traitToggleBox.addEventListener('click', function () {
+      state.showTraitDps = traitToggleBox.getAttribute('aria-checked') !== 'true';
+      setTraitToggle(state.showTraitDps);
       saveShowTraitDps(state.showTraitDps);
       applyTraitDpsVisibility();
     });
