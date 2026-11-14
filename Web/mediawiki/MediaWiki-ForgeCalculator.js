@@ -2964,6 +2964,22 @@
     });
 
 
+    var traitToggleLabel = createEl('label', { class: 'fc-trait-toggle' });
+    var traitToggleBox = createEl('input', { type: 'checkbox', class: 'fc-trait-toggle-box' });
+    traitToggleBox.checked = state.showTraitDps;
+    traitToggleLabel.append(traitToggleBox, createEl('span', {}, ['Show trait DPS']));
+    dpsCard.querySelector('.fc-card-head').append(traitToggleLabel);
+    var traitDpsRows = Array.prototype.slice.call(dpsCard.querySelectorAll('.fc-stat-row'), 1, 19);
+    function applyTraitDpsVisibility() {
+      traitDpsRows.forEach(function (row) { row.classList.toggle('fc-hidden', !state.showTraitDps); });
+    }
+    applyTraitDpsVisibility();
+    traitToggleBox.addEventListener('change', function () {
+      state.showTraitDps = traitToggleBox.checked;
+      saveShowTraitDps(state.showTraitDps);
+      applyTraitDpsVisibility();
+    });
+
     totalDpsCard.classList.add('fc-card--total');
     coreDpsCard.classList.add('fc-card--core');
     statsCard.classList.add('fc-card--stats');
@@ -3491,7 +3507,18 @@
     golemites: [emptyGolemite(), emptyGolemite()]
   };
 
+  var SHOW_TRAIT_DPS_KEY = 'fc-show-trait-dps';
+
+  function readShowTraitDps() {
+    try { return window.localStorage.getItem(SHOW_TRAIT_DPS_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  function saveShowTraitDps(on) {
+    try { window.localStorage.setItem(SHOW_TRAIT_DPS_KEY, on ? '1' : '0'); } catch (e) {}
+  }
+
   var state = {
+    showTraitDps: readShowTraitDps(),
     gameData: null,
     build: DEFAULT_BUILD,
     inputPanel: null,
@@ -3651,6 +3678,26 @@
 
   function formatResultsForClipboard(result, build) {
     var activeTraitsText = result.active_traits || 'None';
+    var traitDpsLines = state.showTraitDps ? [
+      'Explosion DPS: ' + result.explosion_dps.toFixed(2),
+      'Fire DPS: ' + result.fire_dps.toFixed(2),
+      'Poison DPS: ' + result.poison_dps.toFixed(2),
+      'Smite DPS: ' + result.smite_dps.toFixed(2),
+      'Black Hole DPS: ' + result.blackhole_dps.toFixed(2),
+      'Lightning DPS: ' + result.lightning_dps.toFixed(2),
+      'Smash DPS: ' + result.smash_dps.toFixed(2),
+      'Fox Claws DPS: ' + result.fox_claws_dps.toFixed(2),
+      'Foxfire DPS: ' + result.foxfire_dps.toFixed(2),
+      'Archangel Smite DPS: ' + result.archangel_smite_dps.toFixed(2),
+      'Cursed Aura DPS: ' + result.cursed_aura_dps.toFixed(2),
+      'Golemite DPS: ' + result.golemite_dps.toFixed(2),
+      'Reverberation DPS: ' + result.reverberation_dps.toFixed(2),
+      'Frost Slash DPS: ' + result.frost_slash_dps.toFixed(2),
+      'Glacier Explosion DPS: ' + result.glacier_explosion_dps.toFixed(2),
+      'Starfall DPS: ' + result.starfall_dps.toFixed(2),
+      'Stellar Mark DPS: ' + result.stellar_mark_dps.toFixed(2),
+      'Ancient Poison DPS: ' + result.ancient_poison_dps.toFixed(2)
+    ] : [];
     var lines = [
       '=== Forge Calculator Results ===',
       '',
@@ -3673,26 +3720,11 @@
       'Berserk: ' + (result.berserk_level * 100).toFixed(2) + '%' + (result.berserk_level >= CAPS.berserk ? ' (CAPPED)' : ''),
       '',
       '--- DPS Breakdown ---',
-      'Weapon DPS: ' + result.weapon_dps.toFixed(2),
-      'Explosion DPS: ' + result.explosion_dps.toFixed(2),
-      'Fire DPS: ' + result.fire_dps.toFixed(2),
-      'Poison DPS: ' + result.poison_dps.toFixed(2),
-      'Smite DPS: ' + result.smite_dps.toFixed(2),
-      'Black Hole DPS: ' + result.blackhole_dps.toFixed(2),
-      'Lightning DPS: ' + result.lightning_dps.toFixed(2),
-      'Smash DPS: ' + result.smash_dps.toFixed(2),
-      'Fox Claws DPS: ' + result.fox_claws_dps.toFixed(2),
-      'Foxfire DPS: ' + result.foxfire_dps.toFixed(2),
-      'Archangel Smite DPS: ' + result.archangel_smite_dps.toFixed(2),
-      'Cursed Aura DPS: ' + result.cursed_aura_dps.toFixed(2),
-      'Golemite DPS: ' + result.golemite_dps.toFixed(2),
-      'Reverberation DPS: ' + result.reverberation_dps.toFixed(2),
-      'Frost Slash DPS: ' + result.frost_slash_dps.toFixed(2),
-      'Glacier Explosion DPS: ' + result.glacier_explosion_dps.toFixed(2),
-      'Starfall DPS: ' + result.starfall_dps.toFixed(2),
-      'Stellar Mark DPS: ' + result.stellar_mark_dps.toFixed(2),
-      'Ancient Poison DPS: ' + result.ancient_poison_dps.toFixed(2),
+      'Weapon DPS: ' + result.weapon_dps.toFixed(2)
+    ].concat(traitDpsLines, [
       'Total DPS: ' + result.total_dps.toFixed(2),
+      'Total Berserk DPS: ' + fmtDps(result.berserk),
+      'Total Moonstone DPS: ' + fmtDps(result.moonstone),
       '',
       '--- Time to Kill ---',
       'Skeleton King: ' + (result.ttk_skeleton !== null && result.ttk_skeleton !== undefined ? result.ttk_skeleton.toFixed(2) + 's' : '—'),
@@ -3710,7 +3742,7 @@
       '',
       '--- Achievement ---',
       build.achievement || 'None'
-    ];
+    ]);
     return lines.join('\n');
   }
 

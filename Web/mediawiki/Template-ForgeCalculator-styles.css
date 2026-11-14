@@ -1307,3 +1307,12 @@
     border-color: #ffffff;
   }
 }
+
+.fc-trait-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  cursor: pointer;
+  font-size: 0.85em;
+}
