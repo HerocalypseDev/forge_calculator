@@ -39,552 +39,829 @@
     {
       "name": "Dagger",
       "type": "Dagger",
+      "classes": [
+        "Rogues"
+      ],
       "interval": 0.4667,
       "damage": 4.3
     },
     {
       "name": "Falchion Knife",
       "type": "Dagger",
+      "classes": [
+        "Rogues"
+      ],
       "interval": 0.4667,
       "damage": 4.4500012
     },
     {
       "name": "Gladius Dagger",
       "type": "Dagger",
+      "classes": [
+        "Gladiators"
+      ],
       "interval": 0.4667,
       "damage": 4.5999981
     },
     {
       "name": "Hook",
       "type": "Dagger",
+      "classes": [
+        "Pirates"
+      ],
       "interval": 0.5185,
       "damage": 4.73
     },
     {
       "name": "Cultist Dagger",
       "type": "Dagger",
+      "classes": [
+        "Hellbound"
+      ],
       "interval": 0.4667,
       "damage": 5.246
     },
     {
       "name": "Shark's Fangs",
       "type": "Dagger",
+      "classes": [
+        "Pirates"
+      ],
       "interval": 0.359,
       "damage": 3.87
     },
     {
       "name": "Curved Dagger",
       "type": "Dagger",
+      "classes": [
+        "Rogues"
+      ],
       "interval": 0.4058,
       "damage": 4.945
     },
     {
       "name": "Kunai",
       "type": "Dagger",
+      "classes": [
+        "Ninja"
+      ],
       "interval": 0.3889,
       "damage": 3.87
     },
     {
       "name": "Jitte",
       "type": "Dagger",
+      "classes": [
+        "Ninja"
+      ],
       "interval": 0.4912,
       "damage": 4.945
     },
     {
       "name": "Damascus Dagger",
       "type": "Dagger",
+      "classes": [
+        "Rogues"
+      ],
       "interval": 0.4667,
       "damage": 4.73
     },
     {
       "name": "Tanto",
       "type": "Dagger",
+      "classes": [
+        "Ninja"
+      ],
       "interval": 0.3889,
       "damage": 4.945
     },
     {
       "name": "Falchion",
       "type": "Straight Sword",
+      "classes": [
+        "Rogues"
+      ],
       "interval": 0.7,
       "damage": 7.5
     },
     {
       "name": "Gladius",
       "type": "Straight Sword",
+      "classes": [
+        "Gladiators"
+      ],
       "interval": 0.7368,
       "damage": 8.0000025
     },
     {
       "name": "Cutlass",
       "type": "Straight Sword",
+      "classes": [
+        "Pirates"
+      ],
       "interval": 0.7778,
       "damage": 9.375
     },
     {
       "name": "Rapier",
       "type": "Straight Sword",
+      "classes": [
+        "Knight"
+      ],
       "interval": 0.5833,
       "damage": 7.5
     },
     {
       "name": "Chaos",
       "type": "Straight Sword",
+      "classes": [
+        "Hellbound"
+      ],
       "interval": 0.7,
       "damage": 9.375
     },
     {
       "name": "Hell Slayer",
       "type": "Straight Sword",
+      "classes": [
+        "Whimsical"
+      ],
       "interval": 0.7,
       "damage": 11.1249975
     },
     {
       "name": "Candy Cane",
       "type": "Straight Sword",
+      "classes": [
+        "Whimsical"
+      ],
       "interval": 0.5185,
       "damage": 7.5
     },
     {
       "name": "Crystalized Broadsword",
       "type": "Straight Sword",
+      "classes": [
+        "Crystallized"
+      ],
       "interval": 0.7368,
       "damage": 9.975
     },
     {
       "name": "Hook Blade",
       "type": "Straight Sword",
+      "classes": [
+        "Ninja"
+      ],
       "interval": 0.5185,
       "damage": 8.25
     },
     {
       "name": "Hachiwari",
       "type": "Straight Sword",
+      "classes": [
+        "Samurai"
+      ],
       "interval": 0.7,
       "damage": 8.25
     },
     {
       "name": "Chokuto",
       "type": "Straight Sword",
+      "classes": [
+        "Ninja"
+      ],
       "interval": 0.6364,
       "damage": 7.5
     },
     {
       "name": "Dragon Blade",
       "type": "Straight Sword",
+      "classes": [
+        "Draconic"
+      ],
       "interval": 0.7,
       "damage": 10.5
     },
     {
       "name": "Thornspine",
       "type": "Straight Sword",
+      "classes": [
+        "Graveyard"
+      ],
       "interval": 0.7,
       "damage": 10.875
     },
     {
       "name": "Mace",
       "type": "Mace",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 1.1667,
       "damage": 7.000002
     },
     {
       "name": "Spiked Mace",
       "type": "Mace",
+      "classes": [
+        "Brutes",
+        "Knight"
+      ],
       "interval": 1.1667,
       "damage": 7.300002
     },
     {
       "name": "Winged Mace",
       "type": "Mace",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 1.1667,
       "damage": 7.600002
     },
     {
       "name": "Hammerhead Mace",
       "type": "Mace",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 1.1667,
       "damage": 7.900002
     },
     {
       "name": "Grave Maker",
       "type": "Mace",
+      "classes": [
+        "Graveyard"
+      ],
       "interval": 1.1667,
       "damage": 8.800002
     },
     {
       "name": "Kanabo",
       "type": "Mace",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 1.2963,
       "damage": 8.200002
     },
     {
       "name": "Tetsubo",
       "type": "Mace",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 1.1111,
       "damage": 7.720002
     },
     {
       "name": "Ironhand",
       "type": "Gauntlet",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 0.55,
       "damage": 7.6
     },
     {
       "name": "Boxing Gloves",
       "type": "Gauntlet",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 0.6325,
       "damage": 8.0
     },
     {
       "name": "Relevator",
       "type": "Gauntlet",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 0.7441,
       "damage": 9.6
     },
     {
       "name": "Savage Claws",
       "type": "Gauntlet",
+      "classes": [
+        "Draconic"
+      ],
       "interval": 0.506,
       "damage": 8.0
     },
     {
       "name": "Dark Knight's Gauntlets",
       "type": "Gauntlet",
+      "classes": [
+        "Dark Knight"
+      ],
       "interval": 0.506,
       "damage": 10.0
     },
     {
       "name": "Axe",
       "type": "Axe",
+      "classes": [
+        "Viking"
+      ],
       "interval": 0.875,
       "damage": 7.0
     },
     {
       "name": "Battleaxe",
       "type": "Axe",
+      "classes": [
+        "Viking"
+      ],
       "interval": 0.875,
       "damage": 7.35
     },
     {
       "name": "Curved Handle Axe",
       "type": "Axe",
+      "classes": [
+        "Viking"
+      ],
       "interval": 0.875,
       "damage": 7.7
     },
     {
       "name": "Spade Armed Axe",
       "type": "Axe",
+      "classes": [
+        "Viking"
+      ],
       "interval": 0.875,
       "damage": 8.05
     },
     {
       "name": "Ornate Short Axe",
       "type": "Axe",
+      "classes": [
+        "Viking"
+      ],
       "interval": 0.875,
       "damage": 8.4
     },
     {
       "name": "Duskwing Cleaver",
       "type": "Axe",
+      "classes": [
+        "Hellbound"
+      ],
       "interval": 0.875,
       "damage": 8.4
     },
     {
       "name": "Uchigatana",
       "type": "Katana",
+      "classes": [
+        "Samurai"
+      ],
       "interval": 0.69,
       "damage": 8.5
     },
     {
       "name": "Tachi",
       "type": "Katana",
+      "classes": [
+        "Samurai"
+      ],
       "interval": 0.7263,
       "damage": 8.925
     },
     {
       "name": "Straight Edge Katana",
       "type": "Katana",
+      "classes": [
+        "Ninja"
+      ],
       "interval": 0.69,
       "damage": 9.35
     },
     {
       "name": "Washi-maru",
       "type": "Katana",
+      "classes": [
+        "Samurai"
+      ],
       "interval": 0.575,
       "damage": 10.2
     },
     {
       "name": "Kurokiba-gatana",
       "type": "Katana",
+      "classes": [
+        "Samurai"
+      ],
       "interval": 0.6273,
       "damage": 9.35
     },
     {
       "name": "Juto Katana",
       "type": "Katana",
+      "classes": [
+        "Samurai"
+      ],
       "interval": 0.69,
       "damage": 8.5
     },
     {
       "name": "Crusader Sword",
       "type": "Great Sword",
+      "classes": [
+        "Knight"
+      ],
       "interval": 1.1875,
       "damage": 12.0
     },
     {
       "name": "Long Sword",
       "type": "Great Sword",
+      "classes": [
+        "Knight"
+      ],
       "interval": 1.3194,
       "damage": 12.0
     },
     {
       "name": "Dark Knight's Greatsword",
       "type": "Great Sword",
+      "classes": [
+        "Dark Knight"
+      ],
       "interval": 1.3194,
       "damage": 15.0
     },
     {
       "name": "Anchored Greatsword",
       "type": "Great Sword",
+      "classes": [
+        "Pirates"
+      ],
       "interval": 1.0795,
       "damage": 13.8
     },
     {
       "name": "Zweihander",
       "type": "Great Sword",
+      "classes": [
+        "Knight"
+      ],
       "interval": 1.25,
       "damage": 14.4
     },
     {
       "name": "The Carver",
       "type": "Great Sword",
+      "classes": [
+        "Graveyard"
+      ],
       "interval": 1.0795,
       "damage": 13.8
     },
     {
       "name": "Jack's Crest",
       "type": "Great Sword",
+      "classes": [
+        "Graveyard"
+      ],
       "interval": 1.0795,
       "damage": 14.9
     },
     {
       "name": "Spear",
       "type": "Spear",
+      "classes": [
+        "Knight"
+      ],
       "interval": 0.725,
       "damage": 7.5
     },
     {
       "name": "Trident",
       "type": "Spear",
+      "classes": [
+        "Pirates"
+      ],
       "interval": 0.725,
       "damage": 8.25
     },
     {
       "name": "Angelic Spear",
       "type": "Spear",
+      "classes": [
+        "Holy"
+      ],
       "interval": 0.6591,
       "damage": 13.11225
     },
     {
       "name": "Demonic Spear",
       "type": "Spear",
+      "classes": [
+        "Hellbound"
+      ],
       "interval": 0.725,
       "damage": 14.42325
     },
     {
       "name": "Knight Spear",
       "type": "Spear",
+      "classes": [
+        "Knight"
+      ],
       "interval": 0.6042,
       "damage": 10.125
     },
     {
       "name": "Compass Spear",
       "type": "Spear",
+      "classes": [
+        "Pirates"
+      ],
       "interval": 0.7632,
       "damage": 10.5
     },
     {
       "name": "Shakujo",
       "type": "Spear",
+      "classes": [
+        "Samurai"
+      ],
       "interval": 0.725,
       "damage": 8.25
     },
     {
       "name": "Sodegarami",
       "type": "Spear",
+      "classes": [
+        "Ninja"
+      ],
       "interval": 0.6591,
       "damage": 10.125
     },
     {
       "name": "Bo Staff",
       "type": "Spear",
+      "classes": [
+        "Ninja"
+      ],
       "interval": 0.6591,
       "damage": 10.5
     },
     {
       "name": "Naginata",
       "type": "Spear",
+      "classes": [
+        "Samurai"
+      ],
       "interval": 0.725,
       "damage": 10.875
     },
     {
       "name": "Moon Crescent Spear",
       "type": "Spear",
+      "classes": [
+        "Holy"
+      ],
       "interval": 0.725,
       "damage": 14.7
     },
     {
       "name": "Double Battle Axe",
       "type": "Great Axe",
+      "classes": [
+        "Viking"
+      ],
       "interval": 1.7018,
       "damage": 15.75
     },
     {
       "name": "Scythe",
       "type": "Great Axe",
+      "classes": [
+        "Graveyard"
+      ],
       "interval": 1.5397,
       "damage": 14.25
     },
     {
       "name": "Greater Battle Axe",
       "type": "Great Axe",
+      "classes": [
+        "Viking"
+      ],
       "interval": 1.6167,
       "damage": 17.25
     },
     {
       "name": "Wyvern Axe",
       "type": "Great Axe",
+      "classes": [
+        "Draconic"
+      ],
       "interval": 1.4697,
       "damage": 18.75
     },
     {
       "name": "Reaper Scythe",
       "type": "Great Axe",
+      "classes": [
+        "Graveyard"
+      ],
       "interval": 1.5397,
       "damage": 16.999999
     },
     {
       "name": "Executioner's Greataxe",
       "type": "Great Axe",
+      "classes": [
+        "Graveyard"
+      ],
       "interval": 1.7018,
       "damage": 20.0
     },
     {
       "name": "Anchored Straight Blade",
       "type": "Great Axe",
+      "classes": [
+        "Pirates"
+      ],
       "interval": 1.6167,
       "damage": 18.0
     },
     {
       "name": "Sun Great Axe",
       "type": "Great Axe",
+      "classes": [
+        "Holy"
+      ],
       "interval": 1.3472,
       "damage": 19.5
     },
     {
       "name": "Batwing Reaver",
       "type": "Great Axe",
+      "classes": [
+        "Hellbound"
+      ],
       "interval": 1.7018,
       "damage": 19.5
     },
     {
       "name": "Halberd",
       "type": "Halberd",
+      "classes": [
+        "Knight"
+      ],
       "interval": 1.0667,
       "damage": 16.8
     },
     {
       "name": "Spiked Halberd",
       "type": "Halberd",
+      "classes": [
+        "Knight"
+      ],
       "interval": 1.0667,
       "damage": 17.04
     },
     {
       "name": "Fangtian Halberd",
       "type": "Halberd",
+      "classes": [
+        "Draconic"
+      ],
       "interval": 1.0667,
       "damage": 18.0
     },
     {
       "name": "Royal Guardian's Glaive",
       "type": "Halberd",
+      "classes": [
+        "Holy"
+      ],
       "interval": 1.0667,
       "damage": 21.3996
     },
     {
       "name": "Great Sword",
       "type": "Colossal Sword",
+      "classes": [
+        "Knight"
+      ],
       "interval": 1.4033,
       "damage": 20.0
     },
     {
       "name": "Hammer",
       "type": "Colossal Sword",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 1.5593,
       "damage": 22.0
     },
     {
       "name": "Skull Crusher",
       "type": "Colossal Sword",
+      "classes": [
+        "Graveyard"
+      ],
       "interval": 1.7542,
       "damage": 24.0
     },
     {
       "name": "Dragon Slayer",
       "type": "Colossal Sword",
+      "classes": [
+        "Draconic"
+      ],
       "interval": 1.4033,
       "damage": 22.0
     },
     {
       "name": "Comically Large Spoon",
       "type": "Colossal Sword",
+      "classes": [
+        "Whimsical"
+      ],
       "interval": 1.4033,
       "damage": 18.0
     },
     {
       "name": "Excalibur",
       "type": "Colossal Sword",
+      "classes": [
+        "Holy"
+      ],
       "interval": 1.4033,
       "damage": 30.0
     },
     {
       "name": "Colossal Terrorblade",
       "type": "Colossal Sword",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 1.2758,
       "damage": 22.0
     },
     {
       "name": "Colossal Gemblade",
       "type": "Colossal Sword",
+      "classes": [
+        "Crystallized"
+      ],
       "interval": 1.4033,
       "damage": 25.0
     },
     {
       "name": "Otsuchi",
       "type": "Colossal Sword",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 1.5593,
       "damage": 25.0
     },
     {
       "name": "Kinmon Kamagatana",
       "type": "Colossal Sword",
+      "classes": [
+        "Brutes"
+      ],
       "interval": 1.4033,
       "damage": 23.4
     },
     {
       "name": "Sharktooth Odachi",
       "type": "Colossal Sword",
+      "classes": [
+        "Samurai"
+      ],
       "interval": 1.4033,
       "damage": 27.0
     },
     {
       "name": "Devil's Deed",
       "type": "Colossal Sword",
+      "classes": [
+        "Hellbound"
+      ],
       "interval": 1.4033,
       "damage": 30.8
     },
     {
       "name": "Coffin Lid",
       "type": "Colossal Sword",
+      "classes": [
+        "Graveyard"
+      ],
       "interval": 1.4033,
       "damage": 23.0
     }
