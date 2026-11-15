@@ -1315,3 +1315,16 @@
   gap: 10px;
   margin-left: auto;
 }
+
+.fc-armor-set-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 720px) {
+  .fc-armor-set-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -40,7 +40,7 @@
       "name": "Dagger",
       "type": "Dagger",
       "classes": [
-        "Rogues"
+        "Rogue"
       ],
       "interval": 0.4667,
       "damage": 4.3
@@ -49,7 +49,7 @@
       "name": "Falchion Knife",
       "type": "Dagger",
       "classes": [
-        "Rogues"
+        "Rogue"
       ],
       "interval": 0.4667,
       "damage": 4.4500012
@@ -58,7 +58,7 @@
       "name": "Gladius Dagger",
       "type": "Dagger",
       "classes": [
-        "Gladiators"
+        "Gladiator"
       ],
       "interval": 0.4667,
       "damage": 4.5999981
@@ -67,7 +67,7 @@
       "name": "Hook",
       "type": "Dagger",
       "classes": [
-        "Pirates"
+        "Pirate"
       ],
       "interval": 0.5185,
       "damage": 4.73
@@ -85,7 +85,7 @@
       "name": "Shark's Fangs",
       "type": "Dagger",
       "classes": [
-        "Pirates"
+        "Pirate"
       ],
       "interval": 0.359,
       "damage": 3.87
@@ -94,7 +94,7 @@
       "name": "Curved Dagger",
       "type": "Dagger",
       "classes": [
-        "Rogues"
+        "Rogue"
       ],
       "interval": 0.4058,
       "damage": 4.945
@@ -121,7 +121,7 @@
       "name": "Damascus Dagger",
       "type": "Dagger",
       "classes": [
-        "Rogues"
+        "Rogue"
       ],
       "interval": 0.4667,
       "damage": 4.73
@@ -139,7 +139,7 @@
       "name": "Falchion",
       "type": "Straight Sword",
       "classes": [
-        "Rogues"
+        "Rogue"
       ],
       "interval": 0.7,
       "damage": 7.5
@@ -148,7 +148,7 @@
       "name": "Gladius",
       "type": "Straight Sword",
       "classes": [
-        "Gladiators"
+        "Gladiator"
       ],
       "interval": 0.7368,
       "damage": 8.0000025
@@ -157,7 +157,7 @@
       "name": "Cutlass",
       "type": "Straight Sword",
       "classes": [
-        "Pirates"
+        "Pirate"
       ],
       "interval": 0.7778,
       "damage": 9.375
@@ -256,7 +256,7 @@
       "name": "Mace",
       "type": "Mace",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 1.1667,
       "damage": 7.000002
@@ -265,7 +265,7 @@
       "name": "Spiked Mace",
       "type": "Mace",
       "classes": [
-        "Brutes",
+        "Brute",
         "Knight"
       ],
       "interval": 1.1667,
@@ -275,7 +275,7 @@
       "name": "Winged Mace",
       "type": "Mace",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 1.1667,
       "damage": 7.600002
@@ -284,7 +284,7 @@
       "name": "Hammerhead Mace",
       "type": "Mace",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 1.1667,
       "damage": 7.900002
@@ -302,7 +302,7 @@
       "name": "Kanabo",
       "type": "Mace",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 1.2963,
       "damage": 8.200002
@@ -311,7 +311,7 @@
       "name": "Tetsubo",
       "type": "Mace",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 1.1111,
       "damage": 7.720002
@@ -320,7 +320,7 @@
       "name": "Ironhand",
       "type": "Gauntlet",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 0.55,
       "damage": 7.6
@@ -329,7 +329,7 @@
       "name": "Boxing Gloves",
       "type": "Gauntlet",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 0.6325,
       "damage": 8.0
@@ -338,7 +338,7 @@
       "name": "Relevator",
       "type": "Gauntlet",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 0.7441,
       "damage": 9.6
@@ -500,7 +500,7 @@
       "name": "Anchored Greatsword",
       "type": "Great Sword",
       "classes": [
-        "Pirates"
+        "Pirate"
       ],
       "interval": 1.0795,
       "damage": 13.8
@@ -545,7 +545,7 @@
       "name": "Trident",
       "type": "Spear",
       "classes": [
-        "Pirates"
+        "Pirate"
       ],
       "interval": 0.725,
       "damage": 8.25
@@ -581,7 +581,7 @@
       "name": "Compass Spear",
       "type": "Spear",
       "classes": [
-        "Pirates"
+        "Pirate"
       ],
       "interval": 0.7632,
       "damage": 10.5
@@ -689,7 +689,7 @@
       "name": "Anchored Straight Blade",
       "type": "Great Axe",
       "classes": [
-        "Pirates"
+        "Pirate"
       ],
       "interval": 1.6167,
       "damage": 18.0
@@ -761,7 +761,7 @@
       "name": "Hammer",
       "type": "Colossal Sword",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 1.5593,
       "damage": 22.0
@@ -806,7 +806,7 @@
       "name": "Colossal Terrorblade",
       "type": "Colossal Sword",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 1.2758,
       "damage": 22.0
@@ -824,7 +824,7 @@
       "name": "Otsuchi",
       "type": "Colossal Sword",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 1.5593,
       "damage": 25.0
@@ -833,7 +833,7 @@
       "name": "Kinmon Kamagatana",
       "type": "Colossal Sword",
       "classes": [
-        "Brutes"
+        "Brute"
       ],
       "interval": 1.4033,
       "damage": 23.4

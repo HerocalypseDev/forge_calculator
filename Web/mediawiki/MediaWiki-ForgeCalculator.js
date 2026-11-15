@@ -55,6 +55,40 @@
   };
 
   var UNCAPPED_RACE_LETHALITY = { 'Kitsune': 0.20 };
+  var ARMOR_SLOTS = ['helmet', 'chestplate', 'leggings'];
+  var ARMOR_TWO_OF_THREE = 2 / 3;
+
+  function armorSet(pieces, bonus, types, classes, lethality, slots) {
+    return {
+      pieces: pieces,
+      types: types,
+      classes: classes,
+      lethality: lethality === false ? 0.0 : bonus,
+      atk_speed: bonus,
+      slots: slots || ARMOR_SLOTS
+    };
+  }
+
+  var ARMOR_SETS = {
+    'Light': armorSet(3, 0.125, ['Dagger'], [], false),
+    'Ninja': armorSet(3, 0.12, [], ['Ninja']),
+    'Voidstrider': armorSet(3, 0.10, [], ['Rogue']),
+    'Medium': armorSet(3, 0.20, [], ['Gladiator']),
+    'Samurai': armorSet(3, 0.10, [], ['Samurai']),
+    'Viking': armorSet(3, 0.125, [], ['Viking']),
+    'Rootguard': armorSet(3, 0.10, [], ['Graveyard', 'Holy']),
+    'Gloomwarden': armorSet(3, 0.10, [], ['Crystallized']),
+    'Knight': armorSet(3, 0.075, [], ['Knight']),
+    'Dark Knight': armorSet(3, 0.075, [], ['Dark Knight']),
+    'Wolf': armorSet(3, 0.075, ['Gauntlet'], []),
+    'Raven': armorSet(3, 0.075, [], ['Hellbound']),
+    'Vanguard': armorSet(3, 0.075, ['Halberd', 'Spear'], []),
+    'Shogun': armorSet(3, 0.06, ['Katana', 'Halberd'], []),
+    'Juggernaut': armorSet(2, 0.05, ['Colossal Sword', 'Great Sword'], [], true, ['chestplate', 'leggings']),
+    'Dreadhorn': armorSet(3, 0.08, [], ['Sword & Shield']),
+    "Goblin's Crown": armorSet(1, 0.05, [], ['Brute'], true, ['helmet'])
+  };
+
   var UNCAPPED_CLASS_LETHALITY = { 'Fairy,Spear': 0.15 };
   var UNCAPPED_RACE_ATK_SPEED = { 'Kitsune': 0.20 };
   var UNCAPPED_CLASS_ATK_SPEED = { 'Fairy,Spear': 0.15 };
@@ -706,7 +740,9 @@
     });
     var ach = parseTrait(build.achievement);
     if (ach) { addTraitValue(merged, ach.stat, ach.value); }
-    addTraitValue(merged, 'lethality', build.armor_lethality || 0);
+    var armorSetTraits = armorSetBonus(build, game);
+    addTraitValue(merged, 'lethality', (build.armor_lethality || 0) + armorSetTraits.lethality);
+    addTraitValue(merged, 'atk_speed', armorSetTraits.atk_speed);
     addTraitValue(merged, 'crit_chance', build.armor_crit_chance || 0);
     addTraitValue(merged, 'crit_dmg', build.armor_crit_dmg || 0);
     addTraitValue(merged, 'berserk', Math.min(build.berserk || 0, CAPS.berserk) + raceValue(RACE_BERSERK, build.race));
@@ -882,6 +918,31 @@
     return 1.0 + steps * DRYAD_VITAL_POWER_PER_STEP;
   }
 
+  function armorSetFraction(count, pieces) {
+    if (count >= pieces) { return 1.0; }
+    if (pieces === 3 && count === 2) { return ARMOR_TWO_OF_THREE; }
+    return 0.0;
+  }
+
+  function armorSetBonus(build, game) {
+    var weapon = game._weapon_index ? game._weapon_index.get(build.weapon_name) : null;
+    var bonus = { lethality: 0.0, atk_speed: 0.0 };
+    if (!weapon) { return bonus; }
+    var worn = [build.armor_helmet, build.armor_chestplate, build.armor_leggings];
+    var weaponClasses = weapon.classes || [];
+    Object.keys(ARMOR_SETS).forEach(function (name) {
+      var set = ARMOR_SETS[name];
+      var matches = set.types.indexOf(weapon.type) !== -1
+        || weaponClasses.some(function (c) { return set.classes.indexOf(c) !== -1; });
+      if (!matches) { return; }
+      var count = worn.filter(function (w) { return w === name; }).length;
+      var fraction = armorSetFraction(count, set.pieces);
+      bonus.lethality += set.lethality * fraction;
+      bonus.atk_speed += set.atk_speed * fraction;
+    });
+    return bonus;
+  }
+
   function statTotals(build, game, oreContribs) {
     var runes = runeTotals(build.rune_cells);
     var ach = parseTrait(build.achievement);
@@ -890,9 +951,11 @@
     var race = build.race;
     var cls = build.race + ',' + build.bonus_weapon_type;
     var inGrove = race === 'Dryad' && build.dryad_in_grove;
+    var setBonus = armorSetBonus(build, game);
 
     var lethality = oreContribs.lethality
       + build.armor_lethality
+      + setBonus.lethality
       + golemiteSum(build, 'lethality')
       + runes.lethality
       + build.base_lethality
@@ -915,6 +978,7 @@
 
     var atk_speed = oreContribs.atk_speed
       + golemiteSum(build, 'atk_speed')
+      + setBonus.atk_speed
       + runes.atk_speed
       + raceValue(RACE_ATK_SPEED, race)
       + raceValue(CLASS_ATK_SPEED, cls)
@@ -1120,6 +1184,9 @@
       armor_crit_chance: num(b.armor_crit_chance),
       armor_crit_dmg: num(b.armor_crit_dmg),
       armor_lethality: num(b.armor_lethality),
+      armor_helmet: typeof b.armor_helmet === 'string' ? b.armor_helmet : '',
+      armor_chestplate: typeof b.armor_chestplate === 'string' ? b.armor_chestplate : '',
+      armor_leggings: typeof b.armor_leggings === 'string' ? b.armor_leggings : '',
       base_lethality: num(b.base_lethality),
       abilities: {
         blast_dmg: num(b.abilities && b.abilities.blast_dmg),
@@ -1459,6 +1526,7 @@
       return {
         name: raw.name,
         type: raw.type,
+        classes: raw.classes || [],
         interval: raw.interval,
         damage: raw.damage
       };
@@ -3311,6 +3379,37 @@
     var statSection = createEl('div', { class: 'fc-input-section' });
     statSection.appendChild(sectionTitle('Armor Stats', 'armor'));
 
+    var ARMOR_PIECES = [
+      { slot: 'helmet', key: 'armorHelmet', label: 'Helmet', prompt: 'Select Helmet' },
+      { slot: 'chestplate', key: 'armorChestplate', label: 'Chestplate', prompt: 'Select Chestplate' },
+      { slot: 'leggings', key: 'armorLeggings', label: 'Leggings', prompt: 'Select Leggings' }
+    ];
+    var armorSetGrid = createEl('div', { class: 'fc-armor-set-grid' });
+    var armorDropdowns = {};
+    ARMOR_PIECES.forEach(function (piece) {
+      var wrapper = createEl('div', { class: 'fc-race-wrapper' });
+      var label = createEl('label', { for: 'armor-' + piece.slot + '-select' }, [piece.label]);
+      var names = Object.keys(ARMOR_SETS).filter(function (n) { return ARMOR_SETS[n].slots.indexOf(piece.slot) !== -1; });
+      var dropdown = createSearchableDropdown({
+        options: [piece.prompt].concat(names),
+        value: toUI(getBuild()[piece.key], piece.prompt),
+        placeholder: piece.prompt,
+        id: 'armor-' + piece.slot + '-select',
+        onChange: function (name) {
+          var patchValues = {};
+          patchValues[piece.key] = fromUI(name, piece.prompt);
+          patch(patchValues);
+        }
+      });
+      armorDropdowns[piece.key] = { dropdown: dropdown, prompt: piece.prompt };
+      wrapper.append(label, dropdown);
+      armorSetGrid.appendChild(wrapper);
+    });
+    statSection.appendChild(armorSetGrid);
+    statSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
+      "Two matching pieces give 2/3 of the weapon bonus, a full set gives all of it. Juggernaut has 2 pieces and Goblin's Crown has 1."
+    ]));
+
     var statInput = createStatInput({
       values: {
         armorLethality: getBuild().armorLethality,
@@ -3448,6 +3547,9 @@
       setGrove(newBuild.dryadInGrove === true);
       dryadHpField.input.value = newBuild.dryadMaxHp || 0;
       syncSituational(newBuild.race);
+      Object.keys(armorDropdowns).forEach(function (key) {
+        armorDropdowns[key].dropdown.setValue(toUI(newBuild[key], armorDropdowns[key].prompt));
+      });
       statInput.setValues({
         armorLethality: newBuild.armorLethality,
         armorCritChance: newBuild.armorCritChance,
@@ -3493,6 +3595,9 @@
     armorLethality: 0,
     armorCritChance: 0,
     armorCritDmg: 0,
+    armorHelmet: NONE_LABEL,
+    armorChestplate: NONE_LABEL,
+    armorLeggings: NONE_LABEL,
     fireDmg: 0,
     fireChance: 0,
     fireTime: 0,
@@ -3576,6 +3681,10 @@
     return warnings;
   }
 
+  function armorPieceForEngine(name) {
+    return !name || name === NONE_LABEL ? '' : name;
+  }
+
   function transformBuildForEngine(build) {
     return {
       slots: build.oreSlots.map(function (s) {
@@ -3593,6 +3702,9 @@
       armor_crit_chance: (Number(build.armorCritChance) || 0) / 100,
       armor_crit_dmg: (Number(build.armorCritDmg) || 0) / 100,
       armor_lethality: (Number(build.armorLethality) || 0) / 100,
+      armor_helmet: armorPieceForEngine(build.armorHelmet),
+      armor_chestplate: armorPieceForEngine(build.armorChestplate),
+      armor_leggings: armorPieceForEngine(build.armorLeggings),
       base_lethality: 0,
       abilities: {
 
