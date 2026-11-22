@@ -45,7 +45,7 @@
         "Rogue"
       ],
       "interval": 0.4667,
-      "damage": 4.3
+      "damage": 4.4
     },
     {
       "name": "Falchion Knife",
@@ -54,7 +54,7 @@
         "Rogue"
       ],
       "interval": 0.4667,
-      "damage": 4.4500012
+      "damage": 4.5
     },
     {
       "name": "Gladius Dagger",
@@ -63,7 +63,7 @@
         "Gladiator"
       ],
       "interval": 0.4667,
-      "damage": 4.5999981
+      "damage": 4.7
     },
     {
       "name": "Hook",
@@ -72,7 +72,7 @@
         "Pirate"
       ],
       "interval": 0.5185,
-      "damage": 4.73
+      "damage": 6.25
     },
     {
       "name": "Cultist Dagger",
@@ -81,7 +81,7 @@
         "Hellbound"
       ],
       "interval": 0.4667,
-      "damage": 5.246
+      "damage": 6.3
     },
     {
       "name": "Shark's Fangs",
@@ -90,7 +90,7 @@
         "Pirate"
       ],
       "interval": 0.359,
-      "damage": 3.87
+      "damage": 5.12
     },
     {
       "name": "Curved Dagger",
@@ -99,7 +99,7 @@
         "Rogue"
       ],
       "interval": 0.4058,
-      "damage": 4.945
+      "damage": 5.86
     },
     {
       "name": "Kunai",
@@ -108,7 +108,7 @@
         "Ninja"
       ],
       "interval": 0.3889,
-      "damage": 3.87
+      "damage": 4.0
     },
     {
       "name": "Jitte",
@@ -117,7 +117,7 @@
         "Ninja"
       ],
       "interval": 0.4912,
-      "damage": 4.945
+      "damage": 5.1
     },
     {
       "name": "Damascus Dagger",
@@ -126,7 +126,7 @@
         "Rogue"
       ],
       "interval": 0.4667,
-      "damage": 4.73
+      "damage": 4.95
     },
     {
       "name": "Tanto",
@@ -135,7 +135,7 @@
         "Ninja"
       ],
       "interval": 0.3889,
-      "damage": 4.945
+      "damage": 5.0
     },
     {
       "name": "Falchion",
@@ -180,7 +180,7 @@
         "Hellbound"
       ],
       "interval": 0.7,
-      "damage": 9.375
+      "damage": 9.8
     },
     {
       "name": "Hell Slayer",
@@ -189,7 +189,7 @@
         "Whimsical"
       ],
       "interval": 0.7,
-      "damage": 11.1249975
+      "damage": 11.2
     },
     {
       "name": "Candy Cane",
@@ -225,7 +225,7 @@
         "Samurai"
       ],
       "interval": 0.7,
-      "damage": 8.25
+      "damage": 8.4
     },
     {
       "name": "Chokuto",
@@ -243,7 +243,7 @@
         "Draconic"
       ],
       "interval": 0.7,
-      "damage": 10.5
+      "damage": 10.75
     },
     {
       "name": "Thornspine",
@@ -261,7 +261,7 @@
         "Brute"
       ],
       "interval": 1.1667,
-      "damage": 7.000002
+      "damage": 14.0
     },
     {
       "name": "Spiked Mace",
@@ -271,7 +271,7 @@
         "Knight"
       ],
       "interval": 1.1667,
-      "damage": 7.300002
+      "damage": 14.6
     },
     {
       "name": "Winged Mace",
@@ -280,7 +280,7 @@
         "Brute"
       ],
       "interval": 1.1667,
-      "damage": 7.600002
+      "damage": 15.6
     },
     {
       "name": "Hammerhead Mace",
@@ -289,7 +289,7 @@
         "Brute"
       ],
       "interval": 1.1667,
-      "damage": 7.900002
+      "damage": 16.5
     },
     {
       "name": "Grave Maker",
@@ -298,7 +298,7 @@
         "Graveyard"
       ],
       "interval": 1.1667,
-      "damage": 8.800002
+      "damage": 19.0
     },
     {
       "name": "Kanabo",
@@ -307,7 +307,7 @@
         "Brute"
       ],
       "interval": 1.2963,
-      "damage": 8.200002
+      "damage": 19.1
     },
     {
       "name": "Tetsubo",
@@ -316,7 +316,7 @@
         "Brute"
       ],
       "interval": 1.1111,
-      "damage": 7.720002
+      "damage": 17.6
     },
     {
       "name": "Rosethorn",
@@ -386,7 +386,7 @@
         "Viking"
       ],
       "interval": 0.875,
-      "damage": 7.0
+      "damage": 10.1
     },
     {
       "name": "Battleaxe",
@@ -395,7 +395,7 @@
         "Viking"
       ],
       "interval": 0.875,
-      "damage": 7.35
+      "damage": 10.5
     },
     {
       "name": "Curved Handle Axe",
@@ -404,7 +404,7 @@
         "Viking"
       ],
       "interval": 0.875,
-      "damage": 7.7
+      "damage": 11.3
     },
     {
       "name": "Spade Armed Axe",
@@ -413,7 +413,7 @@
         "Viking"
       ],
       "interval": 0.875,
-      "damage": 8.05
+      "damage": 12.2
     },
     {
       "name": "Ornate Short Axe",
@@ -422,7 +422,7 @@
         "Viking"
       ],
       "interval": 0.875,
-      "damage": 8.4
+      "damage": 12.0
     },
     {
       "name": "Duskwing Cleaver",
@@ -431,7 +431,7 @@
         "Hellbound"
       ],
       "interval": 0.875,
-      "damage": 8.4
+      "damage": 12.8
     },
     {
       "name": "Uchigatana",
@@ -449,7 +449,7 @@
         "Samurai"
       ],
       "interval": 0.7263,
-      "damage": 8.925
+      "damage": 9.05
     },
     {
       "name": "Straight Edge Katana",
@@ -476,7 +476,7 @@
         "Samurai"
       ],
       "interval": 0.6273,
-      "damage": 9.35
+      "damage": 9.5
     },
     {
       "name": "Juto Katana",
@@ -485,7 +485,7 @@
         "Samurai"
       ],
       "interval": 0.69,
-      "damage": 8.5
+      "damage": 8.75
     },
     {
       "name": "Crusader Sword",
@@ -494,7 +494,7 @@
         "Knight"
       ],
       "interval": 1.1875,
-      "damage": 12.0
+      "damage": 14.5
     },
     {
       "name": "Long Sword",
@@ -503,7 +503,7 @@
         "Knight"
       ],
       "interval": 1.3194,
-      "damage": 12.0
+      "damage": 16.45
     },
     {
       "name": "Dark Knight's Greatsword",
@@ -512,7 +512,7 @@
         "Dark Knight"
       ],
       "interval": 1.3194,
-      "damage": 15.0
+      "damage": 18.0
     },
     {
       "name": "Anchored Greatsword",
@@ -521,7 +521,7 @@
         "Pirate"
       ],
       "interval": 1.0795,
-      "damage": 13.8
+      "damage": 16.5
     },
     {
       "name": "Zweihander",
@@ -530,7 +530,7 @@
         "Knight"
       ],
       "interval": 1.25,
-      "damage": 14.4
+      "damage": 16.0
     },
     {
       "name": "The Carver",
@@ -539,7 +539,7 @@
         "Graveyard"
       ],
       "interval": 1.0795,
-      "damage": 13.8
+      "damage": 16.35
     },
     {
       "name": "Jack's Crest",
@@ -548,7 +548,7 @@
         "Graveyard"
       ],
       "interval": 1.0795,
-      "damage": 14.9
+      "damage": 16.75
     },
     {
       "name": "Spear",
