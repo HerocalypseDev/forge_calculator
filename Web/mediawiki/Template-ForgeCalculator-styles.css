@@ -615,6 +615,24 @@
   min-width: 0;
 }
 
+.fc-rune-line-lock {
+  display: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #777777;
+}
+
+.fc-rune-line--locked .fc-rune-line-lock {
+  display: block;
+}
+
+.fc-rune-line--locked .fc-rune-slot {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .fc-stat-input {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1098,6 +1116,12 @@
 
 .fc-stat-val.fc-sv-aura,
 .fc-stat-label.fc-sv-aura { color: #e57373 !important; }
+
+.fc-stat-val.fc-sv-darksmite,
+.fc-stat-label.fc-sv-darksmite { color: #b39ddb !important; }
+
+.fc-stat-val.fc-sv-prismatic,
+.fc-stat-label.fc-sv-prismatic { color: #f48fb1 !important; }
 
 .fc-stat-val.fc-sv-golemite,
 .fc-stat-label.fc-sv-golemite { color: #9fa8da !important; }

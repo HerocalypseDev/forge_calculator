@@ -56,7 +56,6 @@
 
   var UNCAPPED_RACE_LETHALITY = { 'Kitsune': 0.20 };
   var ARMOR_SLOTS = ['helmet', 'chestplate', 'leggings'];
-  var ARMOR_TWO_OF_THREE = 2 / 3;
 
   function armorSet(pieces, bonus, types, classes, lethality, slots) {
     return {
@@ -135,6 +134,10 @@
   var REVERBERATION_CHANCE = { 'Dagger': 0.20, 'Straight Sword': 0.16, 'Gauntlet': 0.12 };
   var REVERBERATION_DEFAULT_CHANCE = 0.08;
   var STARFALL_GALAXITE_MULT = 225 / 125;
+  var STARFALL_ORE = 'Frost Star';
+  var STARFALL_COOLDOWN = 10;
+  var TRAINING_DAY_LETHALITY = 0.15;
+  var TRAINING_DAY_ATK_SPEED = 0.15;
   var SKELETON_KING_HP = 7200;
   var STELLAR_MARK_HITS = 5;
 
@@ -147,6 +150,15 @@
   var BLACKHOLE_CHANCE = 0.3;
   var BLACKHOLE_COOLDOWN = 1.0;
   var GALAXITE_BISMUTH_WAVE = 1.25;
+  var PRISMATIC_SHIFT_ORE = 'Bismuth';
+  var PRISMATIC_SHIFT_RUNE_COUNT = 4;
+  var PRISMATIC_POISON = [0.16, 0.77, 12.0];
+  var PRISMATIC_EXPLOSION = [0.70, 0.42];
+  var PRISMATIC_FIRE = [0.26, 0.60, 4.0];
+  var PRISMATIC_LIGHTNING = [0.80, 0.47, 3.0];
+  var FIRE_TICK_OFFSET = 0.5;
+  var POISON_TICK_OFFSET = -0.5;
+  var COOLDOWN_EPSILON = 1e-9;
   var PROC_ROLL_SIDES = 101;
   var GOLEMITE_MIN_LEVEL = 13;
   var GOLEMITE_MAX_LEVEL = 25;
@@ -170,11 +182,11 @@
     'level', 'fire_dmg', 'fire_chance', 'fire_time', 'poison_dmg', 'poison_chance', 'poison_time',
     'lightning_dmg', 'lightning_chance', 'lightning_cooldown', 'blast_dmg', 'blast_chance',
     'smite_dmg', 'smite_chance', 'blackhole_dmg', 'blackhole_chance', 'resonance_dmg', 'moon',
-    'lethality', 'crit_chance', 'crit_dmg', 'atk_speed'
+    'lethality', 'crit_chance', 'crit_dmg', 'atk_speed',
+    'starfall_dmg', 'starfall_chance', 'starfall_cooldown', 'ancient_poison_dmg', 'ancient_poison_chance', 'ancient_poison_duration', 'frost_slash_dmg', 'frost_slash_chance', 'glacier_dmg', 'glacier_chance', 'stellar_mark_dmg', 'reverberation_chance'
   ];
 
   var AVG_POWER_EXCLUDED = ['Fichilliumorite', 'Bismuth'];
-  var SOLO_ORE_POWER = { 'Bismuth': 8.0, 'Fichilliumorite': 1.0 };
 
   var CAPS = {
     lethality: 3.0,
@@ -191,9 +203,19 @@
 
   var CORE_STATS = ['lethality', 'crit_chance', 'crit_dmg', 'atk_speed'];
 
+  var RUNE_UNLOCK_LEVELS = [3, 6, 9];
+  var RUNE_CELLS_PER_LINE = 3;
+
+  function unlockedRuneCells(runeCells, forgeLevel) {
+    return (runeCells || []).map(function (cell, i) {
+      var level = RUNE_UNLOCK_LEVELS[Math.floor(i / RUNE_CELLS_PER_LINE)];
+      return level !== undefined && forgeLevel >= level ? cell : NONE_LABEL;
+    });
+  }
+
   var EXPECTED_COUNTS = {
     ores: 155,
-    weapons: 92,
+    weapons: 94,
     races: 22,
     runes: 46,
     achievements: 16
@@ -227,49 +249,46 @@
     return (ore && typeof ore.multiplier === 'number') ? ore.multiplier : 1.0;
   }
 
-  function filledSlotNames(slots, game) {
-    var names = [];
-    for (var i = 0; i < slots.length; i++) {
-      if (slots[i].name && slots[i].name !== game.select_ore) { names.push(slots[i].name); }
-    }
-    return names;
+  function mergeSlots(slots, selectOre) {
+    var merged = [];
+    var firstIndex = {};
+    slots.forEach(function (slot) {
+      var real = slot.name && slot.name !== selectOre;
+      if (real && Object.prototype.hasOwnProperty.call(firstIndex, slot.name)) {
+        var i = firstIndex[slot.name];
+        merged[i] = { name: slot.name, amount: merged[i].amount + slot.amount };
+        merged.push({ name: selectOre, amount: 0.0 });
+        return;
+      }
+      if (real) { firstIndex[slot.name] = merged.length; }
+      merged.push({ name: slot.name, amount: slot.amount });
+    });
+    return merged;
   }
 
-  function soloOrePower(slots, game) {
-    var filled = filledSlotNames(slots, game);
-    if (!filled.length) { return null; }
-    for (var name in SOLO_ORE_POWER) {
-      var allSame = true;
-      for (var i = 0; i < filled.length; i++) { if (filled[i] !== name) { allSame = false; } }
-      if (allSame) { return SOLO_ORE_POWER[name]; }
-    }
-    return null;
+  function weightedPower(slots, game) {
+    var total = 0.0;
+    var weighted = 0.0;
+    slots.forEach(function (s) {
+      total += s.amount;
+      weighted += s.amount * slotPower(s, game);
+    });
+    return total > 0 ? weighted / total : null;
   }
 
   function avgOrePower(slots, game) {
-    var solo = soloOrePower(slots, game);
-    if (solo !== null) { return solo; }
-    var powers = [];
-    var amounts = [];
-    for (var i = 0; i < slots.length; i++) {
-      var slot = slots[i];
-      if (!slot.name || slot.name === game.select_ore || AVG_POWER_EXCLUDED.indexOf(slot.name) !== -1) { continue; }
-      powers.push(slotPower(slot, game));
-      amounts.push(slot.amount);
-    }
-    var total = 0;
-    for (var j = 0; j < amounts.length; j++) { total += amounts[j]; }
-    if (total !== 0) {
-      var weighted = 0;
-      for (var k = 0; k < powers.length; k++) { weighted += amounts[k] * powers[k]; }
-      return weighted / total;
-    }
-    if (powers.length) {
-      var sum = 0;
-      for (var m = 0; m < powers.length; m++) { sum += powers[m]; }
-      return sum / powers.length;
-    }
-    return 1.0;
+    var filled = slots.filter(function (s) { return s.name && s.name !== game.select_ore; });
+    var kept = filled.filter(function (s) { return AVG_POWER_EXCLUDED.indexOf(s.name) === -1; });
+    var neutral = filled.filter(function (s) { return AVG_POWER_EXCLUDED.indexOf(s.name) !== -1; });
+    var keptPower = weightedPower(kept, game);
+    if (keptPower !== null) { return keptPower; }
+    var neutralPower = weightedPower(neutral, game);
+    if (neutralPower !== null) { return neutralPower; }
+    var pool = kept.length ? kept : neutral;
+    if (!pool.length) { return 1.0; }
+    var sum = 0.0;
+    pool.forEach(function (s) { sum += slotPower(s, game); });
+    return sum / pool.length;
   }
 
   function forgeMultiplier(level) {
@@ -277,7 +296,7 @@
   }
 
   function weaponBases(weapon, avgPower, quality, forgeLevel) {
-    if (!weapon) { return [1.0, 1.0]; }
+    if (!weapon) { return [0.0, 0.0]; }
     var base = weapon.damage * avgPower * (1 + quality / 100.0);
     return [base, base * forgeMultiplier(forgeLevel)];
   }
@@ -565,7 +584,7 @@
         var sub = subs[k];
         if (isTraitClaimed(sub, ore)) continue;
 
-        if (share < 0.3) {
+        if (share < 0.3 && subs30[k] !== sub) {
           var parsed10 = parsePercentClause(sub);
           var parsed30 = subs30[k] !== undefined ? parsePercentClause(subs30[k]) : null;
           if (parsed10 && parsed30 && parsed10.label === parsed30.label) {
@@ -619,7 +638,9 @@
   }
 
   function weaponTraitLines(slots, game) {
-    var clean = (slots || []).map(function (s) { return { name: s.name, amount: Math.max(0, Number(s.amount) || 0) }; });
+    var clean = mergeSlots((slots || []).map(function (s) {
+      return { name: s.name, amount: Math.max(0, Math.floor(Number(s.amount) || 0)) };
+    }), game.select_ore);
     var merged = {};
     var extras = collectOreTraits(clean, slotShares(clean), game, merged);
     return traitLines(merged, extras);
@@ -733,6 +754,7 @@
     (build.golemites || []).forEach(function (g) {
       addMappedTraits(merged, g, GOLEMITE_TRAIT_KEYS, afterCap, GOLEMITE_AFTER_CAP_KEYS);
     });
+    (build.golemites || []).forEach(function (g) { extras = extras.concat(golemiteSpecialLines(g)); });
     addMappedTraits(merged, build.abilities, ABILITY_TRAIT_KEYS);
     (build.rune_cells || []).forEach(function (cell) {
       var rune = parseTrait(cell);
@@ -747,7 +769,6 @@
     addTraitValue(merged, 'crit_dmg', build.armor_crit_dmg || 0);
     addTraitValue(merged, 'berserk', Math.min(build.berserk || 0, CAPS.berserk) + raceValue(RACE_BERSERK, build.race));
     extras = extras.concat(raceTraits(build, game, merged, afterCap));
-    (build.golemites || []).forEach(function (g) { extras = extras.concat(golemiteSpecialLines(g.special)); });
 
     var parts = traitLines(merged, extras, afterCap);
     return parts.length ? parts.join('\n') : 'No active traits';
@@ -831,7 +852,9 @@
   }
 
   function deriveGolemiteStats(rawSlots, game) {
-    var slots = (rawSlots || []).map(function (s) { return { name: s.name, amount: Math.max(0, Number(s.amount) || 0) }; });
+    var slots = mergeSlots((rawSlots || []).map(function (s) {
+      return { name: s.name, amount: Math.max(0, Math.floor(Number(s.amount) || 0)) };
+    }), game.select_ore);
     var stats = {};
     GOLEMITE_FIELDS.forEach(function (f) { if (f !== 'level') { stats[f] = 0.0; } });
     var rarity = golemiteRarity(slots, game);
@@ -860,56 +883,53 @@
     stats.smite_chance = slotMax(slots, shares, game, 'smite_chance') * k;
     stats.blackhole_dmg = slotSum(slots, shares, game, 'blackhole_dmg') * k;
     stats.blackhole_chance = hasGalaxite ? BLACKHOLE_CHANCE * k : 0.0;
-    stats.resonance_dmg = hasGalaxite && oreAmount(slots, 'Bismuth') > 0 ? GALAXITE_BISMUTH_WAVE * k : 0.0;
+    stats.resonance_dmg = hasGalaxite && oreShare(slots, shares, PRISMATIC_SHIFT_ORE) >= SHARE_GATE ? GALAXITE_BISMUTH_WAVE * k : 0.0;
     stats.moon = Math.min(MOON_CAP, slotSum(slots, shares, game, 'moon')) * k;
-
     var hasEchotite = slots.some(function (slot, i) { return slot.name === REVERBERATION_ORE && shares[i] >= SHARE_GATE; });
-    var starfallDmg = slotSum(slots, shares, game, 'starfall_dmg') * (hasGalaxite ? STARFALL_GALAXITE_MULT : 1.0);
-    var starfallCooldowns = slotVals(slots, shares, game, 'starfall_cooldown');
-    var special = {
-      reverberation_chance: hasEchotite ? REVERBERATION_DEFAULT_CHANCE * k : 0.0,
-      frost_slash_dmg: slotSum(slots, shares, game, 'frost_slash_dmg') * k,
-      frost_slash_chance: slotMax(slots, shares, game, 'frost_slash_chance') * k,
-      glacier_dmg: slotSum(slots, shares, game, 'glacier_dmg') * k,
-      glacier_chance: slotMax(slots, shares, game, 'glacier_chance') * k,
-      starfall_dmg: starfallDmg * k,
-      starfall_chance: slotMax(slots, shares, game, 'starfall_chance') * k,
-      starfall_cooldown: starfallDmg > 0 && starfallCooldowns.length ? Math.min.apply(null, starfallCooldowns) : 0.0,
-      stellar_mark_dmg: slotSum(slots, shares, game, 'stellar_mark_dmg') * k,
-      ancient_poison_dmg: slotSum(slots, shares, game, 'ancient_poison_dmg') * k,
-      ancient_poison_chance: slotMax(slots, shares, game, 'ancient_poison_chance') * k,
-      ancient_poison_duration: slotMax(slots, shares, game, 'ancient_poison_duration')
-    };
-    return { rarity: rarity, scaling: k, stats: stats, special: special };
+    stats.reverberation_chance = hasEchotite ? REVERBERATION_DEFAULT_CHANCE * k : 0.0;
+    stats.frost_slash_dmg = slotSum(slots, shares, game, 'frost_slash_dmg') * k;
+    stats.frost_slash_chance = slotMax(slots, shares, game, 'frost_slash_chance') * k;
+    stats.glacier_dmg = slotSum(slots, shares, game, 'glacier_dmg') * k;
+    stats.glacier_chance = slotMax(slots, shares, game, 'glacier_chance') * k;
+    stats.starfall_dmg = slotSum(slots, shares, game, 'starfall_dmg') * (hasGalaxite ? STARFALL_GALAXITE_MULT : 1.0) * k;
+    stats.starfall_chance = slotMax(slots, shares, game, 'starfall_chance') * k;
+    stats.starfall_cooldown = stats.starfall_dmg > 0 && hasFrostStarShare(slots, shares) ? STARFALL_COOLDOWN : 0.0;
+    stats.stellar_mark_dmg = slotSum(slots, shares, game, 'stellar_mark_dmg') * k;
+    stats.ancient_poison_dmg = slotSum(slots, shares, game, 'ancient_poison_dmg') * k;
+    stats.ancient_poison_chance = slotMax(slots, shares, game, 'ancient_poison_chance') * k;
+    stats.ancient_poison_duration = slotMax(slots, shares, game, 'ancient_poison_duration');
+    return { rarity: rarity, scaling: k, stats: stats };
   }
 
-  var GOLEMITE_SPECIAL_NOTE = ' (Golemite, not in DPS)';
-
-  function golemiteSpecialLines(special) {
-    var sp = special || {};
+  function golemiteSpecialLines(stats) {
+    var sp = stats || {};
     var lines = [];
     function pct(key) { return fmtPlainPct(Number(sp[key]) || 0); }
     if (sp.reverberation_chance > 0) {
-      lines.push('Reverberation: ' + pct('reverberation_chance') + ' chance to hit twice' + GOLEMITE_SPECIAL_NOTE);
+      lines.push('Reverberation: ' + pct('reverberation_chance') + ' chance to hit twice');
     }
     if (sp.frost_slash_dmg > 0) {
-      lines.push('Frost Slash: ' + pct('frost_slash_dmg') + ' DMG (' + pct('frost_slash_chance') + ' chance)' + GOLEMITE_SPECIAL_NOTE);
+      lines.push('Frost Slash: ' + pct('frost_slash_dmg') + ' DMG (' + pct('frost_slash_chance') + ' chance)');
     }
     if (sp.glacier_dmg > 0) {
-      lines.push('Glacier Explosion: ' + pct('glacier_dmg') + ' DMG (' + pct('glacier_chance') + ' chance on crit)' + GOLEMITE_SPECIAL_NOTE);
+      lines.push('Glacier Explosion: ' + pct('glacier_dmg') + ' DMG (' + pct('glacier_chance') + ' chance on crit)');
     }
     if (sp.starfall_dmg > 0) {
       lines.push('Starfall: ' + pct('starfall_dmg') + ' DMG (' + pct('starfall_chance') + ' chance, '
-        + fmtDur(Number(sp.starfall_cooldown) || 0) + ' cooldown)' + GOLEMITE_SPECIAL_NOTE);
+        + fmtDur(Number(sp.starfall_cooldown) || 0) + ' cooldown)');
     }
     if (sp.stellar_mark_dmg > 0) {
-      lines.push('Stellar Mark: ' + pct('stellar_mark_dmg') + ' DMG every ' + STELLAR_MARK_HITS + ' hits' + GOLEMITE_SPECIAL_NOTE);
+      lines.push('Stellar Mark: ' + pct('stellar_mark_dmg') + ' DMG every ' + STELLAR_MARK_HITS + ' hits');
     }
     if (sp.ancient_poison_dmg > 0) {
       lines.push('Ancient Poison: +' + pct('ancient_poison_dmg') + ' Poison DMG (' + pct('ancient_poison_chance') + ' chance, '
-        + fmtDur(Number(sp.ancient_poison_duration) || 0) + ')' + GOLEMITE_SPECIAL_NOTE);
+        + fmtDur(Number(sp.ancient_poison_duration) || 0) + ')');
     }
     return lines;
+  }
+
+  function hasFrostStarShare(slots, shares) {
+    return slots.some(function (slot, i) { return slot.name === STARFALL_ORE && shares[i] >= SHARE_GATE; });
   }
 
   function traitDamageMultiplier(build) {
@@ -919,9 +939,7 @@
   }
 
   function armorSetFraction(count, pieces) {
-    if (count >= pieces) { return 1.0; }
-    if (pieces === 3 && count === 2) { return ARMOR_TWO_OF_THREE; }
-    return 0.0;
+    return pieces ? Math.min(count, pieces) / pieces : 0.0;
   }
 
   function armorSetBonus(build, game) {
@@ -956,6 +974,7 @@
     var lethality = oreContribs.lethality
       + build.armor_lethality
       + setBonus.lethality
+      + (build.training_day ? TRAINING_DAY_LETHALITY : 0.0)
       + golemiteSum(build, 'lethality')
       + runes.lethality
       + build.base_lethality
@@ -979,6 +998,7 @@
     var atk_speed = oreContribs.atk_speed
       + golemiteSum(build, 'atk_speed')
       + setBonus.atk_speed
+      + (build.training_day ? TRAINING_DAY_ATK_SPEED : 0.0)
       + runes.atk_speed
       + raceValue(RACE_ATK_SPEED, race)
       + raceValue(CLASS_ATK_SPEED, cls)
@@ -1056,9 +1076,10 @@
     var race = build.race;
     var names = build.slots.map(function (s) { return s.name; });
     var golemiteBlackholeSource = golemiteValues(build, 'blackhole_dmg').some(function (v) { return v > 0; });
+    var bismuthActive = oreShare(build.slots, shares, PRISMATIC_SHIFT_ORE) >= SHARE_GATE;
     var resonance = 0.0;
     if (names.indexOf('Galaxite') !== -1 || golemiteBlackholeSource) {
-      resonance = golemiteSum(build, 'resonance_dmg') + (names.indexOf('Bismuth') !== -1 ? GALAXITE_BISMUTH_WAVE : 0.0);
+      resonance = golemiteSum(build, 'resonance_dmg') + (bismuthActive ? GALAXITE_BISMUTH_WAVE : 0.0);
     }
     var galaxiteAmount = 0.0;
     build.slots.forEach(function (s) { if (s.name === 'Galaxite') { galaxiteAmount += s.amount; } });
@@ -1086,9 +1107,13 @@
         reverberation = Math.max(reverberation, chance);
       }
     });
-    var starfallDmg = slotSum(build.slots, shares, game, 'starfall_dmg');
-    var starfallCooldowns = slotVals(build.slots, shares, game, 'starfall_cooldown');
-    var stellarMarkDmg = slotSum(build.slots, shares, game, 'stellar_mark_dmg');
+    var starfallDmg = slotSum(build.slots, shares, game, 'starfall_dmg') + golemiteSum(build, 'starfall_dmg');
+    var starfallCooldowns = [];
+    build.slots.forEach(function (slot, i) {
+      if (slot.name === STARFALL_ORE && shares[i] >= SHARE_GATE) { starfallCooldowns.push(STARFALL_COOLDOWN); }
+    });
+    golemiteValues(build, 'starfall_cooldown').forEach(function (cd) { if (cd) { starfallCooldowns.push(cd); } });
+    var stellarMarkDmg = slotSum(build.slots, shares, game, 'stellar_mark_dmg') + golemiteSum(build, 'stellar_mark_dmg');
 
     return {
       moon: Math.min(MOON_CAP, slotSum(build.slots, shares, game, 'moon')) + golemiteSum(build, 'moon'),
@@ -1129,30 +1154,48 @@
       foxfire_dmg: raceValue(RACE_FOXFIRE_DMG, race),
       foxfire_chance: raceValue(RACE_FOXFIRE_CHANCE, race),
       foxfire_duration: raceValue(RACE_FOXFIRE_TIME, race),
-      reverberation_chance: reverberation,
-      frost_slash_dmg: slotSum(build.slots, shares, game, 'frost_slash_dmg'),
-      frost_slash_chance: slotMax(build.slots, shares, game, 'frost_slash_chance'),
-      glacier_dmg: slotSum(build.slots, shares, game, 'glacier_dmg'),
-      glacier_chance: slotMax(build.slots, shares, game, 'glacier_chance'),
+      reverberation_chance: Math.max.apply(null, [reverberation].concat(golemiteValues(build, 'reverberation_chance'))),
+      frost_slash_dmg: slotSum(build.slots, shares, game, 'frost_slash_dmg') + golemiteSum(build, 'frost_slash_dmg'),
+      frost_slash_chance: Math.max.apply(null, [slotMax(build.slots, shares, game, 'frost_slash_chance')].concat(golemiteValues(build, 'frost_slash_chance'))),
+      glacier_dmg: slotSum(build.slots, shares, game, 'glacier_dmg') + golemiteSum(build, 'glacier_dmg'),
+      glacier_chance: Math.max.apply(null, [slotMax(build.slots, shares, game, 'glacier_chance')].concat(golemiteValues(build, 'glacier_chance'))),
       starfall_dmg: starfallDmg,
-      starfall_chance: slotMax(build.slots, shares, game, 'starfall_chance'),
+      starfall_chance: Math.max.apply(null, [slotMax(build.slots, shares, game, 'starfall_chance')].concat(golemiteValues(build, 'starfall_chance'))),
       starfall_cooldown: starfallDmg > 0 && starfallCooldowns.length ? Math.min.apply(null, starfallCooldowns) : 0.0,
       stellar_mark_dmg: stellarMarkDmg,
       stellar_mark_hits: stellarMarkDmg > 0 ? STELLAR_MARK_HITS : 0.0,
-      ancient_poison_dmg: slotSum(build.slots, shares, game, 'ancient_poison_dmg'),
-      ancient_poison_chance: slotMax(build.slots, shares, game, 'ancient_poison_chance'),
-      ancient_poison_duration: slotMax(build.slots, shares, game, 'ancient_poison_duration')
+      ancient_poison_dmg: slotSum(build.slots, shares, game, 'ancient_poison_dmg') + golemiteSum(build, 'ancient_poison_dmg'),
+      ancient_poison_chance: Math.max.apply(null, [slotMax(build.slots, shares, game, 'ancient_poison_chance')].concat(golemiteValues(build, 'ancient_poison_chance'))),
+      ancient_poison_duration: Math.max.apply(null, [slotMax(build.slots, shares, game, 'ancient_poison_duration')].concat(golemiteValues(build, 'ancient_poison_duration')))
     };
   }
 
-  function dotUptime(chance, atkRate, duration) {
-    var load = chance * atkRate * duration;
-    return Math.min(1.0, load / (1 + load / 2));
+  function dotTickRate(chance, atkRate, duration, tickOffset) {
+    var procRate = chance * atkRate;
+    if (procRate <= 0 || duration <= 0) { return 0.0; }
+    var refreshGain = procRate * duration / 2;
+    if (refreshGain >= 1) { return 1.0; }
+    var episode = duration / (1 - refreshGain);
+    var ticks = Math.max(0.0, episode + tickOffset);
+    return Math.min(1.0, ticks / (episode + 1 / procRate));
   }
 
   function cooldownRate(chance, atkRate, cooldown) {
     if (chance <= 0 || atkRate <= 0) { return 0.0; }
-    return 1.0 / (cooldown + 1.0 / (chance * atkRate));
+    var hitsToReady = Math.max(1, Math.ceil(cooldown * atkRate - COOLDOWN_EPSILON));
+    return atkRate / (hitsToReady + 1 / chance - 1);
+  }
+
+  function prismaticShiftDps(hit, atkRate, tdm) {
+    if (hit <= 0 || atkRate <= 0) { return 0.0; }
+    var poison = hit * PRISMATIC_POISON[0] * tdm
+      * dotTickRate(gameChance(PRISMATIC_POISON[1], true), atkRate, PRISMATIC_POISON[2], POISON_TICK_OFFSET);
+    var explosion = hit * PRISMATIC_EXPLOSION[0] * gameChance(PRISMATIC_EXPLOSION[1], true) * atkRate;
+    var fire = hit * PRISMATIC_FIRE[0] * tdm
+      * dotTickRate(gameChance(PRISMATIC_FIRE[1], true), atkRate, PRISMATIC_FIRE[2], FIRE_TICK_OFFSET);
+    var lightning = hit * PRISMATIC_LIGHTNING[0] * tdm
+      * cooldownRate(gameChance(PRISMATIC_LIGHTNING[1], true), atkRate, PRISMATIC_LIGHTNING[2]);
+    return (poison + explosion + fire + lightning) / PRISMATIC_SHIFT_RUNE_COUNT;
   }
 
   function num(v) {
@@ -1203,6 +1246,7 @@
       },
       berserk: num(b.berserk),
       achievement: typeof b.achievement === 'string' ? b.achievement : '',
+      training_day: b.training_day === true,
       dryad_in_grove: b.dryad_in_grove === true,
       dryad_max_hp: num(b.dryad_max_hp),
       orc_lord_hp_missing: num(b.orc_lord_hp_missing),
@@ -1211,7 +1255,6 @@
         var src = (b.golemites && b.golemites[i]) || {};
         var g = {};
         GOLEMITE_FIELDS.forEach(function (f) { g[f] = num(src[f]); });
-        g.special = src.special && typeof src.special === 'object' ? src.special : {};
         return g;
       })
     };
@@ -1219,6 +1262,7 @@
 
   function calculate(build, game) {
     build = normalizeBuild(build);
+    build.slots = mergeSlots(build.slots, game.select_ore);
     var shares = slotShares(build.slots);
     var avgPower = avgOrePower(build.slots, game);
 
@@ -1241,20 +1285,21 @@
     var tdm = traitDamageMultiplier(build);
     var race = build.race;
 
-    var weapon_dps = forged * (1 + totals.lethality) * blend * atkRate;
-    var explosion_dps = unforged * procs.explosion_dmg * gameChance(procs.explosion_chance, procs.explosion_dmg > 0) * atkRate;
+    var hit = forged * (1 + totals.lethality) * blend;
+    var weapon_dps = hit * atkRate;
+    var explosion_dps = hit * procs.explosion_dmg * gameChance(procs.explosion_chance, procs.explosion_dmg > 0) * atkRate;
     var fire_dps = atkRate && procs.fire_dmg > 0
-      ? unforged * procs.fire_dmg * tdm * dotUptime(gameChance(procs.fire_chance, true), atkRate, procs.fire_duration)
+      ? hit * procs.fire_dmg * tdm * dotTickRate(gameChance(procs.fire_chance, true), atkRate, procs.fire_duration, FIRE_TICK_OFFSET)
       : 0.0;
     var poison_dps = atkRate && procs.poison_dmg > 0
-      ? unforged * procs.poison_dmg * tdm * dotUptime(gameChance(procs.poison_chance, true), atkRate, procs.poison_duration)
+      ? hit * procs.poison_dmg * tdm * dotTickRate(gameChance(procs.poison_chance, true), atkRate, procs.poison_duration, POISON_TICK_OFFSET)
       : 0.0;
     var smite_dps = unforged * atkRate * procs.smite_dmg * gameChance(procs.smite_chance, procs.smite_dmg > 0);
     var blackhole_dps = procs.blackhole_dmg > 0 && procs.blackhole_chance > 0
       ? unforged * procs.blackhole_dmg * tdm * cooldownRate(gameChance(procs.blackhole_chance, true), atkRate, BLACKHOLE_COOLDOWN)
       : 0.0;
     var lightning_dps = procs.lightning_dmg > 0
-      ? unforged * procs.lightning_dmg * tdm * cooldownRate(gameChance(procs.lightning_chance, true), atkRate, procs.lightning_cooldown)
+      ? hit * procs.lightning_dmg * tdm * cooldownRate(gameChance(procs.lightning_chance, true), atkRate, procs.lightning_cooldown)
       : 0.0;
     var smash_dps = unforged * procs.smash_dmg * cooldownRate(procs.smash_chance, atkRate, procs.smash_cooldown);
     var fox_claws_dps = unforged * procs.fox_claws_dmg
@@ -1266,6 +1311,9 @@
       ? ARCHANGEL_SMITE_DMG * unforged * cooldownRate(ARCHANGEL_SMITE_CHANCE, atkRate, ARCHANGEL_SMITE_COOLDOWN)
       : 0.0;
     var cursed_aura_dps = race === 'Demon' ? DEMON_CURSED_AURA_DMG * unforged : 0.0;
+    var prismatic_shift_dps = oreShare(build.slots, shares, PRISMATIC_SHIFT_ORE) >= SHARE_GATE
+      ? prismaticShiftDps(hit, atkRate, tdm)
+      : 0.0;
     var golemite_dps = 0.0;
     build.golemites.forEach(function (g) {
       golemite_dps += golemiteDamage(g.level, unforged) * GOLEMITE_HITS_PER_SECOND;
@@ -1302,7 +1350,7 @@
     var proc_total = explosion_dps + fire_dps + poison_dps + smite_dps + blackhole_dps + lightning_dps
       + smash_dps + fox_claws_dps + foxfire_dps + archangel_smite_dps + cursed_aura_dps + golemite_dps
       + dark_smite_dps + trident_toss_dps + reverberation_dps + frost_slash_dps + glacier_explosion_dps
-      + starfall_dps + stellar_mark_dps + ancient_poison_dps;
+      + starfall_dps + stellar_mark_dps + ancient_poison_dps + prismatic_shift_dps;
     var total_dps = weapon_dps + proc_total;
 
     var berserkLevel = Math.min(build.berserk, CAPS.berserk) + raceValue(RACE_BERSERK, race);
@@ -1405,6 +1453,7 @@
       stellar_mark_dps: stellar_mark_dps,
       ancient_poison_dmg: procs.ancient_poison_dmg,
       ancient_poison_dps: ancient_poison_dps,
+      prismatic_shift_dps: prismatic_shift_dps,
       trait_damage_multiplier: tdm
     };
   }
@@ -1446,14 +1495,8 @@
   function loadViaJsondata(api, title) {
     return native(api.get({ action: 'jsondata', format: 'json', title: title })).then(function (res) {
       var jsondata = res.jsondata;
-      if (jsondata && typeof jsondata === 'object' && jsondata.data !== undefined) {
-        return jsondata.data;
-      }
-      if (jsondata && typeof jsondata === 'object' && jsondata.status === 'ok' && jsondata.data !== undefined) {
-        return jsondata.data;
-      }
       if (jsondata && typeof jsondata === 'object') {
-        return jsondata;
+        return jsondata.data !== undefined ? jsondata.data : jsondata;
       }
       throw new Error('Unexpected jsondata response for ' + title);
     });
@@ -1897,6 +1940,7 @@
       input.value = val;
     };
     container.getValue = function () { return currentValue; };
+    container.setDisabled = function (disabled) { input.disabled = !!disabled; };
     container.open = open;
     container.close = close;
     container.setOptions = function (newOptions) {
@@ -1970,11 +2014,11 @@
       min: '0',
       step: '1',
       placeholder: '0',
-      inputmode: 'decimal'
+      inputmode: 'numeric'
     });
 
     function commitAmount() {
-      currentAmount = parseFloat(amountInput.value) || 0;
+      currentAmount = Math.max(0, Math.floor(Number(amountInput.value) || 0));
       amountInput.value = currentAmount;
       onChange(currentName, currentAmount);
     }
@@ -2392,7 +2436,19 @@
     { key: 'blackhole_dmg', label: 'Black Hole DMG', kind: 'pct' },
     { key: 'blackhole_chance', label: 'Black Hole Chance', kind: 'pct' },
     { key: 'resonance_dmg', label: 'Resonance', kind: 'pct' },
-    { key: 'moon', label: 'Moon Boost', kind: 'pct' }
+    { key: 'moon', label: 'Moon Boost', kind: 'pct' },
+    { key: 'reverberation_chance', label: 'Reverberation Chance', kind: 'pct' },
+    { key: 'frost_slash_dmg', label: 'Frost Slash DMG', kind: 'pct' },
+    { key: 'frost_slash_chance', label: 'Frost Slash Chance', kind: 'pct' },
+    { key: 'glacier_dmg', label: 'Glacier Explosion DMG', kind: 'pct' },
+    { key: 'glacier_chance', label: 'Glacier Explosion Chance', kind: 'pct' },
+    { key: 'starfall_dmg', label: 'Starfall DMG', kind: 'pct' },
+    { key: 'starfall_chance', label: 'Starfall Chance', kind: 'pct' },
+    { key: 'starfall_cooldown', label: 'Starfall Cooldown', kind: 'sec' },
+    { key: 'stellar_mark_dmg', label: 'Stellar Mark DMG', kind: 'pct' },
+    { key: 'ancient_poison_dmg', label: 'Ancient Poison DMG', kind: 'pct' },
+    { key: 'ancient_poison_chance', label: 'Ancient Poison Chance', kind: 'pct' },
+    { key: 'ancient_poison_duration', label: 'Ancient Poison Duration', kind: 'sec' }
   ];
 
   function emptyGolemiteSlots() {
@@ -2424,7 +2480,6 @@
     GOLEMITE_FIELDS.forEach(function (f) {
       if (f !== 'level') { out[f] = derived ? derived[f] : 0.0; }
     });
-    out.special = info ? info.special : {};
     return out;
   }
 
@@ -2482,23 +2537,10 @@
           createEl('span', { class: 'fc-golemite-stat-value' }, [formatGolemiteStat(v, entry.kind)])
         ]));
       });
-      var specialLines = golemiteSpecialLines(info.special).map(function (line) {
-        return line.replace(GOLEMITE_SPECIAL_NOTE, '');
-      });
-      if (!shown && !specialLines.length) {
+      if (!shown) {
         list.appendChild(createEl('p', { class: 'fc-golemite-summary-empty' }, ['These ores give no weapon traits.']));
       }
       box.appendChild(list);
-      if (specialLines.length) {
-        var specialBox = createEl('div', { class: 'fc-golemite-special' });
-        specialBox.appendChild(createEl('p', { class: 'fc-golemite-special-note' }, [
-          'Special traits (shown for reference, not added to DPS):'
-        ]));
-        specialLines.forEach(function (line) {
-          specialBox.appendChild(createEl('div', { class: 'fc-golemite-special-line' }, [line]));
-        });
-        box.appendChild(specialBox);
-      }
     }
 
     function refresh(i) {
@@ -2638,10 +2680,13 @@
     var options = [prompt].concat(runeNames);
 
     var dropdowns = [];
-    for (var line = 0; line < 3; line++) {
+    var lineEls = [];
+    for (var line = 0; line < RUNE_UNLOCK_LEVELS.length; line++) {
       var lineEl = createEl('div', { class: 'fc-rune-line' });
       var lineLabel = createEl('span', { class: 'fc-rune-line-label' }, ['Rune ' + (line + 1)]);
       lineEl.appendChild(lineLabel);
+      lineLabel.appendChild(createEl('span', { class: 'fc-rune-line-lock' }, ['Unlocks at +' + RUNE_UNLOCK_LEVELS[line]]));
+      lineEls.push(lineEl);
       for (var col = 0; col < 3; col++) {
         (function (idx) {
           var dropdown = createSearchableDropdown({
@@ -2674,6 +2719,17 @@
       }
     };
     container.getValues = function () { return current.slice(); };
+
+    container.setEnhancement = function (level) {
+      lineEls.forEach(function (lineEl, line) {
+        var locked = !(level >= RUNE_UNLOCK_LEVELS[line]);
+        lineEl.classList.toggle('fc-rune-line--locked', locked);
+        for (var c = 0; c < RUNE_CELLS_PER_LINE; c++) {
+          dropdowns[line * RUNE_CELLS_PER_LINE + c].setDisabled(locked);
+        }
+      });
+    };
+    container.setEnhancement(opts.enhancement);
 
     return container;
   }
@@ -2758,7 +2814,8 @@
   }
 
   function fmtTime(n) {
-    if (n === null || n === undefined || !isFinite(n)) { return '∞'; }
+    if (n === null || n === undefined) { return '—'; }
+    if (!isFinite(n)) { return '∞'; }
     if (n < 60) { return fmt2(n) + 's'; }
     var mins = Math.floor(n / 60);
     var secs = Math.round(n % 60);
@@ -2951,69 +3008,108 @@
 
 
 
+  function dpsRow(key, label, cls, trait) {
+    return { key: key, label: label, valueClass: cls, labelClass: cls, value: '0', format: fmtDps, trait: !!trait };
+  }
+
+  function capRow(key, label) {
+    return { key: key, label: label, valueClass: 'fc-sv-pct', value: '0.00%', format: pctFmt, cap: CAPS[key === 'berserk_level' ? 'berserk' : key] };
+  }
+
+  var CORE_ROWS = [
+    { key: 'unforged_damage', label: 'Base Damage', value: '0', valueClass: 'fc-sv-dmg', format: fmtDps },
+    { key: 'avg_power', label: 'Average Multiplier', value: '0.00x', valueClass: 'fc-sv-mult', format: function (n) { return fmt2(n) + 'x'; } },
+    { key: 'forged_damage', label: 'Weapon Damage', value: '0', valueClass: 'fc-sv-dmg', format: fmtDps },
+    { key: 'attack_rate', label: 'Attack Rate', value: '0.00', valueClass: 'fc-sv-rate', format: fmt2 },
+    { key: 'weapon_dps', label: 'Weapon DPS', value: '0', valueClass: 'fc-sv-dmg', format: fmtDps }
+  ];
+
+  var STAT_ROWS = [
+    capRow('lethality', 'Lethality'),
+    capRow('crit_chance', 'Crit Chance'),
+    capRow('crit_dmg', 'Crit Damage'),
+    capRow('atk_speed', 'Attack Speed'),
+    capRow('berserk_level', 'Berserk')
+  ];
+
+  var DPS_ROWS = [
+    dpsRow('weapon_dps', 'Weapon DPS', 'fc-sv-dmg'),
+    dpsRow('explosion_dps', 'Explosion DPS', 'fc-sv-blast', true),
+    dpsRow('fire_dps', 'Fire DPS', 'fc-sv-fire', true),
+    dpsRow('poison_dps', 'Poison DPS', 'fc-sv-poison', true),
+    dpsRow('smite_dps', 'Smite DPS', 'fc-sv-smite', true),
+    dpsRow('blackhole_dps', 'Black Hole DPS', 'fc-sv-blackhole', true),
+    dpsRow('lightning_dps', 'Lightning DPS', 'fc-sv-lightning', true),
+    dpsRow('prismatic_shift_dps', 'Prismatic Shift DPS', 'fc-sv-prismatic', true),
+    dpsRow('smash_dps', 'Smash DPS', 'fc-sv-smash', true),
+    dpsRow('fox_claws_dps', 'Fox Claws DPS', 'fc-sv-foxclaws', true),
+    dpsRow('foxfire_dps', 'Foxfire DPS', 'fc-sv-foxfire', true),
+    dpsRow('archangel_smite_dps', 'Archangel Smite DPS', 'fc-sv-smite', true),
+    dpsRow('cursed_aura_dps', 'Cursed Aura DPS', 'fc-sv-aura', true),
+    dpsRow('dark_smite_dps', 'Dark Smite DPS', 'fc-sv-darksmite', true),
+    dpsRow('trident_toss_dps', 'Trident Toss DPS', 'fc-sv-dmg', true),
+    dpsRow('golemite_dps', 'Golemite DPS', 'fc-sv-golemite', true),
+    dpsRow('reverberation_dps', 'Reverberation DPS', 'fc-sv-dmg', true),
+    dpsRow('frost_slash_dps', 'Frost Slash DPS', 'fc-sv-frost', true),
+    dpsRow('glacier_explosion_dps', 'Glacier Explosion DPS', 'fc-sv-frost', true),
+    dpsRow('starfall_dps', 'Starfall DPS', 'fc-sv-star', true),
+    dpsRow('stellar_mark_dps', 'Stellar Mark DPS', 'fc-sv-star', true),
+    dpsRow('ancient_poison_dps', 'Ancient Poison DPS', 'fc-sv-poison', true),
+    { key: 'total_dps', label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold', labelClass: 'fc-sv-dmg', format: fmtDps },
+    { key: 'berserk', label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-berserk', labelClass: 'fc-sv-berserk', format: fmtDps },
+    { key: 'moonstone', label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-moonstone', labelClass: 'fc-sv-moonstone', format: fmtDps }
+  ];
+
+  var TTK_ROWS = [
+    { key: 'ttk_skeleton', label: 'Time taken to defeat Skeleton King', value: '0.00s', valueClass: 'fc-sv-time', format: fmtTime },
+    { key: 'ttk_25k', label: 'Time taken to defeat Golem', value: '0.00s', valueClass: 'fc-sv-time', format: fmtTime },
+    { key: 'ttk_75k', label: 'Time taken to defeat Asura', value: '0.00s', valueClass: 'fc-sv-time', format: fmtTime }
+  ];
+
+  function createKeyedRows(specs, rowIndex) {
+    var fragment = document.createDocumentFragment();
+    specs.forEach(function (spec) {
+      var row = createStatRow(spec);
+      row.setAttribute('data-key', spec.key);
+      rowIndex[spec.key] = row;
+      fragment.appendChild(row);
+    });
+    return fragment;
+  }
+
+  function updateKeyedRows(specs, rowIndex, result) {
+    specs.forEach(function (spec) {
+      var value = result[spec.key];
+      var isCap = spec.cap !== undefined && value >= spec.cap;
+      updateStatRow(rowIndex[spec.key], spec.format(value), isCap);
+    });
+  }
+
   function createResultsPanel(handlers) {
     var container = createEl('div', { class: 'fc-results-panel' });
 
     var cardsContainer = createEl('div', { class: 'fc-results-cards' });
     container.append(sectionHeader('Results'), cardsContainer);
+    var rowsByKey = { core: {}, stats: {}, dps: {}, ttk: {} };
 
     var coreDpsCard = createResultsCard({
       title: 'Core DPS',
-      content: createStatRows([
-        { label: 'Base Damage', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Average Multiplier', value: '0.00x', valueClass: 'fc-sv-mult' },
-        { label: 'Weapon Damage', value: '0', valueClass: 'fc-sv-dmg' },
-        { label: 'Attack Rate', value: '0.00', valueClass: 'fc-sv-rate' },
-        { label: 'Weapon DPS', value: '0', valueClass: 'fc-sv-dmg' }
-      ])
+      content: createKeyedRows(CORE_ROWS, rowsByKey.core)
     });
 
     var statsCard = createResultsCard({
       title: 'Stats (Capped)',
-      content: createStatRows([
-        { label: 'Lethality', value: '0.00%', valueClass: 'fc-sv-pct' },
-        { label: 'Crit Chance', value: '0.00%', valueClass: 'fc-sv-pct' },
-        { label: 'Crit Damage', value: '0.00%', valueClass: 'fc-sv-pct' },
-        { label: 'Attack Speed', value: '0.00%', valueClass: 'fc-sv-pct' },
-        { label: 'Berserk', value: '0.00%', valueClass: 'fc-sv-pct' }
-      ])
+      content: createKeyedRows(STAT_ROWS, rowsByKey.stats)
     });
 
     var dpsCard = createResultsCard({
       title: 'DPS Breakdown',
-      content: createStatRows([
-        { label: 'Weapon DPS', value: '0', valueClass: 'fc-sv-dmg', labelClass: 'fc-sv-dmg' },
-        { label: 'Explosion DPS', value: '0', valueClass: 'fc-sv-blast', labelClass: 'fc-sv-blast' },
-        { label: 'Fire DPS', value: '0', valueClass: 'fc-sv-fire', labelClass: 'fc-sv-fire' },
-        { label: 'Poison DPS', value: '0', valueClass: 'fc-sv-poison', labelClass: 'fc-sv-poison' },
-        { label: 'Smite DPS', value: '0', valueClass: 'fc-sv-smite', labelClass: 'fc-sv-smite' },
-        { label: 'Black Hole DPS', value: '0', valueClass: 'fc-sv-blackhole', labelClass: 'fc-sv-blackhole' },
-        { label: 'Lightning DPS', value: '0', valueClass: 'fc-sv-lightning', labelClass: 'fc-sv-lightning' },
-        { label: 'Smash DPS', value: '0', valueClass: 'fc-sv-smash', labelClass: 'fc-sv-smash' },
-        { label: 'Fox Claws DPS', value: '0', valueClass: 'fc-sv-foxclaws', labelClass: 'fc-sv-foxclaws' },
-        { label: 'Foxfire DPS', value: '0', valueClass: 'fc-sv-foxfire', labelClass: 'fc-sv-foxfire' },
-        { label: 'Archangel Smite DPS', value: '0', valueClass: 'fc-sv-smite', labelClass: 'fc-sv-smite' },
-        { label: 'Cursed Aura DPS', value: '0', valueClass: 'fc-sv-aura', labelClass: 'fc-sv-aura' },
-        { label: 'Golemite DPS', value: '0', valueClass: 'fc-sv-golemite', labelClass: 'fc-sv-golemite' },
-        { label: 'Reverberation DPS', value: '0', valueClass: 'fc-sv-dmg', labelClass: 'fc-sv-dmg' },
-        { label: 'Frost Slash DPS', value: '0', valueClass: 'fc-sv-frost', labelClass: 'fc-sv-frost' },
-        { label: 'Glacier Explosion DPS', value: '0', valueClass: 'fc-sv-frost', labelClass: 'fc-sv-frost' },
-        { label: 'Starfall DPS', value: '0', valueClass: 'fc-sv-star', labelClass: 'fc-sv-star' },
-        { label: 'Stellar Mark DPS', value: '0', valueClass: 'fc-sv-star', labelClass: 'fc-sv-star' },
-        { label: 'Ancient Poison DPS', value: '0', valueClass: 'fc-sv-poison', labelClass: 'fc-sv-poison' },
-        { label: 'Total DPS', value: '0', valueClass: 'fc-sv-dmg fc-bold', labelClass: 'fc-sv-dmg' },
-        { label: 'Total Berserk DPS', value: '—', valueClass: 'fc-sv-berserk', labelClass: 'fc-sv-berserk' },
-        { label: 'Total Moonstone DPS', value: '—', valueClass: 'fc-sv-moonstone', labelClass: 'fc-sv-moonstone' }
-      ])
+      content: createKeyedRows(DPS_ROWS, rowsByKey.dps)
     });
 
     var ttkCard = createResultsCard({
       title: 'Time to Kill',
-      content: createStatRows([
-        { label: 'Time taken to defeat Skeleton King', value: '0.00s', valueClass: 'fc-sv-time' },
-        { label: 'Time taken to defeat Golem', value: '0.00s', valueClass: 'fc-sv-time' },
-        { label: 'Time taken to defeat Asura', value: '0.00s', valueClass: 'fc-sv-time' }
-      ])
+      content: createKeyedRows(TTK_ROWS, rowsByKey.ttk)
     });
 
     var traitsCard = createResultsCard({
@@ -3043,7 +3139,9 @@
     setTraitToggle(state.showTraitDps);
     traitToggle.append(traitToggleText, traitToggleBox);
     dpsCard.querySelector('.fc-card-head').append(traitToggle);
-    var traitDpsRows = Array.prototype.slice.call(dpsCard.querySelectorAll('.fc-stat-row'), 1, 19);
+    var traitDpsRows = DPS_ROWS.filter(function (spec) { return spec.trait; }).map(function (spec) {
+      return rowsByKey.dps[spec.key];
+    });
     function applyTraitDpsVisibility() {
       traitDpsRows.forEach(function (row) { row.classList.toggle('fc-hidden', !state.showTraitDps); });
     }
@@ -3072,56 +3170,10 @@
         updateStatRow(totalRows[0], fmtDps(result.total_dps), false);
       }
 
-      var coreRows = coreDpsCard.querySelectorAll('.fc-stat-row');
-      if (coreRows.length >= 5) {
-        updateStatRow(coreRows[0], fmtDps(result.unforged_damage), false);
-        updateStatRow(coreRows[1], fmt2(result.avg_power) + 'x', false);
-        updateStatRow(coreRows[2], fmtDps(result.forged_damage), false);
-        updateStatRow(coreRows[3], fmt2(result.attack_rate), false);
-        updateStatRow(coreRows[4], fmtDps(result.weapon_dps), false);
-      }
-
-      var statRows = statsCard.querySelectorAll('.fc-stat-row');
-      if (statRows.length >= 5) {
-        updateStatRow(statRows[0], pctFmt(result.lethality), result.lethality >= CAPS.lethality);
-        updateStatRow(statRows[1], pctFmt(result.crit_chance), result.crit_chance >= CAPS.crit_chance);
-        updateStatRow(statRows[2], pctFmt(result.crit_dmg), result.crit_dmg >= CAPS.crit_dmg);
-        updateStatRow(statRows[3], pctFmt(result.atk_speed), result.atk_speed >= CAPS.atk_speed);
-        updateStatRow(statRows[4], pctFmt(result.berserk_level), result.berserk_level >= CAPS.berserk);
-      }
-
-      var dpsRows = dpsCard.querySelectorAll('.fc-stat-row');
-      if (dpsRows.length >= 16) {
-        updateStatRow(dpsRows[0], fmtDps(result.weapon_dps), false);
-        updateStatRow(dpsRows[1], fmtDps(result.explosion_dps), false);
-        updateStatRow(dpsRows[2], fmtDps(result.fire_dps), false);
-        updateStatRow(dpsRows[3], fmtDps(result.poison_dps), false);
-        updateStatRow(dpsRows[4], fmtDps(result.smite_dps), false);
-        updateStatRow(dpsRows[5], fmtDps(result.blackhole_dps), false);
-        updateStatRow(dpsRows[6], fmtDps(result.lightning_dps), false);
-        updateStatRow(dpsRows[7], fmtDps(result.smash_dps), false);
-        updateStatRow(dpsRows[8], fmtDps(result.fox_claws_dps), false);
-        updateStatRow(dpsRows[9], fmtDps(result.foxfire_dps), false);
-        updateStatRow(dpsRows[10], fmtDps(result.archangel_smite_dps), false);
-        updateStatRow(dpsRows[11], fmtDps(result.cursed_aura_dps), false);
-        updateStatRow(dpsRows[12], fmtDps(result.golemite_dps), false);
-        updateStatRow(dpsRows[13], fmtDps(result.reverberation_dps), false);
-        updateStatRow(dpsRows[14], fmtDps(result.frost_slash_dps), false);
-        updateStatRow(dpsRows[15], fmtDps(result.glacier_explosion_dps), false);
-        updateStatRow(dpsRows[16], fmtDps(result.starfall_dps), false);
-        updateStatRow(dpsRows[17], fmtDps(result.stellar_mark_dps), false);
-        updateStatRow(dpsRows[18], fmtDps(result.ancient_poison_dps), false);
-        updateStatRow(dpsRows[19], fmtDps(result.total_dps), false);
-        updateStatRow(dpsRows[20], fmtDps(result.berserk), false);
-        updateStatRow(dpsRows[21], fmtDps(result.moonstone), false);
-      }
-
-      var ttkRows = ttkCard.querySelectorAll('.fc-stat-row');
-      if (ttkRows.length >= 3) {
-        updateStatRow(ttkRows[0], fmtTime(result.ttk_skeleton), false);
-        updateStatRow(ttkRows[1], fmtTime(result.ttk_25k), false);
-        updateStatRow(ttkRows[2], fmtTime(result.ttk_75k), false);
-      }
+      updateKeyedRows(CORE_ROWS, rowsByKey.core, result);
+      updateKeyedRows(STAT_ROWS, rowsByKey.stats, result);
+      updateKeyedRows(DPS_ROWS, rowsByKey.dps, result);
+      updateKeyedRows(TTK_ROWS, rowsByKey.ttk, result);
 
       if (result.active_traits) {
 
@@ -3257,6 +3309,7 @@
       enhancement: getBuild().enhancement,
       onChange: function (weaponType, weaponName, quality, enhancement) {
         patch({ weaponType: weaponType, weaponName: weaponName, quality: quality, enhancement: enhancement });
+        if (runeSelector) { runeSelector.setEnhancement(Number(enhancement) || 0); }
       }
     });
     weaponSection.appendChild(weaponSelector);
@@ -3407,7 +3460,7 @@
     });
     statSection.appendChild(armorSetGrid);
     statSection.appendChild(createEl('p', { class: 'fc-input-section-subtext' }, [
-      "Two matching pieces give 2/3 of the weapon bonus, a full set gives all of it. Juggernaut has 2 pieces and Goblin's Crown has 1."
+      "Each matching piece gives its share of the weapon bonus: a third per piece, a half per piece for Juggernaut, all of it for Goblin's Crown."
     ]));
 
     var statInput = createStatInput({
@@ -3469,6 +3522,7 @@
       values: getBuild().runes || [],
       noneLabel: noneLabel,
       prompt: RUNE_PROMPT,
+      enhancement: Number(getBuild().enhancement) || 0,
       onChange: function (runes) { patch({ runes: runes }); }
     });
     runeSection.appendChild(runeSelector);
@@ -3569,6 +3623,7 @@
         blastChance: newBuild.blastChance
       });
       runeSelector.setValues(newBuild.runes || []);
+      runeSelector.setEnhancement(Number(newBuild.enhancement) || 0);
       achievementDropdown.setValue(toUI(newBuild.achievement, ACHIEVEMENT_PROMPT));
       golemiteInputs.setValues(newBuild.golemites);
     };
@@ -3689,14 +3744,14 @@
     return {
       slots: build.oreSlots.map(function (s) {
         var blank = !s.name || s.name === NONE_LABEL;
-        return { name: blank && state.gameData ? state.gameData.select_ore : s.name, amount: Number(s.amount) || 0 };
+        return { name: blank && state.gameData ? state.gameData.select_ore : s.name, amount: Math.max(0, Math.floor(Number(s.amount) || 0)) };
       }),
       weapon_name: build.weaponName,
       quality: Number(build.quality) || 0,
       forge_level: Number(build.enhancement) || 0,
       race: build.race,
       bonus_weapon_type: deriveBonusType(build),
-      rune_cells: build.runes || [],
+      rune_cells: unlockedRuneCells(build.runes, Number(build.enhancement) || 0),
       base_crit_chance: 0,
       base_crit_dmg: 1.45,
       armor_crit_chance: (Number(build.armorCritChance) || 0) / 100,
@@ -3726,6 +3781,7 @@
 
       berserk: (Number(build.berserk) || 0) / 100,
       achievement: build.achievement || NONE_LABEL,
+      training_day: build.trainingDay === true,
       dryad_in_grove: build.dryadInGrove === true,
       dryad_max_hp: Number(build.dryadMaxHp) || 0,
       orc_lord_hp_missing: (Number(build.orcLordHpMissing) || 0) / 100,
@@ -3797,26 +3853,15 @@
 
   function formatResultsForClipboard(result, build) {
     var activeTraitsText = result.active_traits || 'None';
-    var traitDpsLines = state.showTraitDps ? [
-      'Explosion DPS: ' + result.explosion_dps.toFixed(2),
-      'Fire DPS: ' + result.fire_dps.toFixed(2),
-      'Poison DPS: ' + result.poison_dps.toFixed(2),
-      'Smite DPS: ' + result.smite_dps.toFixed(2),
-      'Black Hole DPS: ' + result.blackhole_dps.toFixed(2),
-      'Lightning DPS: ' + result.lightning_dps.toFixed(2),
-      'Smash DPS: ' + result.smash_dps.toFixed(2),
-      'Fox Claws DPS: ' + result.fox_claws_dps.toFixed(2),
-      'Foxfire DPS: ' + result.foxfire_dps.toFixed(2),
-      'Archangel Smite DPS: ' + result.archangel_smite_dps.toFixed(2),
-      'Cursed Aura DPS: ' + result.cursed_aura_dps.toFixed(2),
-      'Golemite DPS: ' + result.golemite_dps.toFixed(2),
-      'Reverberation DPS: ' + result.reverberation_dps.toFixed(2),
-      'Frost Slash DPS: ' + result.frost_slash_dps.toFixed(2),
-      'Glacier Explosion DPS: ' + result.glacier_explosion_dps.toFixed(2),
-      'Starfall DPS: ' + result.starfall_dps.toFixed(2),
-      'Stellar Mark DPS: ' + result.stellar_mark_dps.toFixed(2),
-      'Ancient Poison DPS: ' + result.ancient_poison_dps.toFixed(2)
-    ] : [];
+    function specLines(specs) {
+      return specs.filter(function (spec) { return state.showTraitDps || !spec.trait; }).map(function (spec) {
+        var value = result[spec.key];
+        var capped = spec.cap !== undefined && value >= spec.cap ? ' (CAPPED)' : '';
+        return spec.label + ': ' + spec.format(value) + capped;
+      });
+    }
+    var ttkLabels = { ttk_skeleton: 'Skeleton King', ttk_25k: 'Golem', ttk_75k: 'Asura' };
+    var ttkLines = TTK_ROWS.map(function (spec) { return ttkLabels[spec.key] + ': ' + spec.format(result[spec.key]); });
     var lines = [
       '=== Forge Calculator Results ===',
       '',
@@ -3824,31 +3869,17 @@
       'Quality: ' + build.quality + '% | Enhancement: +' + build.enhancement,
       'Race: ' + build.race + ' | Weapon-Type Bonus: ' + (deriveBonusType(build) || 'None'),
       '',
-      '--- Core DPS ---',
-      'Base Damage: ' + result.unforged_damage.toFixed(2),
-      'Average Multiplier: ' + result.avg_power.toFixed(2) + 'x',
-      'Weapon Damage: ' + result.forged_damage.toFixed(2),
-      'Attack Rate: ' + result.attack_rate.toFixed(2),
-      'Weapon DPS: ' + result.weapon_dps.toFixed(2),
+      '--- Core DPS ---'
+    ].concat(specLines(CORE_ROWS), [
       '',
-      '--- Stats (Capped) ---',
-      'Lethality: ' + (result.lethality * 100).toFixed(2) + '%' + (result.lethality >= CAPS.lethality ? ' (CAPPED)' : ''),
-      'Crit Chance: ' + (result.crit_chance * 100).toFixed(2) + '%' + (result.crit_chance >= CAPS.crit_chance ? ' (CAPPED)' : ''),
-      'Crit Damage: ' + (result.crit_dmg * 100).toFixed(2) + '%' + (result.crit_dmg >= CAPS.crit_dmg ? ' (CAPPED)' : ''),
-      'Attack Speed: ' + (result.atk_speed * 100).toFixed(2) + '%' + (result.atk_speed >= CAPS.atk_speed ? ' (CAPPED)' : ''),
-      'Berserk: ' + (result.berserk_level * 100).toFixed(2) + '%' + (result.berserk_level >= CAPS.berserk ? ' (CAPPED)' : ''),
+      '--- Stats (Capped) ---'
+    ], specLines(STAT_ROWS), [
       '',
-      '--- DPS Breakdown ---',
-      'Weapon DPS: ' + result.weapon_dps.toFixed(2)
-    ].concat(traitDpsLines, [
-      'Total DPS: ' + result.total_dps.toFixed(2),
-      'Total Berserk DPS: ' + fmtDps(result.berserk),
-      'Total Moonstone DPS: ' + fmtDps(result.moonstone),
+      '--- DPS Breakdown ---'
+    ], specLines(DPS_ROWS), [
       '',
-      '--- Time to Kill ---',
-      'Skeleton King: ' + (result.ttk_skeleton !== null && result.ttk_skeleton !== undefined ? result.ttk_skeleton.toFixed(2) + 's' : '—'),
-      'Golem: ' + result.ttk_25k.toFixed(2) + 's',
-      'Asura: ' + result.ttk_75k.toFixed(2) + 's',
+      '--- Time to Kill ---'
+    ], ttkLines, [
       '',
       '--- Active Traits ---',
       activeTraitsText,

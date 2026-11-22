@@ -1,5 +1,5 @@
 {
-  "source": "_OptionsCrafter!A61:F215 + DPS stat formulas (C72..C179)",
+  "source": "_OptionsCrafter!A66:F220 + DPS stat formulas (C84..E166)",
   "select_ore": "Select Ore",
   "formula_only_ores": [],
   "ores": [
@@ -1459,7 +1459,7 @@
           "divisor": 100
         },
         "lightning_cooldown": {
-          "base": 0.5,
+          "base": 5.0,
           "max": 5.0,
           "divisor": 1
         },
@@ -1760,7 +1760,7 @@
           "divisor": 100
         },
         "lightning_cooldown": {
-          "base": 0.3,
+          "base": 3.0,
           "max": 3.0,
           "divisor": 1
         },
@@ -1793,83 +1793,13 @@
       "name": "Bismuth",
       "equipment": "Weapons",
       "multiplier": 8.0,
-      "trait10": "1.8% increase to attack speed | On hit, unleash a random T3 attack rune for 10 seconds | When your Galaxite black hole triggers, unleash a rainbow wave that deals 125% of your weapon damage Increases critical chance by 1.5% | Increases Critical Damage by 1.5% | Increases Lethality by 1.5% | Fire, Poison, Black Hole and Resonance DMG +0.1% per 500 HP up to +2% | Regen 0.6 health per second | Whenever you trigger a Galaxite Black Hole, restore 0.25% of your max health",
-      "trait30": "18% increase to attack speed | On hit, unleash a random T3 attack rune (Venom Crumb, Blast Chip, Flame Spark or Thunder Shard) for 10 seconds | When your Galaxite black hole triggers, unleash a rainbow wave that deals 125% of your weapon damage Increases critical chance by 15% | Increases Critical Damage by 15% | Increases Lethality by 15% | Fire, Poison, Black Hole and Resonance DMG +1% per 500 HP up to +20% | Regen 6 health per second | Whenever you trigger a Galaxite Black Hole, restore 2.5% of your max health",
+      "trait10": "18% increase to attack speed | On hit, unleash a random T3 attack rune (Venom Crumb, Blast Chip, Flame Spark or Thunder Shard) for 10 seconds | When your Galaxite black hole triggers, unleash a rainbow wave that deals 125% of your weapon damage | Fire, Poison, Black Hole and Resonance DMG +0.1% per 500 HP up to +2%",
+      "trait30": "18% increase to attack speed | On hit, unleash a random T3 attack rune (Venom Crumb, Blast Chip, Flame Spark or Thunder Shard) for 10 seconds | When your Galaxite black hole triggers, unleash a rainbow wave that deals 125% of your weapon damage | Fire, Poison, Black Hole and Resonance DMG +1% per 500 HP up to +20%",
       "comments": null,
       "stats": {
-        "lethality": {
-          "base": 1.5,
-          "max": 15.0,
-          "divisor": 100
-        },
-        "crit_chance": {
-          "base": 1.5,
-          "max": 15.0,
-          "divisor": 100
-        },
-        "crit_dmg": {
-          "base": 1.5,
-          "max": 15.0,
-          "divisor": 100
-        },
         "atk_speed": {
-          "base": 1.8,
+          "base": 18.0,
           "max": 18.0,
-          "divisor": 100
-        },
-        "explosion_dmg": {
-          "base": 0.875,
-          "max": 8.75,
-          "divisor": 100
-        },
-        "explosion_chance": {
-          "base": 5.25,
-          "max": 5.25,
-          "divisor": 100
-        },
-        "fire_dmg": {
-          "base": 0.325,
-          "max": 3.25,
-          "divisor": 100
-        },
-        "fire_chance": {
-          "base": 7.5,
-          "max": 7.5,
-          "divisor": 100
-        },
-        "fire_duration": {
-          "base": 0.5,
-          "max": 0.5,
-          "divisor": 1
-        },
-        "poison_dmg": {
-          "base": 0.2,
-          "max": 2.0,
-          "divisor": 100
-        },
-        "poison_chance": {
-          "base": 9.625,
-          "max": 9.625,
-          "divisor": 100
-        },
-        "poison_duration": {
-          "base": 1.5,
-          "max": 1.5,
-          "divisor": 1
-        },
-        "lightning_dmg": {
-          "base": 1.0,
-          "max": 10.0,
-          "divisor": 100
-        },
-        "lightning_cooldown": {
-          "base": 0.375,
-          "max": 0.375,
-          "divisor": 1
-        },
-        "lightning_chance": {
-          "base": 5.875,
-          "max": 5.875,
           "divisor": 100
         }
       }
@@ -2016,9 +1946,9 @@
           "divisor": 100
         },
         "frost_slash_chance": {
-          "base": 30.0,
-          "max": 30.0,
-          "divisor": 100
+          "base": 0.3,
+          "max": 0.3,
+          "divisor": 1
         },
         "glacier_dmg": {
           "base": 6.5,
@@ -2026,8 +1956,8 @@
           "divisor": 100
         },
         "glacier_chance": {
-          "base": 50.0,
-          "max": 50.0,
+          "base": 30.0,
+          "max": 30.0,
           "divisor": 100
         },
         "starfall_dmg": {
@@ -2039,11 +1969,6 @@
           "base": 20.0,
           "max": 20.0,
           "divisor": 100
-        },
-        "starfall_cooldown": {
-          "base": 10.0,
-          "max": 10.0,
-          "divisor": 1
         },
         "stellar_mark_dmg": {
           "base": 15.0,

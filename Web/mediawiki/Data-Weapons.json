@@ -1,9 +1,10 @@
 {
-  "source": "_Weapon!C2:E93 (+ DPS C12/C23 validation lists)",
+  "source": "_Weapon!C2:E95 (+ DPS C12/C23 validation lists)",
   "types": [
     "Dagger",
     "Straight Sword",
     "Mace",
+    "Sword & Shield",
     "Gauntlet",
     "Axe",
     "Katana",
@@ -25,6 +26,7 @@
     "Dagger": 3.0,
     "Straight Sword": 4.0,
     "Mace": 6.0,
+    "Sword & Shield": 6.0,
     "Gauntlet": 6.0,
     "Axe": 8.0,
     "Katana": 8.0,
@@ -317,6 +319,22 @@
       "damage": 7.720002
     },
     {
+      "name": "Rosethorn",
+      "type": "Sword & Shield",
+      "classes": [
+        "Sword & Shield"
+      ],
+      "interval": 0.7,
+      "damage": 11.1
+    },
+    {
+      "name": "Knight's Bulwark",
+      "type": "Sword & Shield",
+      "classes": [],
+      "interval": 0.7,
+      "damage": 9.1
+    },
+    {
       "name": "Ironhand",
       "type": "Gauntlet",
       "classes": [
@@ -448,7 +466,7 @@
       "classes": [
         "Samurai"
       ],
-      "interval": 0.575,
+      "interval": 0.58,
       "damage": 10.2
     },
     {
@@ -674,7 +692,7 @@
         "Graveyard"
       ],
       "interval": 1.5397,
-      "damage": 16.999999
+      "damage": 16.999995
     },
     {
       "name": "Executioner's Greataxe",
@@ -818,7 +836,7 @@
         "Crystallized"
       ],
       "interval": 1.4033,
-      "damage": 25.0
+      "damage": 23.0
     },
     {
       "name": "Otsuchi",
@@ -863,7 +881,7 @@
         "Graveyard"
       ],
       "interval": 1.4033,
-      "damage": 23.0
+      "damage": 25.0
     }
   ]
 }
