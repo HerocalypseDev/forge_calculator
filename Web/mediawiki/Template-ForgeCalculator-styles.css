@@ -630,7 +630,6 @@
 
 .fc-rune-line--locked .fc-rune-slot {
   opacity: 0.4;
-  pointer-events: none;
 }
 
 .fc-stat-input {

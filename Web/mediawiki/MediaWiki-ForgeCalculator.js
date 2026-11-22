@@ -1823,7 +1823,7 @@
     }
 
     function open(showAll) {
-      if (isOpen) { return; }
+      if (isOpen || input.disabled) { return; }
       isOpen = true;
       listContainer.classList.remove(CLASS_HIDDEN);
       input.setAttribute('aria-expanded', 'true');
