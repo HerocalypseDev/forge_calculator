@@ -11,6 +11,7 @@
 
   var NONE_LABEL = 'None';
   var SELECT_ORE = 'Select Ore';
+  var FILE_LINK_OPEN = '[[' + 'File:';
 
   var SHARE_GATE = 0.10;
   var RAMP_TOP = 0.30;
@@ -2879,7 +2880,7 @@
       var api = new mw.Api();
       if (!api || typeof api.parse !== 'function') { return; }
       var text = pending.map(function (p) {
-        return '[[File:' + p.file + '|frameless|link=File:' + p.file + '|alt=' + p.alt + '|24px]]';
+        return FILE_LINK_OPEN + p.file + '|frameless|link=File:' + p.file + '|alt=' + p.alt + '|24px]]';
       }).join('\n\n');
       api.parse(text).then(function (html) {
         var blocks = splitIconHtml(html);
@@ -2980,7 +2981,7 @@
       if (!mw.Api) { return; }
       var api = new mw.Api();
       if (!api || typeof api.parse !== 'function') { return; }
-      api.parse('[[File:' + HERO_ART_FILE + '|frameless|900px|link=|alt=]]').then(function (html) {
+      api.parse(FILE_LINK_OPEN + HERO_ART_FILE + '|frameless|900px|link=|alt=]]').then(function (html) {
         var img = /<img[^>]*>/.exec(String(html || ''));
         if (img) { wrap.innerHTML = img[0]; }
       }, function () {});
