@@ -215,7 +215,7 @@
   }
 
   var EXPECTED_COUNTS = {
-    ores: 155,
+    ores: 167,
     weapons: 94,
     races: 22,
     runes: 46,

@@ -1976,6 +1976,114 @@
           "divisor": 100
         }
       }
+    },
+    {
+      "name": "Dustshard",
+      "equipment": null,
+      "multiplier": 13.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Dunewhirl Fossil",
+      "equipment": null,
+      "multiplier": 14.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Desert Lapis",
+      "equipment": "Weapons",
+      "multiplier": 15.7,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Ruined Mask",
+      "equipment": "Weapons",
+      "multiplier": 16.8,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Cursed Orb",
+      "equipment": "Armor",
+      "multiplier": 17.4,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Holy Iris",
+      "equipment": "Armor",
+      "multiplier": 18.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Merfarukite",
+      "equipment": "Armor",
+      "multiplier": 20.8,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Invertite",
+      "equipment": "Weapons",
+      "multiplier": 22.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Umutite",
+      "equipment": "Armor",
+      "multiplier": 24.9,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Aidaite",
+      "equipment": "Armor",
+      "multiplier": 28.5,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Fireatacckite",
+      "equipment": "Weapons",
+      "multiplier": 28.25,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
+    },
+    {
+      "name": "Ewalkerite",
+      "equipment": "Weapons",
+      "multiplier": 1.0,
+      "trait10": null,
+      "trait30": null,
+      "comments": null,
+      "stats": {}
     }
   ]
 }
