@@ -1999,8 +1999,8 @@
       "name": "Desert Lapis",
       "equipment": "Weapons",
       "multiplier": 15.7,
-      "trait10": null,
-      "trait30": null,
+      "trait10": "Flat Regen: Regen 0.8 health per second. | Swiftness: 1% extra movement speed.",
+      "trait30": "Flat Regen: Regen 8 health per second. | Swiftness: 10% extra movement speed.",
       "comments": null,
       "stats": {}
     },
@@ -2008,10 +2008,16 @@
       "name": "Ruined Mask",
       "equipment": "Weapons",
       "multiplier": 16.8,
-      "trait10": null,
-      "trait30": null,
+      "trait10": "Lethality: Increases Physical Damage by 1.5%. | Negative Swiftness: -0.7% movement speed.",
+      "trait30": "Lethality: Increases Physical Damage by 15%. | Negative Swiftness: -7% movement speed.",
       "comments": null,
-      "stats": {}
+      "stats": {
+        "lethality": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        }
+      }
     },
     {
       "name": "Cursed Orb",
@@ -2044,10 +2050,16 @@
       "name": "Invertite",
       "equipment": "Weapons",
       "multiplier": 22.0,
-      "trait10": null,
-      "trait30": null,
+      "trait10": "Moon Knight: +1.5% Physical Damage when moon rises. | Trick or Treat: Every 12 attacks, one random effect: stun, x1.25 or x1.5 damage, a guaranteed crit, slow, burn or poison. | Soul Burn: 35% chance on hit to curse the enemy with dark flames for 3.5% of Base Weapon Damage per second for 4 seconds. Stacks with Burn. If the enemy dies while cursed, heal 0.1% of your max health.",
+      "trait30": "Moon Knight: +15% Physical Damage when moon rises. | Trick or Treat: Every 12 attacks, one random effect: stun, x1.25 or x1.5 damage, a guaranteed crit, slow, burn or poison. | Soul Burn: 35% chance on hit to curse the enemy with dark flames for 35% of Base Weapon Damage per second for 4 seconds. Stacks with Burn. If the enemy dies while cursed, heal 1% of your max health.",
       "comments": null,
-      "stats": {}
+      "stats": {
+        "moon": {
+          "base": 1.5,
+          "max": 15.0,
+          "divisor": 100
+        }
+      }
     },
     {
       "name": "Umutite",
@@ -2071,8 +2083,8 @@
       "name": "Fireatacckite",
       "equipment": "Weapons",
       "multiplier": 28.25,
-      "trait10": null,
-      "trait30": null,
+      "trait10": "Meteor Shower: Critical hits have a 20% chance to call down 3-5 meteors, each dealing 50% damage in an area (10sec cooldown). | Aether Reach: +1.5% weapon attack range. | Arcane Missile: Hits have a 25% chance to launch 3 arcane missiles, each dealing 3.5% of Base Weapon Damage. | Forbidden Grimoire: Attacking creates a sigil on the ground for 8 seconds. You and allies inside get one random buff: +2% lethality, +1.5% attack speed, +1.5% max health, +1.5% crit damage, +5% explosion damage (15sec cooldown). | Supernova: With Galaxite in your weapon or armor, hits have a 60% chance to open a black hole that pulls enemies within 65 studs, then explodes for 13% of Base Weapon Damage (1sec cooldown).",
+      "trait30": "Meteor Shower: Critical hits have a 20% chance to call down 3-5 meteors, each dealing 500% damage in an area (10sec cooldown). | Aether Reach: +15% weapon attack range. | Arcane Missile: Hits have a 25% chance to launch 3 arcane missiles, each dealing 35% of Base Weapon Damage. | Forbidden Grimoire: Attacking creates a sigil on the ground for 8 seconds. You and allies inside get one random buff: +20% lethality, +15% attack speed, +15% max health, +15% crit damage, +50% explosion damage (15sec cooldown). | Supernova: With Galaxite in your weapon or armor, hits have a 60% chance to open a black hole that pulls enemies within 65 studs, then explodes for 130% of Base Weapon Damage (1sec cooldown).",
       "comments": null,
       "stats": {}
     },
@@ -2080,8 +2092,8 @@
       "name": "Ewalkerite",
       "equipment": "Weapons",
       "multiplier": 1.0,
-      "trait10": null,
-      "trait30": null,
+      "trait10": "Patience & Integrity: Every second without using a weapon skill gives +0.5% skill damage, up to +10%. Using a skill spends all of it on that skill. | Bravery & Justice: Reflect 3% of physical damage taken back at the attacker (up to 5% of its max health per hit). For every 10% of max health missing, gain +0.35% weapon damage (up to +3.5%). | Kindness & Perseverance: Every second in combat gives a stack (up to 12). Each stack gives +0.15% damage reduction and +0.5% stun buildup and stun duration. Stacks are lost after 15 seconds out of combat. | Determination: When a hit would drop you below 5% health, you survive, restore 6.5% of max health and become invulnerable for 1 second (240sec cooldown).",
+      "trait30": "Patience & Integrity: Every second without using a weapon skill gives +5% skill damage, up to +100%. Using a skill spends all of it on that skill. | Bravery & Justice: Reflect 30% of physical damage taken back at the attacker (up to 5% of its max health per hit). For every 10% of max health missing, gain +3.5% weapon damage (up to +35%). | Kindness & Perseverance: Every second in combat gives a stack (up to 12). Each stack gives +1.5% damage reduction and +5% stun buildup and stun duration. Stacks are lost after 15 seconds out of combat. | Determination: When a hit would drop you below 5% health, you survive, restore 65% of max health and become invulnerable for 1 second (240sec cooldown).",
       "comments": null,
       "stats": {}
     }
